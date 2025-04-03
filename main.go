@@ -25,6 +25,8 @@ func show_water_based(mainWindow *winc.Form) {
 	visual_row := 20
 	edit_row := 50
 	submit_row := 80
+	group_row := 120
+
 
 // type 
 	visual_label := winc.NewLabel(mainWindow)
@@ -34,6 +36,17 @@ func show_water_based(mainWindow *winc.Form) {
 
 	visual_field := winc.NewCheckBox(mainWindow)
 	visual_field.SetPos(field_col, visual_row)
+	// visual_label.OnClick().Bind(func(e *winc.Event) {
+	// 		visual_field.SetFocus()
+	// })
+
+	group_label := winc.NewLabel(mainWindow)
+	group_label.SetPos(label_col, group_row)
+
+	group_label.SetText("group Inspection")
+
+	group_field := winc.NewGroupBox(mainWindow)
+	group_field.SetPos(field_col, group_row)
 
 
 	 edit_label := winc.NewLabel(mainWindow)
