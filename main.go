@@ -1,110 +1,82 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
 
-import "github.com/tadvi/winc"
+	"github.com/samuel-jimenez/winc"
 
-// https://pkg.go.dev/github.com/tadvi/winc
+
+)
+
+
+var SAMPLE_VOLUME = 83.2
+var LB_PER_GAL = 8.345 // g/mL
+
+type Product struct {
+	product_type string
+	lot_number   string
+	visual       bool
+}
+
+func (product Product) get_pdf_name() string {
+	return strings.TrimSpace(product.product_type) + "-" + product.lot_number + ".pdf"
+}
+
 
 func main() {
 	show_window()
 }
 func show_window() {
 
-	fmt.Println("Hello, World!")
+	fmt.Println("Process started")
 	// DEBUG
 
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(400, 300) // (width, height)
-	mainWindow.SetText("Hello World Demo")
-	show_water_based(mainWindow)
+	mainWindow.SetText("QC Data Entry")
+	// show_water_based(mainWindow)
+	show_fr(mainWindow)
+	mainWindow.Center()
+	mainWindow.Show()
+	mainWindow.OnClose().Bind(wndOnClose)
+	mainWindow.RunMainLoop() // Must call to start event loop.
 }
-func show_water_based(mainWindow *winc.Form) {
-	label_col := 10
-	field_col := 120
 
-	visual_row := 20
-	edit_row := 50
-	submit_row := 80
-	group_row := 120
 
-	// type
-	visual_label := winc.NewLabel(mainWindow)
-	visual_label.SetPos(label_col, visual_row)
+func show_checkbox(parent *winc.Form, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.CheckBox {
+	checkbox_label := winc.NewLabel(parent)
+	checkbox_label.SetPos(x_label_pos, y_pos)
 
-	visual_label.SetText("Visual Inspection")
+	checkbox_label.SetText(field_text)
 
-	visual_field := winc.NewCheckBox(mainWindow)
-	visual_field.SetPos(field_col, visual_row)
+	checkbox_field := winc.NewCheckBox(parent)
+	checkbox_field.SetText("")
+
+	checkbox_field.SetPos(x_field_pos, y_pos)
 	// visual_label.OnClick().Bind(func(e *winc.Event) {
 	// 		visual_field.SetFocus()
 	// })
-
-	group_label := winc.NewLabel(mainWindow)
-	group_label.SetPos(label_col, group_row)
-
-	group_label.SetText("group Inspection")
-
-	group_field := winc.NewGroupBox(mainWindow)
-	group_field.SetPos(field_col, group_row)
-
-	edit_label := winc.NewLabel(mainWindow)
-	edit_label.SetPos(label_col, edit_row)
-
-	edit_box := winc.NewEdit(mainWindow)
-	edit_box.SetPos(field_col, edit_row)
-	// Most Controls have default size unless SetSize is called.
-	edit_box.SetText("edit text")
-
-	btn := winc.NewPushButton(mainWindow)
-	btn.SetText("Show or Hide")
-	btn.SetPos(40, submit_row) // (x, y)
-	btn.SetSize(100, 40)       // (width, height)
-	btn.OnClick().Bind(func(e *winc.Event) {
-		if edit_box.Visible() {
-			edit_box.Hide()
-		} else {
-			edit_box.Show()
-		}
-	})
-
-	mainWindow.Center()
-	mainWindow.Show()
-	mainWindow.OnClose().Bind(wndOnClose)
-
-	winc.RunMainLoop() // Must call to start event loop.
+	return checkbox_field
 }
 
-func show_fr(mainWindow *winc.Form) {
+func show_edit(parent *winc.Form, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
+	edit_label := winc.NewLabel(parent)
+	edit_label.SetPos(x_label_pos, y_pos)
+	edit_label.SetText(field_text)
 
-	fmt.Println("Hello, World!")
-	// DEBUG
-
-	edit_label := winc.NewEdit(mainWindow)
-	edit_label.SetText("Edit")
-
-	edit_box := winc.NewEdit(mainWindow)
-	edit_box.SetPos(10, 20)
+	// edit_field := edit_label.NewEdit(mainWindow)
+	edit_field := winc.NewEdit(parent)
+	edit_field.SetPos(x_field_pos, y_pos)
 	// Most Controls have default size unless SetSize is called.
-	edit_box.SetText("edit text")
+	edit_field.SetText("")
+	// edit_field.SetParent(edit_label)
+	// edit_label.SetParent(edit_field)
 
-	btn := winc.NewPushButton(mainWindow)
-	btn.SetText("Show or Hide")
-	btn.SetPos(40, 50)   // (x, y)
-	btn.SetSize(100, 40) // (width, height)
-	btn.OnClick().Bind(func(e *winc.Event) {
-		if edit_box.Visible() {
-			edit_box.Hide()
-		} else {
-			edit_box.Show()
-		}
-	})
-
-	mainWindow.Center()
-	mainWindow.Show()
-	mainWindow.OnClose().Bind(wndOnClose)
-
-	winc.RunMainLoop() // Must call to start event loop.
+	// edit_label.OnClick().Bind(func(e *winc.Event) {
+	// 		edit_field.SetFocus()
+	// })
+	return edit_field
 }
 
 func wndOnClose(arg *winc.Event) {
