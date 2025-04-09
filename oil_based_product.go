@@ -9,40 +9,40 @@ import (
 	"github.com/samuel-jimenez/winc"
 )
 
-type WaterBasedProduct struct {
+type OilBasedProduct struct {
 	Product
 	sg           float64
-	ph           float64
 }
 
-func newWaterBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
-	base_product := newProduct_1(product_field, lot_field, visual_field)
-	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
-	// if !err.Error(){fmt.Println("error",err)}
-	ph, _ := strconv.ParseFloat(ph_field.Text(), 64)
+func newOilBasedProduct(product_field *winc.Edit, lot_field *winc.Edit,
+			visual_field *winc.CheckBox, mass_field *winc.Edit) OilBasedProduct {
+				// func newOilBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, sample_point string, visual_field *winc.CheckBox, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) OilBasedProduct {
+				base_product := newProduct_1(product_field, lot_field, visual_field)
+				mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
+				// if !err.Error(){fmt.Println("error",err)}
+				sg := mass / SAMPLE_VOLUME
 
-	return WaterBasedProduct{base_product, sg, ph}
+				return OilBasedProduct{base_product, sg}
 
-}
+			}
 
-func (product WaterBasedProduct) check_data() bool {
+func (product OilBasedProduct) check_data() bool {
 	return true
 }
 
-func (product WaterBasedProduct) print() error {
+func (product OilBasedProduct) print() error {
 	var label_width, label_height,
 		field_width, field_height,
 		label_col,
 		// field_col,
 		product_row,
 		sg_row,
-		ph_row,
 		lot_row float64
 
-	label_width = 50
+	label_width = 40
 	label_height = 10
 
-	field_width = 50
+	field_width = 40
 	field_height = 10
 
 	label_col = 10
@@ -50,7 +50,6 @@ func (product WaterBasedProduct) print() error {
 
 	product_row = 0
 	sg_row = 20
-	ph_row = 30
 	lot_row = 45
 
 	pdf := fpdf.New("L", "mm", "A7", "")
@@ -62,69 +61,74 @@ func (product WaterBasedProduct) print() error {
 
 	pdf.SetXY(label_col, sg_row)
 	pdf.Cell(label_width, label_height, "SG")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 5, 64))
+	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 3, 64))
 
-	pdf.SetXY(label_col, ph_row)
-	pdf.Cell(label_width, label_height, "pH")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph, 'f', 2, 64))
 
 	pdf.SetXY(label_col, lot_row)
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
+	// pdf.Cell(field_width, field_height, strings.ToUpper(product.sample_point))
 
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
 	return err
 }
 
-func show_water_based(parent winc.Controller) {
+func show_oil_based(parent winc.Controller) {
+
+
 	label_col := 10
 	field_col := 120
+
+
+
 
 	product_row := 20
 	lot_row := 45
 
 	visual_row := 100
-	sg_row := 125
-	ph_row := 150
+	mass_row := 125
 
 	submit_col := 40
 	submit_row := 225
 	submit_button_width := 100
 	submit_button_height := 40
 
-	// group_row := 120
-
 	product_text := "Product"
 	lot_text := "Lot Number"
-
 	visual_text := "Visual Inspection"
-	sg_text := "SG"
-	ph_text := "pH"
+	mass_text := "Mass"
 
-	// sample_row := 70
-	// sample_text := "Sample Point"
-	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
+
 	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
 	lot_field := show_edit(parent, label_col, field_col, lot_row, lot_text)
-	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-	sg_field := show_edit(parent, label_col, field_col, sg_row, sg_text)
-	ph_field := show_edit(parent, label_col, field_col, ph_row, ph_text)
-	submit_button := winc.NewPushButton(parent)
+	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
 
+	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
+	mass_field := show_edit(parent, label_col, field_col, mass_row, mass_text)
+
+
+
+
+	// 	product_row := 20
 	// product_text := "Product"
 	// product_field := show_edit(mainWindow, label_col, field_col, product_row, product_text)
 
+	submit_button := winc.NewPushButton(parent)
+
 	submit_button.SetText("Submit")
 	submit_button.SetPos(submit_col, submit_row) // (x, y)
+	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-	submit_button.OnClick().Bind(func(e *winc.Event) {
+			submit_button.OnClick().Bind(func(e *winc.Event) {
 
-		product := newWaterBasedProduct(product_field, lot_field, visual_field, sg_field, ph_field)
+				// product := newOilBasedProduct(product_field, lot_field, sample_field, visual_field, mass_field)
+				product := newOilBasedProduct(product_field, lot_field, visual_field, mass_field)
 
-		if product.check_data() {
-			fmt.Println("data", product)
-			product.print()
-		}
-	})
+				if product.check_data() {
+					fmt.Println("data", product)
+					product.print()
+				}
+			})
 
-	// visual_field.SetFocus()
+	visual_field.SetFocus()
 }
+
