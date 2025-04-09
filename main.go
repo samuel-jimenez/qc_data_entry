@@ -5,10 +5,7 @@ import (
 	"strings"
 
 	"github.com/samuel-jimenez/winc"
-
-
 )
-
 
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
@@ -19,10 +16,20 @@ type Product struct {
 	visual       bool
 }
 
+func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
+			return Product{product_field.Text(), lot_field.Text(), false}
+		}
+
+func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
+		visual_field *winc.CheckBox) Product {
+			return Product{product_field.Text(), lot_field.Text(), visual_field.Checked()}
+		}
+
+
+
 func (product Product) get_pdf_name() string {
 	return strings.TrimSpace(product.product_type) + "-" + product.lot_number + ".pdf"
 }
-
 
 func main() {
 	show_window()
@@ -33,18 +40,34 @@ func show_window() {
 	// DEBUG
 
 	mainWindow := winc.NewForm(nil)
-	mainWindow.SetSize(400, 300) // (width, height)
+	mainWindow.SetSize(800, 600) // (width, height)
 	mainWindow.SetText("QC Data Entry")
-	// show_water_based(mainWindow)
-	show_fr(mainWindow)
+
+
+	dock := winc.NewSimpleDock(mainWindow)
+
+	tabs := winc.NewTabView(mainWindow)
+	// tabs.SetPos(20, 20)
+	// tabs.SetSize(750, 500)
+	tab_wb := tabs.AddPanel("Water Based")
+	tab_oil := tabs.AddPanel("Oil Based")
+	tab_fr := tabs.AddPanel("Friction Reducer")
+
+	show_water_based(tab_wb)
+	show_oil_based(tab_oil)
+	show_fr(tab_fr)
+
+	// dock.Dock(quux, winc.Top)        // toolbars always dock to the top
+	dock.Dock(tabs, winc.Top)           // tabs should prefer docking at the top
+	dock.Dock(tabs.Panels(), winc.Fill) // tab panels dock just below tabs and fill area
+
 	mainWindow.Center()
 	mainWindow.Show()
 	mainWindow.OnClose().Bind(wndOnClose)
 	mainWindow.RunMainLoop() // Must call to start event loop.
 }
 
-
-func show_checkbox(parent *winc.Form, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.CheckBox {
+func show_checkbox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.CheckBox {
 	checkbox_label := winc.NewLabel(parent)
 	checkbox_label.SetPos(x_label_pos, y_pos)
 
@@ -60,7 +83,7 @@ func show_checkbox(parent *winc.Form, x_label_pos, x_field_pos, y_pos int, field
 	return checkbox_field
 }
 
-func show_edit(parent *winc.Form, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
+func show_edit(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
 	edit_label := winc.NewLabel(parent)
 	edit_label.SetPos(x_label_pos, y_pos)
 	edit_label.SetText(field_text)
