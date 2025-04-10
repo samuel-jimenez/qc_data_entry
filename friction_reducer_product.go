@@ -31,7 +31,7 @@ func newFrictionReducerProduct(base_product Product, sample_point string, viscos
 
 
 func (product FrictionReducerProduct) get_pdf_name() string {
-	return strings.TrimSpace(product.product_type) + "-" + product.lot_number  + "-" + product.sample_point + ".pdf"
+	return fmt.Sprintf("%s/%s-%s-%s.pdf",LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number),product.sample_point)
 }
 
 
