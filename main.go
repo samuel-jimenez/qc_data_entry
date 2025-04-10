@@ -1,15 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"strings"
+	"time"
 
+	_ "github.com/ncruces/go-sqlite3/driver"
+	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/winc"
 )
 
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
+var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/foo.db"
 
 type Product struct {
 	product_type string
@@ -31,12 +37,86 @@ func (product Product) get_pdf_name() string {
 }
 
 func main() {
+	//open_db
+	db, err := sql.Open("sqlite3", DB_PATH)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	dbinit(db)
+	/*
+		tx, err := db.Begin()
+		if err != nil {
+			log.Fatal(err)
+		}
+		stmt, err := tx.Prepare("insert into foo(id, name) values(?, ?)")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer stmt.Close()
+		for i := 0; i < 100; i++ {
+			_, err = stmt.Exec(i, fmt.Sprintf("こんにちは世界%03d", i))
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		err = tx.Commit()
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+
+	// rows, err := db.Query("select id, name from foo")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer rows.Close()
+	// for rows.Next() {
+	// 	var id int
+	// 	var name string
+	// 	err = rows.Scan(&id, &name)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	fmt.Println(id, name)
+	// }
+	// err = rows.Err()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	show_window()
 }
+
+func dbinit(db *sql.DB) {
+
+	sqlStmt := `
+PRAGMA foreign_keys = ON;
+create table product (product_id integer not null primary key, product_name text);
+create table product_batch (batch_id integer not null primary key, batch_name text, product_id references product);
+create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text);
+
+`
+	// foreign key(trackartist) references product(product_id)
+	// references product
+	// recipe
+	//qc_values
+
+	db.Exec(sqlStmt)
+
+	// _, err = db.Exec(sqlStmt)
+	// if err != nil {
+	// 	log.Printf("%q: %s\n", err, sqlStmt)
+	// 	return
+	// }
+}
+
 func show_window() {
 
 	fmt.Println("Process started")
 	// DEBUG
+	fmt.Println(time.Now().UTC().UnixNano())
 
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(800, 600) // (width, height)
