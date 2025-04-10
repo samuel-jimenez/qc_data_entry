@@ -103,8 +103,9 @@ func show_water_based(parent winc.Controller) {
 	// sample_row := 70
 	// sample_text := "Sample Point"
 	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
-	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
-	lot_field := show_edit(parent, label_col, field_col, lot_row, lot_text)
+
+	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
+	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	sg_field := show_edit(parent, label_col, field_col, sg_row, sg_text)
 	ph_field := show_edit(parent, label_col, field_col, ph_row, ph_text)
