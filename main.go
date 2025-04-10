@@ -9,6 +9,7 @@ import (
 
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
+var LABEL_PATH="C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
 type Product struct {
 	product_type string
@@ -28,7 +29,7 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 
 
 func (product Product) get_pdf_name() string {
-	return strings.TrimSpace(product.product_type) + "-" + product.lot_number + ".pdf"
+	return fmt.Sprintf("%s/%s-%s.pdf",LABEL_PATH, strings.TrimSpace(product.product_type), product.lot_number)
 }
 
 func main() {
