@@ -102,8 +102,37 @@ func show_edit(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, fiel
 	// edit_label.OnClick().Bind(func(e *winc.Event) {
 	// 		edit_field.SetFocus()
 	// })
+	edit_field.OnKillFocus().Bind(func(e *winc.Event) {
+		edit_field.SetText(strings.TrimSpace(edit_field.Text()))
+	})
+
 	return edit_field
 }
+
+func show_edit_with_lose_focus(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string, focus_cb func(string) string) *winc.Edit {
+	edit_label := winc.NewLabel(parent)
+	edit_label.SetPos(x_label_pos, y_pos)
+	edit_label.SetText(field_text)
+
+	// edit_field := edit_label.NewEdit(mainWindow)
+	edit_field := winc.NewEdit(parent)
+	edit_field.SetPos(x_field_pos, y_pos)
+	// Most Controls have default size unless SetSize is called.
+	edit_field.SetText("")
+	// edit_field.SetParent(edit_label)
+	// edit_label.SetParent(edit_field)
+
+	// edit_label.OnClick().Bind(func(e *winc.Event) {
+	// 		edit_field.SetFocus()
+	// })
+	edit_field.OnKillFocus().Bind(func(e *winc.Event) {
+		edit_field.SetText(focus_cb(strings.TrimSpace(edit_field.Text())))
+	})
+
+	return edit_field
+}
+
+
 
 func wndOnClose(arg *winc.Event) {
 	winc.Exit()

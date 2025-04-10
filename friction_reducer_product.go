@@ -138,10 +138,10 @@ func show_fr(parent winc.Controller) {
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
-	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
+	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
 	// show_edit(parent, label_col, field_col, product_row, product_text)
 
-	lot_field := show_edit(parent, label_col, field_col, lot_row, lot_text)
+	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 	// show_edit(parent, label_col, field_col, lot_row, lot_text)
 
 	top_group_cb := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
