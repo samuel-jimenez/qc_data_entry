@@ -41,11 +41,11 @@ func (product Product) get_pdf_name() string {
 
 type AllProduct struct {
 	Product
-	sg float64
-	ph float64
-	string_test  float64
-	viscosity    float64
-	sample_point string
+	sg NullFloat64
+	ph NullFloat64
+	string_test  NullFloat64
+	viscosity    NullFloat64
+	sample_point NullString
 }
 
 func (product Product) toAllProduct() AllProduct {
@@ -53,6 +53,11 @@ func (product Product) toAllProduct() AllProduct {
 	//TODO Option?
 	// NullFloat64
 
+}
+if s.Valid {
+   // use s.V
+} else {
+   // NULL value
 }
 
 func (product AllProduct) print() error {
