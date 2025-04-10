@@ -14,6 +14,12 @@ type OilBasedProduct struct {
 	sg float64
 }
 
+
+func (product OilBasedProduct) toAllProduct() AllProduct {
+	return AllProduct{Product{product.product_type, product.lot_number,  product.visual}, product.sg, 0, 0, 0, ""}
+	//TODO Option?
+}
+
 func newOilBasedProduct(product_field *winc.Edit, lot_field *winc.Edit,
 	visual_field *winc.CheckBox, mass_field *winc.Edit) OilBasedProduct {
 	// func newOilBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, sample_point string, visual_field *winc.CheckBox, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) OilBasedProduct {

@@ -15,6 +15,12 @@ type WaterBasedProduct struct {
 	ph float64
 }
 
+func (product WaterBasedProduct) toAllProduct() AllProduct {
+	return AllProduct{Product{product.product_type, product.lot_number,  product.visual}, product.sg, product.ph, 0, 0, ""}
+	//TODO Option?
+}
+
+
 func newWaterBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
 	base_product := newProduct_1(product_field, lot_field, visual_field)
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
@@ -123,7 +129,7 @@ func show_water_based(parent winc.Controller) {
 
 		if product.check_data() {
 			fmt.Println("data", product)
-			product.print()
+			product.toAllProduct().print()
 		}
 	})
 

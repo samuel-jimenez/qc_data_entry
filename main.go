@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
+	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/winc"
@@ -23,6 +25,7 @@ type Product struct {
 	visual       bool
 }
 
+
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
 	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
 }
@@ -34,6 +37,95 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 
 func (product Product) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
+}
+
+type AllProduct struct {
+	Product
+	sg float64
+	ph float64
+	string_test  float64
+	viscosity    float64
+	sample_point string
+}
+
+func (product Product) toAllProduct() AllProduct {
+	return AllProduct{product, 0, 0, 0, 0, ""}
+	//TODO Option?
+	// NullFloat64
+
+}
+
+func (product AllProduct) print() error {
+	var label_width, label_height,
+		field_width, field_height,
+		label_col,
+		// field_col,
+		product_row,
+		density_row,
+		curr_row,
+		string_row,
+		viscosity_row,
+		lot_row float64
+
+	label_width = 40
+	label_height = 10
+
+	field_width = 40
+	field_height = 10
+
+	label_col = 10
+	// field_col = 120
+
+	product_row = 0
+	curr_row = 5
+	density_row = 15
+	string_row = 20
+	viscosity_row = 25
+	lot_row = 45
+
+	pdf := fpdf.New("L", "mm", "A7", "")
+	pdf.SetAutoPageBreak(false, 0)
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 16)
+	pdf.SetXY(label_col, product_row)
+	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
+			//TODO
+	if (product.sg != 0) {
+		curr_row += 5
+	pdf.SetXY(label_col, curr_row)
+	pdf.Cell(label_width, label_height, "SG")
+	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 3, 64))
+	}
+
+	//TODO
+	if (product.ph != 0) {
+		curr_row += 5
+	pdf.SetXY(label_col, curr_row)
+	pdf.Cell(label_width, label_height, "pH")
+	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph, 'f', 3, 64))
+	}
+
+	fmt.Println(curr_row)
+
+
+	pdf.SetXY(label_col, density_row)
+	pdf.Cell(label_width, label_height, "DENSITY")
+	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg*LB_PER_GAL, 'f', 3, 64))
+
+	pdf.SetXY(label_col, string_row)
+	pdf.Cell(label_width, label_height, "STRING")
+	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test, 'f', 0, 64))
+
+	pdf.SetXY(label_col, viscosity_row)
+	pdf.Cell(label_width, label_height, "VISCOSITY")
+	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity, 'f', 0, 64))
+
+	pdf.SetXY(label_col, lot_row)
+	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
+	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
+
+	err := pdf.OutputFileAndClose(product.get_pdf_name())
+	return err
 }
 
 func main() {
@@ -95,9 +187,14 @@ func dbinit(db *sql.DB) {
 PRAGMA foreign_keys = ON;
 create table product (product_id integer not null primary key, product_name text);
 create table product_batch (batch_id integer not null primary key, batch_name text, product_id references product);
-create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text);
-
+create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
 `
+
+/*
+	sqlStmt := `
+drop table qc_samples
+create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
+`*/
 	// foreign key(trackartist) references product(product_id)
 	// references product
 	// recipe

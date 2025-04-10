@@ -18,6 +18,11 @@ type FrictionReducerProduct struct {
 	sample_point string
 }
 
+func (product FrictionReducerProduct) toAllProduct() AllProduct {
+	return AllProduct{Product{product.product_type, product.lot_number,  product.visual}, product.sg, 0, product.string_test, product.viscosity, product.sample_point,}
+	//TODO Option?
+}
+
 func newFrictionReducerProduct(base_product Product, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
