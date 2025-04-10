@@ -18,19 +18,21 @@ type Product struct {
 }
 
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
-			return Product{product_field.Text(), lot_field.Text(), false}
-		}
+	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
+}
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 		visual_field *winc.CheckBox) Product {
-			return Product{product_field.Text(), lot_field.Text(), visual_field.Checked()}
+			return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
 		}
 
 
 
 func (product Product) get_pdf_name() string {
-	return fmt.Sprintf("%s/%s-%s.pdf",LABEL_PATH, strings.TrimSpace(product.product_type), product.lot_number)
+	return fmt.Sprintf("%s/%s-%s.pdf",LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
+
+
 
 func main() {
 	show_window()
