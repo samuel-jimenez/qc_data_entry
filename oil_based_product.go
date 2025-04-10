@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,9 +15,9 @@ type OilBasedProduct struct {
 	sg float64
 }
 
-
 func (product OilBasedProduct) toAllProduct() AllProduct {
-	return AllProduct{Product{product.product_type, product.lot_number,  product.visual}, product.sg, 0, 0, 0, ""}
+	return AllProduct{Product{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+
 	//TODO Option?
 }
 

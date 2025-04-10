@@ -6,7 +6,6 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -25,7 +24,6 @@ type Product struct {
 	visual       bool
 }
 
-
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
 	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
 }
@@ -41,23 +39,19 @@ func (product Product) get_pdf_name() string {
 
 type AllProduct struct {
 	Product
-	sg NullFloat64
-	ph NullFloat64
-	string_test  NullFloat64
-	viscosity    NullFloat64
-	sample_point NullString
+	sg           sql.NullFloat64
+	ph           sql.NullFloat64
+	density      sql.NullFloat64
+	string_test  sql.NullFloat64
+	viscosity    sql.NullFloat64
+	sample_point sql.NullString
 }
 
 func (product Product) toAllProduct() AllProduct {
-	return AllProduct{product, 0, 0, 0, 0, ""}
+	return AllProduct{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 	//TODO Option?
 	// NullFloat64
 
-}
-if s.Valid {
-   // use s.V
-} else {
-   // NULL value
 }
 
 func (product AllProduct) print() error {
@@ -66,10 +60,8 @@ func (product AllProduct) print() error {
 		label_col,
 		// field_col,
 		product_row,
-		density_row,
 		curr_row,
-		string_row,
-		viscosity_row,
+		curr_row_delta,
 		lot_row float64
 
 	label_width = 40
@@ -82,10 +74,6 @@ func (product AllProduct) print() error {
 	// field_col = 120
 
 	product_row = 0
-	curr_row = 5
-	density_row = 15
-	string_row = 20
-	viscosity_row = 25
 	lot_row = 45
 
 	pdf := fpdf.New("L", "mm", "A7", "")
@@ -94,40 +82,56 @@ func (product AllProduct) print() error {
 	pdf.SetFont("Arial", "B", 16)
 	pdf.SetXY(label_col, product_row)
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
-			//TODO
-	if (product.sg != 0) {
-		curr_row += 5
-	pdf.SetXY(label_col, curr_row)
-	pdf.Cell(label_width, label_height, "SG")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 3, 64))
+
+	if product.density.Valid {
+		curr_row = 5
+		curr_row_delta = 5
+
+	} else {
+		curr_row = 10
+		curr_row_delta = 10
+
 	}
 
-	//TODO
-	if (product.ph != 0) {
-		curr_row += 5
-	pdf.SetXY(label_col, curr_row)
-	pdf.Cell(label_width, label_height, "pH")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph, 'f', 3, 64))
+	if product.sg.Valid {
+		curr_row += curr_row_delta
+		pdf.SetXY(label_col, curr_row)
+		pdf.Cell(label_width, label_height, "SG")
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg.Float64, 'f', 3, 64))
+	}
+
+	if product.ph.Valid {
+		curr_row += curr_row_delta
+		pdf.SetXY(label_col, curr_row)
+		pdf.Cell(label_width, label_height, "pH")
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph.Float64, 'f', 3, 64))
+	}
+
+	if product.density.Valid {
+		curr_row += curr_row_delta
+		pdf.SetXY(label_col, curr_row)
+		pdf.Cell(label_width, label_height, "DENSITY")
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.density.Float64, 'f', 3, 64))
+	}
+
+	if product.string_test.Valid {
+		curr_row += curr_row_delta
+		pdf.SetXY(label_col, curr_row)
+		pdf.Cell(label_width, label_height, "STRING")
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test.Float64, 'f', 3, 64))
+	}
+	if product.viscosity.Valid {
+		curr_row += curr_row_delta
+		pdf.SetXY(label_col, curr_row)
+		pdf.Cell(label_width, label_height, "VISCOSITY")
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity.Float64, 'f', 3, 64))
 	}
 
 	fmt.Println(curr_row)
 
-
-	pdf.SetXY(label_col, density_row)
-	pdf.Cell(label_width, label_height, "DENSITY")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg*LB_PER_GAL, 'f', 3, 64))
-
-	pdf.SetXY(label_col, string_row)
-	pdf.Cell(label_width, label_height, "STRING")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test, 'f', 0, 64))
-
-	pdf.SetXY(label_col, viscosity_row)
-	pdf.Cell(label_width, label_height, "VISCOSITY")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity, 'f', 0, 64))
-
 	pdf.SetXY(label_col, lot_row)
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
+	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point.String), "", 0, "R", false, 0, "")
 
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
 	return err
@@ -195,11 +199,11 @@ create table product_batch (batch_id integer not null primary key, batch_name te
 create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
 `
 
-/*
-	sqlStmt := `
-drop table qc_samples
-create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
-`*/
+	/*
+	   	sqlStmt := `
+	   drop table qc_samples
+	   create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
+	   `*/
 	// foreign key(trackartist) references product(product_id)
 	// references product
 	// recipe
@@ -218,7 +222,7 @@ func show_window() {
 
 	fmt.Println("Process started")
 	// DEBUG
-	fmt.Println(time.Now().UTC().UnixNano())
+	// fmt.Println(time.Now().UTC().UnixNano())
 
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(800, 600) // (width, height)

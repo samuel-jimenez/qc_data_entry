@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -19,8 +20,8 @@ type FrictionReducerProduct struct {
 }
 
 func (product FrictionReducerProduct) toAllProduct() AllProduct {
-	return AllProduct{Product{product.product_type, product.lot_number,  product.visual}, product.sg, 0, product.string_test, product.viscosity, product.sample_point,}
-	//TODO Option?
+	return AllProduct{Product{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
+
 }
 
 func newFrictionReducerProduct(base_product Product, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
@@ -35,7 +36,13 @@ func newFrictionReducerProduct(base_product Product, sample_point string, viscos
 }
 
 func (product FrictionReducerProduct) get_pdf_name() string {
-	return fmt.Sprintf("%s/%s-%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number), product.sample_point)
+	// if (product.sample_point.Valid) {
+	if product.sample_point != "" {
+
+		return fmt.Sprintf("%s/%s-%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number), product.sample_point)
+	}
+
+	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
 func (product FrictionReducerProduct) check_data() bool {

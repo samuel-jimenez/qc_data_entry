@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -16,10 +17,10 @@ type WaterBasedProduct struct {
 }
 
 func (product WaterBasedProduct) toAllProduct() AllProduct {
-	return AllProduct{Product{product.product_type, product.lot_number,  product.visual}, product.sg, product.ph, 0, 0, ""}
+	return AllProduct{Product{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+
 	//TODO Option?
 }
-
 
 func newWaterBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
 	base_product := newProduct_1(product_field, lot_field, visual_field)
