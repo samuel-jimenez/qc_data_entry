@@ -29,11 +29,9 @@ func newFrictionReducerProduct(base_product Product, sample_point string, viscos
 
 }
 
-
 func (product FrictionReducerProduct) get_pdf_name() string {
-	return fmt.Sprintf("%s/%s-%s-%s.pdf",LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number),product.sample_point)
+	return fmt.Sprintf("%s/%s-%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number), product.sample_point)
 }
-
 
 func (product FrictionReducerProduct) check_data() bool {
 	return true
@@ -93,7 +91,6 @@ func (product FrictionReducerProduct) print() error {
 	pdf.SetXY(label_col, lot_row)
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
 	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
-
 
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
 	return err
@@ -174,31 +171,30 @@ func show_fr(parent winc.Controller) {
 	submit_button.SetPos(submit_col, submit_row) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-			submit_button.OnClick().Bind(func(e *winc.Event) {
+	submit_button.OnClick().Bind(func(e *winc.Event) {
 
-					base_product := newProduct_0(product_field, lot_field)
-					top_product := top_group_cb(base_product)
-					bottom_product := bottom_group_cb(base_product)
-					fmt.Println("top", top_product)
-					fmt.Println("btm", bottom_product)
-					if top_product.check_data() {
-						fmt.Println("data", top_product)
-						top_product.print()
-					}
-					if bottom_product.check_data() {
-						fmt.Println("data", bottom_product)
-						bottom_product.print()
-					}
-			})
+		base_product := newProduct_0(product_field, lot_field)
+		top_product := top_group_cb(base_product)
+		bottom_product := bottom_group_cb(base_product)
+		fmt.Println("top", top_product)
+		fmt.Println("btm", bottom_product)
+		if top_product.check_data() {
+			fmt.Println("data", top_product)
+			top_product.print()
+		}
+		if bottom_product.check_data() {
+			fmt.Println("data", bottom_product)
+			bottom_product.print()
+		}
+	})
 
 }
-
 
 // func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) winc.Controller {
 
 func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product Product) FrictionReducerProduct {
 
-		// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
+	// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
 
 	sample_group := winc.NewPanel(parent)
 	sample_group.SetAndClearStyleBits(w32.WS_TABSTOP, 0)
@@ -238,7 +234,6 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	mass_field := show_edit(parent, label_col, field_col, mass_row, mass_text)
 	string_field := show_edit(parent, label_col, field_col, string_row, string_text)
 
-
 	// parent.Bind(w32.WM_COPYDATA, func(arg *EventArg) {
 	// 	sender := arg.Sender()
 	// 	if data, ok := arg.Data().(*gform.RawMsg); ok {
@@ -250,8 +245,7 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 
 	return func(base_product Product) FrictionReducerProduct {
 		base_product.visual = visual_field.Checked()
-		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)}
-
+		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
+	}
 
 }
-

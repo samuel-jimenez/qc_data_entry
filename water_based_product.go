@@ -11,8 +11,8 @@ import (
 
 type WaterBasedProduct struct {
 	Product
-	sg           float64
-	ph           float64
+	sg float64
+	ph float64
 }
 
 func newWaterBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
@@ -114,7 +114,7 @@ func show_water_based(parent winc.Controller) {
 	// product_field := show_edit(mainWindow, label_col, field_col, product_row, product_text)
 
 	submit_button.SetText("Submit")
-	submit_button.SetPos(submit_col, submit_row) // (x, y)
+	submit_button.SetPos(submit_col, submit_row)                     // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 

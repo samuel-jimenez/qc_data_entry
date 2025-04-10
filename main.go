@@ -9,7 +9,7 @@ import (
 
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
-var LABEL_PATH="C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
+var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
 type Product struct {
 	product_type string
@@ -22,17 +22,13 @@ func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
 }
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
-		visual_field *winc.CheckBox) Product {
-			return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
-		}
-
-
-
-func (product Product) get_pdf_name() string {
-	return fmt.Sprintf("%s/%s-%s.pdf",LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
+	visual_field *winc.CheckBox) Product {
+	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
 }
 
-
+func (product Product) get_pdf_name() string {
+	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
+}
 
 func main() {
 	show_window()
@@ -45,7 +41,6 @@ func show_window() {
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(800, 600) // (width, height)
 	mainWindow.SetText("QC Data Entry")
-
 
 	dock := winc.NewSimpleDock(mainWindow)
 
@@ -131,8 +126,6 @@ func show_edit_with_lose_focus(parent winc.Controller, x_label_pos, x_field_pos,
 
 	return edit_field
 }
-
-
 
 func wndOnClose(arg *winc.Event) {
 	winc.Exit()
