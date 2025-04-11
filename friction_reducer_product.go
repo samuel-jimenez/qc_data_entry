@@ -200,6 +200,49 @@ func show_fr(parent winc.Controller) {
 		}
 	})
 
+	top_button_col := 150
+	top_button_row := 225
+	top_button_width := 100
+	top_button_height := 40
+	top_button := winc.NewPushButton(parent)
+
+	top_button.SetText("Accept Top")
+	top_button.SetPos(top_button_col, top_button_row) // (x, y)
+	// top_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	top_button.SetSize(top_button_width, top_button_height) // (width, height)
+	top_button.OnClick().Bind(func(e *winc.Event) {
+
+		base_product := newProduct_0(product_field, lot_field)
+		top_product := top_group_cb(base_product)
+		top_product.sample_point = ""
+		if top_product.check_data() {
+			fmt.Println("data", top_product)
+			top_product.print()
+		}
+
+	})
+
+	btm_button_col := 250
+	btm_button_row := 225
+	btm_button_width := 100
+	btm_button_height := 40
+	btm_button := winc.NewPushButton(parent)
+
+	btm_button.SetText("Accept Btm")
+	btm_button.SetPos(btm_button_col, btm_button_row) // (x, y)
+	// btm_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	btm_button.SetSize(btm_button_width, btm_button_height) // (width, height)
+	btm_button.OnClick().Bind(func(e *winc.Event) {
+
+		base_product := newProduct_0(product_field, lot_field)
+		bottom_product := bottom_group_cb(base_product)
+		bottom_product.sample_point = ""
+		if bottom_product.check_data() {
+			fmt.Println("data", bottom_product)
+			bottom_product.print()
+		}
+	})
+
 }
 
 // func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) winc.Controller {

@@ -134,8 +134,7 @@ func (product AllProduct) print() error {
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
 	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point.String), "", 0, "R", false, 0, "")
 
-
-			fmt.Println("saving to: ", product.get_pdf_name())
+	fmt.Println("saving to: ", product.get_pdf_name())
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
 	return err
 }
