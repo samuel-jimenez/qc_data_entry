@@ -92,19 +92,20 @@ func (product AllProduct) print() error {
 		curr_row_delta = 10
 
 	}
+	//TODO unit
 
 	if product.sg.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg.Float64, 'f', 3, 64))
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg.Float64, 'f', 4, 64))
 	}
 
 	if product.ph.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph.Float64, 'f', 3, 64))
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph.Float64, 'f', 2, 64))
 	}
 
 	if product.density.Valid {
@@ -133,6 +134,8 @@ func (product AllProduct) print() error {
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
 	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point.String), "", 0, "R", false, 0, "")
 
+
+			fmt.Println("saving to: ", product.get_pdf_name())
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
 	return err
 }
