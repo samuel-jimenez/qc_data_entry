@@ -111,7 +111,15 @@ func show_water_based(parent winc.Controller) {
 	// sample_text := "Sample Point"
 	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
 
+	//TODO EXTRACT
+	var product_id int64
 	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
+	product_field.OnKillFocus().Bind(func(e *winc.Event) {
+		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
+		if product_field.Text() != "" {
+		product_id = get_init_product_id(product_field.Text())
+		fmt.Println("product_id", product_id)}
+	})
 	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	sg_field := show_edit(parent, label_col, field_col, sg_row, sg_text)

@@ -129,6 +129,26 @@ func get_init_product_id(product_name string) int64 {
 	return product_id
 }
 
+func get_init_lot_id(lot_name string, product_name string) int64 {
+	// lot_id, err := db_get_lot.Exec(lot_name)
+	// lot_id := db_get_lot.QueryRow(lot_name)
+	var lot_id int64
+	if db_get_lot.QueryRow(lot_name).Scan(&lot_id) != nil {
+		//no rows
+		result, err := db_insert_lot.Exec(lot_name)
+		if err != nil {
+			log.Printf("%q: %s\n", err, "get_init_lot_id")
+			return -1
+		}
+		lot_id, err = result.LastInsertId()
+		if err != nil {
+			log.Printf("%q: %s\n", err, "get_init_lot_id")
+			return -2
+		}
+	}
+	return lot_id
+}
+
 // create table product_line (product_id integer not null primary key, product_name text);
 func show_fr(parent winc.Controller) {
 
@@ -169,6 +189,7 @@ func show_fr(parent winc.Controller) {
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
+	//TODO EXTRACT
 	// var product_id, batch_id int
 	var product_id int64
 

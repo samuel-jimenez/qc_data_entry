@@ -19,7 +19,8 @@ var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.db"
 
 var qc_db *sql.DB
-var db_get_product, db_insert_product *sql.Stmt
+var db_get_product, db_insert_product,
+db_get_lot, db_insert_lot *sql.Stmt
 var err error
 
 type Product struct {
@@ -221,9 +222,15 @@ func dbinit(db *sql.DB) {
 	sqlStmt := `
 PRAGMA foreign_keys = ON;
 create table product_line (product_id integer not null primary key, product_name text unique);
-create table product_batch (batch_id integer not null primary key, batch_name text, product_id references product);
-create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
+create table product_lot (lot_id integer not null primary key, lot_name text, product_id references product, unique (lot_name,product_id));
+create table qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
 `
+
+// 	sqlStmt := `
+// PRAGMA foreign_keys = ON;
+// create table product_lot (lot_id integer not null primary key, lot_name text, product_id references product);
+// create table qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
+// `
 
 	/*
 	   	sqlStmt := `
@@ -254,6 +261,20 @@ create table qc_samples (qc_id integer not null primary key, batch_id references
 	db_insert_product, err = db.Prepare(insert_product_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, insert_product_statement)
+		return
+	}
+
+		get_lot_statement := `select lot_id from product_lot join product_line using (product_id) where lot_name = ? and product_name = ?`
+	db_get_lot, err = db.Prepare(get_lot_statement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, get_lot_statement)
+		return
+	}
+
+	insert_lot_statement := `insert into product_lot (lot_name) values (?) returning lot_id`
+	db_insert_lot, err = db.Prepare(insert_lot_statement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, insert_lot_statement)
 		return
 	}
 }
