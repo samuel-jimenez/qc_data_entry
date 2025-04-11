@@ -16,7 +16,11 @@ import (
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
-var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/foo.db"
+var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.db"
+
+var qc_db *sql.DB
+var db_get_product, db_insert_product *sql.Stmt
+var err error
 
 type Product struct {
 	product_type string
@@ -52,6 +56,26 @@ func (product Product) toAllProduct() AllProduct {
 	//TODO Option?
 	// NullFloat64
 
+}
+
+func (product AllProduct) save() error {
+
+	stmt, err := qc_db.Prepare(`insert into
+qc_samples (qc_id, batch_id, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
+foo(id, name)
+values(?, ?)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	// for i := 0; i < 100; i++ {
+	// 	_, err = stmt.Exec(i, fmt.Sprintf("こんにちは世界%03d", i))
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 		// 	}
+	// 	}
+	// }
+	return err
 }
 
 func (product AllProduct) print() error {
@@ -141,36 +165,35 @@ func (product AllProduct) print() error {
 
 func main() {
 	//open_db
-	db, err := sql.Open("sqlite3", DB_PATH)
+	qc_db, err := sql.Open("sqlite3", DB_PATH)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer qc_db.Close()
 
-	dbinit(db)
-	/*
-		tx, err := db.Begin()
-		if err != nil {
-			log.Fatal(err)
-		}
-		stmt, err := tx.Prepare("insert into foo(id, name) values(?, ?)")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer stmt.Close()
-		for i := 0; i < 100; i++ {
-			_, err = stmt.Exec(i, fmt.Sprintf("こんにちは世界%03d", i))
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-		err = tx.Commit()
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
+	dbinit(qc_db)
 
-	// rows, err := db.Query("select id, name from foo")
+	// tx, err := qc_db.Begin()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// stmt, err := tx.Prepare("insert into foo(id, name) values(?, ?)")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer stmt.Close()
+	// for i := 0; i < 100; i++ {
+	// 	_, err = stmt.Exec(i, fmt.Sprintf("こんにちは世界%03d", i))
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// }
+	// err = tx.Commit()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// rows, err := qc_db.Query("select id, name from foo")
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
@@ -192,11 +215,12 @@ func main() {
 	show_window()
 }
 
+// TDFO add clear
 func dbinit(db *sql.DB) {
 
 	sqlStmt := `
 PRAGMA foreign_keys = ON;
-create table product (product_id integer not null primary key, product_name text);
+create table product_line (product_id integer not null primary key, product_name text unique);
 create table product_batch (batch_id integer not null primary key, batch_name text, product_id references product);
 create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
 `
@@ -218,6 +242,20 @@ create table qc_samples (qc_id integer not null primary key, batch_id references
 	// 	log.Printf("%q: %s\n", err, sqlStmt)
 	// 	return
 	// }
+
+	get_product_statement := `select product_id from product_line where product_name = ?`
+	db_get_product, err = db.Prepare(get_product_statement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, get_product_statement)
+		return
+	}
+
+	insert_product_statement := `insert into product_line (product_name) values (?) returning product_id`
+	db_insert_product, err = db.Prepare(insert_product_statement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, insert_product_statement)
+		return
+	}
 }
 
 func show_window() {

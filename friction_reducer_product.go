@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -108,6 +109,27 @@ func (product FrictionReducerProduct) print() error {
 	return err
 }
 
+func get_init_product_id(product_name string) int64 {
+	// product_id, err := db_get_product.Exec(product_name)
+	// product_id := db_get_product.QueryRow(product_name)
+	var product_id int64
+	if db_get_product.QueryRow(product_name).Scan(&product_id) != nil {
+		//no rows
+		result, err := db_insert_product.Exec(product_name)
+		if err != nil {
+			log.Printf("%q: %s\n", err, "get_init_product_id")
+			return -1
+		}
+		product_id, err = result.LastInsertId()
+		if err != nil {
+			log.Printf("%q: %s\n", err, "get_init_product_id")
+			return -2
+		}
+	}
+	return product_id
+}
+
+// create table product_line (product_id integer not null primary key, product_name text);
 func show_fr(parent winc.Controller) {
 
 	top_col := 10
@@ -147,8 +169,15 @@ func show_fr(parent winc.Controller) {
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
-	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
-	// show_edit(parent, label_col, field_col, product_row, product_text)
+	// var product_id, batch_id int
+	var product_id int64
+
+	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
+	product_field.OnKillFocus().Bind(func(e *winc.Event) {
+		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
+		product_id = get_init_product_id(product_field.Text())
+		fmt.Println("product_id", product_id)
+	})
 
 	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 	// show_edit(parent, label_col, field_col, lot_row, lot_text)
