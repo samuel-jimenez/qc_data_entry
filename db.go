@@ -11,8 +11,8 @@ import (
 var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.sqlite3"
 
 var qc_db *sql.DB
-var db_get_product, db_insert_product,
-	db_get_lot, db_insert_lot *sql.Stmt
+var db_select_product, db_insert_product,
+	db_select_lot, db_insert_lot *sql.Stmt
 var err error
 
 func dbinit(db *sql.DB) {
@@ -77,10 +77,10 @@ create table bs.qc_samples (
 		// return
 	}
 
-	get_product_statement := `select product_id from bs.product_line where product_name = ?`
-	db_get_product, err = db.Prepare(get_product_statement)
+	select_product_statement := `select product_id from bs.product_line where product_name = ?`
+	db_select_product, err = db.Prepare(select_product_statement)
 	if err != nil {
-		log.Printf("%q: %s\n", err, get_product_statement)
+		log.Printf("%q: %s\n", err, select_product_statement)
 		return
 	}
 
@@ -91,10 +91,10 @@ create table bs.qc_samples (
 		return
 	}
 
-	get_lot_statement := `select lot_id from bs.product_lot where lot_name = ? and product_id = ?`
-	db_get_lot, err = db.Prepare(get_lot_statement)
+	select_lot_statement := `select lot_id from bs.product_lot where lot_name = ? and product_id = ?`
+	db_select_lot, err = db.Prepare(select_lot_statement)
 	if err != nil {
-		log.Printf("%q: %s\n", err, get_lot_statement)
+		log.Printf("%q: %s\n", err, select_lot_statement)
 		return
 	}
 
@@ -107,40 +107,40 @@ create table bs.qc_samples (
 }
 
 
-func get_init_product_id(product_name string) int64 {
-	// product_id, err := db_get_product.Exec(product_name)
-	// product_id := db_get_product.QueryRow(product_name)
+func insel_product_id(product_name string) int64 {
+	// product_id, err := db_select_product.Exec(product_name)
+	// product_id := db_select_product.QueryRow(product_name)
 	var product_id int64
-	if db_get_product.QueryRow(product_name).Scan(&product_id) != nil {
+	if db_select_product.QueryRow(product_name).Scan(&product_id) != nil {
 		//no rows
 		result, err := db_insert_product.Exec(product_name)
 		if err != nil {
-			log.Printf("%q: %s\n", err, "get_init_product_id")
+			log.Printf("%q: %s\n", err, "insel_product_id")
 			return -1
 		}
 		product_id, err = result.LastInsertId()
 		if err != nil {
-			log.Printf("%q: %s\n", err, "get_init_product_id")
+			log.Printf("%q: %s\n", err, "insel_product_id")
 			return -2
 		}
 	}
 	return product_id
 }
 
-func get_init_lot_id(lot_name string, product_id int64) int64 {
-	// lot_id, err := db_get_lot.Exec(lot_name)
-	// lot_id := db_get_lot.QueryRow(lot_name)
+func insel_lot_id(lot_name string, product_id int64) int64 {
+	// lot_id, err := db_select_lot.Exec(lot_name)
+	// lot_id := db_select_lot.QueryRow(lot_name)
 	var lot_id int64
-	if db_get_lot.QueryRow(lot_name, product_id).Scan(&lot_id) != nil {
+	if db_select_lot.QueryRow(lot_name, product_id).Scan(&lot_id) != nil {
 		//no rows
 		result, err := db_insert_lot.Exec(lot_name, product_id)
 		if err != nil {
-			log.Printf("%q: %s\n", err, "get_init_lot_id")
+			log.Printf("%q: %s\n", err, "insel_lot_id")
 			return -1
 		}
 		lot_id, err = result.LastInsertId()
 		if err != nil {
-			log.Printf("%q: %s\n", err, "get_init_lot_id")
+			log.Printf("%q: %s\n", err, "insel_lot_id")
 			return -2
 		}
 	}

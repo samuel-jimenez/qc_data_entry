@@ -117,7 +117,7 @@ func show_water_based(parent winc.Controller) {
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
 		if product_field.Text() != "" {
-			product_id = get_init_product_id(product_field.Text())
+			product_id = insel__product_id(product_field.Text())
 			fmt.Println("product_id", product_id)
 		}
 	})
