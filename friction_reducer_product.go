@@ -133,9 +133,9 @@ func get_init_lot_id(lot_name string, product_name string) int64 {
 	// lot_id, err := db_get_lot.Exec(lot_name)
 	// lot_id := db_get_lot.QueryRow(lot_name)
 	var lot_id int64
-	if db_get_lot.QueryRow(lot_name).Scan(&lot_id) != nil {
+	if db_get_lot.QueryRow(lot_name, product_name).Scan(&lot_id) != nil {
 		//no rows
-		result, err := db_insert_lot.Exec(lot_name, product_name)
+		result, err := db_insert_lot.Exec(lot_name)
 		if err != nil {
 			log.Printf("%q: %s\n", err, "get_init_lot_id")
 			return -1
