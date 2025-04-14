@@ -157,7 +157,7 @@ func show_fr(parent winc.Controller) {
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
 		if product_field.Text() != "" {
-			product_id = insel__product_id(product_field.Text())
+			product_id = insel_product_id(product_field.Text())
 			fmt.Println("product_id", product_id)
 		}
 	})
@@ -166,7 +166,7 @@ func show_fr(parent winc.Controller) {
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-			lot_id = insel__lot_id(lot_field.Text(), product_id)
+			lot_id = insel_lot_id(lot_field.Text(), product_id)
 			fmt.Println("lot_id", lot_id)
 		}
 	})

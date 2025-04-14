@@ -12,7 +12,8 @@ var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.sqlite3"
 
 var qc_db *sql.DB
 var db_select_product, db_insert_product,
-	db_select_lot, db_insert_lot *sql.Stmt
+	db_select_lot, db_insert_lot,
+	db_insert_measurement *sql.Stmt
 var err error
 
 func dbinit(db *sql.DB) {
@@ -77,34 +78,61 @@ create table bs.qc_samples (
 		// return
 	}
 
-	select_product_statement := `select product_id from bs.product_line where product_name = ?`
+	select_product_statement := `
+	select product_id
+		from bs.product_line
+		where product_name = ?`
 	db_select_product, err = db.Prepare(select_product_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, select_product_statement)
 		return
 	}
 
-	insert_product_statement := `insert into bs.product_line (product_name) values (?) returning product_id`
+	insert_product_statement := `
+	insert into bs.product_line
+		(product_name)
+		values (?)
+		returning product_id`
 	db_insert_product, err = db.Prepare(insert_product_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, insert_product_statement)
 		return
 	}
 
-	select_lot_statement := `select lot_id from bs.product_lot where lot_name = ? and product_id = ?`
+	select_lot_statement := `
+	select lot_id
+		from bs.product_lot
+		where lot_name = ? and product_id = ?`
 	db_select_lot, err = db.Prepare(select_lot_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, select_lot_statement)
 		return
 	}
 
-	insert_lot_statement := `insert into bs.product_lot (lot_name,product_id) values (?,?) returning lot_id`
+	insert_lot_statement := `
+	insert into bs.product_lot
+		(lot_name,product_id)
+		values (?,?)
+		returning lot_id`
 	db_insert_lot, err = db.Prepare(insert_lot_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, insert_lot_statement)
 		return
 	}
+
+	insert_measurement_statement := `
+	insert into bs.qc_samples
+		(lot_id, sample_point, time_stamp, specific_gravity, ph, string_test, viscosity)
+		values (?, ?, ?, ?, ?, ?, ?)
+		returning qc_id`
+	db_insert_measurement, err = db.Prepare(insert_measurement_statement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, insert_measurement_statement)
+		return
+	}
 }
+
+
 
 
 func insel_product_id(product_name string) int64 {
@@ -145,4 +173,6 @@ func insel_lot_id(lot_name string, product_id int64) int64 {
 		}
 	}
 	return lot_id
+}
+lot_id
 }
