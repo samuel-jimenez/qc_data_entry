@@ -98,7 +98,10 @@ create table bs.qc_samples (
 		return
 	}
 
-	insert_lot_statement := `insert into bs.product_lot (lot_name) values (?) returning lot_id`
+	// insert_lot_statement := `insert into bs.product_lot (lot_name,product_id) values (?,?) returning lot_id`
+	insert_lot_statement := `insert into bs.product_lot (lot_name,product_id)
+	select ? as lot_name, product_id from bs.product_line where product_name = ?
+	returning lot_id`
 	db_insert_lot, err = db.Prepare(insert_lot_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, insert_lot_statement)
@@ -133,7 +136,7 @@ func get_init_lot_id(lot_name string, product_name string) int64 {
 	var lot_id int64
 	if db_get_lot.QueryRow(lot_name, product_name).Scan(&lot_id) != nil {
 		//no rows
-		result, err := db_insert_lot.Exec(lot_name)
+		result, err := db_insert_lot.Exec(lot_name, product_name)
 		if err != nil {
 			log.Printf("%q: %s\n", err, "get_init_lot_id")
 			return -1
