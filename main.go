@@ -115,6 +115,49 @@ func show_window() {
 
 	dock := winc.NewSimpleDock(mainWindow)
 
+	parent := winc.NewPanel(mainWindow)
+
+
+	label_col := 10
+	field_col := 120
+
+	product_row := 20
+	lot_row := 45
+	// 		lot_row := 45
+	// 		sample_row := 70
+	//
+	// 		visual_row := 125
+	// 		viscosity_row := 150
+	// 		mass_row := 175
+	// 		string_row := 200
+	// group_row := 120
+
+
+	product_text := "Product"
+	lot_text := "Lot Number"
+	// sample_text := "Sample Point"
+
+	var product_id, lot_id int64
+
+	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
+	product_field.OnKillFocus().Bind(func(e *winc.Event) {
+		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
+		if product_field.Text() != "" {
+			product_id = insel_product_id(product_field.Text())
+			fmt.Println("product_id", product_id)
+		}
+	})
+
+	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
+	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
+		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
+		if lot_field.Text() != "" && product_field.Text() != "" {
+			lot_id = insel_lot_id(lot_field.Text(), product_id)
+			fmt.Println("lot_id", lot_id)
+		}
+	})
+
+
 	tabs := winc.NewTabView(mainWindow)
 	// tabs.SetPos(20, 20)
 	// tabs.SetSize(750, 500)
@@ -127,6 +170,7 @@ func show_window() {
 	show_fr(tab_fr)
 
 	// dock.Dock(quux, winc.Top)        // toolbars always dock to the top
+	dock.Dock(parent, winc.Top)           // tabs should prefer docking at the top
 	dock.Dock(tabs, winc.Top)           // tabs should prefer docking at the top
 	dock.Dock(tabs.Panels(), winc.Fill) // tab panels dock just below tabs and fill area
 
