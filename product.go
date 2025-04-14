@@ -22,12 +22,10 @@ type Product struct {
 	sample_point sql.NullString
 }
 
-
-func (product Product) save(lot_id int64) error {
-	_, err := db_insert_measurement.Exec(lot_id, product.sample_point, time.Now().UTC().UnixNano(), product.sg, product.ph, product.string_test, product.viscosity)
+func (product Product) save() error {
+	_, err := db_insert_measurement.Exec(product.lot_id, product.sample_point, time.Now().UTC().UnixNano(), product.sg, product.ph, product.string_test, product.viscosity)
 	return err
 }
-
 
 func (product Product) print() error {
 	var label_width, label_height,

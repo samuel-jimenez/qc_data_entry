@@ -132,9 +132,6 @@ create table bs.qc_samples (
 	}
 }
 
-
-
-
 func insel_product_id(product_name string) int64 {
 	// product_id, err := db_select_product.Exec(product_name)
 	// product_id := db_select_product.QueryRow(product_name)
@@ -174,4 +171,3 @@ func insel_lot_id(lot_name string, product_id int64) int64 {
 	}
 	return lot_id
 }
-

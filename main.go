@@ -26,30 +26,70 @@ type BaseProduct struct {
 
 
 
-func (product ProductLot) insel_product_id(product_name string) {
-	product.product_id =  insel_product_id(product_name)
-}
-
-func (product ProductLot) insel_lot_id(lot_name string) {
-		product.lot_id =  insel_lot_id(lot_name,product.product_id)
-					fmt.Println("lot_id", product.lot_id)
-
-
-}
-
+// TODO fix this
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}
 }
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 	visual_field *winc.CheckBox) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked(), -1, -1}
+}
+
+
+func newProduct_2(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}.insel_all()
 }
 
 func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
+
+
+func (product BaseProduct) insel_product_id(product_name string) {
+	product.product_id =  insel_product_id(product_name)
+}
+
+func (product BaseProduct) insel_lot_id(lot_name string) {
+		product.lot_id =  insel_lot_id(lot_name,product.product_id)
+					fmt.Println("lot_id", product.lot_id)
+
+
+}
+
+
+func (product BaseProduct) insel_product_self() BaseProduct {
+	product.insel_product_id(product.product_type)
+						return product
+
+}
+
+func (product BaseProduct) insel_lot_self()BaseProduct {
+		product.insel_lot_id(product.lot_number)
+					fmt.Println("insel_lot_self", product.lot_id)
+					return product
+
+
+}
+
+// TODO use this one
+func (product BaseProduct) insel_all() BaseProduct {
+	return product.insel_product_self().insel_lot_self()
+
+}
+
+func (product BaseProduct) copy_ids(product_lot BaseProduct) {
+		if product_lot.product_id > 0 {
+		product.product_id =  product_lot.product_id
+		if product_lot.lot_id > 0 {
+		product.lot_id =  product_lot.lot_id
+		} else {product.insel_lot_self()}
+		} else {product.insel_all()}
+					fmt.Println("copy_ids lot_id", product.lot_id)
+
+
+}
 
 func (product BaseProduct) toProduct() Product {
 	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
@@ -153,7 +193,7 @@ func show_window() {
 	// sample_text := "Sample Point"
 
 	// var product_id, lot_id int64
-	var product_lot ProductLot
+	var product_lot BaseProduct
 
 	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {

@@ -20,7 +20,7 @@ type FrictionReducerProduct struct {
 }
 
 func (product FrictionReducerProduct) toProduct() Product {
-	return Product{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
+	return Product{BaseProduct{product.product_type, product.lot_number, product.visual, product.product_id, product.lot_id}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
 
 }
 
@@ -108,12 +108,9 @@ func (product FrictionReducerProduct) print() error {
 	return err
 }
 
-
-
 // create table product_line (product_id integer not null primary key, product_name text);
 // func show_fr(parent winc.Controller) {
-func show_fr(parent winc.Controller, product_lot *ProductLot, create_new_product_cb func() BaseProduct) {
-
+func show_fr(parent winc.Controller, product_lot *BaseProduct, create_new_product_cb func() BaseProduct) {
 
 	top_col := 10
 	bottom_col := 320
@@ -144,8 +141,6 @@ func show_fr(parent winc.Controller, product_lot *ProductLot, create_new_product
 	top_text := "Top"
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
-
-
 
 	top_group_cb := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
 	// show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
@@ -187,7 +182,7 @@ func show_fr(parent winc.Controller, product_lot *ProductLot, create_new_product
 			fmt.Println("data", top_product)
 			fmt.Println("product_lot", product_lot)
 			top_product.print()
-			top_product.toProduct().save(lot_id)
+			top_product.toProduct().save()
 		}
 		if bottom_product.check_data() {
 			fmt.Println("data", bottom_product)
@@ -206,8 +201,7 @@ func show_fr(parent winc.Controller, product_lot *ProductLot, create_new_product
 	// top_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	top_button.SetSize(top_button_width, top_button_height) // (width, height)
 	top_button.OnClick().Bind(func(e *winc.Event) {
-
-		base_product := newProduct_0(product_field, lot_field)
+		base_product := create_new_product_cb()
 		top_product := top_group_cb(base_product)
 		top_product.sample_point = ""
 		if top_product.check_data() {
@@ -228,8 +222,7 @@ func show_fr(parent winc.Controller, product_lot *ProductLot, create_new_product
 	// btm_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	btm_button.SetSize(btm_button_width, btm_button_height) // (width, height)
 	btm_button.OnClick().Bind(func(e *winc.Event) {
-
-		base_product := newProduct_0(product_field, lot_field)
+		base_product := create_new_product_cb()
 		bottom_product := bottom_group_cb(base_product)
 		bottom_product.sample_point = ""
 		if bottom_product.check_data() {
