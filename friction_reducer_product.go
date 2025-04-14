@@ -166,7 +166,7 @@ func show_fr(parent winc.Controller) {
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-			lot_id = get_init_lot_id(lot_field.Text(), product_field.Text())
+			lot_id = get_init_lot_id(lot_field.Text(), product_id)
 			fmt.Println("lot_id", lot_id)
 		}
 	})

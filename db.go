@@ -91,17 +91,14 @@ create table bs.qc_samples (
 		return
 	}
 
-	get_lot_statement := `select lot_id from bs.product_lot join product_line using (product_id) where lot_name = ? and product_name = ?`
+	get_lot_statement := `select lot_id from bs.product_lot where lot_name = ? and product_id = ?`
 	db_get_lot, err = db.Prepare(get_lot_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, get_lot_statement)
 		return
 	}
 
-	// insert_lot_statement := `insert into bs.product_lot (lot_name,product_id) values (?,?) returning lot_id`
-	insert_lot_statement := `insert into bs.product_lot (lot_name,product_id)
-	select ? as lot_name, product_id from bs.product_line where product_name = ?
-	returning lot_id`
+	insert_lot_statement := `insert into bs.product_lot (lot_name,product_id) values (?,?) returning lot_id`
 	db_insert_lot, err = db.Prepare(insert_lot_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, insert_lot_statement)
@@ -130,13 +127,13 @@ func get_init_product_id(product_name string) int64 {
 	return product_id
 }
 
-func get_init_lot_id(lot_name string, product_name string) int64 {
+func get_init_lot_id(lot_name string, product_id int64) int64 {
 	// lot_id, err := db_get_lot.Exec(lot_name)
 	// lot_id := db_get_lot.QueryRow(lot_name)
 	var lot_id int64
-	if db_get_lot.QueryRow(lot_name, product_name).Scan(&lot_id) != nil {
+	if db_get_lot.QueryRow(lot_name, product_id).Scan(&lot_id) != nil {
 		//no rows
-		result, err := db_insert_lot.Exec(lot_name, product_name)
+		result, err := db_insert_lot.Exec(lot_name, product_id)
 		if err != nil {
 			log.Printf("%q: %s\n", err, "get_init_lot_id")
 			return -1
