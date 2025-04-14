@@ -37,7 +37,7 @@ func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
-type AllProduct struct {
+type Product struct {
 	BaseProduct
 	sg           sql.NullFloat64
 	ph           sql.NullFloat64
@@ -47,14 +47,14 @@ type AllProduct struct {
 	sample_point sql.NullString
 }
 
-func (product BaseProduct) toAllProduct() AllProduct {
-	return AllProduct{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+func (product BaseProduct) toAllProduct() Product {
+	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 	//TODO Option?
 	// NullFloat64
 
 }
 
-func (product AllProduct) save() error {
+func (product Product) save() error {
 // db_insert_measurement
 	stmt, err := qc_db.Prepare(`insert into
 qc_samples (qc_id, batch_id, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
@@ -74,7 +74,7 @@ values(?, ?)`)
 	return err
 }
 
-func (product AllProduct) print() error {
+func (product Product) print() error {
 	var label_width, label_height,
 		field_width, field_height,
 		label_col,
