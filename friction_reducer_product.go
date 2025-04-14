@@ -135,7 +135,7 @@ func get_init_lot_id(lot_name string, product_name string) int64 {
 	var lot_id int64
 	if db_get_lot.QueryRow(lot_name).Scan(&lot_id) != nil {
 		//no rows
-		result, err := db_insert_lot.Exec(lot_name)
+		result, err := db_insert_lot.Exec(lot_name, product_name)
 		if err != nil {
 			log.Printf("%q: %s\n", err, "get_init_lot_id")
 			return -1
@@ -205,8 +205,8 @@ func show_fr(parent winc.Controller) {
 	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
-		if lot_field.Text() != "" {
-			product_id = get_init_product_id(lot_field.Text())
+		if lot_field.Text() != "" && product_field.Text() != "" {
+			product_id = get_init_lot_id(lot_field.Text(), product_field.Text())
 			fmt.Println("product_id", product_id)
 		}
 	})
