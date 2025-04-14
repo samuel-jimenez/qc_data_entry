@@ -211,6 +211,7 @@ func show_fr(parent winc.Controller) {
 		if top_product.check_data() {
 			fmt.Println("data", top_product)
 			top_product.print()
+			top_product.toAllProduct().save()
 		}
 		if bottom_product.check_data() {
 			fmt.Println("data", bottom_product)

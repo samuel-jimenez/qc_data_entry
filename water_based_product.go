@@ -141,6 +141,7 @@ func show_water_based(parent winc.Controller) {
 			fmt.Println("data", product)
 			fmt.Println("data", product.toAllProduct())
 			product.toAllProduct().print()
+			product.toAllProduct().save()
 		}
 	})
 
