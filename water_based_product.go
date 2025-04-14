@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"strings"
 
-	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/winc"
 )
 
@@ -22,8 +20,9 @@ func (product WaterBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
-	base_product := newProduct_1(product_field, lot_field, visual_field)
+func newWaterBasedProduct(base_product BaseProduct, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
+
+	base_product.visual = visual_field.Checked()
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
 	// if !err.Error(){fmt.Println("error",err)}
 	ph, _ := strconv.ParseFloat(ph_field.Text(), 64)
@@ -36,72 +35,20 @@ func (product WaterBasedProduct) check_data() bool {
 	return true
 }
 
-func (product WaterBasedProduct) print() error {
-	var label_width, label_height,
-		field_width, field_height,
-		label_col,
-		// field_col,
-		product_row,
-		sg_row,
-		ph_row,
-		lot_row float64
-
-	label_width = 50
-	label_height = 10
-
-	field_width = 50
-	field_height = 10
-
-	label_col = 10
-	// field_col = 120
-
-	product_row = 0
-	sg_row = 20
-	ph_row = 30
-	lot_row = 45
-
-	pdf := fpdf.New("L", "mm", "A7", "")
-	pdf.SetAutoPageBreak(false, 0)
-	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
-	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
-
-	pdf.SetXY(label_col, sg_row)
-	pdf.Cell(label_width, label_height, "SG")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 5, 64))
-
-	pdf.SetXY(label_col, ph_row)
-	pdf.Cell(label_width, label_height, "pH")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph, 'f', 2, 64))
-
-	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-
-	err := pdf.OutputFileAndClose(product.get_pdf_name())
-	return err
-}
-
-func show_water_based(parent winc.Controller) {
+func show_water_based(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	label_col := 10
 	field_col := 120
-
-	product_row := 20
-	lot_row := 45
 
 	visual_row := 100
 	sg_row := 125
 	ph_row := 150
 
 	submit_col := 40
-	submit_row := 225
+	submit_row := 180
 	submit_button_width := 100
 	submit_button_height := 40
 
 	// group_row := 120
-
-	product_text := "Product"
-	lot_text := "Lot Number"
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -111,17 +58,6 @@ func show_water_based(parent winc.Controller) {
 	// sample_text := "Sample Point"
 	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
 
-	//TODO EXTRACT
-	var product_id int64
-	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
-	product_field.OnKillFocus().Bind(func(e *winc.Event) {
-		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
-		if product_field.Text() != "" {
-			product_id = insel_product_id(product_field.Text())
-			fmt.Println("product_id", product_id)
-		}
-	})
-	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	sg_field := show_edit(parent, label_col, field_col, sg_row, sg_text)
 	ph_field := show_edit(parent, label_col, field_col, ph_row, ph_text)
@@ -135,13 +71,14 @@ func show_water_based(parent winc.Controller) {
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 
-		product := newWaterBasedProduct(product_field, lot_field, visual_field, sg_field, ph_field)
+		// base_product := create_new_product_cb()
+
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field).toProduct()
 
 		if product.check_data() {
 			fmt.Println("data", product)
-			fmt.Println("data", product.toProduct())
-			product.toProduct().print()
-			// product.toProduct().save(lot_id)
+			product.print()
+			product.save()
 		}
 	})
 

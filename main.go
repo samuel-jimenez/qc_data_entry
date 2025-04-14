@@ -15,16 +15,13 @@ var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
-
 type BaseProduct struct {
 	product_type string
 	lot_number   string
 	visual       bool
-	product_id int64
-	lot_id   int64
+	product_id   int64
+	lot_id       int64
 }
-
-
 
 // TODO fix this
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
@@ -36,7 +33,6 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked(), -1, -1}
 }
 
-
 func newProduct_2(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}.insel_all()
 }
@@ -45,31 +41,26 @@ func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
-
-
 func (product BaseProduct) insel_product_id(product_name string) {
-	product.product_id =  insel_product_id(product_name)
+	product.product_id = insel_product_id(product_name)
 }
 
 func (product BaseProduct) insel_lot_id(lot_name string) {
-		product.lot_id =  insel_lot_id(lot_name,product.product_id)
-					fmt.Println("lot_id", product.lot_id)
-
+	product.lot_id = insel_lot_id(lot_name, product.product_id)
+	fmt.Println("lot_id", product.lot_id)
 
 }
-
 
 func (product BaseProduct) insel_product_self() BaseProduct {
 	product.insel_product_id(product.product_type)
-						return product
+	return product
 
 }
 
-func (product BaseProduct) insel_lot_self()BaseProduct {
-		product.insel_lot_id(product.lot_number)
-					fmt.Println("insel_lot_self", product.lot_id)
-					return product
-
+func (product BaseProduct) insel_lot_self() BaseProduct {
+	product.insel_lot_id(product.lot_number)
+	fmt.Println("insel_lot_self", product.lot_id)
+	return product
 
 }
 
@@ -80,14 +71,17 @@ func (product BaseProduct) insel_all() BaseProduct {
 }
 
 func (product BaseProduct) copy_ids(product_lot BaseProduct) {
-		if product_lot.product_id > 0 {
-		product.product_id =  product_lot.product_id
+	if product_lot.product_id > 0 {
+		product.product_id = product_lot.product_id
 		if product_lot.lot_id > 0 {
-		product.lot_id =  product_lot.lot_id
-		} else {product.insel_lot_self()}
-		} else {product.insel_all()}
-					fmt.Println("copy_ids lot_id", product.lot_id)
-
+			product.lot_id = product_lot.lot_id
+		} else {
+			product.insel_lot_self()
+		}
+	} else {
+		product.insel_all()
+	}
+	fmt.Println("copy_ids lot_id", product.lot_id)
 
 }
 
@@ -97,9 +91,6 @@ func (product BaseProduct) toProduct() Product {
 	// NullFloat64
 
 }
-
-
-
 
 func main() {
 	//open_db
@@ -157,7 +148,6 @@ func main() {
 
 // TDFO add clear
 
-
 func show_window() {
 
 	fmt.Println("Process started")
@@ -172,7 +162,6 @@ func show_window() {
 
 	parent := winc.NewPanel(mainWindow)
 
-
 	label_col := 10
 	field_col := 120
 
@@ -186,7 +175,6 @@ func show_window() {
 	// 		mass_row := 175
 	// 		string_row := 200
 	// group_row := 120
-
 
 	product_text := "Product"
 	lot_text := "Lot Number"
@@ -207,14 +195,17 @@ func show_window() {
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-						product_lot.insel_lot_id(lot_field.Text())
+			product_lot.insel_lot_id(lot_field.Text())
 		}
 	})
 
 	new_product_cb := func() BaseProduct {
-		return newProduct_0(product_field, lot_field)
-	}
+		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
 
+		base_product := newProduct_0(product_field, lot_field)
+		base_product.copy_ids(product_lot)
+		return base_product
+	}
 
 	tabs := winc.NewTabView(mainWindow)
 	// tabs.SetPos(20, 20)
@@ -223,12 +214,12 @@ func show_window() {
 	tab_oil := tabs.AddPanel("Oil Based")
 	tab_fr := tabs.AddPanel("Friction Reducer")
 
-	show_water_based(tab_wb)
-	show_oil_based(tab_oil)
-	show_fr(tab_fr,&product_lot,new_product_cb)
+	show_water_based(tab_wb, new_product_cb)
+	show_oil_based(tab_oil, new_product_cb)
+	show_fr(tab_fr, new_product_cb)
 
 	// dock.Dock(quux, winc.Top)        // toolbars always dock to the top
-	dock.Dock(parent, winc.Top)           // tabs should prefer docking at the top
+	dock.Dock(parent, winc.Top)         // tabs should prefer docking at the top
 	dock.Dock(tabs, winc.Top)           // tabs should prefer docking at the top
 	dock.Dock(tabs.Panels(), winc.Fill) // tab panels dock just below tabs and fill area
 

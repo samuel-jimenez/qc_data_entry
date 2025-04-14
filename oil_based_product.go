@@ -21,10 +21,9 @@ func (product OilBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newOilBasedProduct(product_field *winc.Edit, lot_field *winc.Edit,
+func newOilBasedProduct(base_product BaseProduct,
 	visual_field *winc.CheckBox, mass_field *winc.Edit) OilBasedProduct {
-	// func newOilBasedProduct(product_field *winc.Edit, lot_field *winc.Edit, sample_point string, visual_field *winc.CheckBox, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) OilBasedProduct {
-	base_product := newProduct_1(product_field, lot_field, visual_field)
+	base_product.visual = visual_field.Checked()
 	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
 	// if !err.Error(){fmt.Println("error",err)}
 	sg := mass / SAMPLE_VOLUME
@@ -78,29 +77,21 @@ func (product OilBasedProduct) print() error {
 	return err
 }
 
-func show_oil_based(parent winc.Controller) {
+func show_oil_based(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	label_col := 10
 	field_col := 120
-
-	product_row := 20
-	lot_row := 45
 
 	visual_row := 100
 	mass_row := 125
 
 	submit_col := 40
-	submit_row := 225
+	submit_row := 180
 	submit_button_width := 100
 	submit_button_height := 40
 
-	product_text := "Product"
-	lot_text := "Lot Number"
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
-
-	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
-	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
 
 	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
 
@@ -120,7 +111,7 @@ func show_oil_based(parent winc.Controller) {
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 
 		// product := newOilBasedProduct(product_field, lot_field, sample_field, visual_field, mass_field)
-		product := newOilBasedProduct(product_field, lot_field, visual_field, mass_field)
+		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field).toProduct()
 
 		if product.check_data() {
 			fmt.Println("data", product)

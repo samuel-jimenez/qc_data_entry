@@ -110,7 +110,7 @@ func (product FrictionReducerProduct) print() error {
 
 // create table product_line (product_id integer not null primary key, product_name text);
 // func show_fr(parent winc.Controller) {
-func show_fr(parent winc.Controller, product_lot *BaseProduct, create_new_product_cb func() BaseProduct) {
+func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	top_col := 10
 	bottom_col := 320
@@ -180,7 +180,6 @@ func show_fr(parent winc.Controller, product_lot *BaseProduct, create_new_produc
 		fmt.Println("btm", bottom_product)
 		if top_product.check_data() {
 			fmt.Println("data", top_product)
-			fmt.Println("product_lot", product_lot)
 			top_product.print()
 			top_product.toProduct().save()
 		}
@@ -191,7 +190,7 @@ func show_fr(parent winc.Controller, product_lot *BaseProduct, create_new_produc
 	})
 
 	top_button_col := 150
-	top_button_row := 225
+	top_button_row := submit_row
 	top_button_width := 100
 	top_button_height := 40
 	top_button := winc.NewPushButton(parent)
@@ -212,7 +211,7 @@ func show_fr(parent winc.Controller, product_lot *BaseProduct, create_new_produc
 	})
 
 	btm_button_col := 250
-	btm_button_row := 225
+	btm_button_row := submit_row
 	btm_button_width := 100
 	btm_button_height := 40
 	btm_button := winc.NewPushButton(parent)

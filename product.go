@@ -27,6 +27,10 @@ func (product Product) save() error {
 	return err
 }
 
+func (product Product) check_data() bool {
+	return true
+}
+
 func (product Product) print() error {
 	var label_width, label_height,
 		field_width, field_height,
