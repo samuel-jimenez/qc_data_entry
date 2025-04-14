@@ -26,9 +26,24 @@ func dbinit(db *sql.DB) {
 	// `
 	sqlStmt := `
 PRAGMA foreign_keys = ON;
-create table bs.product_line (product_id integer not null primary key, product_name text unique);
-create table bs.product_lot (lot_id integer not null primary key, lot_name text, product_id not null foreign key references product_line, unique (lot_name,product_id));
-create table bs.qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
+create table bs.product_line (
+	product_id integer not null primary key,
+	product_name text unique);
+
+create table bs.product_lot (
+	lot_id integer not null primary key,
+	lot_name text,
+	product_id not null foreign key references product_line,
+	unique (lot_name,product_id));
+create table bs.qc_samples (
+	qc_id integer not null primary key,
+	lot_id references product_lot,
+	sample_point text,
+	time_stamp integer,
+	specific_gravity real,
+	ph real,
+	string_test real,
+	viscosity real);
 `
 
 	// 	sqlStmt := `
