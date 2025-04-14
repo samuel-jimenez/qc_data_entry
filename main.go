@@ -18,27 +18,27 @@ var LB_PER_GAL = 8.345 // g/mL
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
 
-type Product struct {
+type BaseProduct struct {
 	product_type string
 	lot_number   string
 	visual       bool
 }
 
-func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
-	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
+func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
 }
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
-	visual_field *winc.CheckBox) Product {
-	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
+	visual_field *winc.CheckBox) BaseProduct {
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
 }
 
-func (product Product) get_pdf_name() string {
+func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
 type AllProduct struct {
-	Product
+	BaseProduct
 	sg           sql.NullFloat64
 	ph           sql.NullFloat64
 	density      sql.NullFloat64
@@ -47,7 +47,7 @@ type AllProduct struct {
 	sample_point sql.NullString
 }
 
-func (product Product) toAllProduct() AllProduct {
+func (product BaseProduct) toAllProduct() AllProduct {
 	return AllProduct{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 	//TODO Option?
 	// NullFloat64
@@ -55,7 +55,7 @@ func (product Product) toAllProduct() AllProduct {
 }
 
 func (product AllProduct) save() error {
-
+// db_insert_measurement
 	stmt, err := qc_db.Prepare(`insert into
 qc_samples (qc_id, batch_id, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
 foo(id, name)

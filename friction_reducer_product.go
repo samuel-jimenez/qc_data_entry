@@ -12,7 +12,7 @@ import (
 )
 
 type FrictionReducerProduct struct {
-	Product
+	BaseProduct
 	sg           float64
 	string_test  float64
 	viscosity    float64
@@ -20,11 +20,11 @@ type FrictionReducerProduct struct {
 }
 
 func (product FrictionReducerProduct) toAllProduct() AllProduct {
-	return AllProduct{Product{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
+	return AllProduct{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
 
 }
 
-func newFrictionReducerProduct(base_product Product, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
+func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
 	// if !err.Error(){fmt.Println("error",err)}
@@ -265,7 +265,7 @@ func show_fr(parent winc.Controller) {
 
 // func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) winc.Controller {
 
-func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product Product) FrictionReducerProduct {
+func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product BaseProduct) FrictionReducerProduct {
 
 	// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
 
@@ -285,7 +285,7 @@ func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_
 
 }
 
-func show_fr_sample(parent winc.Controller, sample_point string) func(base_product Product) FrictionReducerProduct {
+func show_fr_sample(parent winc.Controller, sample_point string) func(base_product BaseProduct) FrictionReducerProduct {
 	label_col := 10
 	field_col := 120
 
@@ -316,7 +316,7 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 
 	visual_field.SetFocus()
 
-	return func(base_product Product) FrictionReducerProduct {
+	return func(base_product BaseProduct) FrictionReducerProduct {
 		base_product.visual = visual_field.Checked()
 		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
 	}

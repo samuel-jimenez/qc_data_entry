@@ -11,13 +11,13 @@ import (
 )
 
 type WaterBasedProduct struct {
-	Product
+	BaseProduct
 	sg float64
 	ph float64
 }
 
 func (product WaterBasedProduct) toAllProduct() AllProduct {
-	return AllProduct{Product{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+	return AllProduct{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 
 	//TODO Option?
 }
