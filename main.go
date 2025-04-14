@@ -54,25 +54,31 @@ func (product BaseProduct) toAllProduct() Product {
 
 }
 
-func (product Product) save() error {
-// db_insert_measurement
-	stmt, err := qc_db.Prepare(`insert into
-qc_samples (qc_id, batch_id, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
-foo(id, name)
-values(?, ?)`)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer stmt.Close()
-	// for i := 0; i < 100; i++ {
-	// 	_, err = stmt.Exec(i, fmt.Sprintf("こんにちは世界%03d", i))
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 		// 	}
-	// 	}
-	// }
+func (product Product) save(lot_id int64) error {
+	_, err := db_insert_measurement.Exec(lot_id, product.sample_point, time.Now().UTC().UnixNano(), product.sg, product.ph, product.string_test, product.viscosity)
 	return err
 }
+
+
+func insel_lot_id(lot_name string, product_id int64) int64 {
+	// lot_id, err := db_select_lot.Exec(lot_name)
+	// lot_id := db_select_lot.QueryRow(lot_name)
+	var lot_id int64
+	if db_select_lot.QueryRow(lot_name, product_id).Scan(&lot_id) != nil {
+		//no rows
+		if err != nil {
+			log.Printf("%q: %s\n", err, "insel_lot_id")
+			return -1
+		}
+		lot_id, err = result.LastInsertId()
+		if err != nil {
+			log.Printf("%q: %s\n", err, "insel_lot_id")
+			return -2
+		}
+	}
+	return lot_id
+}
+
 
 func (product Product) print() error {
 	var label_width, label_height,

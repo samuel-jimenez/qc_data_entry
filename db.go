@@ -174,5 +174,4 @@ func insel_lot_id(lot_name string, product_id int64) int64 {
 	}
 	return lot_id
 }
-lot_id
-}
+
