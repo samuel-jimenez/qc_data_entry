@@ -16,8 +16,8 @@ type WaterBasedProduct struct {
 	ph float64
 }
 
-func (product WaterBasedProduct) toAllProduct() AllProduct {
-	return AllProduct{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+func (product WaterBasedProduct) toAllProduct() Product {
+	return Product{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 
 	//TODO Option?
 }
