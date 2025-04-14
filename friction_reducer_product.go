@@ -190,8 +190,7 @@ func show_fr(parent winc.Controller) {
 	bottom_text := "Btm"
 
 	//TODO EXTRACT
-	// var product_id, batch_id int
-	var product_id int64
+	var product_id, lot_id int64
 
 	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
@@ -206,8 +205,8 @@ func show_fr(parent winc.Controller) {
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-			product_id = get_init_lot_id(lot_field.Text(), product_field.Text())
-			fmt.Println("product_id", product_id)
+			lot_id = get_init_lot_id(lot_field.Text(), product_field.Text())
+			fmt.Println("lot_id", lot_id)
 		}
 	})
 
