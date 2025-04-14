@@ -111,17 +111,14 @@ func (product FrictionReducerProduct) print() error {
 
 
 // create table product_line (product_id integer not null primary key, product_name text);
-func show_fr(parent winc.Controller) {
+// func show_fr(parent winc.Controller) {
+func show_fr(parent winc.Controller, product_lot *ProductLot, create_new_product_cb func() BaseProduct) {
+
 
 	top_col := 10
 	bottom_col := 320
-	// field_col := 120
-	label_col := 10
-	field_col := 120
 
-	product_row := 20
-	lot_row := 45
-	group_row := 70
+	group_row := 25
 	// 		lot_row := 45
 	// 		sample_row := 70
 	//
@@ -132,12 +129,10 @@ func show_fr(parent winc.Controller) {
 	// group_row := 120
 
 	submit_col := 40
-	submit_row := 225
+	submit_row := 180
 	submit_button_width := 100
 	submit_button_height := 40
 
-	product_text := "Product"
-	lot_text := "Lot Number"
 	// visual_text := "Visual Inspection"
 	// viscosity_text := "Viscosity"
 	// mass_text := "Mass"
@@ -150,26 +145,7 @@ func show_fr(parent winc.Controller) {
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
-	//TODO EXTRACT
-	var product_id, lot_id int64
 
-	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
-	product_field.OnKillFocus().Bind(func(e *winc.Event) {
-		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
-		if product_field.Text() != "" {
-			product_id = insel_product_id(product_field.Text())
-			fmt.Println("product_id", product_id)
-		}
-	})
-
-	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
-	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
-		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
-		if lot_field.Text() != "" && product_field.Text() != "" {
-			lot_id = insel_lot_id(lot_field.Text(), product_id)
-			fmt.Println("lot_id", lot_id)
-		}
-	})
 
 	top_group_cb := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
 	// show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
@@ -202,14 +178,14 @@ func show_fr(parent winc.Controller) {
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
-
-		base_product := newProduct_0(product_field, lot_field)
+		base_product := create_new_product_cb()
 		top_product := top_group_cb(base_product)
 		bottom_product := bottom_group_cb(base_product)
 		fmt.Println("top", top_product)
 		fmt.Println("btm", bottom_product)
 		if top_product.check_data() {
 			fmt.Println("data", top_product)
+			fmt.Println("product_lot", product_lot)
 			top_product.print()
 			top_product.toProduct().save(lot_id)
 		}

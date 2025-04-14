@@ -20,6 +20,21 @@ type BaseProduct struct {
 	product_type string
 	lot_number   string
 	visual       bool
+	product_id int64
+	lot_id   int64
+}
+
+
+
+func (product ProductLot) insel_product_id(product_name string) {
+	product.product_id =  insel_product_id(product_name)
+}
+
+func (product ProductLot) insel_lot_id(lot_name string) {
+		product.lot_id =  insel_lot_id(lot_name,product.product_id)
+					fmt.Println("lot_id", product.lot_id)
+
+
 }
 
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
@@ -137,14 +152,14 @@ func show_window() {
 	lot_text := "Lot Number"
 	// sample_text := "Sample Point"
 
-	var product_id, lot_id int64
+	// var product_id, lot_id int64
+	var product_lot ProductLot
 
 	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
 		if product_field.Text() != "" {
-			product_id = insel_product_id(product_field.Text())
-			fmt.Println("product_id", product_id)
+			product_lot.insel_product_id(product_field.Text())
 		}
 	})
 
@@ -152,10 +167,13 @@ func show_window() {
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-			lot_id = insel_lot_id(lot_field.Text(), product_id)
-			fmt.Println("lot_id", lot_id)
+						product_lot.insel_lot_id(lot_field.Text())
 		}
 	})
+
+	new_product_cb := func() BaseProduct {
+		return newProduct_0(product_field, lot_field)
+	}
 
 
 	tabs := winc.NewTabView(mainWindow)
@@ -167,7 +185,7 @@ func show_window() {
 
 	show_water_based(tab_wb)
 	show_oil_based(tab_oil)
-	show_fr(tab_fr)
+	show_fr(tab_fr,&product_lot,new_product_cb)
 
 	// dock.Dock(quux, winc.Top)        // toolbars always dock to the top
 	dock.Dock(parent, winc.Top)           // tabs should prefer docking at the top
