@@ -4,10 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
-	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/winc"
@@ -38,7 +36,7 @@ func (product BaseProduct) get_pdf_name() string {
 }
 
 
-func (product BaseProduct) toAllProduct() Product {
+func (product BaseProduct) toProduct() Product {
 	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 	//TODO Option?
 	// NullFloat64

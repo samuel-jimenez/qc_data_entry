@@ -16,7 +16,7 @@ type WaterBasedProduct struct {
 	ph float64
 }
 
-func (product WaterBasedProduct) toAllProduct() Product {
+func (product WaterBasedProduct) toProduct() Product {
 	return Product{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 
 	//TODO Option?
@@ -139,9 +139,9 @@ func show_water_based(parent winc.Controller) {
 
 		if product.check_data() {
 			fmt.Println("data", product)
-			fmt.Println("data", product.toAllProduct())
-			product.toAllProduct().print()
-			// product.toAllProduct().save(lot_id)
+			fmt.Println("data", product.toProduct())
+			product.toProduct().print()
+			// product.toProduct().save(lot_id)
 		}
 	})
 

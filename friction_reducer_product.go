@@ -19,7 +19,7 @@ type FrictionReducerProduct struct {
 	sample_point string
 }
 
-func (product FrictionReducerProduct) toAllProduct() Product {
+func (product FrictionReducerProduct) toProduct() Product {
 	return Product{BaseProduct{product.product_type, product.lot_number, product.visual}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
 
 }
@@ -211,7 +211,7 @@ func show_fr(parent winc.Controller) {
 		if top_product.check_data() {
 			fmt.Println("data", top_product)
 			top_product.print()
-			top_product.toAllProduct().save(lot_id)
+			top_product.toProduct().save(lot_id)
 		}
 		if bottom_product.check_data() {
 			fmt.Println("data", bottom_product)
