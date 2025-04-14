@@ -196,12 +196,20 @@ func show_fr(parent winc.Controller) {
 	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
-		product_id = get_init_product_id(product_field.Text())
-		fmt.Println("product_id", product_id)
+		if product_field.Text() != "" {
+			product_id = get_init_product_id(product_field.Text())
+			fmt.Println("product_id", product_id)
+		}
 	})
 
 	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
-	// show_edit(parent, label_col, field_col, lot_row, lot_text)
+	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
+		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
+		if lot_field.Text() != "" {
+			product_id = get_init_product_id(lot_field.Text())
+			fmt.Println("product_id", product_id)
+		}
+	})
 
 	top_group_cb := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
 	// show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)

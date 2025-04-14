@@ -20,7 +20,7 @@ var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.db"
 
 var qc_db *sql.DB
 var db_get_product, db_insert_product,
-db_get_lot, db_insert_lot *sql.Stmt
+	db_get_lot, db_insert_lot *sql.Stmt
 var err error
 
 type Product struct {
@@ -226,11 +226,11 @@ create table product_lot (lot_id integer not null primary key, lot_name text, pr
 create table qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
 `
 
-// 	sqlStmt := `
-// PRAGMA foreign_keys = ON;
-// create table product_lot (lot_id integer not null primary key, lot_name text, product_id references product);
-// create table qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
-// `
+	// 	sqlStmt := `
+	// PRAGMA foreign_keys = ON;
+	// create table product_lot (lot_id integer not null primary key, lot_name text, product_id references product);
+	// create table qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
+	// `
 
 	/*
 	   	sqlStmt := `
@@ -264,7 +264,7 @@ create table qc_samples (qc_id integer not null primary key, lot_id references p
 		return
 	}
 
-		get_lot_statement := `select lot_id from product_lot join product_line using (product_id) where lot_name = ? and product_name = ?`
+	get_lot_statement := `select lot_id from product_lot join product_line using (product_id) where lot_name = ? and product_name = ?`
 	db_get_lot, err = db.Prepare(get_lot_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, get_lot_statement)
