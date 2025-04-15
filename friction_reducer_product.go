@@ -1,115 +1,52 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/winc"
 	"github.com/samuel-jimenez/winc/w32"
 )
 
 type FrictionReducerProduct struct {
-	Product
-	sg           float64
-	string_test  float64
-	viscosity    float64
-	sample_point string
+	BaseProduct
+	sg          float64
+	string_test float64
+	viscosity   float64
 }
 
-func newFrictionReducerProduct(base_product Product, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
+func (product FrictionReducerProduct) toProduct() Product {
+	return Product{product.toBaseProduct(), sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}}
+}
+
+func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) Product {
+
+	base_product.sample_point = sample_point
+
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
 	// if !err.Error(){fmt.Println("error",err)}
 	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
 	sg := mass / SAMPLE_VOLUME
 
-	return FrictionReducerProduct{base_product, sg, string_test, viscosity, sample_point}
+	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
 
 }
-
-
-func (product FrictionReducerProduct) get_pdf_name() string {
-	return strings.TrimSpace(product.product_type) + "-" + product.lot_number  + "-" + product.sample_point + ".pdf"
-}
-
 
 func (product FrictionReducerProduct) check_data() bool {
 	return true
 }
 
-func (product FrictionReducerProduct) print() error {
-	var label_width, label_height,
-		field_width, field_height,
-		label_col,
-		// field_col,
-		product_row,
-		density_row,
-		sg_row,
-		string_row,
-		viscosity_row,
-		lot_row float64
-
-	label_width = 40
-	label_height = 10
-
-	field_width = 40
-	field_height = 10
-
-	label_col = 10
-	// field_col = 120
-
-	product_row = 0
-	sg_row = 10
-	density_row = 15
-	string_row = 20
-	viscosity_row = 25
-	lot_row = 45
-
-	pdf := fpdf.New("L", "mm", "A7", "")
-	pdf.SetAutoPageBreak(false, 0)
-	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
-	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
-
-	pdf.SetXY(label_col, sg_row)
-	pdf.Cell(label_width, label_height, "SG")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 3, 64))
-
-	pdf.SetXY(label_col, density_row)
-	pdf.Cell(label_width, label_height, "DENSITY")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg*LB_PER_GAL, 'f', 3, 64))
-
-	pdf.SetXY(label_col, string_row)
-	pdf.Cell(label_width, label_height, "STRING")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test, 'f', 0, 64))
-
-	pdf.SetXY(label_col, viscosity_row)
-	pdf.Cell(label_width, label_height, "VISCOSITY")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity, 'f', 0, 64))
-
-	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
-
-
-	err := pdf.OutputFileAndClose(product.get_pdf_name())
-	return err
-}
-
-func show_fr(parent winc.Controller) {
+// create table product_line (product_id integer not null primary key, product_name text);
+// func show_fr(parent winc.Controller) {
+func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	top_col := 10
 	bottom_col := 320
-	// field_col := 120
-	label_col := 10
-	field_col := 120
 
-	product_row := 20
-	lot_row := 45
-	group_row := 70
+	group_row := 25
 	// 		lot_row := 45
 	// 		sample_row := 70
 	//
@@ -120,29 +57,20 @@ func show_fr(parent winc.Controller) {
 	// group_row := 120
 
 	submit_col := 40
-	submit_row := 225
 	submit_button_width := 100
 	submit_button_height := 40
 
-	product_text := "Product"
-	lot_text := "Lot Number"
 	// visual_text := "Visual Inspection"
 	// viscosity_text := "Viscosity"
 	// mass_text := "Mass"
 	// string_text := "String"
 	// sample_text := "Sample Point"
 	group_width := 300
-	group_height := 120
+	group_height := 170
 
 	top_text := "Top"
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
-
-	product_field := show_edit_with_lose_focus(parent, label_col, field_col, product_row, product_text, strings.ToUpper)
-	// show_edit(parent, label_col, field_col, product_row, product_text)
-
-	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
-	// show_edit(parent, label_col, field_col, lot_row, lot_text)
 
 	top_group_cb := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
 	// show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
@@ -171,34 +99,77 @@ func show_fr(parent winc.Controller) {
 	submit_button := winc.NewPushButton(parent)
 
 	submit_button.SetText("Submit")
-	submit_button.SetPos(submit_col, submit_row) // (x, y)
+	submit_button.SetPos(submit_col, SUBMIT_ROW) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-			submit_button.OnClick().Bind(func(e *winc.Event) {
+	submit_button.OnClick().Bind(func(e *winc.Event) {
+		base_product := create_new_product_cb()
+		top_product := top_group_cb(base_product)
+		bottom_product := bottom_group_cb(base_product)
+		fmt.Println("top", top_product)
+		fmt.Println("btm", bottom_product)
+		if top_product.check_data() {
+			fmt.Println("data", top_product)
+			top_product.save()
+			top_product.print()
 
-					base_product := newProduct_0(product_field, lot_field)
-					top_product := top_group_cb(base_product)
-					bottom_product := bottom_group_cb(base_product)
-					fmt.Println("top", top_product)
-					fmt.Println("btm", bottom_product)
-					if top_product.check_data() {
-						fmt.Println("data", top_product)
-						top_product.print()
-					}
-					if bottom_product.check_data() {
-						fmt.Println("data", bottom_product)
-						bottom_product.print()
-					}
-			})
+		}
+		if bottom_product.check_data() {
+			fmt.Println("data", bottom_product)
+			bottom_product.save()
+			bottom_product.print()
+
+		}
+	})
+
+	top_button_col := 150
+	top_button_row := SUBMIT_ROW
+	top_button_width := 100
+	top_button_height := 40
+	top_button := winc.NewPushButton(parent)
+
+	top_button.SetText("Accept Top")
+	top_button.SetPos(top_button_col, top_button_row) // (x, y)
+	// top_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	top_button.SetSize(top_button_width, top_button_height) // (width, height)
+	top_button.OnClick().Bind(func(e *winc.Event) {
+		base_product := create_new_product_cb()
+		top_product := top_group_cb(base_product)
+		top_product.sample_point = ""
+		if top_product.check_data() {
+			fmt.Println("data", top_product)
+			top_product.print()
+		}
+
+	})
+
+	btm_button_col := 250
+	btm_button_row := SUBMIT_ROW
+	btm_button_width := 100
+	btm_button_height := 40
+	btm_button := winc.NewPushButton(parent)
+
+	btm_button.SetText("Accept Btm")
+	btm_button.SetPos(btm_button_col, btm_button_row) // (x, y)
+	// btm_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	btm_button.SetSize(btm_button_width, btm_button_height) // (width, height)
+	btm_button.OnClick().Bind(func(e *winc.Event) {
+		base_product := create_new_product_cb()
+		bottom_product := bottom_group_cb(base_product)
+		bottom_product.sample_point = ""
+		if bottom_product.check_data() {
+			fmt.Println("data", bottom_product)
+			bottom_product.print()
+		}
+	})
 
 }
 
-
 // func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) winc.Controller {
 
-func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product Product) FrictionReducerProduct {
+func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product BaseProduct) Product {
 
-		// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
+	// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
 
 	sample_group := winc.NewPanel(parent)
 	sample_group.SetAndClearStyleBits(w32.WS_TABSTOP, 0)
@@ -216,7 +187,7 @@ func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_
 
 }
 
-func show_fr_sample(parent winc.Controller, sample_point string) func(base_product Product) FrictionReducerProduct {
+func show_fr_sample(parent winc.Controller, sample_point string) func(base_product BaseProduct) Product {
 	label_col := 10
 	field_col := 120
 
@@ -235,9 +206,8 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 
 	viscosity_field := show_edit(parent, label_col, field_col, viscosity_row, viscosity_text)
-	mass_field := show_edit(parent, label_col, field_col, mass_row, mass_text)
+	mass_field := show_mass_sg(parent, label_col, field_col, mass_row, mass_text)
 	string_field := show_edit(parent, label_col, field_col, string_row, string_text)
-
 
 	// parent.Bind(w32.WM_COPYDATA, func(arg *EventArg) {
 	// 	sender := arg.Sender()
@@ -248,10 +218,10 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 
 	visual_field.SetFocus()
 
-	return func(base_product Product) FrictionReducerProduct {
+	return func(base_product BaseProduct) Product {
 		base_product.visual = visual_field.Checked()
-		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)}
+		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
 
+	}
 
 }
-
