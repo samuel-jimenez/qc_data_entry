@@ -222,12 +222,11 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	density_field := show_text(parent, label_col, field_col, density_row, field_width, density_text, density_units)
 
 	mass_field.OnKillFocus().Bind(func(e *winc.Event) {
-
 		mass_field.SetText(strings.TrimSpace(mass_field.Text()))
 		sg := sg_from_mass(mass_field)
 		density := density_from_sg(sg)
-		sg_field.SetText(strconv.FormatFloat(sg, 'f', 4, 64))
-		density_field.SetText(strconv.FormatFloat(density, 'f', 3, 64))
+		sg_field.SetText(format_sg(sg))
+		density_field.SetText(format_density(density))
 	})
 
 	// parent.Bind(w32.WM_COPYDATA, func(arg *EventArg) {

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -12,8 +11,6 @@ import (
 	"github.com/samuel-jimenez/winc"
 )
 
-var SAMPLE_VOLUME = 83.2
-var LB_PER_GAL = 8.345 // g/mL
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
 var SUBMIT_ROW = 200
@@ -337,21 +334,6 @@ func show_text(parent winc.Controller, x_label_pos, x_field_pos, y_pos, field_wi
 	text_units.SetText(field_units)
 
 	return text_field
-}
-
-func sg_from_mass(mass_field *winc.Edit) float64 {
-
-	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
-	// if !err.Error(){fmt.Println("error",err)}
-	sg := mass / SAMPLE_VOLUME
-
-	return sg
-}
-
-func density_from_sg(sg float64) float64 {
-
-	density := sg * LB_PER_GAL
-	return density
 }
 
 func wndOnClose(arg *winc.Event) {

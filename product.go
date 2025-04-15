@@ -78,7 +78,8 @@ func (product Product) print() error {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg.Float64, 'f', 4, 64))
+		pdf.Cell(field_width, field_height, format_sg(product.sg.Float64))
+
 	}
 
 	if product.ph.Valid {
@@ -92,7 +93,7 @@ func (product Product) print() error {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.density.Float64, 'f', 3, 64))
+		pdf.Cell(field_width, field_height, format_sg(product.density.Float64))
 	}
 
 	if product.string_test.Valid {
