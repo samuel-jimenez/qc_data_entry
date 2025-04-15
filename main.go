@@ -297,17 +297,19 @@ func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, 
 	// combobox_field := combobox_label.NewEdit(mainWindow)
 	// combobox_field := winc.NewEdit(parent)
 
-	// combobox_field := winc.NewComboBox(parent)
+	combobox_field := winc.NewComboBox(parent)
 
-	combobox_field := NewComboBox(parent)
+	// combobox_field := NewComboBox(parent)
 
-	res := combobox_field.InsertItem(-1, "tet")
+	res := combobox_field.AddItem("tet")
 	fmt.Println("res", res)
 
-	res = combobox_field.InsertItem(0, "baz")
+	res = combobox_field.AddItem("baz")
+
 	fmt.Println("res", res)
 
-	res = combobox_field.InsertItem(0, "nbaq")
+	res = combobox_field.AddItem("nbaq")
+
 	fmt.Println("res", res)
 
 	combobox_field.SetPos(x_field_pos, y_pos)
