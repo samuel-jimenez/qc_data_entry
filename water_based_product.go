@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/samuel-jimenez/winc"
@@ -24,7 +24,7 @@ func newWaterBasedProduct(base_product BaseProduct, visual_field *winc.CheckBox,
 
 	base_product.visual = visual_field.Checked()
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
-	// if !err.Error(){fmt.Println("error",err)}
+	// if !err.Error(){log.Println("error",err)}
 	ph, _ := strconv.ParseFloat(ph_field.Text(), 64)
 
 	return WaterBasedProduct{base_product, sg, ph}.toProduct()
@@ -75,7 +75,7 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
 
 		if product.check_data() {
-			fmt.Println("data", product)
+			log.Println("data", product)
 			product.save()
 			product.print()
 		}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -27,7 +27,7 @@ func newFrictionReducerProduct(base_product BaseProduct, sample_point string, vi
 
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
-	// if !err.Error(){fmt.Println("error",err)}
+	// if !err.Error(){log.Println("error",err)}
 	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
 	sg := mass / SAMPLE_VOLUME
 
@@ -106,16 +106,16 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 		base_product := create_new_product_cb()
 		top_product := top_group_cb(base_product)
 		bottom_product := bottom_group_cb(base_product)
-		fmt.Println("top", top_product)
-		fmt.Println("btm", bottom_product)
+		log.Println("top", top_product)
+		log.Println("btm", bottom_product)
 		if top_product.check_data() {
-			fmt.Println("data", top_product)
+			log.Println("data", top_product)
 			top_product.save()
 			top_product.print()
 
 		}
 		if bottom_product.check_data() {
-			fmt.Println("data", bottom_product)
+			log.Println("data", bottom_product)
 			bottom_product.save()
 			bottom_product.print()
 
@@ -137,7 +137,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 		top_product := top_group_cb(base_product)
 		top_product.sample_point = ""
 		if top_product.check_data() {
-			fmt.Println("data", top_product)
+			log.Println("data", top_product)
 			top_product.print()
 		}
 
@@ -158,7 +158,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 		bottom_product := bottom_group_cb(base_product)
 		bottom_product.sample_point = ""
 		if bottom_product.check_data() {
-			fmt.Println("data", bottom_product)
+			log.Println("data", bottom_product)
 			bottom_product.print()
 		}
 	})

@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -111,13 +111,13 @@ func (product Product) print() error {
 
 	}
 
-	fmt.Println(curr_row)
+	log.Println(curr_row)
 
 	pdf.SetXY(label_col, lot_row)
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
 	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
 
-	fmt.Println("saving to: ", product.get_pdf_name())
+	log.Println("saving to: ", product.get_pdf_name())
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
 	return err
 }

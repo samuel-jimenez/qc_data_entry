@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/samuel-jimenez/winc"
@@ -23,7 +23,7 @@ func newOilBasedProduct(base_product BaseProduct,
 	visual_field *winc.CheckBox, mass_field *winc.Edit) Product {
 	base_product.visual = visual_field.Checked()
 	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
-	// if !err.Error(){fmt.Println("error",err)}
+	// if !err.Error(){log.Println("error",err)}
 	sg := mass / SAMPLE_VOLUME
 
 	return OilBasedProduct{base_product, sg}.toProduct()
@@ -70,7 +70,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field)
 
 		if product.check_data() {
-			fmt.Println("data", product)
+			log.Println("data", product)
 			product.save()
 			product.print()
 		}

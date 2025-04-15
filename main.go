@@ -57,17 +57,17 @@ func (product BaseProduct) get_pdf_name() string {
 }
 
 func (product *BaseProduct) insel_product_id(product_name string) {
-	fmt.Println("insel_product_id product_name", product_name)
+	log.Println("insel_product_id product_name", product_name)
 
 	product.product_id = insel_product_id(product_name)
-	fmt.Println("insel_product_id", product)
+	log.Println("insel_product_id", product)
 	// return product
 
 }
 
 func (product *BaseProduct) insel_lot_id(lot_name string) {
 	product.lot_id = insel_lot_id(lot_name, product.product_id)
-	fmt.Println("lot_id", product.lot_id)
+	log.Println("lot_id", product.lot_id)
 
 }
 
@@ -80,7 +80,7 @@ func (product *BaseProduct) insel_product_self() *BaseProduct {
 
 func (product *BaseProduct) insel_lot_self() *BaseProduct {
 	product.insel_lot_id(product.lot_number)
-	fmt.Println("insel_lot_self", product.lot_id)
+	log.Println("insel_lot_self", product.lot_id)
 	return product
 
 }
@@ -105,7 +105,7 @@ func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 	} else {
 		product.insel_all()
 	}
-	fmt.Println("copy_ids lot_id", product.lot_id)
+	log.Println("copy_ids lot_id", product.lot_id)
 
 }
 
@@ -160,7 +160,7 @@ func main() {
 	// 	if err != nil {
 	// 		log.Fatal(err)
 	// 	}
-	// 	fmt.Println(id, name)
+	// 	log.Println(id, name)
 	// }
 	// err = rows.Err()
 	// if err != nil {
@@ -174,9 +174,9 @@ func main() {
 
 func show_window() {
 
-	fmt.Println("Process started")
+	log.Println("Process started")
 	// DEBUG
-	// fmt.Println(time.Now().UTC().UnixNano())
+	// log.Println(time.Now().UTC().UnixNano())
 
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(800, 600) // (width, height)
@@ -216,7 +216,7 @@ func show_window() {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
 		if product_field.Text() != "" {
 			product_lot.insel_product_id(product_field.Text())
-			fmt.Println("product_field started", product_lot)
+			log.Println("product_field started", product_lot)
 
 		}
 	})
@@ -233,13 +233,13 @@ func show_window() {
 
 	new_product_cb := func() BaseProduct {
 		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
-		fmt.Println("product_field new_product_cb", product_lot)
+		log.Println("product_field new_product_cb", product_lot)
 
 		// base_product := newProduct_0(product_field, lot_field)
 		base_product := newProduct_3(product_field, lot_field, sample_field)
 
 		base_product.copy_ids(product_lot)
-		fmt.Println("base_product new_product_cb", base_product)
+		log.Println("base_product new_product_cb", base_product)
 
 		return base_product
 	}

@@ -13,7 +13,7 @@ var LB_PER_GAL = 8.345 // g/mL
 func sg_from_mass(mass_field *winc.Edit) float64 {
 
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
-	// if !err.Error(){fmt.Println("error",err)}
+	// if !err.Error(){log.Println("error",err)}
 	sg := mass / SAMPLE_VOLUME
 
 	return sg
