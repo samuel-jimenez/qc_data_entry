@@ -26,6 +26,10 @@ func (product Product) save() error {
 	return err
 }
 
+func (product Product) toProduct() Product {
+	return product
+}
+
 func (product Product) check_data() bool {
 	return true
 }

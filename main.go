@@ -39,7 +39,7 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 // }
 
 func (product BaseProduct) toBaseProduct() BaseProduct {
-	return BaseProduct{product.product_type, product.lot_number, product.sample_point, product.visual, product.product_id, product.lot_id}
+	return product
 }
 
 func (product BaseProduct) get_pdf_name() string {

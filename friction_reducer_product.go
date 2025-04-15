@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/winc"
 	"github.com/samuel-jimenez/winc/w32"
 )
@@ -107,7 +106,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
 		top_product := top_group_cb(base_product)
-		bottom_product := bottom_group_cb(base_product).toProduct()
+		bottom_product := bottom_group_cb(base_product)
 		fmt.Println("top", top_product)
 		fmt.Println("btm", bottom_product)
 		if top_product.check_data() {
