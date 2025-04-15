@@ -1,2 +1,4 @@
-github.com/tadvi/winc v0.0.0-20210907234902-33fdab6e7e58 h1:h0tZ6ToFW9PUGt+145I77PGTeWa75hfJBs1kw9CgMZg=
-github.com/tadvi/winc v0.0.0-20210907234902-33fdab6e7e58/go.mod h1:tNBZi4sduF/C3bQE2wGTIccmErQ4A9M9QkPsICVg+oE=
+codeberg.org/go-pdf/fpdf v0.11.0 h1:n3I8WISQ1cr0S2rvx9DOlE/GypbcimMWqLpel3slHmY=
+codeberg.org/go-pdf/fpdf v0.11.0/go.mod h1:Y0DGRAdZ0OmnZPvjbMp/1bYxmIPxm0ws4tfoPOc4LjU=
+github.com/samuel-jimenez/winc v0.1.0 h1:F1ZTClPdpXMmIjFyMBOzmN3Q6riqcxnsph7SjMmPVxk=
+github.com/samuel-jimenez/winc v0.1.0/go.mod h1:UCZnhPuvt8LiGl4bfsjtzziRgCUSn7nYEMJotbXpLUQ=

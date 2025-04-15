@@ -1,5 +1,7 @@
-module example.com/gui_winc
+module github.com/samuel-jimenez/qc_data_entry
 
 go 1.24.2
 
-require github.com/tadvi/winc v0.0.0-20210907234902-33fdab6e7e58 // indirect
+require github.com/samuel-jimenez/winc v0.1.0
+
+require codeberg.org/go-pdf/fpdf v0.11.0
