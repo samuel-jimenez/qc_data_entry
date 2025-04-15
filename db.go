@@ -11,7 +11,7 @@ import (
 var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.sqlite3"
 
 var qc_db *sql.DB
-var db_select_product, db_insert_product,
+var db_select_product, db_insert_product, db_select_all_product,
 	db_select_lot, db_insert_lot,
 	db_insert_measurement *sql.Stmt
 var err error
@@ -76,6 +76,16 @@ create table bs.qc_samples (
 	if err != nil {
 		log.Printf("%q: %s\n", err, sqlStmt)
 		// return
+	}
+
+	select_all_product_statement := `
+	select product_id, product_name
+		from bs.product_line
+	`
+	db_select_all_product, err = db.Prepare(select_all_product_statement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, select_all_product_statement)
+		return
 	}
 
 	select_product_statement := `
