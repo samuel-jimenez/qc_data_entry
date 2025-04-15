@@ -52,7 +52,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
 
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-	mass_field := show_edit(parent, label_col, field_col, mass_row, mass_text)
+	mass_field := show_mass_sg(parent, label_col, field_col, mass_row, mass_text)
 
 	// 	product_row := 20
 	// product_text := "Product"
