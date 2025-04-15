@@ -14,19 +14,19 @@ type OilBasedProduct struct {
 }
 
 func (product OilBasedProduct) toProduct() Product {
-	return Product{product.toBaseProduct(),  sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
+	return Product{product.toBaseProduct(), sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
 
 	//TODO Option?
 }
 
 func newOilBasedProduct(base_product BaseProduct,
-	visual_field *winc.CheckBox, mass_field *winc.Edit) OilBasedProduct {
+	visual_field *winc.CheckBox, mass_field *winc.Edit) Product {
 	base_product.visual = visual_field.Checked()
 	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
 	// if !err.Error(){fmt.Println("error",err)}
 	sg := mass / SAMPLE_VOLUME
 
-	return OilBasedProduct{base_product, sg}
+	return OilBasedProduct{base_product, sg}.toProduct()
 
 }
 
@@ -68,7 +68,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 
 		// product := newOilBasedProduct(product_field, lot_field, sample_field, visual_field, mass_field)
-		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field).toProduct()
+		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field)
 
 		if product.check_data() {
 			fmt.Println("data", product)

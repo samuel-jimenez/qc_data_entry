@@ -20,14 +20,14 @@ func (product WaterBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product BaseProduct, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) WaterBasedProduct {
+func newWaterBasedProduct(base_product BaseProduct, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) Product {
 
 	base_product.visual = visual_field.Checked()
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
 	// if !err.Error(){fmt.Println("error",err)}
 	ph, _ := strconv.ParseFloat(ph_field.Text(), 64)
 
-	return WaterBasedProduct{base_product, sg, ph}
+	return WaterBasedProduct{base_product, sg, ph}.toProduct()
 
 }
 
@@ -73,7 +73,7 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 
 		// base_product := create_new_product_cb()
 
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field).toProduct()
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
 
 		if product.check_data() {
 			fmt.Println("data", product)

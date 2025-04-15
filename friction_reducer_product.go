@@ -18,13 +18,11 @@ type FrictionReducerProduct struct {
 	viscosity   float64
 }
 
-// BaseProduct:BaseProduct{1}
-// BaseProduct{product},
 func (product FrictionReducerProduct) toProduct() Product {
 	return Product{product.toBaseProduct(), sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}}
 }
 
-func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
+func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) Product {
 
 	base_product.sample_point = sample_point
 
@@ -34,71 +32,12 @@ func newFrictionReducerProduct(base_product BaseProduct, sample_point string, vi
 	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
 	sg := mass / SAMPLE_VOLUME
 
-	return FrictionReducerProduct{base_product, sg, string_test, viscosity}
+	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
 
 }
 
 func (product FrictionReducerProduct) check_data() bool {
 	return true
-}
-
-func (product FrictionReducerProduct) print() error {
-	var label_width, label_height,
-		field_width, field_height,
-		label_col,
-		// field_col,
-		product_row,
-		density_row,
-		sg_row,
-		string_row,
-		viscosity_row,
-		lot_row float64
-
-	label_width = 40
-	label_height = 10
-
-	field_width = 40
-	field_height = 10
-
-	label_col = 10
-	// field_col = 120
-
-	product_row = 0
-	sg_row = 10
-	density_row = 15
-	string_row = 20
-	viscosity_row = 25
-	lot_row = 45
-
-	pdf := fpdf.New("L", "mm", "A7", "")
-	pdf.SetAutoPageBreak(false, 0)
-	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
-	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
-
-	pdf.SetXY(label_col, sg_row)
-	pdf.Cell(label_width, label_height, "SG")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 3, 64))
-
-	pdf.SetXY(label_col, density_row)
-	pdf.Cell(label_width, label_height, "DENSITY")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg*LB_PER_GAL, 'f', 3, 64))
-
-	pdf.SetXY(label_col, string_row)
-	pdf.Cell(label_width, label_height, "STRING")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test, 'f', 0, 64))
-
-	pdf.SetXY(label_col, viscosity_row)
-	pdf.Cell(label_width, label_height, "VISCOSITY")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity, 'f', 0, 64))
-
-	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
-
-	err := pdf.OutputFileAndClose(product.get_pdf_name())
-	return err
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
@@ -167,7 +106,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
-		top_product := top_group_cb(base_product).toProduct()
+		top_product := top_group_cb(base_product)
 		bottom_product := bottom_group_cb(base_product).toProduct()
 		fmt.Println("top", top_product)
 		fmt.Println("btm", bottom_product)
@@ -230,7 +169,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 // func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) winc.Controller {
 
-func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product BaseProduct) FrictionReducerProduct {
+func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product BaseProduct) Product {
 
 	// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
 
@@ -250,7 +189,7 @@ func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_
 
 }
 
-func show_fr_sample(parent winc.Controller, sample_point string) func(base_product BaseProduct) FrictionReducerProduct {
+func show_fr_sample(parent winc.Controller, sample_point string) func(base_product BaseProduct) Product {
 	label_col := 10
 	field_col := 120
 
@@ -281,9 +220,10 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 
 	visual_field.SetFocus()
 
-	return func(base_product BaseProduct) FrictionReducerProduct {
+	return func(base_product BaseProduct) Product {
 		base_product.visual = visual_field.Checked()
 		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
+
 	}
 
 }
