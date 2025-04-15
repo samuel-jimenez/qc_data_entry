@@ -39,6 +39,10 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 // 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}.insel_all()
 // }
 
+func newProduct_3(product_field winc.Controller, lot_field winc.Controller, sample_field winc.Controller) BaseProduct {
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), strings.ToUpper(sample_field.Text()), false, -1, -1}
+}
+
 func (product BaseProduct) toBaseProduct() BaseProduct {
 	return product
 }
@@ -181,6 +185,7 @@ func show_window() {
 	dock := winc.NewSimpleDock(mainWindow)
 
 	parent := winc.NewPanel(mainWindow)
+	parent.SetSize(750, 100)
 
 	label_col := 10
 	field_col := 120
@@ -188,7 +193,7 @@ func show_window() {
 	product_row := 20
 	lot_row := 45
 	// 		lot_row := 45
-	// 		sample_row := 70
+	sample_row := 70
 	//
 	// 		visual_row := 125
 	// 		viscosity_row := 150
@@ -198,7 +203,7 @@ func show_window() {
 
 	product_text := "Product"
 	lot_text := "Lot Number"
-	// sample_text := "Sample Point"
+	sample_text := "Sample Point"
 
 	// var product_id, lot_id int64
 	var product_lot BaseProduct
@@ -224,11 +229,15 @@ func show_window() {
 		}
 	})
 
+	sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
+
 	new_product_cb := func() BaseProduct {
 		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
 		fmt.Println("product_field new_product_cb", product_lot)
 
-		base_product := newProduct_0(product_field, lot_field)
+		// base_product := newProduct_0(product_field, lot_field)
+		base_product := newProduct_3(product_field, lot_field, sample_field)
+
 		base_product.copy_ids(product_lot)
 		fmt.Println("base_product new_product_cb", base_product)
 
