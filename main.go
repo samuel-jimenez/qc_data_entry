@@ -319,7 +319,8 @@ func show_edit_with_lose_focus(parent winc.Controller, x_label_pos, x_field_pos,
 	return edit_field
 }
 
-func show_text(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Label {
+func show_text(parent winc.Controller, x_label_pos, x_field_pos, y_pos, field_width int, field_text string, field_units string) *winc.Label {
+	field_height := 20
 	text_label := winc.NewLabel(parent)
 	text_label.SetPos(x_label_pos, y_pos)
 	text_label.SetText(field_text)
@@ -327,8 +328,13 @@ func show_text(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, fiel
 	// text_field := text_label.NewEdit(mainWindow)
 	text_field := winc.NewLabel(parent)
 	text_field.SetPos(x_field_pos, y_pos)
-	// Most Controls have default size unless SetSize is called.
+	text_field.SetSize(field_width, field_height)
+	// Most Controls have default size unless  is called.
 	text_field.SetText("0.000")
+
+	text_units := winc.NewLabel(parent)
+	text_units.SetPos(x_field_pos+field_width, y_pos)
+	text_units.SetText(field_units)
 
 	return text_field
 }
