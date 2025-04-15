@@ -38,6 +38,10 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 // 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}.insel_all()
 // }
 
+func (product BaseProduct) toBaseProduct() BaseProduct {
+	return BaseProduct{product.product_type, product.lot_number, product.sample_point, product.visual, product.product_id, product.lot_id}
+}
+
 func (product BaseProduct) get_pdf_name() string {
 	// if (product.sample_point.Valid) {
 	if product.sample_point != "" {
