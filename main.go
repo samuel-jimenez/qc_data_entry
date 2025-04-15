@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -314,6 +315,35 @@ func show_edit_with_lose_focus(parent winc.Controller, x_label_pos, x_field_pos,
 	})
 
 	return edit_field
+}
+
+func show_text(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Label {
+	text_label := winc.NewLabel(parent)
+	text_label.SetPos(x_label_pos, y_pos)
+	text_label.SetText(field_text)
+
+	// text_field := text_label.NewEdit(mainWindow)
+	text_field := winc.NewLabel(parent)
+	text_field.SetPos(x_field_pos, y_pos)
+	// Most Controls have default size unless SetSize is called.
+	text_field.SetText("0.000")
+
+	return text_field
+}
+
+func sg_from_mass(mass_field *winc.Edit) float64 {
+
+	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
+	// if !err.Error(){fmt.Println("error",err)}
+	sg := mass / SAMPLE_VOLUME
+
+	return sg
+}
+
+func density_from_sg(sg float64) float64 {
+
+	density := sg * LB_PER_GAL
+	return density
 }
 
 func wndOnClose(arg *winc.Event) {

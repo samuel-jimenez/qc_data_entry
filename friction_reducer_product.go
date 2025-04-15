@@ -57,7 +57,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	// group_row := 120
 
 	submit_col := 40
-	submit_row := 180
+	submit_row := 200
 	submit_button_width := 100
 	submit_button_height := 40
 
@@ -67,7 +67,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	// string_text := "String"
 	// sample_text := "Sample Point"
 	group_width := 300
-	group_height := 120
+	group_height := 170
 
 	top_text := "Top"
 	// bottom_text := "Bottom"
@@ -196,6 +196,8 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	viscosity_row := 50
 	mass_row := 75
 	string_row := 100
+	density_row := 125
+	sg_row := 150
 
 	// group_row := 120
 
@@ -204,11 +206,34 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	mass_text := "Mass"
 	string_text := "String"
 
+	sg_text := "Specific Gravity"
+	density_text := "Density"
+	/*
+		sg_units := "g/mL"
+		density_units := "lb/gal"*/
+
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 
 	viscosity_field := show_edit(parent, label_col, field_col, viscosity_row, viscosity_text)
 	mass_field := show_edit(parent, label_col, field_col, mass_row, mass_text)
 	string_field := show_edit(parent, label_col, field_col, string_row, string_text)
+
+	sg_field := show_text(parent, label_col, field_col, sg_row, sg_text)
+	density_field := show_text(parent, label_col, field_col, density_row, density_text)
+
+	mass_field.OnKillFocus().Bind(func(e *winc.Event) {
+
+		mass_field.SetText(strings.TrimSpace(mass_field.Text()))
+		sg := sg_from_mass(mass_field)
+		density := density_from_sg(sg)
+		sg_field.SetText(strconv.FormatFloat(sg, 'f', 4, 64))
+		density_field.SetText(strconv.FormatFloat(density, 'f', 3, 64))
+	})
+
+	/*
+		sg_field := show_text(parent, label_col, field_col, sg_row, sg_text, sg_units)
+
+		density_field := show_text(parent, label_col, field_col, density_row, density_text, density_units)*/
 
 	// parent.Bind(w32.WM_COPYDATA, func(arg *EventArg) {
 	// 	sender := arg.Sender()
