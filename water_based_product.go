@@ -39,9 +39,9 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 	label_col := 10
 	field_col := 120
 
-	visual_row := 100
-	sg_row := 125
-	ph_row := 150
+	visual_row := 25
+	sg_row := 50
+	ph_row := 75
 
 	submit_col := 40
 	submit_row := 180

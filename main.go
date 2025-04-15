@@ -33,31 +33,38 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked(), -1, -1}
 }
 
-func newProduct_2(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}.insel_all()
-}
+// func newProduct_2(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
+// 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}.insel_all()
+// }
 
 func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
-func (product BaseProduct) insel_product_id(product_name string) {
+func (product *BaseProduct) insel_product_id(product_name string) {
+					fmt.Println("insel_product_id product_name", product_name)
+
 	product.product_id = insel_product_id(product_name)
+				fmt.Println("insel_product_id", product)
+	// return product
+
+
 }
 
-func (product BaseProduct) insel_lot_id(lot_name string) {
+func (product *BaseProduct) insel_lot_id(lot_name string) {
 	product.lot_id = insel_lot_id(lot_name, product.product_id)
 	fmt.Println("lot_id", product.lot_id)
 
 }
 
-func (product BaseProduct) insel_product_self() BaseProduct {
+// func (product *BaseProduct) insel_product_self() {
+func (product *BaseProduct) insel_product_self() *BaseProduct {
 	product.insel_product_id(product.product_type)
 	return product
 
 }
 
-func (product BaseProduct) insel_lot_self() BaseProduct {
+func (product *BaseProduct) insel_lot_self() *BaseProduct {
 	product.insel_lot_id(product.lot_number)
 	fmt.Println("insel_lot_self", product.lot_id)
 	return product
@@ -65,12 +72,15 @@ func (product BaseProduct) insel_lot_self() BaseProduct {
 }
 
 // TODO use this one
-func (product BaseProduct) insel_all() BaseProduct {
+// func (product BaseProduct) insel_all() BaseProduct {
+func (product BaseProduct) insel_all() *BaseProduct {
+// func (product *BaseProduct) insel_all() *BaseProduct {
+// func (product *BaseProduct) insel_all() {
 	return product.insel_product_self().insel_lot_self()
 
 }
 
-func (product BaseProduct) copy_ids(product_lot BaseProduct) {
+func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 	if product_lot.product_id > 0 {
 		product.product_id = product_lot.product_id
 		if product_lot.lot_id > 0 {
@@ -188,6 +198,8 @@ func show_window() {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
 		if product_field.Text() != "" {
 			product_lot.insel_product_id(product_field.Text())
+			fmt.Println("product_field started", product_lot)
+
 		}
 	})
 
@@ -201,9 +213,12 @@ func show_window() {
 
 	new_product_cb := func() BaseProduct {
 		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
+		fmt.Println("product_field new_product_cb", product_lot)
 
 		base_product := newProduct_0(product_field, lot_field)
 		base_product.copy_ids(product_lot)
+		fmt.Println("base_product new_product_cb", base_product)
+
 		return base_product
 	}
 

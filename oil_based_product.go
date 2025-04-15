@@ -82,8 +82,8 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	label_col := 10
 	field_col := 120
 
-	visual_row := 100
-	mass_row := 125
+	visual_row := 25
+	mass_row := 50
 
 	submit_col := 40
 	submit_row := 180
