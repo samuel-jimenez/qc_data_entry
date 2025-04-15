@@ -16,6 +16,8 @@ var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
+var SUBMIT_ROW = 200
+
 type BaseProduct struct {
 	product_type string
 	lot_number   string

@@ -43,7 +43,6 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	mass_row := 50
 
 	submit_col := 40
-	submit_row := 180
 	submit_button_width := 100
 	submit_button_height := 40
 
@@ -62,7 +61,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	submit_button := winc.NewPushButton(parent)
 
 	submit_button.SetText("Submit")
-	submit_button.SetPos(submit_col, submit_row) // (x, y)
+	submit_button.SetPos(submit_col, SUBMIT_ROW) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {

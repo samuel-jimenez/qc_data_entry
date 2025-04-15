@@ -57,7 +57,6 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	// group_row := 120
 
 	submit_col := 40
-	submit_row := 200
 	submit_button_width := 100
 	submit_button_height := 40
 
@@ -100,7 +99,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	submit_button := winc.NewPushButton(parent)
 
 	submit_button.SetText("Submit")
-	submit_button.SetPos(submit_col, submit_row) // (x, y)
+	submit_button.SetPos(submit_col, SUBMIT_ROW) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
@@ -124,7 +123,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	})
 
 	top_button_col := 150
-	top_button_row := submit_row
+	top_button_row := SUBMIT_ROW
 	top_button_width := 100
 	top_button_height := 40
 	top_button := winc.NewPushButton(parent)
@@ -145,7 +144,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	})
 
 	btm_button_col := 250
-	btm_button_row := submit_row
+	btm_button_row := SUBMIT_ROW
 	btm_button_width := 100
 	btm_button_height := 40
 	btm_button := winc.NewPushButton(parent)
