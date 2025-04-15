@@ -9,6 +9,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/winc"
+	"github.com/samuel-jimenez/winc/w32"
 )
 
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
@@ -25,7 +26,7 @@ type BaseProduct struct {
 }
 
 // TODO fix this
-func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
+func newProduct_0(product_field winc.Controller, lot_field *winc.Edit) BaseProduct {
 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", false, -1, -1}
 }
 
@@ -203,7 +204,9 @@ func show_window() {
 	var product_lot BaseProduct
 
 	//TODO InsertItem NewComboBox ComboBox
-	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
+	// db_select_all_product
+	// product_field := show_edit(parent, label_col, field_col, product_row, product_text)
+	product_field := show_combobox(parent, label_col, field_col, product_row, product_text)
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
 		if product_field.Text() != "" {
@@ -268,6 +271,48 @@ func show_checkbox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, 
 	// 		visual_field.SetFocus()
 	// })
 	return checkbox_field
+}
+
+func NewComboBox(parent winc.Controller) *winc.ComboBox {
+	cb := new(winc.ComboBox)
+
+	cb.InitControl("COMBOBOX", parent, 0, w32.WS_CHILD|w32.WS_VISIBLE|w32.WS_TABSTOP|w32.WS_VSCROLL|w32.CBS_DROPDOWNLIST|w32.CBS_UPPERCASE)
+	winc.RegMsgHandler(cb)
+
+	cb.SetFont(winc.DefaultFont)
+	cb.SetSize(200, 400)
+	return cb
+}
+
+// // TODO  fix precision
+// db_select_all_product
+// TODO InsertItem NewComboBox ComboBox
+// func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.ComboBox {
+func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
+	combobox_label := winc.NewLabel(parent)
+	combobox_label.SetPos(x_label_pos, y_pos)
+	combobox_label.SetText(field_text)
+
+	// combobox_field := combobox_label.NewEdit(mainWindow)
+	combobox_field := winc.NewEdit(parent)
+
+	// combobox_field := NewComboBox(parent)
+	// combobox_field.InsertItem(5, "tet")
+	// combobox_field := winc.NewComboBox(parent)
+	combobox_field.SetPos(x_field_pos, y_pos)
+	// Most Controls have default size unless SetSize is called.
+	combobox_field.SetText("")
+	// combobox_field.SetParent(combobox_label)
+	// combobox_label.SetParent(combobox_field)
+
+	// combobox_label.OnClick().Bind(func(e *winc.Event) {
+	// 		combobox_field.SetFocus()
+	// })
+	combobox_field.OnKillFocus().Bind(func(e *winc.Event) {
+		combobox_field.SetText(strings.TrimSpace(combobox_field.Text()))
+	})
+
+	return combobox_field
 }
 
 func show_edit(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
