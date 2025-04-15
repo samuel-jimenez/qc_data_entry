@@ -1,4 +1,4 @@
 codeberg.org/go-pdf/fpdf v0.11.0 h1:n3I8WISQ1cr0S2rvx9DOlE/GypbcimMWqLpel3slHmY=
 codeberg.org/go-pdf/fpdf v0.11.0/go.mod h1:Y0DGRAdZ0OmnZPvjbMp/1bYxmIPxm0ws4tfoPOc4LjU=
-github.com/samuel-jimenez/winc v0.1.1 h1:gfVJfMv4CUK8ox37cNeX/fXoq5ppoWx3x4hDva28Xww=
-github.com/samuel-jimenez/winc v0.1.1/go.mod h1:UCZnhPuvt8LiGl4bfsjtzziRgCUSn7nYEMJotbXpLUQ=
+github.com/samuel-jimenez/winc v0.2.0 h1:sUT+0PZfQTXhDV8EI8EyKVcCidxXt65lwB+FCdYd+s4=
+github.com/samuel-jimenez/winc v0.2.0/go.mod h1:UCZnhPuvt8LiGl4bfsjtzziRgCUSn7nYEMJotbXpLUQ=

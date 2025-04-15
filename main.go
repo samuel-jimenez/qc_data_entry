@@ -9,6 +9,7 @@ import (
 
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
+var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 
 type Product struct {
 	product_type string
@@ -17,18 +18,16 @@ type Product struct {
 }
 
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) Product {
-			return Product{product_field.Text(), lot_field.Text(), false}
-		}
+	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false}
+}
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
-		visual_field *winc.CheckBox) Product {
-			return Product{product_field.Text(), lot_field.Text(), visual_field.Checked()}
-		}
-
-
+	visual_field *winc.CheckBox) Product {
+	return Product{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked()}
+}
 
 func (product Product) get_pdf_name() string {
-	return strings.TrimSpace(product.product_type) + "-" + product.lot_number + ".pdf"
+	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
 func main() {
@@ -42,7 +41,6 @@ func show_window() {
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(800, 600) // (width, height)
 	mainWindow.SetText("QC Data Entry")
-
 
 	dock := winc.NewSimpleDock(mainWindow)
 

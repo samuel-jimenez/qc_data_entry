@@ -19,10 +19,10 @@ type FrictionReducerProduct struct {
 }
 
 func newFrictionReducerProduct(base_product Product, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
-	viscosity, _ := strconv.ParseFloat(viscosity_field.Text(), 64)
-	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
+	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
+	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
 	// if !err.Error(){fmt.Println("error",err)}
-	string_test, _ := strconv.ParseFloat(string_field.Text(), 64)
+	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
 	sg := mass / SAMPLE_VOLUME
 
 	return FrictionReducerProduct{base_product, sg, string_test, viscosity, sample_point}
