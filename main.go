@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -117,6 +118,17 @@ func (product BaseProduct) toProduct() Product {
 }
 
 func main() {
+
+	//log to file
+	log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer log_file.Close()
+
+	log.SetOutput(log_file)
+	log.Println("This is a test log entry")
+
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_PATH)
 	qc_db, err := sql.Open("sqlite3", ":memory:")
