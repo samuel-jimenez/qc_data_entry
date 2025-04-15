@@ -29,6 +29,18 @@ func format_sg(sg float64) string {
 	return strconv.FormatFloat(sg, 'f', 4, 64)
 }
 
+func format_ph(ph float64) string {
+	return strconv.FormatFloat(ph, 'f', 2, 64)
+}
+
 func format_density(density float64) string {
 	return strconv.FormatFloat(density, 'f', 3, 64)
+}
+
+func format_string_test(string_test float64) string {
+	return strconv.FormatFloat(string_test, 'f', 0, 64)
+}
+
+func format_viscosity(viscosity float64) string {
+	return strconv.FormatFloat(viscosity, 'f', 0, 64)
 }

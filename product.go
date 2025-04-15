@@ -86,27 +86,30 @@ func (product Product) print() error {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.ph.Float64, 'f', 2, 64))
+		pdf.Cell(field_width, field_height, format_ph(product.ph.Float64))
+
 	}
 
 	if product.density.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
-		pdf.Cell(field_width, field_height, format_sg(product.density.Float64))
+		pdf.Cell(field_width, field_height, format_density(product.density.Float64))
 	}
 
 	if product.string_test.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test.Float64, 'f', 0, 64))
+		pdf.Cell(field_width, field_height, format_string_test(product.string_test.Float64))
+
 	}
 	if product.viscosity.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity.Float64, 'f', 0, 64))
+		pdf.Cell(field_width, field_height, format_viscosity(product.viscosity.Float64))
+
 	}
 
 	fmt.Println(curr_row)
