@@ -285,8 +285,6 @@ func NewComboBox(parent winc.Controller) *winc.ComboBox {
 	return cb
 }
 
-// // TODO  fix precision
-// db_select_all_product
 // TODO InsertItem NewComboBox ComboBox
 func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.ComboBox {
 	// func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
@@ -299,18 +297,22 @@ func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, 
 
 	combobox_field := winc.NewComboBox(parent)
 
-	// combobox_field := NewComboBox(parent)
+	rows, err := db_select_all_product.Query()
+	if err != nil {
+		log.Printf("%q: %s\n", err, "insel_lot_id")
+		// return -1
+	}
+	for rows.Next() {
+		var (
+			id    uint8
+			value string
+		)
 
-	res := combobox_field.AddItem("tet")
-	fmt.Println("res", res)
-
-	res = combobox_field.AddItem("baz")
-
-	fmt.Println("res", res)
-
-	res = combobox_field.AddItem("nbaq")
-
-	fmt.Println("res", res)
+		if error := rows.Scan(&id, &value); error == nil {
+			// data[id] = value
+			combobox_field.AddItem(value)
+		}
+	}
 
 	combobox_field.SetPos(x_field_pos, y_pos)
 	// Most Controls have default size unless SetSize is called.
