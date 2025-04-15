@@ -190,14 +190,11 @@ func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_
 func show_fr_sample(parent winc.Controller, sample_point string) func(base_product BaseProduct) Product {
 	label_col := 10
 	field_col := 120
-	field_width := 50
 
 	visual_row := 25
 	viscosity_row := 50
 	mass_row := 75
 	string_row := 100
-	density_row := 125
-	sg_row := 150
 
 	// group_row := 120
 
@@ -206,28 +203,11 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	mass_text := "Mass"
 	string_text := "String"
 
-	sg_text := "Specific Gravity"
-	density_text := "Density"
-
-	sg_units := "g/mL"
-	density_units := "lb/gal"
-
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 
 	viscosity_field := show_edit(parent, label_col, field_col, viscosity_row, viscosity_text)
-	mass_field := show_edit(parent, label_col, field_col, mass_row, mass_text)
+	mass_field := show_mass_sg(parent, label_col, field_col, mass_row, mass_text)
 	string_field := show_edit(parent, label_col, field_col, string_row, string_text)
-
-	sg_field := show_text(parent, label_col, field_col, sg_row, field_width, sg_text, sg_units)
-	density_field := show_text(parent, label_col, field_col, density_row, field_width, density_text, density_units)
-
-	mass_field.OnKillFocus().Bind(func(e *winc.Event) {
-		mass_field.SetText(strings.TrimSpace(mass_field.Text()))
-		sg := sg_from_mass(mass_field)
-		density := density_from_sg(sg)
-		sg_field.SetText(format_sg(sg))
-		density_field.SetText(format_density(density))
-	})
 
 	// parent.Bind(w32.WM_COPYDATA, func(arg *EventArg) {
 	// 	sender := arg.Sender()

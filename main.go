@@ -336,6 +336,35 @@ func show_text(parent winc.Controller, x_label_pos, x_field_pos, y_pos, field_wi
 	return text_field
 }
 
+func show_mass_sg(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
+
+	field_width := 50
+
+	density_row := 125
+	sg_row := 150
+
+	sg_text := "Specific Gravity"
+	density_text := "Density"
+
+	sg_units := "g/mL"
+	density_units := "lb/gal"
+
+	mass_field := show_edit(parent, x_label_pos, x_field_pos, y_pos, field_text)
+
+	sg_field := show_text(parent, x_label_pos, x_field_pos, sg_row, field_width, sg_text, sg_units)
+	density_field := show_text(parent, x_label_pos, x_field_pos, density_row, field_width, density_text, density_units)
+
+	mass_field.OnKillFocus().Bind(func(e *winc.Event) {
+		mass_field.SetText(strings.TrimSpace(mass_field.Text()))
+		sg := sg_from_mass(mass_field)
+		density := density_from_sg(sg)
+		sg_field.SetText(format_sg(sg))
+		density_field.SetText(format_density(density))
+	})
+
+	return mass_field
+}
+
 func wndOnClose(arg *winc.Event) {
 	winc.Exit()
 }
