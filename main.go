@@ -276,7 +276,8 @@ func show_checkbox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, 
 func NewComboBox(parent winc.Controller) *winc.ComboBox {
 	cb := new(winc.ComboBox)
 
-	cb.InitControl("COMBOBOX", parent, 0, w32.WS_CHILD|w32.WS_VISIBLE|w32.WS_TABSTOP|w32.WS_VSCROLL|w32.CBS_DROPDOWNLIST|w32.CBS_UPPERCASE)
+	cb.InitControl("COMBOBOX", parent, 0, w32.WS_CHILD|w32.WS_VISIBLE|w32.WS_TABSTOP|w32.WS_VSCROLL|w32.CBS_DROPDOWN|w32.CBS_UPPERCASE)
+	// cb.InitControl("COMBOBOX", parent, 0, w32.WS_CHILD|w32.WS_VISIBLE|w32.WS_TABSTOP|w32.WS_VSCROLL|w32.CBS_DROPDOWN)
 	winc.RegMsgHandler(cb)
 
 	cb.SetFont(winc.DefaultFont)
@@ -287,18 +288,28 @@ func NewComboBox(parent winc.Controller) *winc.ComboBox {
 // // TODO  fix precision
 // db_select_all_product
 // TODO InsertItem NewComboBox ComboBox
-// func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.ComboBox {
-func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
+func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.ComboBox {
+	// func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
 	combobox_label := winc.NewLabel(parent)
 	combobox_label.SetPos(x_label_pos, y_pos)
 	combobox_label.SetText(field_text)
 
 	// combobox_field := combobox_label.NewEdit(mainWindow)
-	combobox_field := winc.NewEdit(parent)
+	// combobox_field := winc.NewEdit(parent)
 
-	// combobox_field := NewComboBox(parent)
-	// combobox_field.InsertItem(5, "tet")
 	// combobox_field := winc.NewComboBox(parent)
+
+	combobox_field := NewComboBox(parent)
+
+	res := combobox_field.InsertItem(-1, "tet")
+	fmt.Println("res", res)
+
+	res = combobox_field.InsertItem(0, "baz")
+	fmt.Println("res", res)
+
+	res = combobox_field.InsertItem(0, "nbaq")
+	fmt.Println("res", res)
+
 	combobox_field.SetPos(x_field_pos, y_pos)
 	// Most Controls have default size unless SetSize is called.
 	combobox_field.SetText("")
