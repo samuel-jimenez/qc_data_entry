@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"strings"
 
-	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/winc"
 )
 
@@ -36,46 +34,6 @@ func (product OilBasedProduct) check_data() bool {
 	return true
 }
 
-func (product OilBasedProduct) print() error {
-	var label_width, label_height,
-		field_width, field_height,
-		label_col,
-		// field_col,
-		product_row,
-		sg_row,
-		lot_row float64
-
-	label_width = 40
-	label_height = 10
-
-	field_width = 40
-	field_height = 10
-
-	label_col = 10
-	// field_col = 120
-
-	product_row = 0
-	sg_row = 20
-	lot_row = 45
-
-	pdf := fpdf.New("L", "mm", "A7", "")
-	pdf.SetAutoPageBreak(false, 0)
-	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
-	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
-
-	pdf.SetXY(label_col, sg_row)
-	pdf.Cell(label_width, label_height, "SG")
-	pdf.Cell(field_width, field_height, strconv.FormatFloat(product.sg, 'f', 3, 64))
-
-	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-	// pdf.Cell(field_width, field_height, strings.ToUpper(product.sample_point))
-
-	err := pdf.OutputFileAndClose(product.get_pdf_name())
-	return err
-}
 
 func show_oil_based(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
