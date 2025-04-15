@@ -100,13 +100,13 @@ func (product Product) print() error {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test.Float64, 'f', 3, 64))
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.string_test.Float64, 'f', 0, 64))
 	}
 	if product.viscosity.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
-		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity.Float64, 'f', 3, 64))
+		pdf.Cell(field_width, field_height, strconv.FormatFloat(product.viscosity.Float64, 'f', 0, 64))
 	}
 
 	fmt.Println(curr_row)
