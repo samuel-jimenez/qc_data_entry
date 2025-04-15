@@ -34,7 +34,6 @@ func (product OilBasedProduct) check_data() bool {
 	return true
 }
 
-
 func show_oil_based(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	label_col := 10
@@ -73,6 +72,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 
 		if product.check_data() {
 			fmt.Println("data", product)
+			product.save()
 			product.print()
 		}
 	})

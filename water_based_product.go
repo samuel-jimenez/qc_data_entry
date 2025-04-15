@@ -77,8 +77,8 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 
 		if product.check_data() {
 			fmt.Println("data", product)
-			product.print()
 			product.save()
+			product.print()
 		}
 	})
 

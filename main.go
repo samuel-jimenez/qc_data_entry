@@ -95,6 +95,8 @@ func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 
 }
 
+
+
 func (product BaseProduct) toProduct() Product {
 	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
 	//TODO Option?
@@ -193,6 +195,7 @@ func show_window() {
 	// var product_id, lot_id int64
 	var product_lot BaseProduct
 
+	//TODO InsertItem NewComboBox ComboBox
 	product_field := show_edit(parent, label_col, field_col, product_row, product_text)
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
 		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
