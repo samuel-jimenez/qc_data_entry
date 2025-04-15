@@ -15,7 +15,7 @@ type WaterBasedProduct struct {
 }
 
 func (product WaterBasedProduct) toProduct() Product {
-	return Product{BaseProduct{product.product_type, product.lot_number, product.visual, product.product_id, product.lot_id}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+	return Product{BaseProduct{product.product_type, product.lot_number, product.sample_point, product.visual, product.product_id, product.lot_id}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
 
 	//TODO Option?
 }

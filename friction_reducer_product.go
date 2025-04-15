@@ -13,36 +13,29 @@ import (
 
 type FrictionReducerProduct struct {
 	BaseProduct
-	sg           float64
-	string_test  float64
-	viscosity    float64
-	sample_point string
+	sg          float64
+	string_test float64
+	viscosity   float64
 }
 
+// BaseProduct:BaseProduct{1}
+// BaseProduct{product},
 func (product FrictionReducerProduct) toProduct() Product {
-	return Product{BaseProduct{product.product_type, product.lot_number, product.visual, product.product_id, product.lot_id}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}, sql.NullString{product.sample_point, true}}
-
+	return Product{BaseProduct{product.product_type, product.lot_number, product.sample_point, product.visual, product.product_id, product.lot_id}, sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}}
 }
 
 func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) FrictionReducerProduct {
+
+	base_product.sample_point = sample_point
+
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
 	// if !err.Error(){fmt.Println("error",err)}
 	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
 	sg := mass / SAMPLE_VOLUME
 
-	return FrictionReducerProduct{base_product, sg, string_test, viscosity, sample_point}
+	return FrictionReducerProduct{base_product, sg, string_test, viscosity}
 
-}
-
-func (product FrictionReducerProduct) get_pdf_name() string {
-	// if (product.sample_point.Valid) {
-	if product.sample_point != "" {
-
-		return fmt.Sprintf("%s/%s-%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number), product.sample_point)
-	}
-
-	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
 func (product FrictionReducerProduct) check_data() bool {
@@ -174,18 +167,21 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
-		top_product := top_group_cb(base_product)
-		bottom_product := bottom_group_cb(base_product)
+		top_product := top_group_cb(base_product).toProduct()
+		bottom_product := bottom_group_cb(base_product).toProduct()
 		fmt.Println("top", top_product)
 		fmt.Println("btm", bottom_product)
 		if top_product.check_data() {
 			fmt.Println("data", top_product)
+			top_product.save()
 			top_product.print()
-			top_product.toProduct().save()
+
 		}
 		if bottom_product.check_data() {
 			fmt.Println("data", bottom_product)
+			bottom_product.save()
 			bottom_product.print()
+
 		}
 	})
 

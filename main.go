@@ -18,6 +18,7 @@ var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 type BaseProduct struct {
 	product_type string
 	lot_number   string
+	sample_point string
 	visual       bool
 	product_id   int64
 	lot_id       int64
@@ -25,12 +26,12 @@ type BaseProduct struct {
 
 // TODO fix this
 func newProduct_0(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), false, -1, -1}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", false, -1, -1}
 }
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 	visual_field *winc.CheckBox) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), visual_field.Checked(), -1, -1}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", visual_field.Checked(), -1, -1}
 }
 
 // func newProduct_2(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
@@ -38,16 +39,20 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 // }
 
 func (product BaseProduct) get_pdf_name() string {
+	// if (product.sample_point.Valid) {
+	if product.sample_point != "" {
+		return fmt.Sprintf("%s/%s-%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number), product.sample_point)
+	}
+
 	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
 }
 
 func (product *BaseProduct) insel_product_id(product_name string) {
-					fmt.Println("insel_product_id product_name", product_name)
+	fmt.Println("insel_product_id product_name", product_name)
 
 	product.product_id = insel_product_id(product_name)
-				fmt.Println("insel_product_id", product)
+	fmt.Println("insel_product_id", product)
 	// return product
-
 
 }
 
@@ -74,8 +79,8 @@ func (product *BaseProduct) insel_lot_self() *BaseProduct {
 // TODO use this one
 // func (product BaseProduct) insel_all() BaseProduct {
 func (product BaseProduct) insel_all() *BaseProduct {
-// func (product *BaseProduct) insel_all() *BaseProduct {
-// func (product *BaseProduct) insel_all() {
+	// func (product *BaseProduct) insel_all() *BaseProduct {
+	// func (product *BaseProduct) insel_all() {
 	return product.insel_product_self().insel_lot_self()
 
 }
@@ -95,10 +100,8 @@ func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 
 }
 
-
-
 func (product BaseProduct) toProduct() Product {
-	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullString{"", false}}
+	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
 	//TODO Option?
 	// NullFloat64
 

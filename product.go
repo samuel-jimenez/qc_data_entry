@@ -14,12 +14,11 @@ import (
 
 type Product struct {
 	BaseProduct
-	sg           sql.NullFloat64
-	ph           sql.NullFloat64
-	density      sql.NullFloat64
-	string_test  sql.NullFloat64
-	viscosity    sql.NullFloat64
-	sample_point sql.NullString
+	sg          sql.NullFloat64
+	ph          sql.NullFloat64
+	density     sql.NullFloat64
+	string_test sql.NullFloat64
+	viscosity   sql.NullFloat64
 }
 
 func (product Product) save() error {
@@ -109,7 +108,7 @@ func (product Product) print() error {
 
 	pdf.SetXY(label_col, lot_row)
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point.String), "", 0, "R", false, 0, "")
+	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
 
 	fmt.Println("saving to: ", product.get_pdf_name())
 	err := pdf.OutputFileAndClose(product.get_pdf_name())
