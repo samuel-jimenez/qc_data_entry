@@ -134,6 +134,8 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	top_button.SetSize(top_button_width, top_button_height) // (width, height)
 	top_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
+		base_product.product_type = base_product.product_name_customer
+
 		top_product := top_group_cb(base_product)
 		top_product.sample_point = ""
 		if top_product.check_data() {
@@ -155,6 +157,8 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	btm_button.SetSize(btm_button_width, btm_button_height) // (width, height)
 	btm_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
+		base_product.product_type = base_product.product_name_customer
+
 		bottom_product := bottom_group_cb(base_product)
 		bottom_product.sample_point = ""
 		if bottom_product.check_data() {

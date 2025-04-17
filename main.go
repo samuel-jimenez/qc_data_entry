@@ -10,7 +10,6 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/winc"
-	"github.com/samuel-jimenez/winc/w32"
 )
 
 var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
@@ -18,22 +17,23 @@ var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
 var SUBMIT_ROW = 200
 
 type BaseProduct struct {
-	product_type string
-	lot_number   string
-	sample_point string
-	visual       bool
-	product_id   int64
-	lot_id       int64
+	product_type          string
+	lot_number            string
+	sample_point          string
+	visual                bool
+	product_id            int64
+	lot_id                int64
+	product_name_customer string
 }
 
 // TODO fix this
 func newProduct_0(product_field winc.Controller, lot_field *winc.Edit) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", false, -1, -1}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", false, -1, -1, ""}
 }
 
 func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 	visual_field *winc.CheckBox) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", visual_field.Checked(), -1, -1}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), "", visual_field.Checked(), -1, -1, ""}
 }
 
 // func newProduct_2(product_field *winc.Edit, lot_field *winc.Edit) BaseProduct {
@@ -41,7 +41,7 @@ func newProduct_1(product_field *winc.Edit, lot_field *winc.Edit,
 // }
 
 func newProduct_3(product_field winc.Controller, lot_field winc.Controller, sample_field winc.Controller) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), strings.ToUpper(sample_field.Text()), false, -1, -1}
+	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), strings.ToUpper(sample_field.Text()), false, -1, -1, ""}
 }
 
 func (product BaseProduct) toBaseProduct() BaseProduct {
@@ -97,6 +97,7 @@ func (product BaseProduct) insel_all() *BaseProduct {
 
 func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 	if product_lot.product_id > 0 {
+		product.product_name_customer = select_product_name_customer(product_lot.product_id)
 		product.product_id = product_lot.product_id
 		if product_lot.lot_id > 0 {
 			product.lot_id = product_lot.lot_id
@@ -105,7 +106,10 @@ func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 		}
 	} else {
 		product.insel_all()
+		product.product_name_customer = select_product_name_customer(product.product_id)
+
 	}
+
 	log.Println("copy_ids lot_id", product.lot_id)
 
 }
@@ -182,13 +186,30 @@ func main() {
 	show_window()
 }
 
-// TDFO add clear
+func select_product_name_customer(product_id int64) string {
+	var (
+		product_customer_id   int64
+		customer_name         string
+		product_name_customer string
+	)
+	product_name_customer = ""
+
+	if db_select_product_customer_info.QueryRow(product_id).Scan(&product_customer_id, &customer_name) == nil {
+		product_name_customer = customer_name
+
+	}
+	return product_name_customer
+
+}
+
+// TODO add clear
 
 func show_window() {
 
 	log.Println("Process started")
 	// DEBUG
 	// log.Println(time.Now().UTC().UnixNano())
+	label_size := 110
 
 	mainWindow := winc.NewForm(nil)
 	mainWindow.SetSize(800, 600) // (width, height)
@@ -196,16 +217,21 @@ func show_window() {
 
 	dock := winc.NewSimpleDock(mainWindow)
 
-	parent := winc.NewPanel(mainWindow)
-	parent.SetSize(750, 100)
+	product_panel := winc.NewPanel(mainWindow)
+	product_panel.SetSize(750, 100)
 
-	label_col := 10
-	field_col := 120
+	label_col_0 := 10
+	field_col_0 := label_col_0 + label_size
+
+	label_col_1 := 350
+	field_col_1 := label_col_1 + label_size
 
 	product_row := 20
 	lot_row := 45
-	// 		lot_row := 45
-	sample_row := 70
+	// sample_row := 70
+	customer_row := product_row
+
+	sample_row := lot_row
 	//
 	// 		visual_row := 125
 	// 		viscosity_row := 150
@@ -216,24 +242,44 @@ func show_window() {
 	product_text := "Product"
 	lot_text := "Lot Number"
 	sample_text := "Sample Point"
+	customer_text := "Customer Name"
 
-	// var product_id, lot_id int64
 	var product_lot BaseProduct
 
-	//TODO InsertItem NewComboBox ComboBox
-	// db_select_all_product
-	// product_field := show_edit(parent, label_col, field_col, product_row, product_text)
-	product_field := show_combobox(parent, label_col, field_col, product_row, product_text)
-	product_field.OnKillFocus().Bind(func(e *winc.Event) {
-		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
-		if product_field.Text() != "" {
-			product_lot.insel_product_id(product_field.Text())
-			log.Println("product_field started", product_lot)
+	//TODO array db_select_all_product
+	product_field := show_combobox(product_panel, label_col_0, field_col_0, product_row, product_text)
+	customer_field := show_edit(product_panel, label_col_1, field_col_1, customer_row, customer_text)
+	customer_field.OnKillFocus().Bind(func(e *winc.Event) {
+		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
+		if customer_field.Text() != "" && product_field.Text() != "" {
+			product_name_customer := customer_field.Text()
+			upsert_product_name_customer(product_name_customer, product_lot.product_id)
+			product_lot.product_name_customer = select_product_name_customer(product_lot.product_id)
+			// product_lot.product_name_customer = product_name_customer
 
 		}
 	})
 
-	lot_field := show_edit_with_lose_focus(parent, label_col, field_col, lot_row, lot_text, strings.ToUpper)
+	//TODO extract
+	rows, err := db_select_product_info.Query()
+	if err != nil {
+		log.Printf("%q: %s\n", err, "insel_lot_id")
+		// return -1
+	}
+	for rows.Next() {
+		var (
+			id            uint8
+			internal_name string
+		)
+
+		if error := rows.Scan(&id, &internal_name); error == nil {
+			// data[id] = internal_name
+			product_field.AddItem(internal_name)
+		}
+	}
+
+	lot_field := show_combobox(product_panel, label_col_0, field_col_0, lot_row, lot_text)
+
 	lot_field.OnKillFocus().Bind(func(e *winc.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
@@ -241,7 +287,60 @@ func show_window() {
 		}
 	})
 
-	sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
+	product_field_pop_data := func(str string) {
+		log.Println("product_field_pop_data product_id", product_lot.product_id)
+
+		// if product_lot.product_id != product_lot.insel_product_id(str) {
+		old_product_id := product_lot.product_id
+		product_lot.insel_product_id(str)
+		if product_lot.product_id != old_product_id {
+			log.Println("product_field_pop_data product_id changes", product_lot.product_id)
+			product_lot.product_name_customer = select_product_name_customer(product_lot.product_id)
+			customer_field.SetText(product_lot.product_name_customer)
+
+			// TODO lot
+			rows, err := db_select_lot_info.Query(product_lot.product_id)
+			if err != nil {
+				log.Printf("%q: %s\n", err, "insel_lot_id")
+				// return -1
+			}
+			lot_field.DeleteAllItems()
+			for rows.Next() {
+				var (
+					id       uint8
+					lot_name string
+				)
+
+				if error := rows.Scan(&id, &lot_name); error == nil {
+					// data[id] = value
+					lot_field.AddItem(lot_name)
+				}
+			}
+
+		}
+
+	}
+
+	product_field.OnSelectedChange().Bind(func(e *winc.Event) {
+
+		log.Println("product_field OnSelectedChange GetSelectedItem", product_field.GetSelectedItem())
+
+		log.Println("product_field OnSelectedChange Text", product_field.Text())
+		product_field_pop_data(product_field.GetSelectedItem())
+	})
+
+	product_field.OnKillFocus().Bind(func(e *winc.Event) {
+		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
+		if product_field.Text() != "" {
+
+			log.Println("product_field OnKillFocus Text", product_field.Text())
+			product_field_pop_data(product_field.Text())
+			log.Println("product_field started", product_lot)
+
+		}
+	})
+
+	sample_field := show_edit(product_panel, label_col_1, field_col_1, sample_row, sample_text)
 
 	new_product_cb := func() BaseProduct {
 		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
@@ -268,7 +367,7 @@ func show_window() {
 	show_fr(tab_fr, new_product_cb)
 
 	// dock.Dock(quux, winc.Top)        // toolbars always dock to the top
-	dock.Dock(parent, winc.Top)         // tabs should prefer docking at the top
+	dock.Dock(product_panel, winc.Top)  // tabs should prefer docking at the top
 	dock.Dock(tabs, winc.Top)           // tabs should prefer docking at the top
 	dock.Dock(tabs.Panels(), winc.Fill) // tab panels dock just below tabs and fill area
 
@@ -294,19 +393,6 @@ func show_checkbox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, 
 	return checkbox_field
 }
 
-func NewComboBox(parent winc.Controller) *winc.ComboBox {
-	cb := new(winc.ComboBox)
-
-	cb.InitControl("COMBOBOX", parent, 0, w32.WS_CHILD|w32.WS_VISIBLE|w32.WS_TABSTOP|w32.WS_VSCROLL|w32.CBS_DROPDOWN|w32.CBS_UPPERCASE)
-	// cb.InitControl("COMBOBOX", parent, 0, w32.WS_CHILD|w32.WS_VISIBLE|w32.WS_TABSTOP|w32.WS_VSCROLL|w32.CBS_DROPDOWN)
-	winc.RegMsgHandler(cb)
-
-	cb.SetFont(winc.DefaultFont)
-	cb.SetSize(200, 400)
-	return cb
-}
-
-// TODO InsertItem NewComboBox ComboBox
 func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.ComboBox {
 	// func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *winc.Edit {
 	combobox_label := winc.NewLabel(parent)
@@ -317,23 +403,6 @@ func show_combobox(parent winc.Controller, x_label_pos, x_field_pos, y_pos int, 
 	// combobox_field := winc.NewEdit(parent)
 
 	combobox_field := winc.NewComboBox(parent)
-
-	rows, err := db_select_all_product.Query()
-	if err != nil {
-		log.Printf("%q: %s\n", err, "insel_lot_id")
-		// return -1
-	}
-	for rows.Next() {
-		var (
-			id    uint8
-			value string
-		)
-
-		if error := rows.Scan(&id, &value); error == nil {
-			// data[id] = value
-			combobox_field.AddItem(value)
-		}
-	}
 
 	combobox_field.SetPos(x_field_pos, y_pos)
 	// Most Controls have default size unless SetSize is called.
