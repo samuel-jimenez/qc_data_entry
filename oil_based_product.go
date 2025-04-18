@@ -41,39 +41,45 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	visual_row := 25
 	mass_row := 50
 
-	submit_col := 40
+	submit_col := SUBMIT_COL
 	submit_button_width := 100
 	submit_button_height := 40
 
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
 
-	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
-
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	mass_field := show_mass_sg(parent, label_col, field_col, mass_row, mass_text)
 
-	// 	product_row := 20
-	// product_text := "Product"
-	// product_field := show_edit(mainWindow, label_col, field_col, product_row, product_text)
-
 	submit_button := winc.NewPushButton(parent)
-
 	submit_button.SetText("Submit")
 	submit_button.SetPos(submit_col, SUBMIT_ROW) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
 	submit_button.OnClick().Bind(func(e *winc.Event) {
-
-		// product := newOilBasedProduct(product_field, lot_field, sample_field, visual_field, mass_field)
 		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field)
-
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
 			product.output()
 		}
 	})
+	clear_button_col := CLEAR_COL
+	clear_button_row := SUBMIT_ROW
+	clear_button_width := 100
+	clear_button_height := 40
+	clear_button := winc.NewPushButton(parent)
+	clear_cb := func() {
+		visual_field.SetChecked(false)
+		mass_field.SetText("")
+		mass_field.OnKillFocus().Fire(nil)
+	}
 
-	visual_field.SetFocus()
+	clear_button.SetText("Clear")
+	clear_button.SetPos(clear_button_col, clear_button_row) // (x, y)
+	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
+	clear_button.OnClick().Bind(func(e *winc.Event) { clear_cb() })
+
+	// visual_field.SetFocus()
 }

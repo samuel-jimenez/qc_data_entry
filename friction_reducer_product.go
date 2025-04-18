@@ -39,31 +39,17 @@ func (product FrictionReducerProduct) check_data() bool {
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
-// func show_fr(parent winc.Controller) {
 func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	top_col := 10
 	bottom_col := 320
 
 	group_row := 25
-	// 		lot_row := 45
-	// 		sample_row := 70
-	//
-	// 		visual_row := 125
-	// 		viscosity_row := 150
-	// 		mass_row := 175
-	// 		string_row := 200
-	// group_row := 120
 
-	submit_col := 40
+	submit_col := SUBMIT_COL
 	submit_button_width := 100
 	submit_button_height := 40
 
-	// visual_text := "Visual Inspection"
-	// viscosity_text := "Viscosity"
-	// mass_text := "Mass"
-	// string_text := "String"
-	// sample_text := "Sample Point"
 	group_width := 300
 	group_height := 170
 
@@ -71,29 +57,9 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
-	top_group_cb := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
-	// show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
+	top_group_cb, top_group_clear := show_fr_sample_group(parent, top_text, top_col, group_row, group_width, group_height)
 
-	// bottom_group := show_fr_sample_group(parent, bottom_text, bottom_col, group_row, group_width, group_height, top_group)
-	// show_fr_sample_group(parent, bottom_text, bottom_col, group_row, group_width, group_height, top_group)
-	bottom_group_cb := show_fr_sample_group(parent, bottom_text, bottom_col, group_row, group_width, group_height)
-
-	// string_field := show_edit(mainWindow, label_col, field_col, string_row, string_text)
-	// mass_field := show_edit(mainWindow, label_col, field_col, mass_row, mass_text)
-	// viscosity_field := show_edit(mainWindow, label_col, field_col, viscosity_row, viscosity_text)
-	// visual_field := show_checkbox(mainWindow, label_col, field_col, visual_row, visual_text)
-	// sample_field := show_edit(mainWindow, label_col, field_col, sample_row, sample_text)
-
-	// lot_field :=
-	// show_edit(mainWindow, label_col, field_col, lot_row, lot_text)
-	// // product_field :=
-	// show_edit(mainWindow, label_col, field_col, product_row, product_text)
-
-	//
-
-	// 	product_row := 20
-	// product_text := "Product"
-	// product_field := show_edit(mainWindow, label_col, field_col, product_row, product_text)
+	bottom_group_cb, bottom_group_clear := show_fr_sample_group(parent, bottom_text, bottom_col, group_row, group_width, group_height)
 
 	submit_button := winc.NewPushButton(parent)
 
@@ -117,11 +83,25 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 			log.Println("data", bottom_product)
 			bottom_product.save()
 			bottom_product.output()
-
 		}
 	})
 
-	top_button_col := 150
+	clear_button_col := CLEAR_COL
+	clear_button_row := SUBMIT_ROW
+	clear_button_width := 100
+	clear_button_height := 40
+	clear_button := winc.NewPushButton(parent)
+
+	clear_button.SetText("Clear")
+	clear_button.SetPos(clear_button_col, clear_button_row) // (x, y)
+	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
+	clear_button.OnClick().Bind(func(e *winc.Event) {
+		top_group_clear()
+		bottom_group_clear()
+	})
+
+	top_button_col := 250
 	top_button_row := SUBMIT_ROW
 	top_button_width := 100
 	top_button_height := 40
@@ -142,7 +122,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	})
 
-	btm_button_col := 250
+	btm_button_col := 350
 	btm_button_row := SUBMIT_ROW
 	btm_button_width := 100
 	btm_button_height := 40
@@ -164,11 +144,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 }
 
-// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) winc.Controller {
-
-func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) func(base_product BaseProduct) Product {
-
-	// func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int, after winc.Controller) winc.Controller {
+func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) (func(base_product BaseProduct) Product, func()) {
 
 	sample_group := winc.NewPanel(parent)
 	sample_group.SetAndClearStyleBits(w32.WS_TABSTOP, 0)
@@ -176,17 +152,11 @@ func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_
 	sample_group.SetSize(group_width, group_height)
 	sample_group.SetText(sample_point)
 
-	bottom_group := winc.NewGroupBox(parent)
-	bottom_group.SetPos(x_pos-5, y_pos-5)
-	bottom_group.SetSize(group_width+10, group_height+10)
-	bottom_group.SetText(sample_point)
+	group_box := winc.NewGroupBox(parent)
+	group_box.SetPos(x_pos-5, y_pos-5)
+	group_box.SetSize(group_width+10, group_height+10)
+	group_box.SetText(sample_point)
 
-	return show_fr_sample(sample_group, sample_point)
-	// return sample_group
-
-}
-
-func show_fr_sample(parent winc.Controller, sample_point string) func(base_product BaseProduct) Product {
 	label_col := 10
 	field_col := 120
 
@@ -195,18 +165,16 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	mass_row := 75
 	string_row := 100
 
-	// group_row := 120
-
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
 	mass_text := "Mass"
 	string_text := "String"
 
-	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
+	visual_field := show_checkbox(sample_group, label_col, field_col, visual_row, visual_text)
 
-	viscosity_field := show_edit(parent, label_col, field_col, viscosity_row, viscosity_text)
-	mass_field := show_mass_sg(parent, label_col, field_col, mass_row, mass_text)
-	string_field := show_edit(parent, label_col, field_col, string_row, string_text)
+	viscosity_field := show_edit(sample_group, label_col, field_col, viscosity_row, viscosity_text)
+	mass_field := show_mass_sg(sample_group, label_col, field_col, mass_row, mass_text)
+	string_field := show_edit(sample_group, label_col, field_col, string_row, string_text)
 
 	// parent.Bind(w32.WM_COPYDATA, func(arg *EventArg) {
 	// 	sender := arg.Sender()
@@ -218,9 +186,16 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	visual_field.SetFocus()
 
 	return func(base_product BaseProduct) Product {
-		base_product.Visual = visual_field.Checked()
-		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
+			base_product.Visual = visual_field.Checked()
+			return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
 
-	}
+		}, func() {
+			visual_field.SetChecked(false)
+			viscosity_field.SetText("")
+			mass_field.SetText("")
+			mass_field.OnKillFocus().Fire(nil)
+			string_field.SetText("")
+
+		}
 
 }

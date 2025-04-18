@@ -151,7 +151,7 @@ func main() {
 
 	//load config
 	main_config = load_config()
-	//
+
 	// //log to file
 	// log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	// if err != nil {
@@ -282,16 +282,8 @@ func show_window() {
 
 	product_row := 20
 	lot_row := 45
-	// sample_row := 70
 	customer_row := product_row
-
 	sample_row := lot_row
-	//
-	// 		visual_row := 125
-	// 		viscosity_row := 150
-	// 		mass_row := 175
-	// 		string_row := 200
-	// group_row := 120
 
 	product_text := "Product"
 	lot_text := "Lot Number"
