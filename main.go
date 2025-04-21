@@ -10,11 +10,21 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/winc"
+	"github.com/spf13/viper"
 )
 
-var LABEL_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/labels"
+var main_config *viper.Viper
+var (
+	DB_PATH,
+	DB_FILE,
+	LABEL_PATH string
+)
 
-var SUBMIT_ROW = 200
+var (
+	SUBMIT_ROW = 200
+	SUBMIT_COL = 40
+	CLEAR_COL  = 140
+)
 
 type BaseProduct struct {
 	product_type          string
@@ -123,20 +133,23 @@ func (product BaseProduct) toProduct() Product {
 
 func main() {
 
-	//log to file
-	log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer log_file.Close()
+	//load config
+	main_config = load_config()
 
-	log.SetOutput(log_file)
-	log.Println("This is a test log entry")
+	// //log to file
+	// log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	// if err != nil {
+	// 	log.Fatalf("error opening file: %v", err)
+	// }
+	// defer log_file.Close()
+	//
+	// log.SetOutput(log_file)
+	// log.Println("This is a test log entry")
 
 	//open_db
-	// qc_db, err := sql.Open("sqlite3", DB_PATH)
+	// qc_db, err := sql.Open("sqlite3", DB_FILE)
 	qc_db, err := sql.Open("sqlite3", ":memory:")
-	qc_db.Exec("attach ? as 'bs'", DB_PATH)
+	qc_db.Exec("attach ? as 'bs'", DB_FILE)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -186,6 +199,31 @@ func main() {
 	show_window()
 }
 
+func load_config() *viper.Viper {
+	viper_config := viper.New()
+	viper_config.SetConfigName("config") // name of config file (without extension)
+	viper_config.SetConfigType("toml")   // REQUIRED if the config file does not have the extension in the name
+	// viper.AddConfigPath("/etc/appname/")  // path to look for the config file in
+	// viper.AddConfigPath("$HOME/.config/qc_data_entry") // call multiple times to add many search paths
+	viper_config.AddConfigPath(".")    // optionally look for config in the working directory
+	err := viper_config.ReadInConfig() // Find and read the config file
+	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		// Config file not found; ignore error if desired
+
+		viper_config.Set("db_path", ".")
+		viper_config.Set("label_path", ".")
+
+		log.Println(viper_config.WriteConfigAs("config.toml"))
+	} else if err != nil { // Handle errors reading the config file
+		panic(fmt.Errorf("fatal error config file: %w", err))
+	}
+
+	DB_FILE = viper_config.GetString("db_path") + "/qc.sqlite3"
+	LABEL_PATH = viper_config.GetString("label_path")
+
+	return viper_config
+}
+
 func select_product_name_customer(product_id int64) string {
 	var (
 		product_customer_id   int64
@@ -201,8 +239,6 @@ func select_product_name_customer(product_id int64) string {
 	return product_name_customer
 
 }
-
-// TODO add clear
 
 func show_window() {
 

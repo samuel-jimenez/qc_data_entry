@@ -8,8 +8,6 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
-var DB_PATH = "C:/Users/QC Lab/Documents/golang/qc_data_entry/qc.sqlite3"
-
 var qc_db *sql.DB
 var db_select_product_id, db_insert_product, db_select_product_info,
 	db_select_product_customer_id, db_upsert_product_customer, db_select_product_customer_info,
