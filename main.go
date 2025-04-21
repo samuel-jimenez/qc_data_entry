@@ -386,7 +386,7 @@ func show_window() {
 		}
 	})
 
-	sample_field := show_edit(product_panel, label_col_1, field_col_1, sample_row, sample_text)
+	sample_field := show_edit_with_lose_focus(product_panel, label_col_1, field_col_1, sample_row, sample_text, strings.ToUpper)
 
 	new_product_cb := func() BaseProduct {
 		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
