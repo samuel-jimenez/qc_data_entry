@@ -1,8 +1,9 @@
 package main
 
 import (
-	"database/sql"
+	"encoding/json"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -13,16 +14,39 @@ import (
 
 type Product struct {
 	BaseProduct
-	sg          sql.NullFloat64
-	ph          sql.NullFloat64
-	density     sql.NullFloat64
-	string_test sql.NullFloat64
-	viscosity   sql.NullFloat64
+	SG          NullFloat64
+	PH          NullFloat64
+	Density     NullFloat64
+	String_test NullFloat64
+	Viscosity   NullFloat64
 }
 
+// func (product Product) MarshalJSON() ([]byte, error) {
+// 	_, err := db_insert_measurement.Exec(product.lot_id, product.sample_point, time.Now().UTC().UnixNano(), product.sg, product.ph, product.string_test, product.viscosity)
+// 	return err
+// }
+
 func (product Product) save() error {
-	_, err := db_insert_measurement.Exec(product.lot_id, product.sample_point, time.Now().UTC().UnixNano(), product.sg, product.ph, product.string_test, product.viscosity)
+	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.SG, product.PH, product.String_test, product.Viscosity)
 	return err
+}
+
+func (product Product) export_json() {
+	output_files := product.get_json_names()
+	// bytestring, err := json.Marshal(product)
+	bytestring, err := json.MarshalIndent(product, "", "\t")
+
+	if err != nil {
+		log.Println("error:", err)
+	}
+
+	// os.Stdout.Write(bytestring)
+	for _, output_file := range output_files {
+		if err := os.WriteFile(output_file, bytestring, 0666); err != nil {
+			log.Fatal(err)
+		}
+	}
+
 }
 
 func (product Product) toProduct() Product {
@@ -33,7 +57,18 @@ func (product Product) check_data() bool {
 	return true
 }
 
-func (product Product) print() error {
+func (product Product) output() error {
+	product.export_json()
+	return product.export_label_pdf()
+}
+
+func (product Product) output_sample() error {
+	product.Product_type = product.Product_name_customer
+	product.Sample_point = ""
+	return product.export_label_pdf()
+}
+
+func (product Product) export_label_pdf() error {
 	var label_width, label_height,
 		field_width, field_height,
 		label_col,
@@ -60,9 +95,9 @@ func (product Product) print() error {
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
 	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.product_type))
+	pdf.Cell(field_width, field_height, strings.ToUpper(product.Product_type))
 
-	if product.density.Valid {
+	if product.Density.Valid {
 		curr_row = 5
 		curr_row_delta = 5
 
@@ -73,49 +108,49 @@ func (product Product) print() error {
 	}
 	//TODO unit
 
-	if product.sg.Valid {
+	if product.SG.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, format_sg(product.sg.Float64))
+		pdf.Cell(field_width, field_height, format_sg(product.SG.Float64))
 
 	}
 
-	if product.ph.Valid {
+	if product.PH.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
-		pdf.Cell(field_width, field_height, format_ph(product.ph.Float64))
+		pdf.Cell(field_width, field_height, format_ph(product.PH.Float64))
 
 	}
 
-	if product.density.Valid {
+	if product.Density.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
-		pdf.Cell(field_width, field_height, format_density(product.density.Float64))
+		pdf.Cell(field_width, field_height, format_density(product.Density.Float64))
 	}
 
-	if product.string_test.Valid {
+	if product.String_test.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
-		pdf.Cell(field_width, field_height, format_string_test(product.string_test.Float64))
+		pdf.Cell(field_width, field_height, format_string_test(product.String_test.Float64))
 
 	}
-	if product.viscosity.Valid {
+	if product.Viscosity.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
-		pdf.Cell(field_width, field_height, format_viscosity(product.viscosity.Float64))
+		pdf.Cell(field_width, field_height, format_viscosity(product.Viscosity.Float64))
 
 	}
 
-	log.Println(curr_row)
+	// log.Println(curr_row)
 
 	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.lot_number))
-	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.sample_point), "", 0, "R", false, 0, "")
+	pdf.Cell(field_width, field_height, strings.ToUpper(product.Lot_number))
+	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
 
 	log.Println("saving to: ", product.get_pdf_name())
 	err := pdf.OutputFileAndClose(product.get_pdf_name())

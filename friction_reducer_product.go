@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"strconv"
 	"strings"
@@ -18,12 +17,12 @@ type FrictionReducerProduct struct {
 }
 
 func (product FrictionReducerProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{product.sg * LB_PER_GAL, true}, sql.NullFloat64{product.string_test, true}, sql.NullFloat64{product.viscosity, true}}
+	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(product.sg*LB_PER_GAL, true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
 }
 
 func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) Product {
 
-	base_product.sample_point = sample_point
+	base_product.Sample_point = sample_point
 
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
 	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
@@ -111,13 +110,13 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 		if top_product.check_data() {
 			log.Println("data", top_product)
 			top_product.save()
-			top_product.print()
+			top_product.output()
 
 		}
 		if bottom_product.check_data() {
 			log.Println("data", bottom_product)
 			bottom_product.save()
-			bottom_product.print()
+			bottom_product.output()
 
 		}
 	})
@@ -134,13 +133,11 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	top_button.SetSize(top_button_width, top_button_height) // (width, height)
 	top_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
-		base_product.product_type = base_product.product_name_customer
 
 		top_product := top_group_cb(base_product)
-		top_product.sample_point = ""
 		if top_product.check_data() {
 			log.Println("data", top_product)
-			top_product.print()
+			top_product.output_sample()
 		}
 
 	})
@@ -157,13 +154,11 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	btm_button.SetSize(btm_button_width, btm_button_height) // (width, height)
 	btm_button.OnClick().Bind(func(e *winc.Event) {
 		base_product := create_new_product_cb()
-		base_product.product_type = base_product.product_name_customer
 
 		bottom_product := bottom_group_cb(base_product)
-		bottom_product.sample_point = ""
 		if bottom_product.check_data() {
 			log.Println("data", bottom_product)
-			bottom_product.print()
+			bottom_product.output_sample()
 		}
 	})
 
@@ -223,7 +218,7 @@ func show_fr_sample(parent winc.Controller, sample_point string) func(base_produ
 	visual_field.SetFocus()
 
 	return func(base_product BaseProduct) Product {
-		base_product.visual = visual_field.Checked()
+		base_product.Visual = visual_field.Checked()
 		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
 
 	}

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -18,6 +17,8 @@ var (
 	DB_PATH,
 	DB_FILE,
 	LABEL_PATH string
+
+	JSON_PATHS []string
 )
 
 var (
@@ -27,13 +28,13 @@ var (
 )
 
 type BaseProduct struct {
-	product_type          string
-	lot_number            string
-	sample_point          string
-	visual                bool
+	Product_type          string `json:"product_name"`
+	Lot_number            string
+	Sample_point          string
+	Visual                bool
 	product_id            int64
 	lot_id                int64
-	product_name_customer string
+	Product_name_customer string `json:"customer_product_name"`
 }
 
 // TODO fix this
@@ -58,13 +59,28 @@ func (product BaseProduct) toBaseProduct() BaseProduct {
 	return product
 }
 
-func (product BaseProduct) get_pdf_name() string {
-	// if (product.sample_point.Valid) {
-	if product.sample_point != "" {
-		return fmt.Sprintf("%s/%s-%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number), product.sample_point)
+func (product BaseProduct) get_base_name(path string, extension string) string {
+	// if (product.Sample_point.Valid) {
+	if product.Sample_point != "" {
+		return fmt.Sprintf("%s/%s-%s-%s.%s", path, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), product.Sample_point, extension)
 	}
 
-	return fmt.Sprintf("%s/%s-%s.pdf", LABEL_PATH, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.product_type)), " ", "_"), strings.ToUpper(product.lot_number))
+	return fmt.Sprintf("%s/%s-%s.%s", path, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), extension)
+}
+
+func (product BaseProduct) get_pdf_name() string {
+	return product.get_base_name(LABEL_PATH, "pdf")
+}
+
+func (product BaseProduct) get_json_names() []string {
+	var json_names []string
+	for _, JSON_PATH := range JSON_PATHS {
+
+		json_names = append(json_names, product.get_base_name(JSON_PATH, "json"))
+	}
+	// return product.get_base_name(JSON_PATH, "json")
+	return json_names
+
 }
 
 func (product *BaseProduct) insel_product_id(product_name string) {
@@ -84,13 +100,13 @@ func (product *BaseProduct) insel_lot_id(lot_name string) {
 
 // func (product *BaseProduct) insel_product_self() {
 func (product *BaseProduct) insel_product_self() *BaseProduct {
-	product.insel_product_id(product.product_type)
+	product.insel_product_id(product.Product_type)
 	return product
 
 }
 
 func (product *BaseProduct) insel_lot_self() *BaseProduct {
-	product.insel_lot_id(product.lot_number)
+	product.insel_lot_id(product.Lot_number)
 	log.Println("insel_lot_self", product.lot_id)
 	return product
 
@@ -107,7 +123,7 @@ func (product BaseProduct) insel_all() *BaseProduct {
 
 func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 	if product_lot.product_id > 0 {
-		product.product_name_customer = select_product_name_customer(product_lot.product_id)
+		product.Product_name_customer = select_product_name_customer(product_lot.product_id)
 		product.product_id = product_lot.product_id
 		if product_lot.lot_id > 0 {
 			product.lot_id = product_lot.lot_id
@@ -116,7 +132,7 @@ func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 		}
 	} else {
 		product.insel_all()
-		product.product_name_customer = select_product_name_customer(product.product_id)
+		product.Product_name_customer = select_product_name_customer(product.product_id)
 
 	}
 
@@ -125,7 +141,7 @@ func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
 }
 
 func (product BaseProduct) toProduct() Product {
-	return Product{product, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
+	return Product{product, NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false)}
 	//TODO Option?
 	// NullFloat64
 
@@ -135,7 +151,7 @@ func main() {
 
 	//load config
 	main_config = load_config()
-
+	//
 	// //log to file
 	// log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	// if err != nil {
@@ -212,6 +228,7 @@ func load_config() *viper.Viper {
 
 		viper_config.Set("db_path", ".")
 		viper_config.Set("label_path", ".")
+		viper_config.Set("json_paths", []string{"."})
 
 		log.Println(viper_config.WriteConfigAs("config.toml"))
 	} else if err != nil { // Handle errors reading the config file
@@ -220,6 +237,7 @@ func load_config() *viper.Viper {
 
 	DB_FILE = viper_config.GetString("db_path") + "/qc.sqlite3"
 	LABEL_PATH = viper_config.GetString("label_path")
+	JSON_PATHS = viper_config.GetStringSlice("json_paths")
 
 	return viper_config
 }
@@ -290,7 +308,7 @@ func show_window() {
 		if customer_field.Text() != "" && product_field.Text() != "" {
 			product_name_customer := customer_field.Text()
 			upsert_product_name_customer(product_name_customer, product_lot.product_id)
-			product_lot.product_name_customer = select_product_name_customer(product_lot.product_id)
+			product_lot.Product_name_customer = select_product_name_customer(product_lot.product_id)
 			// product_lot.product_name_customer = product_name_customer
 
 		}
@@ -331,8 +349,8 @@ func show_window() {
 		product_lot.insel_product_id(str)
 		if product_lot.product_id != old_product_id {
 			log.Println("product_field_pop_data product_id changes", product_lot.product_id)
-			product_lot.product_name_customer = select_product_name_customer(product_lot.product_id)
-			customer_field.SetText(product_lot.product_name_customer)
+			product_lot.Product_name_customer = select_product_name_customer(product_lot.product_id)
+			customer_field.SetText(product_lot.Product_name_customer)
 
 			// TODO lot
 			rows, err := db_select_lot_info.Query(product_lot.product_id)

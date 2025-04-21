@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"strconv"
 
@@ -15,14 +14,14 @@ type WaterBasedProduct struct {
 }
 
 func (product WaterBasedProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), sql.NullFloat64{product.sg, true}, sql.NullFloat64{product.ph, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
+	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(product.ph, true), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false)}
 
 	//TODO Option?
 }
 
 func newWaterBasedProduct(base_product BaseProduct, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) Product {
 
-	base_product.visual = visual_field.Checked()
+	base_product.Visual = visual_field.Checked()
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
 	// if !err.Error(){log.Println("error",err)}
 	ph, _ := strconv.ParseFloat(ph_field.Text(), 64)
@@ -77,7 +76,7 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
-			product.print()
+			product.output()
 		}
 	})
 

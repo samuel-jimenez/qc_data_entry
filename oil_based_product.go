@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"strconv"
 
@@ -14,14 +13,14 @@ type OilBasedProduct struct {
 }
 
 func (product OilBasedProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), sql.NullFloat64{product.sg, true}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}, sql.NullFloat64{0, false}}
+	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false)}
 
 	//TODO Option?
 }
 
 func newOilBasedProduct(base_product BaseProduct,
 	visual_field *winc.CheckBox, mass_field *winc.Edit) Product {
-	base_product.visual = visual_field.Checked()
+	base_product.Visual = visual_field.Checked()
 	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
 	// if !err.Error(){log.Println("error",err)}
 	sg := mass / SAMPLE_VOLUME
@@ -72,7 +71,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
-			product.print()
+			product.output()
 		}
 	})
 
