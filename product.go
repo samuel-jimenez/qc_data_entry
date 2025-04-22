@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -59,16 +60,38 @@ func (product Product) check_data() bool {
 
 func (product Product) output() error {
 	product.export_json()
-	return product.export_label_pdf()
+	return product.print()
 }
 
 func (product Product) output_sample() error {
 	product.Product_type = product.Product_name_customer
 	product.Sample_point = ""
-	return product.export_label_pdf()
+	return product.print()
 }
 
-func (product Product) export_label_pdf() error {
+func (product Product) print() error {
+
+	pdf_path, err := product.export_label_pdf()
+
+	if err != nil {
+		return err
+	}
+
+	app := "./PDFtoPrinter"
+	cmd := exec.Command(app, pdf_path)
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		return err
+	}
+
+	// Print the output
+	log.Println(string(stdout))
+	return err
+
+}
+
+func (product Product) export_label_pdf() (string, error) {
 	var label_width, label_height,
 		field_width, field_height,
 		label_col,
@@ -89,6 +112,8 @@ func (product Product) export_label_pdf() error {
 
 	product_row = 0
 	lot_row = 45
+
+	file_path := product.get_pdf_name()
 
 	pdf := fpdf.New("L", "mm", "A7", "")
 	pdf.SetAutoPageBreak(false, 0)
@@ -152,7 +177,7 @@ func (product Product) export_label_pdf() error {
 	pdf.Cell(field_width, field_height, strings.ToUpper(product.Lot_number))
 	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
 
-	log.Println("saving to: ", product.get_pdf_name())
-	err := pdf.OutputFileAndClose(product.get_pdf_name())
-	return err
+	log.Println("saving to: ", file_path)
+	err := pdf.OutputFileAndClose(file_path)
+	return file_path, err
 }

@@ -148,7 +148,6 @@ func (product BaseProduct) toProduct() Product {
 }
 
 func main() {
-
 	//load config
 	main_config = load_config()
 
