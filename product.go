@@ -83,7 +83,7 @@ func (product Product) print() error {
 	if err != nil {
 		return err
 	}
-	go cmd.Wait()
+	cmd.Wait()
 
 	return err
 

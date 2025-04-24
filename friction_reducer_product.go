@@ -38,6 +38,21 @@ func (product FrictionReducerProduct) check_data() bool {
 	return true
 }
 
+// TODO
+func check_dual_data(top_product, bottom_product Product) {
+	if top_product.check_data() {
+		log.Println("data", top_product)
+		top_product.save()
+		top_product.output()
+
+	}
+	if bottom_product.check_data() {
+		log.Println("data", bottom_product)
+		bottom_product.save()
+		bottom_product.output()
+	}
+}
+
 // create table product_line (product_id integer not null primary key, product_name text);
 func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
@@ -73,17 +88,8 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 		bottom_product := bottom_group_cb(base_product)
 		log.Println("top", top_product)
 		log.Println("btm", bottom_product)
-		if top_product.check_data() {
-			log.Println("data", top_product)
-			top_product.save()
-			top_product.output()
+		go check_dual_data(top_product, bottom_product)
 
-		}
-		if bottom_product.check_data() {
-			log.Println("data", bottom_product)
-			bottom_product.save()
-			bottom_product.output()
-		}
 	})
 
 	clear_button_col := CLEAR_COL
