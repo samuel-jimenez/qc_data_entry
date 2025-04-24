@@ -79,14 +79,12 @@ func (product Product) print() error {
 
 	app := "./PDFtoPrinter"
 	cmd := exec.Command(app, pdf_path)
-	stdout, err := cmd.Output()
-
+	err = cmd.Start()
 	if err != nil {
 		return err
 	}
+	go cmd.Wait()
 
-	// Print the output
-	log.Println(string(stdout))
 	return err
 
 }
