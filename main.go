@@ -313,13 +313,14 @@ func show_window() {
 	}
 	for rows.Next() {
 		var (
-			id            uint8
-			internal_name string
+			id                   uint8
+			internal_name        string
+			product_moniker_name string
 		)
 
-		if error := rows.Scan(&id, &internal_name); error == nil {
+		if error := rows.Scan(&id, &internal_name, &product_moniker_name); error == nil {
 			// data[id] = internal_name
-			product_field.AddItem(internal_name)
+			product_field.AddItem(product_moniker_name + " " + internal_name)
 		}
 	}
 

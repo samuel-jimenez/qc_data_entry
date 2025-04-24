@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -26,9 +27,17 @@ func dbinit(db *sql.DB) {
 	// `
 	sqlStmt := `
 PRAGMA foreign_keys = ON;
+
+create table bs.product_moniker (
+	product_moniker_id integer not null,
+	product_moniker_name text unique not null,
+	primary key (product_moniker_id));
+
 create table bs.product_line (
 	product_id integer not null,
 	product_name_internal text unique not null,
+	product_moniker_id not null,
+	foreign key (product_moniker_id) references product_moniker,
 	primary key (product_id));
 
 create table bs.product_customer_line (
@@ -87,8 +96,11 @@ create table bs.qc_samples (
 	}
 
 	select_product_info_statement := `
-	select product_id, product_name_internal
+	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
+		join bs.product_moniker using (product_moniker_id)
+		order by product_moniker_name,product_name_internal
+
 	`
 	db_select_product_info, err = db.Prepare(select_product_info_statement)
 	if err != nil {
@@ -99,7 +111,10 @@ create table bs.qc_samples (
 	select_product_statement := `
 	select product_id
 		from bs.product_line
-		where product_name_internal = ?`
+		join bs.product_moniker using (product_moniker_id)
+		where product_name_internal = ?
+		and product_moniker_name = ?
+		`
 	db_select_product_id, err = db.Prepare(select_product_statement)
 	if err != nil {
 		log.Printf("%q: %s\n", err, select_product_statement)
@@ -108,8 +123,10 @@ create table bs.qc_samples (
 
 	insert_product_statement := `
 	insert into bs.product_line
-		(product_name_internal)
-		values (?)
+		(product_name_internal, product_moniker_id)
+		select ?, product_moniker_id
+			from bs.product_moniker
+			where product_moniker_name = ?
 		returning product_id`
 	db_insert_product, err = db.Prepare(insert_product_statement)
 	if err != nil {
@@ -193,13 +210,19 @@ create table bs.qc_samples (
 	}
 }
 
-func insel_product_id(product_name_internal string) int64 {
+func insel_product_id(product_name_full string) int64 {
 	// product_id, err := db_select_product.Exec(product_name_internal)
 	// product_id := db_select_product.QueryRow(product_name_internal)
 	var product_id int64
-	if db_select_product_id.QueryRow(product_name_internal).Scan(&product_id) != nil {
+
+	// v := strings.SplitN(s, " ", 2)
+
+	// before, after, found := strings.Cut(s, sep)
+	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
+
+	if db_select_product_id.QueryRow(product_name_internal, product_moniker_name).Scan(&product_id) != nil {
 		//no rows
-		result, err := db_insert_product.Exec(product_name_internal)
+		result, err := db_insert_product.Exec(product_name_internal, product_moniker_name)
 		if err != nil {
 			log.Printf("%q: %s\n", err, "insel_product_id")
 			return -1
