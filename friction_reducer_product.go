@@ -88,7 +88,7 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 		bottom_product := bottom_group_cb(base_product)
 		log.Println("top", top_product)
 		log.Println("btm", bottom_product)
-		go check_dual_data(top_product, bottom_product)
+		check_dual_data(top_product, bottom_product)
 
 	})
 

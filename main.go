@@ -215,7 +215,7 @@ func main() {
 	// }
 
 	//setup print goroutine
-	print_queue = make(chan string, 6)
+	print_queue = make(chan string, 4)
 	defer close(print_queue)
 	go do_print_queue(print_queue)
 
@@ -244,7 +244,7 @@ print_loop:
 		select {
 		case new_file, ok := <-print_queue:
 			if ok {
-				log.Println(new_file)
+				log.Println("printing: ", new_file)
 				err := pdf_print(new_file)
 				if err != nil {
 					log.Println(err)
