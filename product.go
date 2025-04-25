@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -76,14 +75,7 @@ func (product Product) print() error {
 	if err != nil {
 		return err
 	}
-
-	app := "./PDFtoPrinter"
-	cmd := exec.Command(app, pdf_path)
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-	cmd.Wait()
+	print_queue <- pdf_path
 
 	return err
 

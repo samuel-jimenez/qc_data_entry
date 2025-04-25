@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -19,6 +20,8 @@ var (
 	LABEL_PATH string
 
 	JSON_PATHS []string
+
+	print_queue chan string
 )
 
 var (
@@ -211,7 +214,47 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
+	//setup print goroutine
+	print_queue = make(chan string, 6)
+	defer close(print_queue)
+	go do_print_queue(print_queue)
+
+	//show main window
 	show_window()
+}
+
+func pdf_print(pdf_path string) error {
+
+	app := "./PDFtoPrinter"
+	cmd := exec.Command(app, pdf_path)
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	cmd.Wait()
+
+	return err
+
+}
+
+func do_print_queue(print_queue chan string) {
+
+print_loop:
+	for {
+		select {
+		case new_file, ok := <-print_queue:
+			if ok {
+				log.Println(new_file)
+				err := pdf_print(new_file)
+				if err != nil {
+					log.Println(err)
+				}
+			} else {
+				break print_loop // channel is closed
+			}
+
+		}
+	}
 }
 
 func load_config() *viper.Viper {
