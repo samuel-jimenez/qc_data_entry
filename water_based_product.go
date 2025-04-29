@@ -83,4 +83,24 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
 	clear_button.OnClick().Bind(func(e *winc.Event) { clear_cb() })
+
+	log_button_col := 250
+	log_button_row := SUBMIT_ROW
+	log_button_width := 100
+	log_button_height := 40
+	log_button := winc.NewPushButton(parent)
+
+	log_button.SetText("Log")
+	log_button.SetPos(log_button_col, log_button_row) // (x, y)
+	// log_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	log_button.SetSize(log_button_width, log_button_height) // (width, height)
+	log_button.OnClick().Bind(func(e *winc.Event) {
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
+		if product.check_data() {
+			log.Println("data", product)
+			product.save()
+			product.export_json()
+		}
+	})
+
 }

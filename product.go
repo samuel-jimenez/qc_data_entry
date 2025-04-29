@@ -63,7 +63,9 @@ func (product Product) output() error {
 }
 
 func (product Product) output_sample() error {
-	product.Product_type = product.Product_name_customer
+	if product.Product_name_customer != "" {
+		product.Product_type = product.Product_name_customer
+	}
 	product.Sample_point = ""
 	return product.print()
 }
