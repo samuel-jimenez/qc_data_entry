@@ -159,7 +159,7 @@ func main() {
 	//load config
 	main_config = load_config()
 
-	//log to file
+	// log to file
 	log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -167,7 +167,7 @@ func main() {
 	defer log_file.Close()
 
 	log.SetOutput(log_file)
-	log.Println("This is a test log entry")
+	log.Println("Logging Started")
 
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
@@ -267,7 +267,7 @@ qr_loop:
 					qr_pop_data(product)
 				}
 			} else {
-				log.Printf("THIS SHOULD NEVER HAPPEN do_read_qr exit qr_done: \n")
+				log.Printf("do_read_qr qr_get exit qr_done: \n")
 				break qr_loop
 			}
 		case <-qr_done:
@@ -333,7 +333,7 @@ func show_window() {
 	dock := winc.NewSimpleDock(mainWindow)
 
 	product_panel := winc.NewPanel(mainWindow)
-	product_panel.SetSize(750, 100)
+	product_panel.SetSize(750, 105)
 
 	label_col_0 := 10
 	field_col_0 := label_col_0 + label_size
@@ -353,6 +353,12 @@ func show_window() {
 
 	var product_lot BaseProduct
 
+	cam_button_col := 675
+	cam_button_row := 5
+	cam_button_width := 100
+	cam_button_height := 100
+
+	cam_button := winc.NewPushButton(product_panel)
 	//TODO array db_select_all_product
 	product_field := show_combobox(product_panel, label_col_0, field_col_0, product_row, product_text)
 	customer_field := show_edit(product_panel, label_col_1, field_col_1, customer_row, customer_text)
@@ -449,8 +455,16 @@ func show_window() {
 
 	}
 
-	qr_sync_waitgroup.Add(1)
-	go do_read_qr(qr_pop_data, qr_done)
+	cam_button.SetText("Scan")
+	cam_button.SetPos(cam_button_col, cam_button_row) // (x, y)
+	// cam_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	cam_button.SetSize(cam_button_width, cam_button_height) // (width, height)
+	cam_button.OnClick().Bind(func(e *winc.Event) {
+		close(qr_done)
+		qr_done = make(chan bool)
+		qr_sync_waitgroup.Add(1)
+		go do_read_qr(qr_pop_data, qr_done)
+	})
 
 	product_field.OnSelectedChange().Bind(func(e *winc.Event) {
 

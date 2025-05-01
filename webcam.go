@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/liyue201/goqr"
 	"gocv.io/x/gocv"
@@ -77,7 +76,7 @@ webcam_loop:
 				for _, qrCode := range qrCodes {
 					qr_text <- string(qrCode.Payload)
 				}
-				time.Sleep(30) // reduce qr spam
+				break webcam_loop
 			}
 		}
 	}
