@@ -2,10 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
+	"sync"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -21,7 +24,9 @@ var (
 
 	JSON_PATHS []string
 
-	print_queue chan string
+	print_queue       chan string
+	qr_done           chan bool
+	qr_sync_waitgroup sync.WaitGroup
 )
 
 var (
@@ -32,7 +37,7 @@ var (
 
 type BaseProduct struct {
 	Product_type          string `json:"product_name"`
-	Lot_number            string
+	Lot_number            string `json:"lot_number"`
 	Sample_point          string
 	Visual                bool
 	product_id            int64
@@ -154,15 +159,15 @@ func main() {
 	//load config
 	main_config = load_config()
 
-	// //log to file
-	// log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	// if err != nil {
-	// 	log.Fatalf("error opening file: %v", err)
-	// }
-	// defer log_file.Close()
-	//
-	// log.SetOutput(log_file)
-	// log.Println("This is a test log entry")
+	//log to file
+	log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer log_file.Close()
+
+	log.SetOutput(log_file)
+	log.Println("This is a test log entry")
 
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
@@ -175,52 +180,22 @@ func main() {
 
 	dbinit(qc_db)
 
-	// tx, err := qc_db.Begin()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// stmt, err := tx.Prepare("insert into foo(id, name) values(?, ?)")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer stmt.Close()
-	// for i := 0; i < 100; i++ {
-	// 	_, err = stmt.Exec(i, fmt.Sprintf("こんにちは世界%03d", i))
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }
-	// err = tx.Commit()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// rows, err := qc_db.Query("select id, name from foo")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	var id int
-	// 	var name string
-	// 	err = rows.Scan(&id, &name)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	log.Println(id, name)
-	// }
-	// err = rows.Err()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	//setup print goroutine
 	print_queue = make(chan string, 4)
 	defer close(print_queue)
 	go do_print_queue(print_queue)
 
+	// defer qr_sync_waitgroup.Wait()
+
+	qr_done = make(chan bool)
+	// defer close(qr_done)
+
 	//show main window
 	show_window()
+
+	// qr_done <- true
+	close(qr_done)
+	qr_sync_waitgroup.Wait()
 }
 
 func pdf_print(pdf_path string) error {
@@ -250,9 +225,53 @@ print_loop:
 					log.Println(err)
 				}
 			} else {
-				break print_loop // channel is closed
+				break print_loop
 			}
+		}
+	}
+}
 
+type QRJson struct {
+	Product_type string `json:"product_name"`
+	Lot_number   string `json:"lot_number"`
+}
+
+func do_read_qr(
+	qr_pop_data func(QRJson),
+	qr_done chan bool) {
+
+	defer qr_sync_waitgroup.Done()
+
+	var webcam_waitgroup sync.WaitGroup
+	defer webcam_waitgroup.Wait()
+
+	var product QRJson
+
+	webcam_text := make(chan string)
+
+	webcam_done := make(chan bool)
+	defer close(webcam_done)
+
+	webcam_waitgroup.Add(1)
+	go DoReadFromWebcam(&webcam_waitgroup, webcam_text, qr_done)
+
+qr_loop:
+	for {
+		select {
+		case qr_json, ok := <-webcam_text:
+
+			if ok {
+				log.Println("ReadFromWebcam: ", qr_json)
+				err := json.Unmarshal([]byte(qr_json), &product)
+				if err == nil {
+					qr_pop_data(product)
+				}
+			} else {
+				log.Printf("THIS SHOULD NEVER HAPPEN do_read_qr exit qr_done: \n")
+				break qr_loop
+			}
+		case <-qr_done:
+			break qr_loop
 		}
 	}
 }
@@ -410,6 +429,29 @@ func show_window() {
 
 	}
 
+	product_field_text_pop_data := func(str string) {
+		product_field.SetText(strings.ToUpper(strings.TrimSpace(str)))
+		if product_field.Text() != "" {
+
+			log.Println("product_field OnKillFocus Text", product_field.Text())
+			product_field_pop_data(product_field.Text())
+			log.Println("product_field started", product_lot)
+
+		}
+
+	}
+
+	qr_pop_data := func(product QRJson) {
+
+		lot_field.SetText(strings.ToUpper(strings.TrimSpace(product.Lot_number)))
+
+		product_field_text_pop_data(product.Product_type)
+
+	}
+
+	qr_sync_waitgroup.Add(1)
+	go do_read_qr(qr_pop_data, qr_done)
+
 	product_field.OnSelectedChange().Bind(func(e *winc.Event) {
 
 		log.Println("product_field OnSelectedChange GetSelectedItem", product_field.GetSelectedItem())
@@ -419,14 +461,7 @@ func show_window() {
 	})
 
 	product_field.OnKillFocus().Bind(func(e *winc.Event) {
-		product_field.SetText(strings.ToUpper(strings.TrimSpace(product_field.Text())))
-		if product_field.Text() != "" {
-
-			log.Println("product_field OnKillFocus Text", product_field.Text())
-			product_field_pop_data(product_field.Text())
-			log.Println("product_field started", product_lot)
-
-		}
+		product_field_text_pop_data(product_field.Text())
 	})
 
 	sample_field := show_edit_with_lose_focus(product_panel, label_col_1, field_col_1, sample_row, sample_text, strings.ToUpper)
