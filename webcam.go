@@ -65,18 +65,17 @@ func DoReadFromWebcam(wg *sync.WaitGroup, qr_text chan string, webcam_done chan 
 	defer img.Close()
 	defer close(qr_text)
 
-webcam_loop:
 	for {
 		select {
 		case <-webcam_done:
-			break webcam_loop
+			return
 		default:
 			qrCodes, err := SingleReadFromWebcam(webcam, &img)
 			if err == nil {
 				for _, qrCode := range qrCodes {
 					qr_text <- string(qrCode.Payload)
 				}
-				break webcam_loop
+				return
 			}
 		}
 	}

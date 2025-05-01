@@ -213,8 +213,6 @@ func pdf_print(pdf_path string) error {
 }
 
 func do_print_queue(print_queue chan string) {
-
-print_loop:
 	for {
 		select {
 		case new_file, ok := <-print_queue:
@@ -225,7 +223,7 @@ print_loop:
 					log.Println(err)
 				}
 			} else {
-				break print_loop
+				return
 			}
 		}
 	}
@@ -255,7 +253,6 @@ func do_read_qr(
 	webcam_waitgroup.Add(1)
 	go DoReadFromWebcam(&webcam_waitgroup, webcam_text, qr_done)
 
-qr_loop:
 	for {
 		select {
 		case qr_json, ok := <-webcam_text:
@@ -268,10 +265,10 @@ qr_loop:
 				}
 			} else {
 				log.Printf("do_read_qr qr_get exit qr_done: \n")
-				break qr_loop
+				return
 			}
 		case <-qr_done:
-			break qr_loop
+			return
 		}
 	}
 }
