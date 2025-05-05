@@ -21,6 +21,7 @@ var (
 	DB_PATH,
 	DB_FILE,
 	LABEL_PATH string
+	LOG_FILE string
 
 	JSON_PATHS []string
 
@@ -160,7 +161,7 @@ func main() {
 	main_config = load_config()
 
 	// log to file
-	log_file, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	log_file, err := os.OpenFile(LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
@@ -286,6 +287,7 @@ func load_config() *viper.Viper {
 
 		viper_config.Set("db_path", ".")
 		viper_config.Set("label_path", ".")
+		viper_config.Set("log_file", "./qc_data_entry.log")
 		viper_config.Set("json_paths", []string{"."})
 
 		log.Println(viper_config.WriteConfigAs("config.toml"))
@@ -296,6 +298,7 @@ func load_config() *viper.Viper {
 	DB_FILE = viper_config.GetString("db_path") + "/qc.sqlite3"
 	LABEL_PATH = viper_config.GetString("label_path")
 	JSON_PATHS = viper_config.GetStringSlice("json_paths")
+	LOG_FILE = viper_config.GetString("log_file")
 
 	return viper_config
 }
