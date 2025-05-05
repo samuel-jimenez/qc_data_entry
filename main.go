@@ -58,17 +58,15 @@ func main() {
 	defer close(print_queue)
 	go do_print_queue(print_queue)
 
-	// defer qr_sync_waitgroup.Wait()
-
+	//setup qr goroutine
+	defer qr_sync_waitgroup.Wait()
 	qr_done = make(chan bool)
 	// defer close(qr_done)
 
 	//show main window
 	show_window()
 
-	// qr_done <- true
 	close(qr_done)
-	qr_sync_waitgroup.Wait()
 }
 
 func pdf_print(pdf_path string) error {
