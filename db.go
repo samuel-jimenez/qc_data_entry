@@ -210,6 +210,22 @@ create table bs.qc_samples (
 	}
 }
 
+func select_product_name_customer(product_id int64) string {
+	var (
+		product_customer_id   int64
+		customer_name         string
+		product_name_customer string
+	)
+	product_name_customer = ""
+
+	if db_select_product_customer_info.QueryRow(product_id).Scan(&product_customer_id, &customer_name) == nil {
+		product_name_customer = customer_name
+
+	}
+	return product_name_customer
+
+}
+
 func insel_product_id(product_name_full string) int64 {
 	// product_id, err := db_select_product.Exec(product_name_internal)
 	// product_id := db_select_product.QueryRow(product_name_internal)

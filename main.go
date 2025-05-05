@@ -303,22 +303,6 @@ func load_config() *viper.Viper {
 	return viper_config
 }
 
-func select_product_name_customer(product_id int64) string {
-	var (
-		product_customer_id   int64
-		customer_name         string
-		product_name_customer string
-	)
-	product_name_customer = ""
-
-	if db_select_product_customer_info.QueryRow(product_id).Scan(&product_customer_id, &customer_name) == nil {
-		product_name_customer = customer_name
-
-	}
-	return product_name_customer
-
-}
-
 func show_window() {
 
 	log.Println("Process started")
