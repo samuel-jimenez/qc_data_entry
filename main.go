@@ -349,7 +349,7 @@ func show_window() {
 		log.Println("product_field new_product_cb", product_lot)
 
 		// base_product := newProduct_0(product_field, lot_field)
-		base_product := newProduct_3(product_field, lot_field, sample_field)
+		base_product := NewBaseProduct(product_field, lot_field, sample_field)
 
 		base_product.copy_ids(product_lot)
 		log.Println("base_product new_product_cb", base_product)

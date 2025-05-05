@@ -18,7 +18,7 @@ type BaseProduct struct {
 	Product_name_customer string `json:"customer_product_name"`
 }
 
-func newProduct_3(product_field winc.Controller, lot_field winc.Controller, sample_field winc.Controller) BaseProduct {
+func NewBaseProduct(product_field winc.Controller, lot_field winc.Controller, sample_field winc.Controller) BaseProduct {
 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), strings.ToUpper(sample_field.Text()), false, -1, -1, ""}
 }
 
