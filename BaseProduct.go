@@ -45,7 +45,6 @@ func (product BaseProduct) get_json_names() []string {
 
 		json_names = append(json_names, product.get_base_name(JSON_PATH, "json"))
 	}
-	// return product.get_base_name(JSON_PATH, "json")
 	return json_names
 
 }
@@ -55,8 +54,6 @@ func (product *BaseProduct) insel_product_id(product_name string) {
 
 	product.product_id = insel_product_id(product_name)
 	log.Println("insel_product_id", product)
-	// return product
-
 }
 
 func (product *BaseProduct) insel_lot_id(lot_name string) {
@@ -65,7 +62,6 @@ func (product *BaseProduct) insel_lot_id(lot_name string) {
 
 }
 
-// func (product *BaseProduct) insel_product_self() {
 func (product *BaseProduct) insel_product_self() *BaseProduct {
 	product.insel_product_id(product.Product_type)
 	return product
@@ -79,11 +75,7 @@ func (product *BaseProduct) insel_lot_self() *BaseProduct {
 
 }
 
-// TODO use this one
-// func (product BaseProduct) insel_all() BaseProduct {
 func (product BaseProduct) insel_all() *BaseProduct {
-	// func (product *BaseProduct) insel_all() *BaseProduct {
-	// func (product *BaseProduct) insel_all() {
 	return product.insel_product_self().insel_lot_self()
 
 }
