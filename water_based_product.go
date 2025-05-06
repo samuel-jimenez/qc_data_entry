@@ -4,7 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/samuel-jimenez/winc"
+	"github.com/samuel-jimenez/windigo"
 )
 
 type WaterBasedProduct struct {
@@ -19,7 +19,7 @@ func (product WaterBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product BaseProduct, visual_field *winc.CheckBox, sg_field *winc.Edit, ph_field *winc.Edit) Product {
+func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg_field *windigo.Edit, ph_field *windigo.Edit) Product {
 
 	base_product.Visual = visual_field.Checked()
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
@@ -34,7 +34,7 @@ func (product WaterBasedProduct) check_data() bool {
 	return true
 }
 
-func show_water_based(parent winc.Controller, create_new_product_cb func() BaseProduct) {
+func show_water_based(parent windigo.Controller, create_new_product_cb func() BaseProduct) {
 	label_col := 10
 	field_col := 120
 
@@ -54,11 +54,11 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 	sg_field := show_edit(parent, label_col, field_col, sg_row, sg_text)
 	ph_field := show_edit(parent, label_col, field_col, ph_row, ph_text)
 
-	submit_button := winc.NewPushButton(parent)
+	submit_button := windigo.NewPushButton(parent)
 	submit_button.SetText("Submit")
 	submit_button.SetPos(submit_col, SUBMIT_ROW)                     // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-	submit_button.OnClick().Bind(func(e *winc.Event) {
+	submit_button.OnClick().Bind(func(e *windigo.Event) {
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
 		if product.check_data() {
 			log.Println("data", product)
@@ -71,7 +71,7 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 	clear_button_row := SUBMIT_ROW
 	clear_button_width := 100
 	clear_button_height := 40
-	clear_button := winc.NewPushButton(parent)
+	clear_button := windigo.NewPushButton(parent)
 	clear_cb := func() {
 		visual_field.SetChecked(false)
 		sg_field.SetText("")
@@ -82,19 +82,19 @@ func show_water_based(parent winc.Controller, create_new_product_cb func() BaseP
 	clear_button.SetPos(clear_button_col, clear_button_row) // (x, y)
 	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
-	clear_button.OnClick().Bind(func(e *winc.Event) { clear_cb() })
+	clear_button.OnClick().Bind(func(e *windigo.Event) { clear_cb() })
 
 	log_button_col := 250
 	log_button_row := SUBMIT_ROW
 	log_button_width := 100
 	log_button_height := 40
-	log_button := winc.NewPushButton(parent)
+	log_button := windigo.NewPushButton(parent)
 
 	log_button.SetText("Log")
 	log_button.SetPos(log_button_col, log_button_row) // (x, y)
 	// log_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	log_button.SetSize(log_button_width, log_button_height) // (width, height)
-	log_button.OnClick().Bind(func(e *winc.Event) {
+	log_button.OnClick().Bind(func(e *windigo.Event) {
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
 		if product.check_data() {
 			log.Println("data", product)

@@ -4,7 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/samuel-jimenez/winc"
+	"github.com/samuel-jimenez/windigo"
 )
 
 type OilBasedProduct struct {
@@ -19,7 +19,7 @@ func (product OilBasedProduct) toProduct() Product {
 }
 
 func newOilBasedProduct(base_product BaseProduct,
-	visual_field *winc.CheckBox, mass_field *winc.Edit) Product {
+	visual_field *windigo.CheckBox, mass_field *windigo.Edit) Product {
 	base_product.Visual = visual_field.Checked()
 	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
 	// if !err.Error(){log.Println("error",err)}
@@ -33,7 +33,7 @@ func (product OilBasedProduct) check_data() bool {
 	return true
 }
 
-func show_oil_based(parent winc.Controller, create_new_product_cb func() BaseProduct) {
+func show_oil_based(parent windigo.Controller, create_new_product_cb func() BaseProduct) {
 
 	label_col := 10
 	field_col := 120
@@ -51,12 +51,12 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	mass_field := show_mass_sg(parent, label_col, field_col, mass_row, mass_text)
 
-	submit_button := winc.NewPushButton(parent)
+	submit_button := windigo.NewPushButton(parent)
 	submit_button.SetText("Submit")
 	submit_button.SetPos(submit_col, SUBMIT_ROW) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-	submit_button.OnClick().Bind(func(e *winc.Event) {
+	submit_button.OnClick().Bind(func(e *windigo.Event) {
 		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field)
 		if product.check_data() {
 			log.Println("data", product)
@@ -68,7 +68,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	clear_button_row := SUBMIT_ROW
 	clear_button_width := 100
 	clear_button_height := 40
-	clear_button := winc.NewPushButton(parent)
+	clear_button := windigo.NewPushButton(parent)
 	clear_cb := func() {
 		visual_field.SetChecked(false)
 		mass_field.SetText("")
@@ -79,7 +79,7 @@ func show_oil_based(parent winc.Controller, create_new_product_cb func() BasePro
 	clear_button.SetPos(clear_button_col, clear_button_row) // (x, y)
 	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
-	clear_button.OnClick().Bind(func(e *winc.Event) { clear_cb() })
+	clear_button.OnClick().Bind(func(e *windigo.Event) { clear_cb() })
 
 	// visual_field.SetFocus()
 }

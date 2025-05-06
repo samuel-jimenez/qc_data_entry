@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/samuel-jimenez/winc"
-	"github.com/samuel-jimenez/winc/w32"
+	"github.com/samuel-jimenez/windigo"
+	"github.com/samuel-jimenez/windigo/w32"
 )
 
 type FrictionReducerProduct struct {
@@ -20,7 +20,7 @@ func (product FrictionReducerProduct) toProduct() Product {
 	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(product.sg*LB_PER_GAL, true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
 }
 
-func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *winc.Edit, mass_field *winc.Edit, string_field *winc.Edit) Product {
+func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field *windigo.Edit, mass_field *windigo.Edit, string_field *windigo.Edit) Product {
 
 	base_product.Sample_point = sample_point
 
@@ -54,7 +54,7 @@ func check_dual_data(top_product, bottom_product Product) {
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
-func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
+func show_fr(parent windigo.Controller, create_new_product_cb func() BaseProduct) {
 
 	top_col := 10
 	bottom_col := 320
@@ -76,13 +76,13 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 	bottom_group_cb, bottom_group_clear := show_fr_sample_group(parent, bottom_text, bottom_col, group_row, group_width, group_height)
 
-	submit_button := winc.NewPushButton(parent)
+	submit_button := windigo.NewPushButton(parent)
 
 	submit_button.SetText("Submit")
 	submit_button.SetPos(submit_col, SUBMIT_ROW) // (x, y)
 	// submit_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-	submit_button.OnClick().Bind(func(e *winc.Event) {
+	submit_button.OnClick().Bind(func(e *windigo.Event) {
 		base_product := create_new_product_cb()
 		top_product := top_group_cb(base_product)
 		bottom_product := bottom_group_cb(base_product)
@@ -96,13 +96,13 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	clear_button_row := SUBMIT_ROW
 	clear_button_width := 100
 	clear_button_height := 40
-	clear_button := winc.NewPushButton(parent)
+	clear_button := windigo.NewPushButton(parent)
 
 	clear_button.SetText("Clear")
 	clear_button.SetPos(clear_button_col, clear_button_row) // (x, y)
 	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
-	clear_button.OnClick().Bind(func(e *winc.Event) {
+	clear_button.OnClick().Bind(func(e *windigo.Event) {
 		top_group_clear()
 		bottom_group_clear()
 	})
@@ -111,13 +111,13 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	top_button_row := SUBMIT_ROW
 	top_button_width := 100
 	top_button_height := 40
-	top_button := winc.NewPushButton(parent)
+	top_button := windigo.NewPushButton(parent)
 
 	top_button.SetText("Accept Top")
 	top_button.SetPos(top_button_col, top_button_row) // (x, y)
 	// top_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	top_button.SetSize(top_button_width, top_button_height) // (width, height)
-	top_button.OnClick().Bind(func(e *winc.Event) {
+	top_button.OnClick().Bind(func(e *windigo.Event) {
 		base_product := create_new_product_cb()
 
 		top_product := top_group_cb(base_product)
@@ -132,13 +132,13 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 	btm_button_row := SUBMIT_ROW
 	btm_button_width := 100
 	btm_button_height := 40
-	btm_button := winc.NewPushButton(parent)
+	btm_button := windigo.NewPushButton(parent)
 
 	btm_button.SetText("Accept Btm")
 	btm_button.SetPos(btm_button_col, btm_button_row) // (x, y)
 	// btm_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	btm_button.SetSize(btm_button_width, btm_button_height) // (width, height)
-	btm_button.OnClick().Bind(func(e *winc.Event) {
+	btm_button.OnClick().Bind(func(e *windigo.Event) {
 		base_product := create_new_product_cb()
 
 		bottom_product := bottom_group_cb(base_product)
@@ -150,15 +150,15 @@ func show_fr(parent winc.Controller, create_new_product_cb func() BaseProduct) {
 
 }
 
-func show_fr_sample_group(parent winc.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) (func(base_product BaseProduct) Product, func()) {
+func show_fr_sample_group(parent windigo.Controller, sample_point string, x_pos, y_pos, group_width, group_height int) (func(base_product BaseProduct) Product, func()) {
 
-	sample_group := winc.NewPanel(parent)
+	sample_group := windigo.NewPanel(parent)
 	sample_group.SetAndClearStyleBits(w32.WS_TABSTOP, 0)
 	sample_group.SetPos(x_pos, y_pos)
 	sample_group.SetSize(group_width, group_height)
 	sample_group.SetText(sample_point)
 
-	group_box := winc.NewGroupBox(parent)
+	group_box := windigo.NewGroupBox(parent)
 	group_box.SetPos(x_pos-5, y_pos-5)
 	group_box.SetSize(group_width+10, group_height+10)
 	group_box.SetText(sample_point)

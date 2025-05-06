@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/samuel-jimenez/winc"
+	"github.com/samuel-jimenez/windigo"
 )
 
 type BaseProduct struct {
@@ -19,7 +19,7 @@ type BaseProduct struct {
 	Product_name_customer string `json:"customer_product_name"`
 }
 
-func NewBaseProduct(product_field winc.Controller, lot_field winc.Controller, sample_field winc.Controller) BaseProduct {
+func NewBaseProduct(product_field windigo.Controller, lot_field windigo.Controller, sample_field windigo.Controller) BaseProduct {
 	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), strings.ToUpper(sample_field.Text()), false, -1, -1, ""}
 }
 
