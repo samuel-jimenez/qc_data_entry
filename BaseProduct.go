@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/samuel-jimenez/winc"
 )
@@ -26,24 +27,32 @@ func (product BaseProduct) toBaseProduct() BaseProduct {
 	return product
 }
 
-func (product BaseProduct) get_base_name(path string, extension string) string {
+func (product BaseProduct) get_base_filename(extension string) string {
 	// if (product.Sample_point.Valid) {
 	if product.Sample_point != "" {
-		return fmt.Sprintf("%s/%s-%s-%s.%s", path, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), product.Sample_point, extension)
+		return fmt.Sprintf("%s-%s-%s-%s.%s", strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), product.Sample_point, extension)
 	}
 
-	return fmt.Sprintf("%s/%s-%s.%s", path, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), extension)
+	return fmt.Sprintf("%s-%s-%s.%s", strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), extension)
 }
 
 func (product BaseProduct) get_pdf_name() string {
-	return product.get_base_name(LABEL_PATH, "pdf")
+	return fmt.Sprintf("%s/%s", LABEL_PATH, product.get_base_filename("pdf"))
+
+}
+
+func (product BaseProduct) get_json_filename(path string, base_name string) string {
+
+	return fmt.Sprintf("%s/%s-%s", path, time.Now().UTC().UnixNano(), base_name)
 }
 
 func (product BaseProduct) get_json_names() []string {
 	var json_names []string
+	base_name := product.get_base_filename("json")
+
 	for _, JSON_PATH := range JSON_PATHS {
 
-		json_names = append(json_names, product.get_base_name(JSON_PATH, "json"))
+		json_names = append(json_names, product.get_json_filename(JSON_PATH, base_name))
 	}
 	return json_names
 
