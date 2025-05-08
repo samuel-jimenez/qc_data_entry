@@ -30,10 +30,10 @@ func (product BaseProduct) toBaseProduct() BaseProduct {
 func (product BaseProduct) get_base_filename(extension string) string {
 	// if (product.Sample_point.Valid) {
 	if product.Sample_point != "" {
-		return fmt.Sprintf("%s-%s-%s.%s", strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), product.Sample_point, extension)
+		return fmt.Sprintf("%s-%s-%s.%s", strings.ToUpper(product.Lot_number), product.Sample_point, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), extension)
 	}
 
-	return fmt.Sprintf("%s-%s.%s", strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), strings.ToUpper(product.Lot_number), extension)
+	return fmt.Sprintf("%s-%s.%s", strings.ToUpper(product.Lot_number), strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), extension)
 }
 
 func (product BaseProduct) get_pdf_name() string {
