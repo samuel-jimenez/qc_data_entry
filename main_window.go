@@ -45,12 +45,17 @@ func show_window() {
 	sample_text := "Sample Point"
 	customer_text := "Customer Name"
 
-	var product_lot BaseProduct
+	var product_lot QCProduct
 
 	cam_button_col := 675
 	cam_button_row := 5
 	cam_button_width := 100
 	cam_button_height := 100
+
+	ranges_button_col := 0
+	ranges_button_row := 80
+	ranges_button_width := 80
+	ranges_button_height := 20
 
 	cam_button := windigo.NewPushButton(product_panel)
 	//TODO array db_select_all_product
@@ -87,11 +92,32 @@ func show_window() {
 	}
 
 	lot_field := show_combobox(product_panel, label_col_0, field_col_0, lot_row, lot_text)
+	sample_field := show_edit_with_lose_focus(product_panel, label_col_1, field_col_1, sample_row, sample_text, strings.ToUpper)
+
+	ranges_button := windigo.NewPushButton(product_panel)
+	ranges_button.SetText("Ranges")
+	ranges_button.SetPos(ranges_button_col, ranges_button_row) // (x, y)
+	// ranges_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	ranges_button.SetSize(ranges_button_width, ranges_button_height) // (width, height)
+	ranges_button.OnClick().Bind(func(e *windigo.Event) {
+		if product_lot.Product_type != "" {
+			product_lot.show_ranges_window()
+			log.Println("product_lot", product_lot)
+		}
+	})
+
+	tabs := windigo.NewTabView(mainWindow)
+	// tabs.SetPos(20, 20)
+	// tabs.SetSize(750, 500)
+	tab_wb := tabs.AddPanel("Water Based")
+	tab_oil := tabs.AddPanel("Oil Based")
+	tab_fr := tabs.AddPanel("Friction Reducer")
 
 	lot_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-			product_lot.insel_lot_id(lot_field.Text())
+			product_lot.Lot_number = lot_field.Text()
+			product_lot.insel_lot_self()
 		}
 	})
 
@@ -100,11 +126,20 @@ func show_window() {
 
 		// if product_lot.product_id != product_lot.insel_product_id(str) {
 		old_product_id := product_lot.product_id
-		product_lot.insel_product_id(str)
+		product_lot.Product_type = str
+		product_lot.insel_product_self()
 		if product_lot.product_id != old_product_id {
 			log.Println("product_field_pop_data product_id changes", product_lot.product_id)
-			product_lot.Product_name_customer = select_product_name_customer(product_lot.product_id)
+
+			product_lot.reset()
+			product_lot.select_product_details()
+			log.Println("product_field_pop_data select_product_details", product_lot)
+
 			customer_field.SetText(product_lot.Product_name_customer)
+			if product_lot.product_type.Valid {
+
+				tabs.SetCurrent(product_lot.product_type.toIndex())
+			}
 
 			// TODO lot
 			rows, err := db_select_lot_info.Query(product_lot.product_id)
@@ -124,9 +159,7 @@ func show_window() {
 					lot_field.AddItem(lot_name)
 				}
 			}
-
 		}
-
 	}
 
 	product_field_text_pop_data := func(str string) {
@@ -148,7 +181,6 @@ func show_window() {
 		product_field_text_pop_data(product.Product_type)
 
 	}
-
 	cam_button.SetText("Scan")
 	cam_button.SetPos(cam_button_col, cam_button_row) // (x, y)
 	// cam_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
@@ -158,6 +190,7 @@ func show_window() {
 		qr_done = make(chan bool)
 		qr_sync_waitgroup.Add(1)
 		go do_read_qr(qr_pop_data, qr_done)
+
 	})
 
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
@@ -172,27 +205,20 @@ func show_window() {
 		product_field_text_pop_data(product_field.Text())
 	})
 
-	sample_field := show_edit_with_lose_focus(product_panel, label_col_1, field_col_1, sample_row, sample_text, strings.ToUpper)
-
 	new_product_cb := func() BaseProduct {
 		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
 		log.Println("product_field new_product_cb", product_lot)
 
-		// base_product := newProduct_0(product_field, lot_field)
 		base_product := NewBaseProduct(product_field, lot_field, sample_field)
 
-		base_product.copy_ids(product_lot)
+		log.Println("product_field new_product_cb copy_ids", product_lot.toBaseProduct())
+		log.Println("product_field base_product copy_ids", base_product)
+
+		base_product.copy_ids(product_lot.toBaseProduct())
 		log.Println("base_product new_product_cb", base_product)
 
 		return base_product
 	}
-
-	tabs := windigo.NewTabView(mainWindow)
-	// tabs.SetPos(20, 20)
-	// tabs.SetSize(750, 500)
-	tab_wb := tabs.AddPanel("Water Based")
-	tab_oil := tabs.AddPanel("Oil Based")
-	tab_fr := tabs.AddPanel("Friction Reducer")
 
 	show_water_based(tab_wb, new_product_cb)
 	show_oil_based(tab_oil, new_product_cb)
@@ -207,144 +233,6 @@ func show_window() {
 	mainWindow.Show()
 	mainWindow.OnClose().Bind(wndOnClose)
 	mainWindow.RunMainLoop() // Must call to start event loop.
-}
-
-func show_checkbox(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *windigo.CheckBox {
-	checkbox_label := windigo.NewLabel(parent)
-	checkbox_label.SetPos(x_label_pos, y_pos)
-
-	checkbox_label.SetText(field_text)
-
-	checkbox_field := windigo.NewCheckBox(parent)
-	checkbox_field.SetText("")
-
-	checkbox_field.SetPos(x_field_pos, y_pos)
-	// visual_label.OnClick().Bind(func(e *windigo.Event) {
-	// 		visual_field.SetFocus()
-	// })
-	return checkbox_field
-}
-
-func show_combobox(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *windigo.ComboBox {
-	// func show_combobox(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *windigo.Edit {
-	combobox_label := windigo.NewLabel(parent)
-	combobox_label.SetPos(x_label_pos, y_pos)
-	combobox_label.SetText(field_text)
-
-	// combobox_field := combobox_label.NewEdit(mainWindow)
-	// combobox_field := windigo.NewEdit(parent)
-
-	combobox_field := windigo.NewComboBox(parent)
-
-	combobox_field.SetPos(x_field_pos, y_pos)
-	// Most Controls have default size unless SetSize is called.
-	combobox_field.SetText("")
-	// combobox_field.SetParent(combobox_label)
-	// combobox_label.SetParent(combobox_field)
-
-	// combobox_label.OnClick().Bind(func(e *windigo.Event) {
-	// 		combobox_field.SetFocus()
-	// })
-	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		combobox_field.SetText(strings.TrimSpace(combobox_field.Text()))
-	})
-
-	return combobox_field
-}
-
-func show_edit(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *windigo.Edit {
-	edit_label := windigo.NewLabel(parent)
-	edit_label.SetPos(x_label_pos, y_pos)
-	edit_label.SetText(field_text)
-
-	// edit_field := edit_label.NewEdit(mainWindow)
-	edit_field := windigo.NewEdit(parent)
-	edit_field.SetPos(x_field_pos, y_pos)
-	// Most Controls have default size unless SetSize is called.
-	edit_field.SetText("")
-	// edit_field.SetParent(edit_label)
-	// edit_label.SetParent(edit_field)
-
-	// edit_label.OnClick().Bind(func(e *windigo.Event) {
-	// 		edit_field.SetFocus()
-	// })
-	edit_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		edit_field.SetText(strings.TrimSpace(edit_field.Text()))
-	})
-
-	return edit_field
-}
-
-func show_edit_with_lose_focus(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string, focus_cb func(string) string) *windigo.Edit {
-	edit_label := windigo.NewLabel(parent)
-	edit_label.SetPos(x_label_pos, y_pos)
-	edit_label.SetText(field_text)
-
-	// edit_field := edit_label.NewEdit(mainWindow)
-	edit_field := windigo.NewEdit(parent)
-	edit_field.SetPos(x_field_pos, y_pos)
-	// Most Controls have default size unless SetSize is called.
-	edit_field.SetText("")
-	// edit_field.SetParent(edit_label)
-	// edit_label.SetParent(edit_field)
-
-	// edit_label.OnClick().Bind(func(e *windigo.Event) {
-	// 		edit_field.SetFocus()
-	// })
-	edit_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		edit_field.SetText(focus_cb(strings.TrimSpace(edit_field.Text())))
-	})
-
-	return edit_field
-}
-
-func show_text(parent windigo.Controller, x_label_pos, x_field_pos, y_pos, field_width int, field_text string, field_units string) *windigo.Label {
-	field_height := 20
-	text_label := windigo.NewLabel(parent)
-	text_label.SetPos(x_label_pos, y_pos)
-	text_label.SetText(field_text)
-
-	// text_field := text_label.NewEdit(mainWindow)
-	text_field := windigo.NewLabel(parent)
-	text_field.SetPos(x_field_pos, y_pos)
-	text_field.SetSize(field_width, field_height)
-	// Most Controls have default size unless  is called.
-	text_field.SetText("0.000")
-
-	text_units := windigo.NewLabel(parent)
-	text_units.SetPos(x_field_pos+field_width, y_pos)
-	text_units.SetText(field_units)
-
-	return text_field
-}
-
-func show_mass_sg(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *windigo.Edit {
-
-	field_width := 50
-
-	density_row := 125
-	sg_row := 150
-
-	sg_text := "Specific Gravity"
-	density_text := "Density"
-
-	sg_units := "g/mL"
-	density_units := "lb/gal"
-
-	mass_field := show_edit(parent, x_label_pos, x_field_pos, y_pos, field_text)
-
-	sg_field := show_text(parent, x_label_pos, x_field_pos, sg_row, field_width, sg_text, sg_units)
-	density_field := show_text(parent, x_label_pos, x_field_pos, density_row, field_width, density_text, density_units)
-
-	mass_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		mass_field.SetText(strings.TrimSpace(mass_field.Text()))
-		sg := sg_from_mass(mass_field)
-		density := density_from_sg(sg)
-		sg_field.SetText(format_sg(sg))
-		density_field.SetText(format_density(density))
-	})
-
-	return mass_field
 }
 
 func wndOnClose(arg *windigo.Event) {

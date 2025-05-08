@@ -11,7 +11,7 @@ type NullFloat64 struct {
 }
 
 func NewNullFloat64(Float64 float64, Valid bool) NullFloat64 {
-	return NullFloat64{sql.NullFloat64{Float64, Valid}}
+	return NullFloat64{sql.NullFloat64{Float64: Float64, Valid: Valid}}
 }
 
 func (nf NullFloat64) MarshalJSON() ([]byte, error) {

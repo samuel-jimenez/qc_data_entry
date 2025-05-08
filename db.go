@@ -11,10 +11,21 @@ import (
 
 var qc_db *sql.DB
 var db_select_product_id, db_insert_product, db_select_product_info,
+	db_select_product_details, db_upsert_product_details,
 	db_select_product_customer_id, db_upsert_product_customer, db_select_product_customer_info,
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
 	db_insert_measurement *sql.Stmt
 var err error
+
+func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
+	preparedStatement, err := db.Prepare(sqlStatement)
+	if err != nil {
+		log.Printf("%q: %s\n", err, sqlStatement)
+		panic(err)
+
+	}
+	return preparedStatement
+}
 
 func dbinit(db *sql.DB) {
 
@@ -68,146 +79,182 @@ create table bs.qc_samples (
 	primary key (qc_id),
 	foreign key (lot_id) references product_lot);
 
+
+
+create table bs.product_types (
+	product_type_id integer not null,
+	product_type_name text,
+	primary key (product_type_id));
+
+create table bs.product_ranges (
+	range_id integer not null,
+	product_id not null,
+	product_type_id integer not null,
+	specific_gravity_min real,
+	specific_gravity_max real,
+	specific_gravity_target real,
+	ph_min real,
+	ph_max real,
+	ph_target real,
+	string_test_min real,
+	string_test_max real,
+	string_test_target real,
+	viscosity_min real,
+	viscosity_max real,
+	viscosity_target real,
+	primary key (range_id),
+	foreign key (product_id) references product_line,
+	foreign key (product_type_id) references product_types,
+	unique (product_id));
+
 `
-	//TODO PRINT CUST NME FOR 8OZ
-
-	// 	sqlStmt := `
-	// PRAGMA foreign_keys = ON;
-	// create table product_lot (lot_id integer not null primary key, lot_name text, product_id references product);
-	// create table qc_samples (qc_id integer not null primary key, lot_id references product_lot, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real);
-	// `
-
-	/*
-	   	sqlStmt := `
-	   drop table qc_samples
-	   create table qc_samples (qc_id integer not null primary key, batch_id references product_batch, sample_point text, time_stamp integer, specific_gravity real,  ph real,   string_test real,   viscosity real, );
-	   `*/
-	// foreign key(trackartist) references product(product_id)
-	// references product
-	// recipe
-	//qc_values
-
-	// db.Exec(sqlStmt)
+	// _min real,
+	// _max real,
+	// _target real,
 
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %s\n", err, sqlStmt)
 		// return
 	}
-
-	select_product_info_statement := `
+	db_select_product_info = PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
 		order by product_moniker_name,product_name_internal
 
-	`
-	db_select_product_info, err = db.Prepare(select_product_info_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, select_product_info_statement)
-		return
-	}
+	`)
 
-	select_product_statement := `
+	db_select_product_id = PrepareOrElse(db, `
 	select product_id
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
 		where product_name_internal = ?
 		and product_moniker_name = ?
-		`
-	db_select_product_id, err = db.Prepare(select_product_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, select_product_statement)
-		return
-	}
+		`)
 
-	insert_product_statement := `
+	db_insert_product = PrepareOrElse(db, `
 	insert into bs.product_line
 		(product_name_internal, product_moniker_id)
 		select ?, product_moniker_id
 			from bs.product_moniker
 			where product_moniker_name = ?
-		returning product_id`
-	db_insert_product, err = db.Prepare(insert_product_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, insert_product_statement)
-		return
-	}
+		returning product_id
+		`)
 
-	select_product_customer_info_statement := `
+	db_select_product_details = PrepareOrElse(db, `
+	select
+		product_name_customer,
+		product_type_id,
+		specific_gravity_min,
+		specific_gravity_max,
+		specific_gravity_target,
+		ph_min,
+		ph_max,
+		ph_target,
+		string_test_min,
+		string_test_max,
+		string_test_target,
+		viscosity_min,
+		viscosity_max,
+		viscosity_target
+	from bs.product_customer_line
+	full join bs.product_ranges using (product_id)
+	where product_id = ?`)
+
+	db_upsert_product_details = PrepareOrElse(db, `
+	insert into bs.product_ranges
+		(product_id,
+		product_type_id,
+
+		specific_gravity_min,
+		specific_gravity_max,
+		specific_gravity_target,
+
+		ph_min,
+		ph_max,
+		ph_target,
+
+		string_test_min,
+		string_test_max,
+		string_test_target,
+
+		viscosity_min,
+		viscosity_max,
+		viscosity_target)
+		values (?,?,
+	?,?,?,
+	?,?,?,
+	?,?,?,
+	?,?,?)
+	on conflict(product_id) do update set
+		product_type_id=excluded.product_type_id,
+		specific_gravity_min=excluded.specific_gravity_min,
+		specific_gravity_max=excluded.specific_gravity_max,
+		specific_gravity_target=excluded.specific_gravity_target,
+
+		ph_min=excluded.ph_min,
+		ph_max=excluded.ph_max,
+		ph_target=excluded.ph_target,
+
+		string_test_min=excluded.string_test_min,
+		string_test_max=excluded.string_test_max,
+		string_test_target=excluded.string_test_target,
+
+		viscosity_min=excluded.viscosity_min,
+		viscosity_max=excluded.viscosity_max,
+		viscosity_target=excluded.viscosity_target
+
+		returning range_id
+		`)
+
+	db_select_product_customer_info = PrepareOrElse(db, `
 	select product_customer_id, product_name_customer
 		from bs.product_customer_line
-		where product_id = ?`
-	db_select_product_customer_info, err = db.Prepare(select_product_customer_info_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, select_product_customer_info_statement)
-		return
-	}
+		where product_id = ?
+		`)
 
-	select_product_customer_statement := `
+	db_select_product_customer_id = PrepareOrElse(db, `
 	select product_customer_id
 		from bs.product_customer_line
-		where product_name_customer = ? and product_id = ?`
-	db_select_product_customer_id, err = db.Prepare(select_product_customer_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, select_product_customer_statement)
-		return
-	}
+		where product_name_customer = ? and product_id = ?
+		`)
 
-	upsert_product_customer_statement := `
+	db_upsert_product_customer = PrepareOrElse(db, `
 	insert into bs.product_customer_line
 		(product_name_customer,product_id)
 		values (?,?)
 	on conflict(product_id) do update set
 		product_name_customer=excluded.product_name_customer
-		returning product_customer_id`
-	db_upsert_product_customer, err = db.Prepare(upsert_product_customer_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, upsert_product_customer_statement)
-		return
-	}
+		returning product_customer_id
+		`)
 
-	select_lot_info_statement := `
+	db_select_lot_info = PrepareOrElse(db, `
 	select lot_id, lot_name
 		from bs.product_lot
-		where product_id = ?`
-	db_select_lot_info, err = db.Prepare(select_lot_info_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, select_lot_info_statement)
-		return
-	}
+		where product_id = ?
+		`)
 
-	select_lot_statement := `
+	db_select_lot_id = PrepareOrElse(db, `
 	select lot_id
 		from bs.product_lot
-		where lot_name = ? and product_id = ?`
-	db_select_lot_id, err = db.Prepare(select_lot_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, select_lot_statement)
-		return
-	}
+		where lot_name = ? and product_id = ?
+		`)
 
-	insert_lot_statement := `
+	db_insert_lot = PrepareOrElse(db, `
 	insert into bs.product_lot
 		(lot_name,product_id)
 		values (?,?)
-		returning lot_id`
-	db_insert_lot, err = db.Prepare(insert_lot_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, insert_lot_statement)
-		return
-	}
+		returning lot_id
+		`)
 
-	insert_measurement_statement := `
+	db_insert_measurement = PrepareOrElse(db, `
 	insert into bs.qc_samples
 		(lot_id, sample_point, time_stamp, specific_gravity, ph, string_test, viscosity)
 		values (?, ?, ?, ?, ?, ?, ?)
-		returning qc_id`
-	db_insert_measurement, err = db.Prepare(insert_measurement_statement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, insert_measurement_statement)
-		return
-	}
+		returning qc_id
+		`)
+
 }
 
 func select_product_name_customer(product_id int64) string {
@@ -225,6 +272,47 @@ func select_product_name_customer(product_id int64) string {
 	return product_name_customer
 
 }
+
+func DerefOrEmpty[T any](val *T) T {
+	if val == nil {
+		var empty T
+		return empty
+	}
+	return *val
+}
+
+func ValidOr[T any](val *T, default_val T) T {
+	if val == nil {
+		return default_val
+	}
+	return *val
+
+}
+
+func OrNil[T comparable](val *T, default_val T) *T {
+	if val == nil || *val == default_val {
+		return nil
+	}
+	return val
+
+}
+
+/*
+func OrNil[T any](val T, default_val T) *T {
+	if val == default_val {
+		return nil
+	}
+	return val
+
+}
+
+func OrNil_[T any](val *T, default_val T) *T {
+	if val == nil {
+		return nil
+	}
+	return val
+
+}*/
 
 func insel_product_id(product_name_full string) int64 {
 	// product_id, err := db_select_product.Exec(product_name_internal)

@@ -148,10 +148,11 @@ func load_config() *viper.Viper {
 	viper_config := viper.New()
 	viper_config.SetConfigName("config") // name of config file (without extension)
 	viper_config.SetConfigType("toml")   // REQUIRED if the config file does not have the extension in the name
-	// viper.AddConfigPath("/etc/appname/")  // path to look for the config file in
+	viper_config.AddConfigPath(".")      // optionally look for config in the working directory
+	// viper_config.AddConfigPath("/etc/appname/")  // path to look for the config file in
 	// viper.AddConfigPath("$HOME/.config/qc_data_entry") // call multiple times to add many search paths
-	viper_config.AddConfigPath(".")    // optionally look for config in the working directory
-	err := viper_config.ReadInConfig() // Find and read the config file
+	viper_config.AddConfigPath("$HOME/.config/qc_data_entry") // call multiple times to add many search paths
+	err := viper_config.ReadInConfig()                        // Find and read the config file
 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 		// Config file not found; ignore error if desired
 
