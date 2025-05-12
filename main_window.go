@@ -45,7 +45,7 @@ func show_window() {
 	sample_text := "Sample Point"
 	customer_text := "Customer Name"
 
-	var product_lot QCProduct
+	var qc_product QCProduct
 
 	cam_button_col := 675
 	cam_button_row := 5
@@ -65,8 +65,8 @@ func show_window() {
 		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
 		if customer_field.Text() != "" && product_field.Text() != "" {
 			product_name_customer := customer_field.Text()
-			upsert_product_name_customer(product_name_customer, product_lot.product_id)
-			product_lot.Product_name_customer = select_product_name_customer(product_lot.product_id)
+			upsert_product_name_customer(product_name_customer, qc_product.product_id)
+			qc_product.Product_name_customer = select_product_name_customer(qc_product.product_id)
 			// product_lot.product_name_customer = product_name_customer
 
 		}
@@ -100,9 +100,9 @@ func show_window() {
 	// ranges_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
 	ranges_button.SetSize(ranges_button_width, ranges_button_height) // (width, height)
 	ranges_button.OnClick().Bind(func(e *windigo.Event) {
-		if product_lot.Product_type != "" {
-			product_lot.show_ranges_window()
-			log.Println("product_lot", product_lot)
+		if qc_product.Product_type != "" {
+			qc_product.show_ranges_window()
+			log.Println("product_lot", qc_product)
 		}
 	})
 
@@ -116,33 +116,33 @@ func show_window() {
 	lot_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
-			product_lot.Lot_number = lot_field.Text()
-			product_lot.insel_lot_self()
+			qc_product.Lot_number = lot_field.Text()
+			qc_product.insel_lot_self()
 		}
 	})
 
 	product_field_pop_data := func(str string) {
-		log.Println("product_field_pop_data product_id", product_lot.product_id)
+		log.Println("product_field_pop_data product_id", qc_product.product_id)
 
 		// if product_lot.product_id != product_lot.insel_product_id(str) {
-		old_product_id := product_lot.product_id
-		product_lot.Product_type = str
-		product_lot.insel_product_self()
-		if product_lot.product_id != old_product_id {
-			log.Println("product_field_pop_data product_id changes", product_lot.product_id)
+		old_product_id := qc_product.product_id
+		qc_product.Product_type = str
+		qc_product.insel_product_self()
+		if qc_product.product_id != old_product_id {
+			log.Println("product_field_pop_data product_id changes", qc_product.product_id)
 
-			product_lot.reset()
-			product_lot.select_product_details()
-			log.Println("product_field_pop_data select_product_details", product_lot)
+			qc_product.reset()
+			qc_product.select_product_details()
+			log.Println("product_field_pop_data select_product_details", qc_product)
 
-			customer_field.SetText(product_lot.Product_name_customer)
-			if product_lot.product_type.Valid {
+			customer_field.SetText(qc_product.Product_name_customer)
+			if qc_product.product_type.Valid {
 
-				tabs.SetCurrent(product_lot.product_type.toIndex())
+				tabs.SetCurrent(qc_product.product_type.toIndex())
 			}
 
 			// TODO lot
-			rows, err := db_select_lot_info.Query(product_lot.product_id)
+			rows, err := db_select_lot_info.Query(qc_product.product_id)
 			if err != nil {
 				log.Printf("%q: %s\n", err, "insel_lot_id")
 				// return -1
@@ -168,7 +168,7 @@ func show_window() {
 
 			log.Println("product_field OnKillFocus Text", product_field.Text())
 			product_field_pop_data(product_field.Text())
-			log.Println("product_field started", product_lot)
+			log.Println("product_field started", qc_product)
 
 		}
 
@@ -206,18 +206,9 @@ func show_window() {
 	})
 
 	new_product_cb := func() BaseProduct {
-		// return newProduct_0(product_field, lot_field).copy_ids(product_lot)
-		log.Println("product_field new_product_cb", product_lot)
-
-		base_product := NewBaseProduct(product_field, lot_field, sample_field)
-
-		log.Println("product_field new_product_cb copy_ids", product_lot.toBaseProduct())
-		log.Println("product_field base_product copy_ids", base_product)
-
-		base_product.copy_ids(product_lot.toBaseProduct())
-		log.Println("base_product new_product_cb", base_product)
-
-		return base_product
+		qc_product.Sample_point = sample_field.Text()
+		log.Println("product_field new_product_cb", qc_product.toBaseProduct())
+		return qc_product.toBaseProduct()
 	}
 
 	show_water_based(tab_wb, new_product_cb)

@@ -5,8 +5,6 @@ import (
 	"log"
 	"strings"
 	"time"
-
-	"github.com/samuel-jimenez/windigo"
 )
 
 type BaseProduct struct {
@@ -17,10 +15,6 @@ type BaseProduct struct {
 	product_id            int64
 	lot_id                int64
 	Product_name_customer string `json:"customer_product_name"`
-}
-
-func NewBaseProduct(product_field windigo.Controller, lot_field windigo.Controller, sample_field windigo.Controller) BaseProduct {
-	return BaseProduct{strings.ToUpper(product_field.Text()), strings.ToUpper(lot_field.Text()), strings.ToUpper(sample_field.Text()), false, -1, -1, ""}
 }
 
 func (product BaseProduct) toBaseProduct() BaseProduct {
