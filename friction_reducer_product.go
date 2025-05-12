@@ -25,10 +25,8 @@ func newFrictionReducerProduct(base_product BaseProduct, sample_point string, vi
 	base_product.Sample_point = sample_point
 
 	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
-	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
-	// if !err.Error(){log.Println("error",err)}
 	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
-	sg := mass / SAMPLE_VOLUME
+	sg := sg_from_mass(mass_field)
 
 	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
 

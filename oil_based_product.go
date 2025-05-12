@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strconv"
 
 	"github.com/samuel-jimenez/windigo"
 )
@@ -21,9 +20,7 @@ func (product OilBasedProduct) toProduct() Product {
 func newOilBasedProduct(base_product BaseProduct,
 	visual_field *windigo.CheckBox, mass_field *windigo.Edit) Product {
 	base_product.Visual = visual_field.Checked()
-	mass, _ := strconv.ParseFloat(mass_field.Text(), 64)
-	// if !err.Error(){log.Println("error",err)}
-	sg := mass / SAMPLE_VOLUME
+	sg := sg_from_mass(mass_field)
 
 	return OilBasedProduct{base_product, sg}.toProduct()
 
