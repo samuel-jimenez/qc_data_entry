@@ -128,19 +128,22 @@ func (product Product) export_label_pdf() (string, error) {
 	}
 	//TODO unit
 
-	if product.SG.Valid {
-		curr_row += curr_row_delta
-		pdf.SetXY(label_col, curr_row)
-		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, format_sg(product.SG.Float64))
-
-	}
-
+	var sg_derived bool
 	if product.PH.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
 		pdf.Cell(field_width, field_height, format_ph(product.PH.Float64))
+		sg_derived = false
+	} else {
+		sg_derived = true
+	}
+
+	if product.SG.Valid {
+		curr_row += curr_row_delta
+		pdf.SetXY(label_col, curr_row)
+		pdf.Cell(label_width, label_height, "SG")
+		pdf.Cell(field_width, field_height, format_sg(product.SG.Float64, !sg_derived))
 
 	}
 

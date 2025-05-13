@@ -178,7 +178,7 @@ func show_mass_sg(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int
 		mass_field.SetText(strings.TrimSpace(mass_field.Text()))
 		sg := sg_from_mass(mass_field)
 		density := density_from_sg(sg)
-		sg_field.SetText(format_sg(sg))
+		sg_field.SetText(format_sg(sg, false))
 		density_field.SetText(format_density(density))
 	})
 

@@ -24,8 +24,14 @@ func density_from_sg(sg float64) float64 {
 	return density
 }
 
-func format_sg(sg float64) string {
-	return strconv.FormatFloat(sg, 'f', 4, 64)
+func format_sg(sg float64, fixed_precision bool) string {
+	var precision int
+	if fixed_precision || sg < 1 {
+		precision = 4
+	} else {
+		precision = 3
+	}
+	return strconv.FormatFloat(sg, 'f', precision, 64)
 }
 
 func format_ph(ph float64) string {
