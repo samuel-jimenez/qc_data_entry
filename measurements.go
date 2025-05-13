@@ -51,7 +51,7 @@ func format_ranges_sg(sg float64) string {
 }
 
 func format_ranges_ph(ph float64) string {
-	return strconv.FormatFloat(ph, 'f', 1, 64)
+	return strconv.FormatFloat(ph, 'f', 2, 64)
 }
 
 func format_ranges_density(density float64) string {
