@@ -184,3 +184,8 @@ func show_mass_sg(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int
 
 	return mass_field
 }
+
+func show_status_bar(message string) {
+	status_bar.SetText(message)
+	// TODO TIMER
+}

@@ -11,6 +11,8 @@ var (
 	SUBMIT_ROW = 200
 	SUBMIT_COL = 40
 	CLEAR_COL  = 140
+
+	status_bar *windigo.StatusBar
 )
 
 func show_window() {
@@ -219,6 +221,9 @@ func show_window() {
 	dock.Dock(product_panel, windigo.Top)  // tabs should prefer docking at the top
 	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
 	dock.Dock(tabs.Panels(), windigo.Fill) // tab panels dock just below tabs and fill area
+
+	status_bar = windigo.NewStatusBar(mainWindow)
+	mainWindow.SetStatusBar(status_bar)
 
 	mainWindow.Center()
 	mainWindow.Show()

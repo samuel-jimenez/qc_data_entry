@@ -2,7 +2,7 @@ module github.com/samuel-jimenez/qc_data_entry
 
 go 1.24.2
 
-require github.com/samuel-jimenez/windigo v0.5.1
+require github.com/samuel-jimenez/windigo v0.5.3
 
 require (
 	codeberg.org/go-pdf/fpdf v0.11.1

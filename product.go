@@ -28,6 +28,7 @@ type Product struct {
 
 func (product Product) save() error {
 	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.SG, product.PH, product.String_test, product.Viscosity)
+	show_status_bar("\t\tSample Recorded")
 	return err
 }
 
@@ -46,7 +47,6 @@ func (product Product) export_json() {
 			log.Fatal(err)
 		}
 	}
-
 }
 
 func (product Product) toProduct() Product {
@@ -74,10 +74,13 @@ func (product Product) print() error {
 
 	pdf_path, err := product.export_label_pdf()
 
+	show_status_bar("\t\tLabel Created")
+
 	if err != nil {
 		return err
 	}
 	print_queue <- pdf_path
+	show_status_bar("\t\tLabel Printed")
 
 	return err
 

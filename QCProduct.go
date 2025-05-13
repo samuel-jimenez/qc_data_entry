@@ -288,6 +288,7 @@ func (product *QCProduct) show_ranges_window() {
 			visco_dock.Get(),
 		)
 		product.upsert()
+		show_status_bar("\t\tQC Data Updated")
 		exit()
 	}
 	try_save := func() {
