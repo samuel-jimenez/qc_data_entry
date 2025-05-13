@@ -112,11 +112,13 @@ create table bs.product_ranges (
 	// _max real,
 	// _target real,
 
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStmt)
-		// return
-	}
+	db.Exec(sqlStmt)
+	// _, err = db.Exec(sqlStmt)
+	// if err != nil {
+	// 	log.Printf("%q: %s\n", err, sqlStmt)
+	// 	// return
+	// }
+
 	db_select_product_info = PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
