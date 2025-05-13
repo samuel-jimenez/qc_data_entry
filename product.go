@@ -21,11 +21,6 @@ type Product struct {
 	Viscosity   NullFloat64
 }
 
-// func (product Product) MarshalJSON() ([]byte, error) {
-// 	_, err := db_insert_measurement.Exec(product.lot_id, product.sample_point, time.Now().UTC().UnixNano(), product.sg, product.ph, product.string_test, product.viscosity)
-// 	return err
-// }
-
 func (product Product) save() error {
 	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.SG, product.PH, product.String_test, product.Viscosity)
 	show_status_bar("\t\tSample Recorded")
@@ -34,14 +29,12 @@ func (product Product) save() error {
 
 func (product Product) export_json() {
 	output_files := product.get_json_names()
-	// bytestring, err := json.Marshal(product)
 	bytestring, err := json.MarshalIndent(product, "", "\t")
 
 	if err != nil {
 		log.Println("error:", err)
 	}
 
-	// os.Stdout.Write(bytestring)
 	for _, output_file := range output_files {
 		if err := os.WriteFile(output_file, bytestring, 0666); err != nil {
 			log.Fatal(err)
@@ -144,7 +137,6 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
 		pdf.Cell(field_width, field_height, format_sg(product.SG.Float64, !sg_derived))
-
 	}
 
 	if product.Density.Valid {
@@ -159,14 +151,13 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
 		pdf.Cell(field_width, field_height, format_string_test(product.String_test.Float64))
-
 	}
+
 	if product.Viscosity.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
 		pdf.Cell(field_width, field_height, format_viscosity(product.Viscosity.Float64))
-
 	}
 
 	// log.Println(curr_row)
