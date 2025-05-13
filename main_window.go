@@ -120,7 +120,14 @@ func show_window() {
 		if lot_field.Text() != "" && product_field.Text() != "" {
 			qc_product.Lot_number = lot_field.Text()
 			qc_product.insel_lot_self()
+			mainWindow.SetText(lot_field.Text())
+
 		}
+
+	})
+
+	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		mainWindow.SetText(lot_field.GetSelectedItem())
 	})
 
 	product_field_pop_data := func(str string) {
