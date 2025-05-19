@@ -52,32 +52,26 @@ func NewRange(
 }
 
 type ProductTypeView struct {
-	*windigo.GroupPanel
+	windigo.AutoPanel
 	Get   func() ProductType
 	Error func()
-}
-
-func NewProductTypeView(panel *windigo.GroupPanel, get func() ProductType, err func()) ProductTypeView {
-	return ProductTypeView{panel, get, err}
 }
 
 func BuildNewProductTypeView(parent windigo.Controller, group_text string, field_data ProductType, labels []string) ProductTypeView {
 
 	var buttons []*windigo.RadioButton
-	panel := windigo.NewGroupPanel(parent)
+	panel := windigo.NewGroupAutoPanel(parent)
 	panel.SetSize(50, 50)
 	panel.SetText(group_text)
-
-	dock := windigo.NewSimpleDock(panel)
-	dock.SetMargins(15)
+	panel.SetPaddingsAll(15)
 
 	for _, label_text := range labels {
 		label := windigo.NewRadioButton(panel)
 		label.SetSize(150, 25)
-		label.SetMargins(10)
+		label.SetMarginLeft(10)
 		label.SetText(label_text)
 		buttons = append(buttons, label)
-		dock.Dock(label, windigo.Left)
+		panel.Dock(label, windigo.Left)
 
 	}
 
@@ -103,24 +97,20 @@ func BuildNewProductTypeView(parent windigo.Controller, group_text string, field
 		//TODO
 	}
 
-	return NewProductTypeView(panel, get, err)
+	return ProductTypeView{panel, get, err}
 }
 
 type RangeView struct {
-	*windigo.Panel
+	windigo.AutoPanel
 	Get func() Range
 }
 
-func NewRangeView(panel *windigo.Panel, get func() Range) RangeView {
-	return RangeView{panel, get}
-}
-
 func BuildNewRangeView(parent windigo.Controller, field_text string, field_data Range, format func(float64) string) RangeView {
-	panel := windigo.NewPanel(parent)
-	panel.SetSize(50, 50)
 
-	dock := windigo.NewSimpleDock(panel)
-	dock.SetMargins(10)
+	panel := windigo.NewAutoPanel(parent)
+	panel.SetSize(50, 50)
+	// panel.SetMarginsAll(10)
+	panel.SetPaddingsAll(10)
 	label := windigo.NewLabel(panel)
 	label.SetText(field_text)
 	min_field := BuildNewNullFloat64View(panel, field_data.Min, format)
@@ -128,11 +118,11 @@ func BuildNewRangeView(parent windigo.Controller, field_text string, field_data 
 
 	max_field := BuildNewNullFloat64View(panel, field_data.Max, format)
 
-	dock.Dock(label, windigo.Left)
-	dock.Dock(min_field, windigo.Left)
-	dock.Dock(target_field, windigo.Left)
+	panel.Dock(label, windigo.Left)
+	panel.Dock(min_field, windigo.Left)
+	panel.Dock(target_field, windigo.Left)
 
-	dock.Dock(max_field, windigo.Left)
+	panel.Dock(max_field, windigo.Left)
 
 	get := func() Range {
 		return NewRange(
@@ -142,7 +132,7 @@ func BuildNewRangeView(parent windigo.Controller, field_text string, field_data 
 		)
 	}
 
-	return NewRangeView(panel, get)
+	return RangeView{panel, get}
 }
 
 type NullFloat64View struct {
@@ -259,9 +249,9 @@ func (product *QCProduct) show_ranges_window() {
 	rangeWindow.SetText(WindowText)
 
 	dock := windigo.NewSimpleDock(rangeWindow)
-	dock.SetMargins(5)
+	dock.SetPaddingsAll(5)
 
-	dock.SetMarginTop(10)
+	dock.SetPaddingTop(10)
 	prod_label := windigo.NewLabel(rangeWindow)
 
 	prod_label.SetText(WindowText)

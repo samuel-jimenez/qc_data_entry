@@ -8,9 +8,7 @@ import (
 )
 
 var (
-	SUBMIT_ROW = 200
-	SUBMIT_COL = 40
-	CLEAR_COL  = 140
+	BUTTON_SPACER_HEIGHT = 200
 
 	status_bar *windigo.StatusBar
 )
@@ -20,27 +18,31 @@ func show_window() {
 	log.Println("Process started")
 	// DEBUG
 	// log.Println(time.Now().UTC().UnixNano())
-	label_size := 110
 
-	mainWindow := windigo.NewForm(nil)
-	mainWindow.SetSize(800, 600) // (width, height)
-	mainWindow.SetText("QC Data Entry")
+	window_width := 800
+	window_height := 600
 
-	dock := windigo.NewSimpleDock(mainWindow)
+	top_panel_width := 750
+	top_panel_height := 110
 
-	product_panel := windigo.NewPanel(mainWindow)
-	product_panel.SetSize(750, 105)
+	hpanel_width := 650
 
-	label_col_0 := 10
-	field_col_0 := label_col_0 + label_size
+	label_width := 110
 
-	label_col_1 := 350
-	field_col_1 := label_col_1 + label_size
+	hpanel_margin := 10
 
-	product_row := 20
-	lot_row := 45
-	customer_row := product_row
-	sample_row := lot_row
+	field_width := 200
+	field_height := 20
+	top_spacer_height := 20
+	inter_spacer_width := 30
+	inter_spacer_height := 5
+
+	button_margin := 5
+	cam_button_width := 100
+	cam_button_height := 100
+
+	ranges_button_width := 80
+	ranges_button_height := 20
 
 	product_text := "Product"
 	lot_text := "Lot Number"
@@ -49,28 +51,37 @@ func show_window() {
 
 	var qc_product QCProduct
 
-	cam_button_col := 675
-	cam_button_row := 5
-	cam_button_width := 100
-	cam_button_height := 100
+	mainWindow := windigo.NewForm(nil)
+	mainWindow.SetSize(window_width, window_height)
+	mainWindow.SetText("QC Data Entry")
 
-	ranges_button_col := 0
-	ranges_button_row := 80
-	ranges_button_width := 80
-	ranges_button_height := 20
+	dock := windigo.NewSimpleDock(mainWindow)
+
+	product_panel := windigo.NewAutoPanel(mainWindow)
+	product_panel.SetSize(top_panel_width, top_panel_height)
 
 	cam_button := windigo.NewPushButton(product_panel)
 	//TODO array db_select_all_product
-	product_field := show_combobox(product_panel, label_col_0, field_col_0, product_row, product_text)
-	customer_field := show_edit(product_panel, label_col_1, field_col_1, customer_row, customer_text)
+
+	prod_panel := windigo.NewAutoPanel(product_panel)
+	prod_panel.SetSize(hpanel_width, field_height)
+
+	product_field := show_combobox(prod_panel, label_width, field_width, field_height, product_text)
+	customer_field := show_edit(prod_panel, label_width, field_width, field_height, customer_text)
+
+	prod_panel.SetMarginLeft(hpanel_margin)
+	prod_panel.SetMarginTop(top_spacer_height)
+	prod_panel.Dock(product_field, windigo.Left)
+	prod_panel.Dock(customer_field, windigo.Left)
+
+	customer_field.SetMarginLeft(inter_spacer_width)
+
 	customer_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
 		if customer_field.Text() != "" && product_field.Text() != "" {
 			product_name_customer := customer_field.Text()
 			upsert_product_name_customer(product_name_customer, qc_product.product_id)
 			qc_product.Product_name_customer = select_product_name_customer(qc_product.product_id)
-			// product_lot.product_name_customer = product_name_customer
-
 		}
 	})
 
@@ -93,13 +104,27 @@ func show_window() {
 		}
 	}
 
-	lot_field := show_combobox(product_panel, label_col_0, field_col_0, lot_row, lot_text)
-	sample_field := show_edit_with_lose_focus(product_panel, label_col_1, field_col_1, sample_row, sample_text, strings.ToUpper)
+	lot_panel := windigo.NewAutoPanel(product_panel)
+	lot_panel.SetSize(hpanel_width, field_height)
+
+	lot_field := show_combobox(lot_panel, label_width, field_width, field_height, lot_text)
+	sample_field := show_edit_with_lose_focus(lot_panel, label_width, field_width, field_height, sample_text, strings.ToUpper)
+
+	lot_panel.SetMarginTop(inter_spacer_height)
+	lot_panel.SetMarginLeft(hpanel_margin)
+	sample_field.SetMarginLeft(inter_spacer_width)
+	lot_panel.Dock(lot_field, windigo.Left)
+	lot_panel.Dock(sample_field, windigo.Left)
 
 	ranges_button := windigo.NewPushButton(product_panel)
+
+	product_panel.Dock(cam_button, windigo.Right)
+	product_panel.Dock(prod_panel, windigo.Top)
+	product_panel.Dock(lot_panel, windigo.Top)
+	product_panel.Dock(ranges_button, windigo.Left)
+
 	ranges_button.SetText("Ranges")
-	ranges_button.SetPos(ranges_button_col, ranges_button_row) // (x, y)
-	// ranges_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
+	ranges_button.SetMarginsAll(button_margin)
 	ranges_button.SetSize(ranges_button_width, ranges_button_height) // (width, height)
 	ranges_button.OnClick().Bind(func(e *windigo.Event) {
 		if qc_product.Product_type != "" {
@@ -109,11 +134,9 @@ func show_window() {
 	})
 
 	tabs := windigo.NewTabView(mainWindow)
-	// tabs.SetPos(20, 20)
-	// tabs.SetSize(750, 500)
-	tab_wb := tabs.AddPanel("Water Based")
-	tab_oil := tabs.AddPanel("Oil Based")
-	tab_fr := tabs.AddPanel("Friction Reducer")
+	tab_wb := tabs.AddAutoPanel("Water Based")
+	tab_oil := tabs.AddAutoPanel("Oil Based")
+	tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
 	lot_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
@@ -190,10 +213,10 @@ func show_window() {
 		product_field_text_pop_data(product.Product_type)
 
 	}
+
 	cam_button.SetText("Scan")
-	cam_button.SetPos(cam_button_col, cam_button_row) // (x, y)
-	// cam_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
-	cam_button.SetSize(cam_button_width, cam_button_height) // (width, height)
+	cam_button.SetMarginsAll(button_margin)
+	cam_button.SetSize(cam_button_width, cam_button_height)
 	cam_button.OnClick().Bind(func(e *windigo.Event) {
 		close(qr_done)
 		qr_done = make(chan bool)
@@ -205,8 +228,6 @@ func show_window() {
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 
 		log.Println("product_field OnSelectedChange GetSelectedItem", product_field.GetSelectedItem())
-
-		log.Println("product_field OnSelectedChange Text", product_field.Text())
 		product_field_pop_data(product_field.GetSelectedItem())
 	})
 
@@ -224,7 +245,6 @@ func show_window() {
 	show_oil_based(tab_oil, new_product_cb)
 	show_fr(tab_fr, new_product_cb)
 
-	// dock.Dock(quux, windigo.Top)        // toolbars always dock to the top
 	dock.Dock(product_panel, windigo.Top)  // tabs should prefer docking at the top
 	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
 	dock.Dock(tabs.Panels(), windigo.Fill) // tab panels dock just below tabs and fill area

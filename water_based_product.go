@@ -19,7 +19,7 @@ func (product WaterBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg_field *windigo.Edit, ph_field *windigo.Edit) Product {
+func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg_field windigo.LabeledEdit, ph_field windigo.LabeledEdit) Product {
 
 	base_product.Visual = visual_field.Checked()
 	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
@@ -34,73 +34,78 @@ func (product WaterBasedProduct) check_data() bool {
 	return true
 }
 
-func show_water_based(parent windigo.Controller, create_new_product_cb func() BaseProduct) {
-	label_col := 10
-	field_col := 120
+func show_water_based(parent windigo.AutoPanel, create_new_product_cb func() BaseProduct) {
 
-	visual_row := 25
-	sg_row := 50
-	ph_row := 75
+	label_width := 110
+	field_width := 200
+	field_height := 22
 
-	submit_col := SUBMIT_COL
-	submit_button_width := 100
-	submit_button_height := 40
+	top_spacer_height := 25
+	top_spacer_width := 10
+	inter_spacer_height := 5
+	bottom_spacer_height := BUTTON_SPACER_HEIGHT
+
+	group_width := 300
+	group_height := 170
+	group_margin := 5
+
+	button_width := 100
+	button_height := 40
+	// 	200
+	// 50
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
 	ph_text := "pH"
 
-	visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-	sg_field := show_edit(parent, label_col, field_col, sg_row, sg_text)
-	ph_field := show_edit(parent, label_col, field_col, ph_row, ph_text)
+	group_panel := windigo.NewAutoPanel(parent)
+	group_panel.SetSize(group_width, group_height)
 
-	submit_button := windigo.NewPushButton(parent)
-	submit_button.SetText("Submit")
-	submit_button.SetPos(submit_col, SUBMIT_ROW)                     // (x, y)
-	submit_button.SetSize(submit_button_width, submit_button_height) // (width, height)
-	submit_button.OnClick().Bind(func(e *windigo.Event) {
+	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
+	group_panel.SetMargins(group_margin, 0, 0, group_margin)
+
+	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
+
+	visual_field := windigo.NewCheckBox(group_panel)
+	visual_field.SetText(visual_text)
+	sg_field := show_edit(group_panel, label_width, field_width, field_height, sg_text)
+	ph_field := show_edit(group_panel, label_width, field_width, field_height, ph_text)
+
+	sg_field.SetMarginTop(inter_spacer_height)
+	ph_field.SetMarginTop(inter_spacer_height)
+
+	group_panel.Dock(visual_field, windigo.Top)
+	group_panel.Dock(sg_field, windigo.Top)
+	group_panel.Dock(ph_field, windigo.Top)
+
+	submit_cb := func() {
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
 			product.output()
 		}
-	})
+	}
 
-	clear_button_col := CLEAR_COL
-	clear_button_row := SUBMIT_ROW
-	clear_button_width := 100
-	clear_button_height := 40
-	clear_button := windigo.NewPushButton(parent)
 	clear_cb := func() {
 		visual_field.SetChecked(false)
 		sg_field.SetText("")
 		ph_field.SetText("")
 	}
 
-	clear_button.SetText("Clear")
-	clear_button.SetPos(clear_button_col, clear_button_row) // (x, y)
-	// clear_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
-	clear_button.SetSize(clear_button_width, clear_button_height) // (width, height)
-	clear_button.OnClick().Bind(func(e *windigo.Event) { clear_cb() })
-
-	log_button_col := 250
-	log_button_row := SUBMIT_ROW
-	log_button_width := 100
-	log_button_height := 40
-	log_button := windigo.NewPushButton(parent)
-
-	log_button.SetText("Log")
-	log_button.SetPos(log_button_col, log_button_row) // (x, y)
-	// log_button.SetPosAfter(submit_col, submit_row, bottom_group)  // (x, y)
-	log_button.SetSize(log_button_width, log_button_height) // (width, height)
-	log_button.OnClick().Bind(func(e *windigo.Event) {
+	log_cb := func() {
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
 			product.export_json()
 		}
-	})
+	}
+
+	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
+	button_dock.SetMarginBtm(bottom_spacer_height)
+
+	parent.Dock(button_dock, windigo.Bottom)
+	parent.Dock(group_panel, windigo.Left)
 
 }
