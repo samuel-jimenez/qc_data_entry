@@ -89,7 +89,7 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 		visual_field.SetChecked(false)
 		viscosity_field.SetText("")
 		mass_field.SetText("")
-		mass_field.OnKillFocus().Fire(nil)
+		mass_field.OnChange().Fire(nil)
 		string_field.SetText("")
 
 	}

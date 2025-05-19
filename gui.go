@@ -6,7 +6,6 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-
 func build_text_dock(parent windigo.Controller, labels []string) windigo.Pane {
 	panel := windigo.NewAutoPanel(parent)
 	panel.SetSize(50, 50)
@@ -108,7 +107,9 @@ func show_edit_with_lose_focus(parent windigo.Controller, label_width, control_w
 	return edit_field
 }
 
-func show_text(parent windigo.AutoPanel, label_width, field_width, field_height int, field_text string, field_units string) *windigo.Label {
+func show_text(parent windigo.AutoPanel, label_width, field_width, field_height int, field_text string, field_units string) *windigo.Edit {
+
+	margin := 10
 	panel := windigo.NewAutoPanel(parent)
 	panel.SetSize(label_width+2*field_width, field_height)
 
@@ -116,9 +117,10 @@ func show_text(parent windigo.AutoPanel, label_width, field_width, field_height 
 	text_label.SetSize(label_width, field_height)
 	text_label.SetText(field_text)
 
-	text_field := windigo.NewLabel(panel)
-	text_field.SetSize(field_width, field_height)
+	text_field := windigo.NewEdit(panel)
+	text_field.SetSize(field_width-margin, field_height)
 	text_field.SetText("0.000")
+	text_field.SetMarginRight(margin)
 
 	text_units := windigo.NewLabel(panel)
 	text_units.SetSize(field_width, field_height)
@@ -162,6 +164,18 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 		density := density_from_sg(sg)
 		sg_field.SetText(format_sg(sg, false))
 		density_field.SetText(format_density(density))
+	})
+
+	density_field.OnChange().Bind(func(e *windigo.Event) {
+		start, end := density_field.Selected()
+		density_field.SetText(strings.TrimSpace(density_field.Text()))
+		density_field.SelectText(start, end)
+
+		sg := sg_from_density(density_field)
+
+		mass := mass_from_sg(sg)
+		sg_field.SetText(format_sg(sg, false))
+		mass_field.SetText(format_mass(mass))
 	})
 
 	return mass_field

@@ -24,6 +24,21 @@ func density_from_sg(sg float64) float64 {
 	return density
 }
 
+func sg_from_density(density_field *windigo.Edit) float64 {
+	density, _ := strconv.ParseFloat(strings.TrimSpace(density_field.Text()), 64)
+	sg := density / LB_PER_GAL
+	return sg
+}
+
+func mass_from_sg(sg float64) float64 {
+	mass := sg * SAMPLE_VOLUME
+	return mass
+}
+
+func format_mass(mass float64) string {
+	return strconv.FormatFloat(mass, 'f', 2, 64)
+}
+
 func format_sg(sg float64, fixed_precision bool) string {
 	var precision int
 	if fixed_precision || sg < 1 {

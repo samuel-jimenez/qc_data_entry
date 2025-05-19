@@ -83,8 +83,9 @@ func show_oil_based(parent windigo.AutoPanel, create_new_product_cb func() BaseP
 
 	clear_cb := func() {
 		visual_field.SetChecked(false)
+
 		mass_field.SetText("")
-		mass_field.OnKillFocus().Fire(nil)
+		mass_field.OnChange().Fire(nil)
 	}
 
 	log_cb := func() {
