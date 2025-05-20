@@ -82,6 +82,7 @@ func (product Product) print() error {
 func (product Product) export_label_pdf() (string, error) {
 	var label_width, label_height,
 		field_width, field_height,
+		unit_width, unit_height,
 		label_col,
 		// field_col,
 		product_row,
@@ -92,8 +93,11 @@ func (product Product) export_label_pdf() (string, error) {
 	label_width = 40
 	label_height = 10
 
-	field_width = 40
+	field_width = 20
 	field_height = 10
+
+	unit_width = 40
+	unit_height = 10
 
 	label_col = 10
 	// field_col = 120
@@ -112,14 +116,13 @@ func (product Product) export_label_pdf() (string, error) {
 
 	if product.Density.Valid {
 		curr_row = 5
-		curr_row_delta = 5
+		curr_row_delta = 6
 
 	} else {
 		curr_row = 10
 		curr_row_delta = 10
 
 	}
-	//TODO unit
 
 	var sg_derived bool
 	if product.PH.Valid {
@@ -137,6 +140,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
 		pdf.Cell(field_width, field_height, format_sg(product.SG.Float64, !sg_derived))
+		pdf.Cell(unit_width, unit_height, "g/mL")
 	}
 
 	if product.Density.Valid {
@@ -144,6 +148,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
 		pdf.Cell(field_width, field_height, format_density(product.Density.Float64))
+		pdf.Cell(unit_width, unit_height, "lb/gal")
 	}
 
 	if product.String_test.Valid {
@@ -151,6 +156,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
 		pdf.Cell(field_width, field_height, format_string_test(product.String_test.Float64))
+		pdf.Cell(unit_width, unit_height, "s")
 	}
 
 	if product.Viscosity.Valid {
@@ -158,6 +164,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
 		pdf.Cell(field_width, field_height, format_viscosity(product.Viscosity.Float64))
+		pdf.Cell(unit_width, unit_height, "cP")
 	}
 
 	// log.Println(curr_row)
