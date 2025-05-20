@@ -80,24 +80,4 @@ func (product *BaseProduct) insel_lot_self() *BaseProduct {
 
 func (product BaseProduct) insel_all() *BaseProduct {
 	return product.insel_product_self().insel_lot_self()
-
-}
-
-func (product *BaseProduct) copy_ids(product_lot BaseProduct) {
-	if product_lot.product_id > 0 {
-		product.Product_name_customer = select_product_name_customer(product_lot.product_id)
-		product.product_id = product_lot.product_id
-		if product_lot.lot_id > 0 {
-			product.lot_id = product_lot.lot_id
-		} else {
-			product.insel_lot_self()
-		}
-	} else {
-		product.insel_all()
-		product.Product_name_customer = select_product_name_customer(product.product_id)
-
-	}
-
-	log.Println("copy_ids lot_id", product.lot_id)
-
 }
