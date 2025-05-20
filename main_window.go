@@ -138,6 +138,23 @@ func show_window() {
 	tab_oil := tabs.AddAutoPanel("Oil Based")
 	tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
+	new_product_cb := func() BaseProduct {
+		qc_product.Sample_point = sample_field.Text()
+		log.Println("product_field new_product_cb", qc_product.toBaseProduct())
+		return qc_product.toBaseProduct()
+	}
+
+	update_water_based := show_water_based(tab_wb, qc_product, new_product_cb)
+	update_oil_based := show_oil_based(tab_oil, qc_product, new_product_cb)
+	update_fr := show_fr(tab_fr, qc_product, new_product_cb)
+
+	qc_product.Update = func() {
+		log.Println("update new_product_cb", qc_product)
+		update_water_based(qc_product)
+		update_oil_based(qc_product)
+		update_fr(qc_product)
+	}
+
 	lot_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
 		if lot_field.Text() != "" && product_field.Text() != "" {
@@ -166,6 +183,7 @@ func show_window() {
 			qc_product.reset()
 			qc_product.select_product_details()
 			log.Println("product_field_pop_data select_product_details", qc_product)
+			qc_product.Update()
 
 			customer_field.SetText(qc_product.Product_name_customer)
 			if qc_product.product_type.Valid {
@@ -234,16 +252,6 @@ func show_window() {
 	product_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		product_field_text_pop_data(product_field.Text())
 	})
-
-	new_product_cb := func() BaseProduct {
-		qc_product.Sample_point = sample_field.Text()
-		log.Println("product_field new_product_cb", qc_product.toBaseProduct())
-		return qc_product.toBaseProduct()
-	}
-
-	show_water_based(tab_wb, new_product_cb)
-	show_oil_based(tab_oil, new_product_cb)
-	show_fr(tab_fr, new_product_cb)
 
 	dock.Dock(product_panel, windigo.Top)  // tabs should prefer docking at the top
 	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top

@@ -2,7 +2,6 @@ package main
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/samuel-jimenez/windigo"
 )
@@ -10,24 +9,23 @@ import (
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
 
-func sg_from_mass(mass_field windigo.LabeledEdit) float64 {
+func sg_from_density(density float64) float64 {
+	sg := density / LB_PER_GAL
+	return sg
+}
 
-	mass, _ := strconv.ParseFloat(strings.TrimSpace(mass_field.Text()), 64)
-	// if !err.Error(){log.Println("error",err)}
+func sg_from_mass(mass float64) float64 {
 	sg, _ := strconv.ParseFloat(strconv.FormatFloat(mass/SAMPLE_VOLUME, 'G', 4, 64), 64)
 	return sg
 }
 
-func density_from_sg(sg float64) float64 {
-
-	density := sg * LB_PER_GAL
-	return density
+func sg_from_mass_field(mass_field windigo.LabeledEdit) float64 {
+	return sg_from_mass(parse_field(mass_field))
 }
 
-func sg_from_density(density_field *windigo.Edit) float64 {
-	density, _ := strconv.ParseFloat(strings.TrimSpace(density_field.Text()), 64)
-	sg := density / LB_PER_GAL
-	return sg
+func density_from_sg(sg float64) float64 {
+	density := sg * LB_PER_GAL
+	return density
 }
 
 func mass_from_sg(sg float64) float64 {

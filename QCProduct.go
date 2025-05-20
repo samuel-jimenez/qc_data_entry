@@ -18,6 +18,7 @@ type QCProduct struct {
 	Density      Range
 	String_test  Range
 	Viscosity    Range
+	Update       func()
 }
 
 type ProductType struct {
@@ -49,6 +50,19 @@ func NewRange(
 	max NullFloat64,
 ) Range {
 	return Range{min, target, max}
+}
+
+// func (field_data Range) Check(data NullFloat64) bool {
+func (field_data Range) Check(data float64) bool {
+	return (!field_data.Min.Valid ||
+		field_data.Min.Float64 <= data) && (!field_data.Max.Valid ||
+		data <= field_data.Max.Float64)
+}
+
+func (field_data Range) Map(data_map func(float64) float64) Range {
+	return Range{field_data.Min.Map(data_map),
+		field_data.Target.Map(data_map),
+		field_data.Max.Map(data_map)}
 }
 
 type ProductTypeView struct {
@@ -113,9 +127,9 @@ func BuildNewRangeView(parent windigo.Controller, field_text string, field_data 
 	panel.SetPaddingsAll(10)
 	label := windigo.NewLabel(panel)
 	label.SetText(field_text)
+
 	min_field := BuildNewNullFloat64View(panel, field_data.Min, format)
 	target_field := BuildNewNullFloat64View(panel, field_data.Target, format)
-
 	max_field := BuildNewNullFloat64View(panel, field_data.Max, format)
 
 	panel.Dock(label, windigo.Left)
@@ -168,9 +182,108 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data NullFloat64, 
 	return NewNullFloat64View(edit_field, get)
 }
 
+type RangeROView struct {
+	windigo.AutoPanel
+	field_data Range
+	min_field,
+	min_field_spacer,
+	target_field,
+	max_field_spacer,
+	max_field NullFloat64ROView
+	data_map func(float64) float64
+}
+
+func (data_view *RangeROView) Update(update_data Range) {
+	if data_view.data_map != nil {
+		update_data = update_data.Map(data_view.data_map)
+	}
+
+	data_view.field_data = update_data
+	data_view.min_field.Update(update_data.Min)
+	data_view.min_field_spacer.Update(update_data.Min)
+	data_view.target_field.Update(update_data.Target)
+	data_view.max_field.Update(update_data.Max)
+	data_view.max_field_spacer.Update(update_data.Max)
+}
+
+func (data_view RangeROView) Check(data float64) bool {
+	return data_view.field_data.Check(data)
+}
+
+func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data Range, format func(float64) string, data_map func(float64) float64) RangeROView {
+
+	panel := windigo.NewAutoPanel(parent)
+	panel.SetSize(22, 22)
+	panel.SetMarginTop(5)
+	//TODO toolti[p]
+	// label := windigo.NewLabel(panel)
+	// label.SetText(field_text)
+
+	spacer_format := "<"
+	min_field := BuildNewNullFloat64ROView(panel, field_data.Min, format)
+	min_field_spacer := BuildNullFloat64SpacerView(panel, field_data.Min, spacer_format)
+	target_field := BuildNewNullFloat64ROView(panel, field_data.Target, format)
+	max_field := BuildNewNullFloat64ROView(panel, field_data.Max, format)
+	max_field_spacer := BuildNullFloat64SpacerView(panel, field_data.Max, spacer_format)
+
+	// panel.Dock(label, windigo.Left)
+	panel.Dock(min_field, windigo.Left)
+	panel.Dock(min_field_spacer, windigo.Left)
+	panel.Dock(target_field, windigo.Left)
+	panel.Dock(max_field_spacer, windigo.Left)
+	panel.Dock(max_field, windigo.Left)
+
+	return RangeROView{panel, field_data, min_field, min_field_spacer,
+		target_field,
+		max_field,
+		max_field_spacer, data_map}
+}
+
+func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data Range, format func(float64) string) RangeROView {
+	return BuildNewRangeROViewMap(parent, field_text, field_data, format, nil)
+}
+
+type NullFloat64ROView struct {
+	*windigo.Label
+	Update func(field_data NullFloat64)
+}
+
+func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64, format func(float64) string) NullFloat64ROView {
+	data_field := windigo.NewLabel(parent)
+	data_field.SetSize(40, 22)
+
+	update := func(field_data NullFloat64) {
+		if field_data.Valid {
+			data_field.SetText(format(field_data.Float64))
+		} else {
+			data_field.SetText("")
+		}
+	}
+	update(field_data)
+
+	return NullFloat64ROView{data_field, update}
+}
+
+func BuildNullFloat64SpacerView(parent windigo.Controller, field_data NullFloat64, format string) NullFloat64ROView {
+	data_field := windigo.NewLabel(parent)
+	data_field.SetSize(20, 22)
+
+	update := func(field_data NullFloat64) {
+		if field_data.Valid {
+			data_field.SetText(format)
+		} else {
+			data_field.SetText("")
+		}
+	}
+	update(field_data)
+
+	return NullFloat64ROView{data_field, update}
+}
+
 func (product *QCProduct) reset() {
 	var empty_product QCProduct
 	empty_product.Product = product.Product
+	empty_product.Update = product.Update
 	*product = empty_product
 }
 
@@ -279,6 +392,7 @@ func (product *QCProduct) show_ranges_window() {
 		)
 		product.upsert()
 		show_status_bar("\t\tQC Data Updated")
+		product.Update()
 		exit()
 	}
 	try_save := func() {
@@ -306,4 +420,8 @@ func (product *QCProduct) show_ranges_window() {
 			exit()
 		})
 	rangeWindow.RunMainLoop() // Must call to start event loop.
+}
+
+func (product QCProduct) Check(data Product) bool {
+	return product.PH.Check(data.PH.Float64) && product.SG.Check(data.SG.Float64)
 }

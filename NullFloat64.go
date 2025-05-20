@@ -34,3 +34,11 @@ func (nf *NullFloat64) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+
+func (nullfloat NullFloat64) Map(data_map func(float64) float64) NullFloat64 {
+	var return_value NullFloat64
+	if nullfloat.Valid {
+		return NewNullFloat64(data_map(nullfloat.Float64), nullfloat.Valid)
+	}
+	return return_value
+}
