@@ -68,11 +68,11 @@ func (field_data Range) Map(data_map func(float64) float64) Range {
 type ProductTypeView struct {
 	windigo.AutoPanel
 	Get   func() ProductType
+	Ok    func()
 	Error func()
 }
 
 func BuildNewProductTypeView(parent windigo.Controller, group_text string, field_data ProductType, labels []string) ProductTypeView {
-
 	var buttons []*windigo.RadioButton
 	panel := windigo.NewGroupAutoPanel(parent)
 	panel.SetSize(50, 50)
@@ -104,14 +104,17 @@ func BuildNewProductTypeView(parent windigo.Controller, group_text string, field
 		}
 		return ProductTypeDefault()
 	}
+	// Ok()
+	ok := func() {
+		panel.SetBorder(nil)
+	}
 
 	// Error()
 	err := func() {
-		log.Println("NO")
-		//TODO
+		panel.SetBorder(erroredPen)
 	}
 
-	return ProductTypeView{panel, get, err}
+	return ProductTypeView{panel, get, ok, err}
 }
 
 type RangeView struct {
@@ -397,6 +400,7 @@ func (product *QCProduct) show_ranges_window() {
 	}
 	try_save := func() {
 		if radio_dock.Get().Valid {
+			radio_dock.Ok()
 			save()
 		} else {
 			radio_dock.Error()

@@ -267,5 +267,6 @@ func show_window() {
 }
 
 func wndOnClose(arg *windigo.Event) {
+	erroredPen.Dispose()
 	windigo.Exit()
 }

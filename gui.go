@@ -6,7 +6,10 @@ import (
 	"strings"
 
 	"github.com/samuel-jimenez/windigo"
+	"github.com/samuel-jimenez/windigo/w32"
 )
+
+var erroredPen = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSolidColorBrush(windigo.RGB(255, 0, 64)))
 
 func parse_field(field windigo.Controller) float64 {
 	val, _ := strconv.ParseFloat(strings.TrimSpace(field.Text()), 64)
