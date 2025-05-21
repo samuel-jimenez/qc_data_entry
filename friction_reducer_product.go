@@ -43,13 +43,13 @@ type FrictionReducerProductView struct {
 
 func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point string, group_width, group_height int, ranges_panel FrictionReducerProductRangesView) FrictionReducerProductView {
 
-	label_width := 110
-	field_width := 200
-	field_height := 22
+	label_width := LABEL_WIDTH
+	field_width := FIELD_WIDTH
+	field_height := FIELD_HEIGHT
 
-	top_spacer_height := 25
-	top_spacer_width := 10
-	inter_spacer_height := 5
+	top_spacer_width := TOP_SPACER_WIDTH
+	top_spacer_height := TOP_SPACER_HEIGHT
+	inter_spacer_height := INTER_SPACER_HEIGHT
 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
@@ -113,9 +113,9 @@ type FrictionReducerProductRangesView struct {
 
 func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) FrictionReducerProductRangesView {
 
-	top_spacer_height := 25
-	top_spacer_width := 10
-	inter_spacer_height := 5
+	top_spacer_width := TOP_SPACER_WIDTH
+	top_spacer_height := TOP_SPACER_HEIGHT
+	inter_spacer_height := INTER_SPACER_HEIGHT
 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
@@ -190,14 +190,13 @@ func check_dual_data(top_product, bottom_product Product) {
 func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
 
 	bottom_spacer_height := BUTTON_SPACER_HEIGHT
-	group_width := 300
-	group_height := 170
-	group_margin := 5
 
-	button_width := 100
-	button_height := 40
-	// 	200
-	// 50
+	group_width := GROUP_WIDTH
+	group_height := GROUP_HEIGHT
+	group_margin := GROUP_MARGIN
+
+	button_width := BUTTON_WIDTH
+	button_height := BUTTON_HEIGHT
 
 	top_text := "Top"
 	// bottom_text := "Bottom"

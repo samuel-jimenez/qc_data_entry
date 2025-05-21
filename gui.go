@@ -9,7 +9,27 @@ import (
 	"github.com/samuel-jimenez/windigo/w32"
 )
 
-var erroredPen = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSolidColorBrush(windigo.RGB(255, 0, 64)))
+var (
+	GROUP_WIDTH  = 300
+	GROUP_HEIGHT = 170
+	GROUP_MARGIN = 5
+
+	LABEL_WIDTH  = 110
+	FIELD_WIDTH  = 200
+	FIELD_HEIGHT = 22
+
+	BUTTON_WIDTH  = 100
+	BUTTON_HEIGHT = 40
+	// 	200
+	// 50
+
+	TOP_SPACER_WIDTH     = 10
+	TOP_SPACER_HEIGHT    = 25
+	INTER_SPACER_HEIGHT  = 5
+	BUTTON_SPACER_HEIGHT = 200
+
+	erroredPen = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSolidColorBrush(windigo.RGB(255, 0, 64)))
+)
 
 func parse_field(field windigo.Controller) float64 {
 	val, _ := strconv.ParseFloat(strings.TrimSpace(field.Text()), 64)

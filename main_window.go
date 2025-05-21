@@ -8,8 +8,6 @@ import (
 )
 
 var (
-	BUTTON_SPACER_HEIGHT = 200
-
 	status_bar *windigo.StatusBar
 )
 
@@ -27,15 +25,15 @@ func show_window() {
 
 	hpanel_width := 650
 
-	label_width := 110
+	label_width := LABEL_WIDTH
 
 	hpanel_margin := 10
 
-	field_width := 200
+	field_width := FIELD_WIDTH
 	field_height := 20
 	top_spacer_height := 20
 	inter_spacer_width := 30
-	inter_spacer_height := 5
+	inter_spacer_height := INTER_SPACER_HEIGHT
 
 	button_margin := 5
 	cam_button_width := 100

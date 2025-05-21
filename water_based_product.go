@@ -36,23 +36,21 @@ func (product WaterBasedProduct) check_data() bool {
 
 func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
 
-	label_width := 110
-	field_width := 200
-	field_height := 22
+	group_width := GROUP_WIDTH
+	group_height := GROUP_HEIGHT
+	group_margin := GROUP_MARGIN
 
-	top_spacer_height := 25
-	top_spacer_width := 10
-	inter_spacer_height := 5
+	label_width := LABEL_WIDTH
+	field_width := FIELD_WIDTH
+	field_height := FIELD_HEIGHT
+
+	button_width := BUTTON_WIDTH
+	button_height := BUTTON_HEIGHT
+
+	top_spacer_width := TOP_SPACER_WIDTH
+	top_spacer_height := TOP_SPACER_HEIGHT
+	inter_spacer_height := INTER_SPACER_HEIGHT
 	bottom_spacer_height := BUTTON_SPACER_HEIGHT
-
-	group_width := 300
-	group_height := 170
-	group_margin := 5
-
-	button_width := 100
-	button_height := 40
-	// 	200
-	// 50
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -125,9 +123,9 @@ type WaterBasedProductRangesView struct {
 
 func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) WaterBasedProductRangesView {
 
-	top_spacer_height := 25
-	top_spacer_width := 10
-	inter_spacer_height := 5
+	top_spacer_width := TOP_SPACER_WIDTH
+	top_spacer_height := TOP_SPACER_HEIGHT
+	inter_spacer_height := INTER_SPACER_HEIGHT
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
