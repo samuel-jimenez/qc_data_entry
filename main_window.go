@@ -223,11 +223,9 @@ func show_window() {
 	}
 
 	qr_pop_data := func(product QRJson) {
-
-		lot_field.SetText(strings.ToUpper(strings.TrimSpace(product.Lot_number)))
-
 		product_field_text_pop_data(product.Product_type)
-
+		lot_field.SetText(strings.ToUpper(strings.TrimSpace(product.Lot_number)))
+		lot_field.OnKillFocus().Fire(nil)
 	}
 
 	cam_button.SetText("Scan")
