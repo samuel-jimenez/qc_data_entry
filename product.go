@@ -170,8 +170,8 @@ func (product Product) export_label_pdf() (string, error) {
 	// log.Println(curr_row)
 
 	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.Lot_number))
-	pdf.CellFormat(field_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
+	pdf.Cell(label_width, field_height, strings.ToUpper(product.Lot_number))
+	pdf.CellFormat(unit_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
 
 	log.Println("saving to: ", file_path)
 	err := pdf.OutputFileAndClose(file_path)
