@@ -238,7 +238,7 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 	// label := windigo.NewLabel(panel)
 	// label.SetText(field_text)
 
-	spacer_format := "<"
+	spacer_format := "≤"
 	min_field := BuildNewNullFloat64ROView(panel, field_data.Min, format)
 	min_field_spacer := BuildNullFloat64SpacerView(panel, field_data.Min, spacer_format)
 	target_field := BuildNewNullFloat64ROView(panel, field_data.Target, format)
