@@ -18,9 +18,9 @@ func (product OilBasedProduct) toProduct() Product {
 }
 
 func newOilBasedProduct(base_product BaseProduct,
-	visual_field *windigo.CheckBox, mass_field windigo.LabeledEdit) Product {
+	visual_field *windigo.CheckBox, mass_field MassDataView) Product {
 	base_product.Visual = visual_field.Checked()
-	sg := sg_from_mass_field(mass_field)
+	sg := sg_from_mass(parse_field(mass_field))
 
 	return OilBasedProduct{base_product, sg}.toProduct()
 
@@ -43,9 +43,6 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	button_width := BUTTON_WIDTH
 	button_height := BUTTON_HEIGHT
 
-	top_spacer_width := TOP_SPACER_WIDTH
-	top_spacer_height := TOP_SPACER_HEIGHT
-	inter_spacer_height := INTER_SPACER_HEIGHT
 	bottom_spacer_height := BUTTON_SPACER_HEIGHT
 
 	visual_text := "Visual Inspection"
@@ -54,8 +51,8 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	group_panel := windigo.NewAutoPanel(parent)
 	group_panel.SetSize(group_width, group_height)
 
-	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
-	group_panel.SetMargins(group_margin, 0, 0, group_margin)
+	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+	group_panel.SetMargins(group_margin, group_margin, 0, 0)
 
 	ranges_panel := BuildNewOilBasedProductRangesView(parent, qc_product, group_width, group_height)
 	ranges_panel.SetMarginTop(group_margin)
@@ -64,10 +61,9 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 
 	visual_field := windigo.NewCheckBox(group_panel)
 	visual_field.SetText(visual_text)
+	visual_field.SetMarginsAll(ERROR_MARGIN)
 
 	mass_field := show_mass_sg(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
-
-	mass_field.SetMarginTop(inter_spacer_height)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)
@@ -84,8 +80,9 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	clear_cb := func() {
 		visual_field.SetChecked(false)
 
-		mass_field.SetText("")
-		mass_field.OnChange().Fire(nil)
+		mass_field.Clear()
+		ranges_panel.Clear()
+
 	}
 
 	log_cb := func() {
@@ -115,11 +112,11 @@ type OilBasedProductRangesView struct {
 	Update func(qc_product QCProduct)
 }
 
-func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) OilBasedProductRangesView {
+func (data_view OilBasedProductRangesView) Clear() {
+	data_view.DerivedMassRangesView.Clear()
+}
 
-	top_spacer_width := TOP_SPACER_WIDTH
-	top_spacer_height := TOP_SPACER_HEIGHT
-	inter_spacer_height := INTER_SPACER_HEIGHT
+func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) OilBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
@@ -129,7 +126,7 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 
 	group_panel := windigo.NewAutoPanel(parent)
 	group_panel.SetSize(group_width, group_height)
-	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
+	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	visual_field := windigo.NewLabel(group_panel)
 	visual_field.SetText(visual_text)
@@ -137,10 +134,9 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, format_mass, mass_from_sg)
 
 	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
-	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
-
-	sg_field.SetMarginTop(inter_spacer_height)
-	density_field.SetMarginTop(inter_spacer_height)
+	//TODO Density064
+	// density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
+	density_field := BuildNewRangeROViewMap(group_panel, density_text, qc_product.Density, format_ranges_density, density_from_sg)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)
@@ -152,7 +148,10 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 		mass_field.Update(qc_product.SG)
 
 		sg_field.Update(qc_product.SG)
-		density_field.Update(qc_product.Density)
+
+		//TODO Density064
+		// density_field.Update(qc_product.Density)
+		density_field.Update(qc_product.SG)
 	}
 
 	return OilBasedProductRangesView{group_panel,

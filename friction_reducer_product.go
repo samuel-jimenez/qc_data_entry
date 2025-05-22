@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/samuel-jimenez/windigo"
 )
@@ -19,13 +17,12 @@ func (product FrictionReducerProduct) toProduct() Product {
 	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(product.sg*LB_PER_GAL, true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
 }
 
-func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field windigo.LabeledEdit, mass_field windigo.LabeledEdit, string_field windigo.LabeledEdit) Product {
+func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field windigo.LabeledEdit, mass_field MassDataView, string_field windigo.LabeledEdit) Product {
 
 	base_product.Sample_point = sample_point
-
-	viscosity, _ := strconv.ParseFloat(strings.TrimSpace(viscosity_field.Text()), 64)
-	string_test, _ := strconv.ParseFloat(strings.TrimSpace(string_field.Text()), 64)
-	sg := sg_from_mass_field(mass_field)
+	viscosity := parse_field(viscosity_field)
+	string_test := parse_field(string_field)
+	sg := sg_from_mass(parse_field(mass_field))
 
 	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
 
@@ -47,10 +44,6 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	field_width := FIELD_WIDTH
 	field_height := FIELD_HEIGHT
 
-	top_spacer_width := TOP_SPACER_WIDTH
-	top_spacer_height := TOP_SPACER_HEIGHT
-	inter_spacer_height := INTER_SPACER_HEIGHT
-
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
 	mass_text := "Mass"
@@ -59,7 +52,7 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	group_panel := windigo.NewGroupAutoPanel(parent)
 	group_panel.SetSize(group_width, group_height)
 	group_panel.SetText(sample_point)
-	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
+	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 
@@ -67,13 +60,10 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	visual_field.SetText(visual_text)
 
 	viscosity_field := show_number_edit(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
-	viscosity_field.SetMarginTop(inter_spacer_height)
 
 	mass_field := show_mass_sg(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
-	mass_field.SetMarginTop(inter_spacer_height)
 
 	string_field := show_number_edit(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
-	string_field.SetMarginTop(inter_spacer_height)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)
@@ -87,10 +77,13 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	}
 	clear := func() {
 		visual_field.SetChecked(false)
-		viscosity_field.SetText("")
-		mass_field.SetText("")
-		mass_field.OnChange().Fire(nil)
-		string_field.SetText("")
+		clear_field(viscosity_field)
+
+		mass_field.Clear()
+
+		clear_field(string_field)
+
+		ranges_panel.Clear()
 
 	}
 
@@ -111,11 +104,13 @@ type FrictionReducerProductRangesView struct {
 	Update func(qc_product QCProduct)
 }
 
-func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) FrictionReducerProductRangesView {
+func (data_view FrictionReducerProductRangesView) Clear() {
+	data_view.DerivedMassRangesView.Clear()
+	data_view.viscosity_field.Clear()
+	data_view.string_field.Clear()
+}
 
-	top_spacer_width := TOP_SPACER_WIDTH
-	top_spacer_height := TOP_SPACER_HEIGHT
-	inter_spacer_height := INTER_SPACER_HEIGHT
+func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) FrictionReducerProductRangesView {
 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
@@ -126,22 +121,21 @@ func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_produ
 
 	group_panel := windigo.NewAutoPanel(parent)
 	group_panel.SetSize(group_width, group_height)
-	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
+	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	visual_field := windigo.NewLabel(group_panel)
 	visual_field.SetText(visual_text)
 
 	viscosity_field := BuildNewRangeROView(group_panel, viscosity_text, qc_product.Viscosity, format_ranges_viscosity)
-	viscosity_field.SetMarginTop(inter_spacer_height)
 
 	string_field := BuildNewRangeROView(group_panel, string_text, qc_product.SG, format_ranges_string_test)
-	string_field.SetMarginTop(inter_spacer_height)
 
 	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, format_mass, mass_from_sg)
-	mass_field.SetMarginTop(inter_spacer_height)
 
 	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
-	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
+	//TODO Density064
+	// density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
+	density_field := BuildNewRangeROViewMap(group_panel, density_text, qc_product.Density, format_ranges_density, density_from_sg)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)
@@ -158,7 +152,10 @@ func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_produ
 		mass_field.Update(qc_product.SG)
 
 		sg_field.Update(qc_product.SG)
-		density_field.Update(qc_product.Density)
+
+		//TODO Density064
+		// density_field.Update(qc_product.Density)
+		density_field.Update(qc_product.SG)
 	}
 
 	return FrictionReducerProductRangesView{group_panel,
@@ -207,7 +204,7 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 
 	top_group := BuildNewFrictionReducerProductView(parent, top_text, group_width, group_height, ranges_panel)
 	bottom_group := BuildNewFrictionReducerProductView(parent, bottom_text, group_width, group_height, ranges_panel)
-	top_group.SetMargins(group_margin, 0, 0, group_margin)
+	top_group.SetMargins(group_margin, group_margin, 0, 0)
 	bottom_group.SetMarginTop(group_margin)
 
 	submit_cb := func() {

@@ -106,13 +106,15 @@ func BuildNewProductTypeView(parent windigo.Controller, group_text string, field
 	}
 	// Ok()
 	ok := func() {
-		panel.SetBorder(nil)
+		panel.SetBorder(okPen)
 	}
 
 	// Error()
 	err := func() {
 		panel.SetBorder(erroredPen)
 	}
+
+	ok()
 
 	return ProductTypeView{panel, get, ok, err}
 }
@@ -209,7 +211,21 @@ func (data_view *RangeROView) Update(update_data Range) {
 	data_view.max_field_spacer.Update(update_data.Max)
 }
 
+func (data_view RangeROView) Clear() {
+	data_view.min_field.Ok()
+	data_view.max_field.Ok()
+}
+
 func (data_view RangeROView) Check(data float64) bool {
+	data_view.Clear()
+	if data_view.field_data.Min.Valid &&
+		data_view.field_data.Min.Float64 >= data {
+		data_view.min_field.Error()
+	} else if data_view.field_data.Max.Valid &&
+		data_view.field_data.Max.Float64 <= data {
+		data_view.max_field.Error()
+	}
+
 	return data_view.field_data.Check(data)
 }
 
@@ -236,10 +252,13 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 	panel.Dock(max_field_spacer, windigo.Left)
 	panel.Dock(max_field, windigo.Left)
 
-	return RangeROView{panel, field_data, min_field, min_field_spacer,
+	return RangeROView{panel,
+		field_data,
+		min_field,
+		min_field_spacer,
 		target_field,
-		max_field,
-		max_field_spacer, data_map}
+		max_field_spacer,
+		max_field, data_map}
 }
 
 func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data Range, format func(float64) string) RangeROView {
@@ -247,13 +266,23 @@ func BuildNewRangeROView(parent windigo.Controller, field_text string, field_dat
 }
 
 type NullFloat64ROView struct {
-	*windigo.Label
+	windigo.LabeledLabel
 	Update func(field_data NullFloat64)
 }
 
+func (view *NullFloat64ROView) Ok() {
+	view.SetBorder(nil)
+}
+
+func (view *NullFloat64ROView) Error() {
+	view.SetBorder(erroredPen)
+}
+
 func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64, format func(float64) string) NullFloat64ROView {
-	data_field := windigo.NewLabel(parent)
-	data_field.SetSize(40, 22)
+	data_field := windigo.NewLabeledLabel(parent, 40, 22, "")
+	data_field.SetPaddingsAll(5)
+
+	data_field.SetTranslucentBackground()
 
 	update := func(field_data NullFloat64) {
 		if field_data.Valid {
@@ -268,8 +297,8 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64
 }
 
 func BuildNullFloat64SpacerView(parent windigo.Controller, field_data NullFloat64, format string) NullFloat64ROView {
-	data_field := windigo.NewLabel(parent)
-	data_field.SetSize(20, 22)
+	data_field := windigo.NewLabeledLabel(parent, 20, 22, "")
+	data_field.SetPaddingsAll(5)
 
 	update := func(field_data NullFloat64) {
 		if field_data.Valid {
@@ -313,6 +342,7 @@ func (product *QCProduct) select_product_details() {
 
 }
 
+// TODO Density064
 func (product QCProduct) upsert() {
 
 	_, err := db_upsert_product_details.Exec(product.product_id, product.product_type,
@@ -334,6 +364,7 @@ func (product QCProduct) upsert() {
 
 }
 
+// TODO Density064
 func (product *QCProduct) edit(
 	product_type ProductType,
 	SG,

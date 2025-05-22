@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strconv"
 
 	"github.com/samuel-jimenez/windigo"
 )
@@ -22,9 +21,8 @@ func (product WaterBasedProduct) toProduct() Product {
 func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg_field windigo.LabeledEdit, ph_field windigo.LabeledEdit) Product {
 
 	base_product.Visual = visual_field.Checked()
-	sg, _ := strconv.ParseFloat(sg_field.Text(), 64)
-	// if !err.Error(){log.Println("error",err)}
-	ph, _ := strconv.ParseFloat(ph_field.Text(), 64)
+	sg := parse_field(sg_field)
+	ph := parse_field(ph_field)
 
 	return WaterBasedProduct{base_product, sg, ph}.toProduct()
 
@@ -47,9 +45,6 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	button_width := BUTTON_WIDTH
 	button_height := BUTTON_HEIGHT
 
-	top_spacer_width := TOP_SPACER_WIDTH
-	top_spacer_height := TOP_SPACER_HEIGHT
-	inter_spacer_height := INTER_SPACER_HEIGHT
 	bottom_spacer_height := BUTTON_SPACER_HEIGHT
 
 	visual_text := "Visual Inspection"
@@ -59,20 +54,18 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	group_panel := windigo.NewAutoPanel(parent)
 	group_panel.SetSize(group_width, group_height)
 
-	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
-	group_panel.SetMargins(group_margin, 0, 0, group_margin)
+	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+	group_panel.SetMargins(group_margin, group_margin, 0, 0)
 
 	ranges_panel := BuildNewWaterBasedProductRangesView(parent, qc_product, group_width, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
 	visual_field := windigo.NewCheckBox(group_panel)
 	visual_field.SetText(visual_text)
+	visual_field.SetMarginsAll(ERROR_MARGIN)
 
 	sg_field := show_number_edit(group_panel, label_width, field_width, field_height, sg_text, ranges_panel.sg_field)
 	ph_field := show_number_edit(group_panel, label_width, field_width, field_height, ph_text, ranges_panel.ph_field)
-
-	sg_field.SetMarginTop(inter_spacer_height)
-	ph_field.SetMarginTop(inter_spacer_height)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)
@@ -89,8 +82,12 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 
 	clear_cb := func() {
 		visual_field.SetChecked(false)
-		sg_field.SetText("")
-		ph_field.SetText("")
+
+		clear_field(sg_field)
+
+		clear_field(ph_field)
+
+		ranges_panel.Clear()
 	}
 
 	log_cb := func() {
@@ -121,11 +118,12 @@ type WaterBasedProductRangesView struct {
 	Update func(qc_product QCProduct)
 }
 
-func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) WaterBasedProductRangesView {
+func (data_view WaterBasedProductRangesView) Clear() {
+	data_view.ph_field.Clear()
+	data_view.sg_field.Clear()
+}
 
-	top_spacer_width := TOP_SPACER_WIDTH
-	top_spacer_height := TOP_SPACER_HEIGHT
-	inter_spacer_height := INTER_SPACER_HEIGHT
+func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) WaterBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -133,7 +131,7 @@ func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QC
 
 	group_panel := windigo.NewAutoPanel(parent)
 	group_panel.SetSize(group_width, group_height)
-	group_panel.SetPaddings(top_spacer_height, inter_spacer_height, inter_spacer_height, top_spacer_width)
+	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 
@@ -142,9 +140,6 @@ func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QC
 
 	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
 	ph_field := BuildNewRangeROView(group_panel, ph_text, qc_product.PH, format_ranges_ph)
-
-	sg_field.SetMarginTop(inter_spacer_height)
-	ph_field.SetMarginTop(inter_spacer_height)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)

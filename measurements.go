@@ -2,8 +2,6 @@ package main
 
 import (
 	"strconv"
-
-	"github.com/samuel-jimenez/windigo"
 )
 
 var SAMPLE_VOLUME = 83.2
@@ -17,10 +15,6 @@ func sg_from_density(density float64) float64 {
 func sg_from_mass(mass float64) float64 {
 	sg, _ := strconv.ParseFloat(strconv.FormatFloat(mass/SAMPLE_VOLUME, 'G', 4, 64), 64)
 	return sg
-}
-
-func sg_from_mass_field(mass_field windigo.LabeledEdit) float64 {
-	return sg_from_mass(parse_field(mass_field))
 }
 
 func density_from_sg(sg float64) float64 {

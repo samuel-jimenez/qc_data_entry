@@ -73,7 +73,7 @@ func show_window() {
 	prod_panel.Dock(customer_field, windigo.Left)
 
 	customer_field.SetMarginLeft(inter_spacer_width)
-
+	//TODO insert like lot
 	customer_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
 		if customer_field.Text() != "" && product_field.Text() != "" {
@@ -263,6 +263,7 @@ func show_window() {
 }
 
 func wndOnClose(arg *windigo.Event) {
+	okPen.Dispose()
 	erroredPen.Dispose()
 	windigo.Exit()
 }
