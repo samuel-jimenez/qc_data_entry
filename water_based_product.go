@@ -134,9 +134,7 @@ func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QC
 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-
-	visual_field := windigo.NewLabel(group_panel)
-	visual_field.SetText(visual_text)
+	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
 	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
 	ph_field := BuildNewRangeROView(group_panel, ph_text, qc_product.PH, format_ranges_ph)
@@ -148,6 +146,7 @@ func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QC
 	update := func(qc_product QCProduct) {
 		log.Println("update BuildNewWaterBasedProductRangesView", qc_product)
 
+		visual_field.Update(qc_product.Appearance)
 		sg_field.Update(qc_product.SG)
 		ph_field.Update(qc_product.PH)
 	}

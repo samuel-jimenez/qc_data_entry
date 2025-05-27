@@ -22,7 +22,8 @@ type Product struct {
 }
 
 func (product Product) save() error {
-	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.SG, product.PH, product.String_test, product.Viscosity)
+	db_insert_sample_point.Exec(product.Sample_point)
+	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
 	show_status_bar("\t\tSample Recorded")
 	return err
 }

@@ -11,9 +11,12 @@ import (
 
 var qc_db *sql.DB
 var db_select_product_id, db_insert_product, db_select_product_info,
+	db_insert_appearance,
 	db_select_product_details, db_upsert_product_details,
+	db_select_product_coa_details, db_upsert_product_coa_details,
 	db_select_product_customer_id, db_upsert_product_customer, db_select_product_customer_info,
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
+	db_insert_sample_point,
 	db_insert_measurement *sql.Stmt
 var err error
 
@@ -26,6 +29,9 @@ func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
 	}
 	return preparedStatement
 }
+
+// ON UPDATE CASCADE
+//        ON DELETE CASCADE
 
 func dbinit(db *sql.DB) {
 
@@ -67,47 +73,96 @@ create table bs.product_lot (
 	foreign key (product_id) references product_line,
 	unique (lot_name,product_id));
 
+
+create table bs.product_sample_points (
+	sample_point_id integer not null,
+	sample_point text,
+	primary key (sample_point_id),
+	unique(sample_point));
+
 create table bs.qc_samples (
 	qc_id integer not null,
 	lot_id integer not null,
-	sample_point text,
+	sample_point_id integer not null,
 	time_stamp integer,
-	specific_gravity real,
 	ph real,
+	specific_gravity real,
 	string_test real,
 	viscosity real,
 	primary key (qc_id),
-	foreign key (lot_id) references product_lot);
+	foreign key (lot_id) references product_lot),
+	foreign key (sample_point_id) references product_sample_points;
 
 
 
 create table bs.product_types (
 	product_type_id integer not null,
 	product_type_name text,
-	primary key (product_type_id));
+	primary key (product_type_id),
+	unique(product_type_name));
 
-create table bs.product_ranges (
+
+create table bs.product_appearance (
+	product_appearance_id integer not null,
+	product_appearance_text text,
+	primary key (product_appearance_id),
+	unique(product_appearance_text));
+
+create table bs.product_ranges_measured (
 	range_id integer not null,
 	product_id not null,
 	product_type_id integer not null,
-	specific_gravity_min real,
-	specific_gravity_max real,
-	specific_gravity_target real,
+	product_appearance_id integer not null,
 	ph_min real,
-	ph_max real,
 	ph_target real,
+	ph_max real,
+	specific_gravity_min real,
+	specific_gravity_target real,
+	specific_gravity_max real,
+	density_min real,
+	density_target real,
+	density_max real,
 	string_test_min real,
-	string_test_max real,
 	string_test_target real,
+	string_test_max real,
 	viscosity_min real,
-	viscosity_max real,
 	viscosity_target real,
+	viscosity_max real,
 	primary key (range_id),
 	foreign key (product_id) references product_line,
 	foreign key (product_type_id) references product_types,
+	foreign key (product_appearance_id) references product_appearance,
 	unique (product_id));
 
+create table bs.product_ranges_published (
+	qc_range_id integer not null,
+	product_id not null,
+	product_appearance_id integer not null,
+	ph_min real,
+	ph_target real,
+	ph_max real,
+	specific_gravity_min real,
+	specific_gravity_target real,
+	specific_gravity_max real,
+	density_min real,
+	density_target real,
+	density_max real,
+	string_test_min real,
+	string_test_target real,
+	string_test_max real,
+	viscosity_min real,
+	viscosity_target real,
+	viscosity_max real,
+	primary key (qc_range_id),
+	foreign key (product_id) references product_line,
+	foreign key (visual_id) references product_appearance,
+	unique (product_id));
+
+
+
 `
+	// TODO
+
 	// _min real,
 	// _max real,
 	// _target real,
@@ -144,70 +199,419 @@ create table bs.product_ranges (
 		returning product_id
 		`)
 
+	db_insert_appearance = PrepareOrElse(db, `
+	with val (product_appearance_text) as (
+		values
+			(?)
+		),
+		sel as (
+			select product_appearance_text, product_appearance_id
+			from val
+			left join bs.product_appearance using (product_appearance_text)
+		)
+	insert into bs.product_appearance (product_appearance_text)
+	select distinct product_appearance_text from sel where product_appearance_id is null and product_appearance_text is not null
+	returning product_appearance_id, product_appearance_text
+	`)
+
 	db_select_product_details = PrepareOrElse(db, `
+	with
+		measured as (
+			select
+				product_id,
+				product_type_id,
+				product_appearance_text,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from bs.product_ranges_measured
+			join bs.product_appearance using (product_appearance_id)),
+
+		published as (
+			select
+				product_id,
+				product_appearance_text,
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+
+			from bs.product_ranges_published
+			join bs.product_appearance using (product_appearance_id))
 	select
 		product_name_customer,
 		product_type_id,
-		specific_gravity_min,
-		specific_gravity_max,
-		specific_gravity_target,
-		ph_min,
-		ph_max,
-		ph_target,
-		string_test_min,
-		string_test_max,
-		string_test_target,
-		viscosity_min,
-		viscosity_max,
-		viscosity_target
+		coalesce(measured.product_appearance_text, published.product_appearance_text) as product_appearance_text,
+
+		coalesce(measured.ph_min, published.ph_min) as ph_min,
+		coalesce(measured.ph_target, published.ph_target) as ph_target,
+		coalesce(measured.ph_max, published.ph_max) as ph_max,
+
+		coalesce(measured.specific_gravity_min, published.specific_gravity_min) as specific_gravity_min,
+		coalesce(measured.specific_gravity_target, published.specific_gravity_target) as specific_gravity_target,
+		coalesce(measured.specific_gravity_max, published.specific_gravity_max) as specific_gravity_max,
+
+		coalesce(measured.density_min, published.density_min) as density_min,
+		coalesce(measured.density_target, published.density_target) as density_target,
+		coalesce(measured.density_max, published.density_max) as density_max,
+
+		coalesce(measured.string_test_min, published.string_test_min) as string_test_min,
+		coalesce(measured.string_test_target, published.string_test_target) as string_test_target,
+		coalesce(measured.string_test_max, published.string_test_max) as string_test_max,
+
+		coalesce(measured.viscosity_min, published.viscosity_min) as viscosity_min,
+		coalesce(measured.viscosity_target, published.viscosity_target) as viscosity_target,
+		coalesce(measured.viscosity_max, published.viscosity_max) as viscosity_max
 	from bs.product_customer_line
-	full join bs.product_ranges using (product_id)
-	where product_id = ?`)
+		full join measured using (product_id)
+		full join published using (product_id)
+	where product_id = ?
+	`)
+
+	db_select_product_coa_details = PrepareOrElse(db, `
+	select
+		product_appearance_text,
+
+		ph_min,
+		ph_target,
+		ph_max,
+
+		specific_gravity_min,
+		specific_gravity_target,
+		specific_gravity_max,
+
+		density_min,
+		density_target,
+		density_max,
+
+		string_test_min,
+		string_test_target,
+		string_test_max,
+
+		viscosity_min,
+		viscosity_target,
+		viscosity_max
+
+	from bs.product_ranges_published
+	join bs.product_appearance using (product_appearance_id)
+	where product_id = ?
+	`)
 
 	db_upsert_product_details = PrepareOrElse(db, `
-	insert into bs.product_ranges
+	with
+		val
+			(product_id,
+			product_type_id,
+			product_appearance_text,
+
+			ph_min,
+			ph_target,
+			ph_max,
+
+			specific_gravity_min,
+			specific_gravity_target,
+			specific_gravity_max,
+
+			density_min,
+			density_target,
+			density_max,
+
+			string_test_min,
+			string_test_target,
+			string_test_max,
+
+			viscosity_min,
+			viscosity_target,
+			viscosity_max)
+		as (
+			values (
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?)
+		),
+		sel as (
+			select
+				product_id,
+				product_type_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from val
+			left join bs.product_appearance using (product_appearance_text)
+		)
+	insert into bs.product_ranges_measured
 		(product_id,
 		product_type_id,
+		product_appearance_id,
 
-		specific_gravity_min,
-		specific_gravity_max,
-		specific_gravity_target,
 
 		ph_min,
-		ph_max,
 		ph_target,
+		ph_max,
+
+		specific_gravity_min,
+		specific_gravity_target,
+		specific_gravity_max,
+
+		density_min,
+		density_target,
+		density_max,
 
 		string_test_min,
-		string_test_max,
 		string_test_target,
+		string_test_max,
 
 		viscosity_min,
-		viscosity_max,
-		viscosity_target)
-		values (?,?,
-	?,?,?,
-	?,?,?,
-	?,?,?,
-	?,?,?)
+		viscosity_target,
+		viscosity_max)
+	select
+				product_id,
+				product_type_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from sel
+			where true
 	on conflict(product_id) do update set
+
 		product_type_id=excluded.product_type_id,
-		specific_gravity_min=excluded.specific_gravity_min,
-		specific_gravity_max=excluded.specific_gravity_max,
-		specific_gravity_target=excluded.specific_gravity_target,
+		product_appearance_id=excluded.product_appearance_id,
 
 		ph_min=excluded.ph_min,
-		ph_max=excluded.ph_max,
 		ph_target=excluded.ph_target,
+		ph_max=excluded.ph_max,
+
+		specific_gravity_min=excluded.specific_gravity_min,
+		specific_gravity_target=excluded.specific_gravity_target,
+		specific_gravity_max=excluded.specific_gravity_max,
+
+		density_min=excluded.density_min,
+		density_target=excluded.density_target,
+		density_max=excluded.density_max,
 
 		string_test_min=excluded.string_test_min,
-		string_test_max=excluded.string_test_max,
 		string_test_target=excluded.string_test_target,
+		string_test_max=excluded.string_test_max,
 
 		viscosity_min=excluded.viscosity_min,
-		viscosity_max=excluded.viscosity_max,
-		viscosity_target=excluded.viscosity_target
+		viscosity_target=excluded.viscosity_target,
+		viscosity_max=excluded.viscosity_max
 
 		returning range_id
+		`)
+	db_upsert_product_coa_details = PrepareOrElse(db, `
+	with
+		val
+			(product_id,
+			product_type_id,
+			product_appearance_text,
+
+			ph_min,
+			ph_target,
+			ph_max,
+
+			specific_gravity_min,
+			specific_gravity_target,
+			specific_gravity_max,
+
+			density_min,
+			density_target,
+			density_max,
+
+			string_test_min,
+			string_test_target,
+			string_test_max,
+
+			viscosity_min,
+			viscosity_target,
+			viscosity_max)
+		as (
+			values (
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?)
+		),
+		sel as (
+			select
+				product_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from val
+			left join bs.product_appearance using (product_appearance_text)
+		)
+	insert into bs.product_ranges_published
+		(product_id,
+		product_appearance_id,
+
+
+		ph_min,
+		ph_target,
+		ph_max,
+
+		specific_gravity_min,
+		specific_gravity_target,
+		specific_gravity_max,
+
+		density_min,
+		density_target,
+		density_max,
+
+		string_test_min,
+		string_test_target,
+		string_test_max,
+
+		viscosity_min,
+		viscosity_target,
+		viscosity_max)
+	select
+				product_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from sel
+			where true
+	on conflict(product_id) do update set
+
+		product_appearance_id=excluded.product_appearance_id,
+
+		ph_min=excluded.ph_min,
+		ph_target=excluded.ph_target,
+		ph_max=excluded.ph_max,
+
+		specific_gravity_min=excluded.specific_gravity_min,
+		specific_gravity_target=excluded.specific_gravity_target,
+		specific_gravity_max=excluded.specific_gravity_max,
+
+		density_min=excluded.density_min,
+		density_target=excluded.density_target,
+		density_max=excluded.density_max,
+
+		string_test_min=excluded.string_test_min,
+		string_test_target=excluded.string_test_target,
+		string_test_max=excluded.string_test_max,
+
+		viscosity_min=excluded.viscosity_min,
+		viscosity_target=excluded.viscosity_target,
+		viscosity_max=excluded.viscosity_max
+
+		returning qc_range_id
 		`)
 
 	db_select_product_customer_info = PrepareOrElse(db, `
@@ -250,11 +654,36 @@ create table bs.product_ranges (
 		returning lot_id
 		`)
 
+	db_insert_sample_point = PrepareOrElse(db, `
+	with val (sample_point) as (
+		values
+			(?)
+		),
+		sel as (
+			select sample_point, sample_point_id
+			from val
+			left join bs.product_sample_points using (sample_point)
+		)
+	insert into bs.product_sample_points (sample_point)
+	select distinct sample_point from sel where sample_point_id is null
+	returning sample_point_id, sample_point
+	`)
+
 	db_insert_measurement = PrepareOrElse(db, `
-	insert into bs.qc_samples
-		(lot_id, sample_point, time_stamp, specific_gravity, ph, string_test, viscosity)
-		values (?, ?, ?, ?, ?, ?, ?)
-		returning qc_id
+	with
+		val (lot_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity) as (
+			values
+				(?, ?, ?, ?, ?, ?, ?)
+		),
+		sel as (
+			select lot_id, sample_point_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity
+			from val
+			left join bs.product_sample_points using (sample_point)
+		)
+	insert into bs.qc_samples (lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity)
+	select lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity
+	from   sel
+	returning qc_id;
 		`)
 
 }

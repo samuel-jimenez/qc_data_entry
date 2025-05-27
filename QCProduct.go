@@ -10,15 +10,88 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
+var (
+	RANGES_PADDING      = 5
+	RANGES_FIELD_HEIGHT = 50
+	OFF_AXIS            = 0
+)
+
 type QCProduct struct {
 	Product
+	Appearance   ProductAppearance
 	product_type ProductType
-	SG           Range
 	PH           Range
+	SG           Range
 	Density      Range
 	String_test  Range
 	Viscosity    Range
 	Update       func()
+}
+
+type ProductAppearance struct {
+	sql.NullString
+}
+
+// TODO
+type ROView interface {
+	windigo.ComponentFrame
+	Ok()
+	Error()
+}
+
+type ProductAppearanceROView struct {
+	windigo.LabeledLabel
+	Update func(field_data ProductAppearance)
+}
+
+func (view *ProductAppearanceROView) Ok() {
+	view.SetBorder(nil)
+}
+
+func (view *ProductAppearanceROView) Error() {
+	view.SetBorder(erroredPen)
+}
+
+func BuildNewProductAppearanceROView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceROView {
+	data_field := windigo.NewLabeledLabel(parent, 40, 22, "")
+	data_field.SetPaddingsAll(RANGES_PADDING)
+	//TODO toolti[p]
+	// label := windigo.NewLabel(panel)
+	// label.SetText(field_text)
+	update := func(field_data ProductAppearance) {
+		if field_data.Valid {
+			data_field.SetText(field_data.String)
+		} else {
+			data_field.SetText("")
+		}
+	}
+	update(field_data)
+
+	return ProductAppearanceROView{data_field, update}
+}
+
+type ProductAppearanceView struct {
+	windigo.LabeledEdit
+	Get func() ProductAppearance
+}
+
+// func BuildNewProductAppearanceView(parent windigo.Controller,  label_width, control_width, height int, field_text string, field_data ProductAppearance) ProductAppearanceView {
+func BuildNewProductAppearanceView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceView {
+
+	field := windigo.NewLabeledEdit(parent, LABEL_WIDTH, OFF_AXIS, RANGES_FIELD_HEIGHT, field_text)
+	field.SetPaddingsAll(RANGES_PADDING)
+	if field_data.Valid {
+		field.SetText(field_data.String)
+	}
+
+	get := func() ProductAppearance {
+		field_text := field.Text()
+		field_valid := field_text != ""
+		return ProductAppearance{sql.NullString{String: field_text, Valid: field_valid}}
+		// return ProductAppearance{sql.NullString{String: field.Text(), Valid: true}}
+	}
+
+	return ProductAppearanceView{field, get}
 }
 
 type ProductType struct {
@@ -75,13 +148,13 @@ type ProductTypeView struct {
 func BuildNewProductTypeView(parent windigo.Controller, group_text string, field_data ProductType, labels []string) ProductTypeView {
 	var buttons []*windigo.RadioButton
 	panel := windigo.NewGroupAutoPanel(parent)
-	panel.SetSize(50, 50)
+	panel.SetSize(OFF_AXIS, RANGES_FIELD_HEIGHT)
 	panel.SetText(group_text)
 	panel.SetPaddingsAll(15)
 
 	for _, label_text := range labels {
 		label := windigo.NewRadioButton(panel)
-		label.SetSize(150, 25)
+		label.SetSize(150, OFF_AXIS)
 		label.SetMarginLeft(10)
 		label.SetText(label_text)
 		buttons = append(buttons, label)
@@ -127,7 +200,7 @@ type RangeView struct {
 func BuildNewRangeView(parent windigo.Controller, field_text string, field_data Range, format func(float64) string) RangeView {
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(50, 50)
+	panel.SetSize(OFF_AXIS, RANGES_FIELD_HEIGHT)
 	// panel.SetMarginsAll(10)
 	panel.SetPaddingsAll(10)
 	label := windigo.NewLabel(panel)
@@ -328,11 +401,13 @@ func (product *QCProduct) select_product_details() {
 
 	product_name_customer_default = ""
 
-	err := db_select_product_details.QueryRow(product.product_id).Scan(&product_name_customer, &product.product_type,
-		&product.SG.Min, &product.SG.Max, &product.SG.Target,
-		&product.PH.Min, &product.PH.Max, &product.PH.Target,
-		&product.String_test.Min, &product.String_test.Max, &product.String_test.Target,
-		&product.Viscosity.Min, &product.Viscosity.Max, &product.Viscosity.Target,
+	err := db_select_product_details.QueryRow(product.product_id).Scan(
+		&product_name_customer, &product.product_type, &product.Appearance,
+		&product.PH.Min, &product.PH.Target, &product.PH.Max,
+		&product.SG.Min, &product.SG.Target, &product.SG.Max,
+		&product.Density.Min, &product.Density.Target, &product.Density.Max,
+		&product.String_test.Min, &product.String_test.Target, &product.String_test.Max,
+		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
 	)
 	if err != nil {
 		log.Printf("%q: %s\n", err, "select_product_details")
@@ -342,14 +417,17 @@ func (product *QCProduct) select_product_details() {
 
 }
 
-// TODO Density064
-func (product QCProduct) upsert() {
+func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 
-	_, err := db_upsert_product_details.Exec(product.product_id, product.product_type,
-		product.SG.Min, product.SG.Max, product.SG.Target,
-		product.PH.Min, product.PH.Max, product.PH.Target,
-		product.String_test.Min, product.String_test.Max, product.String_test.Target,
-		product.Viscosity.Min, product.Viscosity.Max, product.Viscosity.Target,
+	db_insert_appearance.Exec(product.Appearance)
+
+	_, err := db_upsert_statement.Exec(
+		product.product_id, product.product_type, product.Appearance,
+		product.PH.Min, product.PH.Target, product.PH.Max,
+		product.SG.Min, product.SG.Target, product.SG.Max,
+		product.Density.Min, product.Density.Target, product.Density.Max,
+		product.String_test.Min, product.String_test.Target, product.String_test.Max,
+		product.Viscosity.Min, product.Viscosity.Target, product.Viscosity.Max,
 	)
 	if err != nil {
 		log.Printf("%q: %s\n", err, "upsert")
@@ -363,20 +441,23 @@ func (product QCProduct) upsert() {
 	// return product_type_id_default, product_name_customer_default
 
 }
+func (product QCProduct) upsert()     { product._upsert(db_upsert_product_details) }
+func (product QCProduct) upsert_coa() { product._upsert(db_upsert_product_coa_details) }
 
-// TODO Density064
 func (product *QCProduct) edit(
 	product_type ProductType,
-	SG,
+	Appearance ProductAppearance,
 	PH,
-	// Density,
+	SG,
+	Density,
 	String_test,
 	Viscosity Range,
 ) {
 	product.product_type = product_type
-	product.SG = SG
+	product.Appearance = Appearance
 	product.PH = PH
-	// product.Density = Density
+	product.SG = SG
+	product.Density = Density
 	product.String_test = String_test
 	product.Viscosity = Viscosity
 }
@@ -385,6 +466,7 @@ func (product *QCProduct) show_ranges_window() {
 
 	rangeWindow := windigo.NewForm(nil)
 	var WindowText string
+	// rangeWindow.SetTranslucentBackground()
 
 	if product.Product_name_customer != "" {
 		WindowText = fmt.Sprintf("%s (%s)", product.Product_type, product.Product_name_customer)
@@ -405,9 +487,16 @@ func (product *QCProduct) show_ranges_window() {
 
 	radio_dock := BuildNewProductTypeView(rangeWindow, "Type", product.product_type, []string{"Water Based", "Oil Based", "Friction Reducer"})
 
+	coa_field := windigo.NewCheckBox(rangeWindow)
+	coa_field.SetText("Save to COA published ranges")
+	coa_field.SetMarginsAll(ERROR_MARGIN)
+
+	appearance_dock := BuildNewProductAppearanceView(rangeWindow, "Appearance", product.Appearance)
+
 	labels := build_text_dock(rangeWindow, []string{"", "Min", "Target", "Max"})
 	ph_dock := BuildNewRangeView(rangeWindow, "pH", product.PH, format_ranges_ph)
 	sg_dock := BuildNewRangeView(rangeWindow, "Specific Gravity", product.SG, format_ranges_sg)
+	density_dock := BuildNewRangeView(rangeWindow, "Density", product.Density, format_ranges_density)
 	string_dock := BuildNewRangeView(rangeWindow, "String Test \n\t at 0.5gpt", product.String_test, format_ranges_string_test)
 	//TODO store string_amt "at 0.5gpt"
 	visco_dock := BuildNewRangeView(rangeWindow, "Viscosity", product.Viscosity, format_ranges_viscosity)
@@ -419,8 +508,10 @@ func (product *QCProduct) show_ranges_window() {
 	save := func() {
 		product.edit(
 			radio_dock.Get(),
-			sg_dock.Get(),
+			appearance_dock.Get(),
 			ph_dock.Get(),
+			sg_dock.Get(),
+			density_dock.Get(),
 			string_dock.Get(),
 			visco_dock.Get(),
 		)
@@ -429,10 +520,34 @@ func (product *QCProduct) show_ranges_window() {
 		product.Update()
 		exit()
 	}
+	save_coa := func() {
+		var coa_product QCProduct
+		coa_product.Product = product.Product
+		coa_product.edit(
+			radio_dock.Get(),
+			appearance_dock.Get(),
+			ph_dock.Get(),
+			sg_dock.Get(),
+			density_dock.Get(),
+			string_dock.Get(),
+			visco_dock.Get(),
+		)
+
+		log.Println("coa_product", coa_product)
+		coa_product.upsert_coa()
+		show_status_bar("\t\tCOA Data Updated")
+		// coa_product.Update()
+		exit()
+	}
+
 	try_save := func() {
 		if radio_dock.Get().Valid {
 			radio_dock.Ok()
-			save()
+			if coa_field.Checked() {
+				save_coa()
+			} else {
+				save()
+			}
 		} else {
 			radio_dock.Error()
 		}
@@ -441,9 +556,13 @@ func (product *QCProduct) show_ranges_window() {
 
 	dock.Dock(prod_label, windigo.Top)
 	dock.Dock(radio_dock, windigo.Top)
+	dock.Dock(coa_field, windigo.Top)
+	dock.Dock(appearance_dock, windigo.Top)
+
 	dock.Dock(labels, windigo.Top)
 	dock.Dock(ph_dock, windigo.Top)
 	dock.Dock(sg_dock, windigo.Top)
+	dock.Dock(density_dock, windigo.Top)
 	dock.Dock(string_dock, windigo.Top)
 	dock.Dock(visco_dock, windigo.Top)
 	dock.Dock(button_dock, windigo.Top)

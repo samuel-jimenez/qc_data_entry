@@ -128,15 +128,11 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 	group_panel.SetSize(group_width, group_height)
 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-	visual_field := windigo.NewLabel(group_panel)
-	visual_field.SetText(visual_text)
+	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
 	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, format_mass, mass_from_sg)
-
 	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
-	//TODO Density064
-	// density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
-	density_field := BuildNewRangeROViewMap(group_panel, density_text, qc_product.Density, format_ranges_density, density_from_sg)
+	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)
@@ -145,13 +141,10 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 
 	update := func(qc_product QCProduct) {
 		log.Println("update BuildNewOilBasedProductRangesView", qc_product)
+		visual_field.Update(qc_product.Appearance)
 		mass_field.Update(qc_product.SG)
-
 		sg_field.Update(qc_product.SG)
-
-		//TODO Density064
-		// density_field.Update(qc_product.Density)
-		density_field.Update(qc_product.SG)
+		density_field.Update(qc_product.Density)
 	}
 
 	return OilBasedProductRangesView{group_panel,
