@@ -6,10 +6,8 @@ require github.com/samuel-jimenez/windigo v0.11.0
 
 require (
 	codeberg.org/go-pdf/fpdf v0.11.1
-	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea
 	github.com/ncruces/go-sqlite3 v0.25.1
 	github.com/spf13/viper v1.20.1
-	gocv.io/x/gocv v0.41.0
 )
 
 require (

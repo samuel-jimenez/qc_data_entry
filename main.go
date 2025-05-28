@@ -2,12 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"sync"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -25,8 +23,6 @@ var (
 
 	print_queue,
 	status_queue chan string
-	qr_done           chan bool
-	qr_sync_waitgroup sync.WaitGroup
 )
 
 func main() {
@@ -64,15 +60,9 @@ func main() {
 	defer close(status_queue)
 	go do_status_queue(status_queue)
 
-	//setup qr goroutine
-	defer qr_sync_waitgroup.Wait()
-	qr_done = make(chan bool)
-	// defer close(qr_done)
-
 	//show main window
 	show_window()
 
-	close(qr_done)
 }
 
 func pdf_print(pdf_path string) error {
@@ -109,45 +99,6 @@ func do_print_queue(print_queue chan string) {
 type QRJson struct {
 	Product_type string `json:"product_name"`
 	Lot_number   string `json:"lot_number"`
-}
-
-func do_read_qr(
-	qr_pop_data func(QRJson),
-	qr_done chan bool) {
-
-	defer qr_sync_waitgroup.Done()
-
-	var webcam_waitgroup sync.WaitGroup
-	defer webcam_waitgroup.Wait()
-
-	var product QRJson
-
-	webcam_text := make(chan string)
-
-	webcam_done := make(chan bool)
-	defer close(webcam_done)
-
-	webcam_waitgroup.Add(1)
-	go DoReadFromWebcam(&webcam_waitgroup, webcam_text, qr_done)
-
-	for {
-		select {
-		case qr_json, ok := <-webcam_text:
-
-			if ok {
-				log.Println("ReadFromWebcam: ", qr_json)
-				err := json.Unmarshal([]byte(qr_json), &product)
-				if err == nil {
-					qr_pop_data(product)
-				}
-			} else {
-				log.Printf("do_read_qr qr_get exit qr_done: \n")
-				return
-			}
-		case <-qr_done:
-			return
-		}
-	}
 }
 
 func load_config() *viper.Viper {

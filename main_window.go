@@ -37,8 +37,6 @@ func show_window() {
 	inter_spacer_height := INTER_SPACER_HEIGHT
 
 	button_margin := 5
-	cam_button_width := 100
-	cam_button_height := 100
 
 	ranges_button_width := 80
 	ranges_button_height := 20
@@ -67,7 +65,6 @@ func show_window() {
 	product_panel := windigo.NewAutoPanel(mainWindow)
 	product_panel.SetSize(top_panel_width, top_panel_height)
 
-	cam_button := windigo.NewPushButton(product_panel)
 	//TODO array db_select_all_product
 
 	prod_panel := windigo.NewAutoPanel(product_panel)
@@ -125,7 +122,6 @@ func show_window() {
 
 	ranges_button := windigo.NewPushButton(product_panel)
 
-	product_panel.Dock(cam_button, windigo.Right)
 	product_panel.Dock(prod_panel, windigo.Top)
 	product_panel.Dock(lot_panel, windigo.Top)
 	product_panel.Dock(ranges_button, windigo.Left)
@@ -256,19 +252,6 @@ func show_window() {
 			}
 			return true
 		})
-
-	cam_button.SetText("Scan")
-	cam_button.SetMarginsAll(button_margin)
-	cam_button.SetSize(cam_button_width, cam_button_height)
-	cam_button.OnClick().Bind(func(e *windigo.Event) {
-		close(qr_done)
-		qr_sync_waitgroup.Wait()
-
-		qr_done = make(chan bool)
-		qr_sync_waitgroup.Add(1)
-		go do_read_qr(qr_pop_data, qr_done)
-
-	})
 
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 
