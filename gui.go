@@ -218,7 +218,7 @@ func show_text(parent windigo.AutoPanel, label_width, field_width, field_height 
 	panel.Dock(text_units, windigo.Left)
 	parent.Dock(panel, windigo.Bottom)
 
-	return windigo.LabeledEdit{panel, text_field}
+	return windigo.LabeledEdit{ComponentFrame: panel, Edit: text_field}
 }
 
 type DerivedMassRangesView struct {
