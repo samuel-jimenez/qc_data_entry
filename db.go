@@ -17,7 +17,7 @@ var (
 	db_insert_appearance,
 	db_select_product_details, db_upsert_product_details,
 	db_select_product_coa_details, db_upsert_product_coa_details,
-	db_select_product_customer_id, db_upsert_product_customer, db_select_product_customer_info,
+	db_select_product_customer_id, db_insert_product_customer, db_select_product_customer_info,
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
 	db_insert_sample_point,
 	db_insert_measurement *sql.Stmt
@@ -101,7 +101,7 @@ create table bs.product_line (
 
 create table bs.product_customer_line (
 	product_customer_id integer not null,
-	product_id not null unique,
+	product_id not null,
 	product_name_customer text unique,
 	foreign key (product_id) references product_line,
 	primary key (product_customer_id));
@@ -204,7 +204,6 @@ create table bs.product_ranges_published (
 
 `
 	// TODO add ranges table
-
 	// _min real,
 	// _max real,
 	// _target real,
@@ -317,7 +316,6 @@ create table bs.product_ranges_published (
 			from bs.product_ranges_published
 			join bs.product_appearance using (product_appearance_id))
 	select
-		product_name_customer,
 		product_type_id,
 		coalesce(measured.product_appearance_text, published.product_appearance_text) as product_appearance_text,
 
@@ -340,8 +338,7 @@ create table bs.product_ranges_published (
 		coalesce(measured.viscosity_min, published.viscosity_min) as viscosity_min,
 		coalesce(measured.viscosity_target, published.viscosity_target) as viscosity_target,
 		coalesce(measured.viscosity_max, published.viscosity_max) as viscosity_max
-	from bs.product_customer_line
-		full join measured using (product_id)
+	from measured
 		full join published using (product_id)
 	where product_id = ?
 	`)
@@ -670,13 +667,11 @@ create table bs.product_ranges_published (
 		where product_name_customer = ? and product_id = ?
 		`)
 
-	db_upsert_product_customer = PrepareOrElse(db, `
+	db_insert_product_customer = PrepareOrElse(db, `
 	insert into bs.product_customer_line
 		(product_name_customer,product_id)
 		values (?,?)
-	on conflict(product_id) do update set
-		product_name_customer=excluded.product_name_customer
-		returning product_customer_id
+	returning product_customer_id
 		`)
 
 	db_select_lot_info = PrepareOrElse(db, `
@@ -734,17 +729,24 @@ create table bs.product_ranges_published (
 
 func select_product_name_customer(product_id int64) string {
 	var (
-		product_customer_id   int64
-		customer_name         string
-		product_name_customer string
-	)
-	product_name_customer = ""
+		product_customer_id int64
 
-	if db_select_product_customer_info.QueryRow(product_id).Scan(&product_customer_id, &customer_name) == nil {
-		product_name_customer = customer_name
+		product_name_customer *string
+
+		product_name_customer_default string
+	)
+
+	product_name_customer_default = ""
+
+	err := db_select_product_customer_info.QueryRow(product_id).Scan(
+		&product_customer_id,
+		&product_name_customer,
+	)
+	if err != nil {
+		log.Printf("%q: %s\n", err, "select_product_details")
 
 	}
-	return product_name_customer
+	return ValidOr(product_name_customer, product_name_customer_default)
 
 }
 
@@ -835,16 +837,16 @@ func insel_lot_id(lot_name string, product_id int64) int64 {
 	return lot_id
 }
 
-func upsert_product_name_customer(product_name_customer string, product_id int64) int64 {
+func insert_product_name_customer(product_name_customer string, product_id int64) int64 {
 	var product_customer_id int64
-	result, err := db_upsert_product_customer.Exec(product_name_customer, product_id)
+	result, err := db_insert_product_customer.Exec(product_name_customer, product_id)
 	if err != nil {
-		log.Printf("%q: %s\n", err, "insel_lot_id")
+		log.Printf("%q: %s\n", err, "insert_product_name_customer")
 		return -1
 	}
 	product_customer_id, err = result.LastInsertId()
 	if err != nil {
-		log.Printf("%q: %s\n", err, "insel_lot_id")
+		log.Printf("%q: %s\n", err, "insert_product_name_customer")
 		return -2
 	}
 	return product_customer_id

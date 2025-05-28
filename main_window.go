@@ -79,15 +79,6 @@ func show_window() {
 	prod_panel.Dock(customer_field, windigo.Left)
 
 	customer_field.SetMarginLeft(inter_spacer_width)
-	//TODO insert like lot
-	customer_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
-		if customer_field.Text() != "" && product_field.Text() != "" {
-			product_name_customer := customer_field.Text()
-			upsert_product_name_customer(product_name_customer, qc_product.product_id)
-			qc_product.Product_name_customer = select_product_name_customer(qc_product.product_id)
-		}
-	})
 
 	//TODO extract
 	rows, err := db_select_product_info.Query()
@@ -168,6 +159,15 @@ func show_window() {
 		}
 
 	})
+	customer_field.OnKillFocus().Bind(func(e *windigo.Event) {
+		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
+		qc_product.Product_name_customer = customer_field.Text()
+
+		if customer_field.Text() != "" && product_field.Text() != "" {
+			insert_product_name_customer(qc_product.Product_name_customer, qc_product.product_id)
+
+		}
+	})
 
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		mainWindow.SetText(lot_field.GetSelectedItem())
@@ -188,12 +188,12 @@ func show_window() {
 			log.Println("product_field_pop_data select_product_details", qc_product)
 			qc_product.Update()
 
-			customer_field.SetText(qc_product.Product_name_customer)
 			if qc_product.product_type.Valid {
 
 				tabs.SetCurrent(qc_product.product_type.toIndex())
 			}
 
+			fill_combobox_from_query(customer_field, db_select_product_customer_info, qc_product.product_id)
 			fill_combobox_from_query(lot_field, db_select_lot_info, qc_product.product_id)
 		}
 	}

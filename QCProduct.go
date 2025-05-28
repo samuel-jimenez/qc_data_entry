@@ -39,16 +39,9 @@ func (product *QCProduct) reset() {
 }
 
 func (product *QCProduct) select_product_details() {
-	var (
-		product_name_customer *string
-
-		product_name_customer_default string
-	)
-
-	product_name_customer_default = ""
 
 	err := db_select_product_details.QueryRow(product.product_id).Scan(
-		&product_name_customer, &product.product_type, &product.Appearance,
+		&product.product_type, &product.Appearance,
 		&product.PH.Min, &product.PH.Target, &product.PH.Max,
 		&product.SG.Min, &product.SG.Target, &product.SG.Max,
 		&product.Density.Min, &product.Density.Target, &product.Density.Max,
@@ -59,7 +52,6 @@ func (product *QCProduct) select_product_details() {
 		log.Printf("%q: %s\n", err, "select_product_details")
 
 	}
-	product.Product_name_customer = ValidOr(product_name_customer, product_name_customer_default)
 
 }
 
