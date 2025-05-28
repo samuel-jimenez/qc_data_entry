@@ -23,7 +23,8 @@ var (
 
 	JSON_PATHS []string
 
-	print_queue       chan string
+	print_queue,
+	status_queue chan string
 	qr_done           chan bool
 	qr_sync_waitgroup sync.WaitGroup
 )
@@ -57,6 +58,11 @@ func main() {
 	print_queue = make(chan string, 4)
 	defer close(print_queue)
 	go do_print_queue(print_queue)
+
+	//setup status_bar goroutine
+	status_queue = make(chan string, 16)
+	defer close(status_queue)
+	go do_status_queue(status_queue)
 
 	//setup qr goroutine
 	defer qr_sync_waitgroup.Wait()
