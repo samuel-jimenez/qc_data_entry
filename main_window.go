@@ -262,6 +262,8 @@ func show_window() {
 	cam_button.SetSize(cam_button_width, cam_button_height)
 	cam_button.OnClick().Bind(func(e *windigo.Event) {
 		close(qr_done)
+		qr_sync_waitgroup.Wait()
+
 		qr_done = make(chan bool)
 		qr_sync_waitgroup.Add(1)
 		go do_read_qr(qr_pop_data, qr_done)
