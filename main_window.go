@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"strings"
 
@@ -52,6 +53,14 @@ func show_window() {
 	mainWindow := windigo.NewForm(nil)
 	mainWindow.SetSize(window_width, window_height)
 	mainWindow.SetText("QC Data Entry")
+
+	keygrab := windigo.NewEdit(mainWindow)
+	keygrab.Hide()
+
+	keygrab.OnSetFocus().Bind(func(e *windigo.Event) {
+		keygrab.SetText("{")
+		keygrab.SelectText(1, 1)
+	})
 
 	dock := windigo.NewSimpleDock(mainWindow)
 
@@ -227,6 +236,26 @@ func show_window() {
 		lot_field.SetText(strings.ToUpper(strings.TrimSpace(product.Lot_number)))
 		lot_field.OnKillFocus().Fire(nil)
 	}
+
+	mainWindow.AddShortcut(windigo.Shortcut{windigo.ModShift, windigo.KeyOEM4}, // {
+		func() bool {
+			keygrab.SetText("")
+			keygrab.SetFocus()
+			return true
+		})
+
+	mainWindow.AddShortcut(windigo.Shortcut{windigo.ModShift, windigo.KeyOEM6}, // }
+		func() bool {
+			var product QRJson
+
+			qr_json := keygrab.Text() + "}"
+			log.Println("ReadFromScanner: ", qr_json)
+			err := json.Unmarshal([]byte(qr_json), &product)
+			if err == nil {
+				qr_pop_data(product)
+			}
+			return true
+		})
 
 	cam_button.SetText("Scan")
 	cam_button.SetMarginsAll(button_margin)
