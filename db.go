@@ -727,127 +727,41 @@ create table bs.product_ranges_published (
 
 }
 
-func select_product_name_customer(product_id int64) string {
-	var (
-		product_customer_id int64
-
-		product_name_customer *string
-
-		product_name_customer_default string
-	)
-
-	product_name_customer_default = ""
-
-	err := db_select_product_customer_info.QueryRow(product_id).Scan(
-		&product_customer_id,
-		&product_name_customer,
-	)
+func insert(insert_statement *sql.Stmt, proc_name string, args ...any) int64 {
+	var insert_id int64
+	result, err := insert_statement.Exec(args...)
 	if err != nil {
-		log.Printf("%q: %s\n", err, "select_product_details")
-
+		log.Printf("%q: %s\n", err, proc_name)
+		return -1
 	}
-	return ValidOr(product_name_customer, product_name_customer_default)
-
+	insert_id, err = result.LastInsertId()
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return -2
+	}
+	return insert_id
 }
 
-func DerefOrEmpty[T any](val *T) T {
-	if val == nil {
-		var empty T
-		return empty
+func insel(insert_statement, select_statement *sql.Stmt, proc_name string, args ...any) int64 {
+	var insel_id int64
+	if select_statement.QueryRow(args...).Scan(&insel_id) != nil {
+		//no rows
+		insel_id = insert(insert_statement, proc_name, args...)
 	}
-	return *val
+	return insel_id
 }
-
-func ValidOr[T any](val *T, default_val T) T {
-	if val == nil {
-		return default_val
-	}
-	return *val
-
-}
-
-func OrNil[T comparable](val *T, default_val T) *T {
-	if val == nil || *val == default_val {
-		return nil
-	}
-	return val
-
-}
-
-/*
-func OrNil[T any](val T, default_val T) *T {
-	if val == default_val {
-		return nil
-	}
-	return val
-
-}
-
-func OrNil_[T any](val *T, default_val T) *T {
-	if val == nil {
-		return nil
-	}
-	return val
-
-}*/
 
 func insel_product_id(product_name_full string) int64 {
-	// product_id, err := db_select_product.Exec(product_name_internal)
-	// product_id := db_select_product.QueryRow(product_name_internal)
-	var product_id int64
 
-	// v := strings.SplitN(s, " ", 2)
-
-	// before, after, found := strings.Cut(s, sep)
 	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
 
-	if db_select_product_id.QueryRow(product_name_internal, product_moniker_name).Scan(&product_id) != nil {
-		//no rows
-		result, err := db_insert_product.Exec(product_name_internal, product_moniker_name)
-		if err != nil {
-			log.Printf("%q: %s\n", err, "insel_product_id")
-			return -1
-		}
-		product_id, err = result.LastInsertId()
-		if err != nil {
-			log.Printf("%q: %s\n", err, "insel_product_id")
-			return -2
-		}
-	}
-	return product_id
+	return insel(db_insert_product, db_select_product_id, "insel_product_id", product_name_internal, product_moniker_name)
 }
 
 func insel_lot_id(lot_name string, product_id int64) int64 {
-	// lot_id, err := db_select_lot.Exec(lot_name)
-	// lot_id := db_select_lot.QueryRow(lot_name)
-	var lot_id int64
-	if db_select_lot_id.QueryRow(lot_name, product_id).Scan(&lot_id) != nil {
-		//no rows
-		result, err := db_insert_lot.Exec(lot_name, product_id)
-		if err != nil {
-			log.Printf("%q: %s\n", err, "insel_lot_id")
-			return -1
-		}
-		lot_id, err = result.LastInsertId()
-		if err != nil {
-			log.Printf("%q: %s\n", err, "insel_lot_id")
-			return -2
-		}
-	}
-	return lot_id
+	return insel(db_insert_lot, db_select_lot_id, "insel_lot_id", lot_name, product_id)
 }
 
 func insert_product_name_customer(product_name_customer string, product_id int64) int64 {
-	var product_customer_id int64
-	result, err := db_insert_product_customer.Exec(product_name_customer, product_id)
-	if err != nil {
-		log.Printf("%q: %s\n", err, "insert_product_name_customer")
-		return -1
-	}
-	product_customer_id, err = result.LastInsertId()
-	if err != nil {
-		log.Printf("%q: %s\n", err, "insert_product_name_customer")
-		return -2
-	}
-	return product_customer_id
+	return insert(db_insert_product_customer, "insert_product_name_customer", product_name_customer, product_id)
 }
