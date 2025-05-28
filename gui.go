@@ -356,10 +356,7 @@ func do_status_queue(status_queue chan string) {
 			if ok {
 				display_timeout_timer = time.NewTimer(display_timeout)
 				_show_status_bar(message, display_timeout_timer)
-
 			} else {
-				//this usually doesn't trigger
-				display_timeout_timer.Stop()
 				return
 			}
 		}
