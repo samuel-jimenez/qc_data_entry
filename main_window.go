@@ -71,7 +71,7 @@ func show_window() {
 	prod_panel.SetSize(hpanel_width, field_height)
 
 	product_field := show_combobox(prod_panel, label_width, field_width, field_height, product_text)
-	customer_field := show_edit(prod_panel, label_width, field_width, field_height, customer_text)
+	customer_field := show_combobox(prod_panel, label_width, field_width, field_height, customer_text)
 
 	prod_panel.SetMarginLeft(hpanel_margin)
 	prod_panel.SetMarginTop(top_spacer_height)
@@ -194,24 +194,7 @@ func show_window() {
 				tabs.SetCurrent(qc_product.product_type.toIndex())
 			}
 
-			// TODO lot
-			rows, err := db_select_lot_info.Query(qc_product.product_id)
-			if err != nil {
-				log.Printf("%q: %s\n", err, "insel_lot_id")
-				// return -1
-			}
-			lot_field.DeleteAllItems()
-			for rows.Next() {
-				var (
-					id       uint8
-					lot_name string
-				)
-
-				if error := rows.Scan(&id, &lot_name); error == nil {
-					// data[id] = value
-					lot_field.AddItem(lot_name)
-				}
-			}
+			fill_combobox_from_query(lot_field, db_select_lot_info, qc_product.product_id)
 		}
 	}
 

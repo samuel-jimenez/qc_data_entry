@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"log"
 	"strconv"
 	"strings"
 
@@ -49,6 +51,27 @@ func edit_and_parse_field(field windigo.LabeledEdit) float64 {
 	// mass_field.SelectText(-1, 0)
 
 	return parse_field(field)
+}
+
+func fill_combobox_from_query(control windigo.LabeledComboBox, select_statement *sql.Stmt, select_id int64) {
+
+	rows, err := select_statement.Query(select_id)
+	if err != nil {
+		log.Printf("%q: %s\n", err, "insel_lot_id")
+		// return -1
+	}
+	control.DeleteAllItems()
+	for rows.Next() {
+		var (
+			id   uint8
+			name string
+		)
+
+		if error := rows.Scan(&id, &name); error == nil {
+			// data[id] = value
+			control.AddItem(name)
+		}
+	}
 }
 
 func build_text_dock(parent windigo.Controller, labels []string) windigo.Pane {

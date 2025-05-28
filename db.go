@@ -203,7 +203,7 @@ create table bs.product_ranges_published (
 
 
 `
-	// TODO
+	// TODO add ranges table
 
 	// _min real,
 	// _max real,
