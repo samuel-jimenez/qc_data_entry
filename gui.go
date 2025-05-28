@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -333,6 +334,7 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 }
 
 func show_status_bar(message string) {
+	message = fmt.Sprintf("%s\t\t%s", time.Now().Format("15:04:05.000"), message)
 	status_queue <- message
 }
 
