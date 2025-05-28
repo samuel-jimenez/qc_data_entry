@@ -43,12 +43,12 @@ func do_print_queue(print_queue chan string) {
 	}
 }
 
-func show_status_bar(message string) {
+func show_status(message string) {
 	message = fmt.Sprintf("%s\t\t%s", time.Now().Format("15:04:05.000"), message)
 	status_queue <- message
 }
 
-func _show_status_bar(message string, timer *time.Timer) {
+func status_bar_show(message string, timer *time.Timer) {
 	status_bar.SetText(message)
 	select {
 	case <-timer.C:
@@ -65,7 +65,7 @@ func do_status_queue(status_queue chan string) {
 		case message, ok := <-status_queue:
 			if ok {
 				display_timeout_timer = time.NewTimer(display_timeout)
-				_show_status_bar(message, display_timeout_timer)
+				status_bar_show(message, display_timeout_timer)
 			} else {
 				return
 			}

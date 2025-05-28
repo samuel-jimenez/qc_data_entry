@@ -516,7 +516,7 @@ func (product *QCProduct) show_ranges_window() {
 			visco_dock.Get(),
 		)
 		product.upsert()
-		show_status_bar("QC Data Updated")
+		show_status("QC Data Updated")
 		product.Update()
 		exit()
 	}
@@ -535,7 +535,7 @@ func (product *QCProduct) show_ranges_window() {
 
 		log.Println("coa_product", coa_product)
 		coa_product.upsert_coa()
-		show_status_bar("COA Data Updated")
+		show_status("COA Data Updated")
 		// coa_product.Update()
 		exit()
 	}
