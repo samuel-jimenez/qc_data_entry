@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/samuel-jimenez/windigo"
 	"github.com/samuel-jimenez/windigo/w32"
@@ -331,34 +329,4 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	}
 
 	return MassDataView{mass_field, Clear}
-}
-
-func show_status_bar(message string) {
-	message = fmt.Sprintf("%s\t\t%s", time.Now().Format("15:04:05.000"), message)
-	status_queue <- message
-}
-
-func _show_status_bar(message string, timer *time.Timer) {
-	status_bar.SetText(message)
-	select {
-	case <-timer.C:
-		status_bar.SetText("")
-	}
-}
-
-func do_status_queue(status_queue chan string) {
-	var display_timeout_timer *time.Timer
-	display_timeout := 2 * time.Second
-
-	for {
-		select {
-		case message, ok := <-status_queue:
-			if ok {
-				display_timeout_timer = time.NewTimer(display_timeout)
-				_show_status_bar(message, display_timeout_timer)
-			} else {
-				return
-			}
-		}
-	}
 }

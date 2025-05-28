@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -20,9 +19,6 @@ var (
 	LOG_FILE string
 
 	JSON_PATHS []string
-
-	print_queue,
-	status_queue chan string
 )
 
 func main() {
@@ -63,37 +59,6 @@ func main() {
 	//show main window
 	show_window()
 
-}
-
-func pdf_print(pdf_path string) error {
-
-	app := "./PDFtoPrinter"
-	cmd := exec.Command(app, pdf_path)
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-	cmd.Wait()
-
-	return err
-
-}
-
-func do_print_queue(print_queue chan string) {
-	for {
-		select {
-		case new_file, ok := <-print_queue:
-			if ok {
-				log.Println("printing: ", new_file)
-				err := pdf_print(new_file)
-				if err != nil {
-					log.Println(err)
-				}
-			} else {
-				return
-			}
-		}
-	}
 }
 
 type QRJson struct {
