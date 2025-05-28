@@ -48,6 +48,8 @@ func show_window() {
 
 	var qc_product QCProduct
 
+
+	// build window
 	mainWindow := windigo.NewForm(nil)
 	mainWindow.SetSize(window_width, window_height)
 	mainWindow.SetText("QC Data Entry")
@@ -126,6 +128,9 @@ func show_window() {
 		}
 	}
 
+
+		// functionality
+
 	new_product_cb := func() BaseProduct {
 		qc_product.Sample_point = sample_field.Text()
 		log.Println("product_field new_product_cb", qc_product.toBaseProduct())
@@ -168,7 +173,7 @@ func show_window() {
 	})
 
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		mainWindow.SetText(lot_field.GetSelectedItem())
+		mainWindow.SetText(product_field.GetSelectedItem())
 	})
 
 	product_field_pop_data := func(str string) {
