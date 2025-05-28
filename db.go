@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -9,8 +11,9 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
-var qc_db *sql.DB
-var db_select_product_id, db_insert_product, db_select_product_info,
+var (
+	qc_db *sql.DB
+	db_select_product_id, db_insert_product, db_select_product_info,
 	db_insert_appearance,
 	db_select_product_details, db_upsert_product_details,
 	db_select_product_coa_details, db_upsert_product_coa_details,
@@ -18,7 +21,9 @@ var db_select_product_id, db_insert_product, db_select_product_info,
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
 	db_insert_sample_point,
 	db_insert_measurement *sql.Stmt
-var err error
+	err        error
+	DB_VERSION = "0.0.0"
+)
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
 	preparedStatement, err := db.Prepare(sqlStatement)
@@ -28,6 +33,35 @@ func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
 
 	}
 	return preparedStatement
+}
+
+func check_db(db *sql.DB) {
+
+	var found_database_version_major,
+		found_database_version_minor,
+		found_database_version_revision int
+
+	sqlStmt := `
+		select database_version_major, database_version_minor, database_version_revision
+		from bs.database_info
+		`
+	err = db.QueryRow(sqlStmt).Scan(&found_database_version_major,
+		&found_database_version_minor,
+		&found_database_version_revision)
+	if err != nil {
+		log.Printf("%q: %s\n", err, sqlStmt)
+		panic(err)
+	}
+
+	found_db_version := fmt.Sprintf("%d.%d.%d", found_database_version_major,
+		found_database_version_minor,
+		found_database_version_revision)
+
+	if DB_VERSION != found_db_version {
+		err = errors.New(fmt.Sprintf("Database version mismatch: Required: %s, found: %s", DB_VERSION, found_db_version))
+		log.Printf("%q\n", err)
+		panic(err)
+	}
 }
 
 // ON UPDATE CASCADE
@@ -44,6 +78,14 @@ func dbinit(db *sql.DB) {
 	// `
 	sqlStmt := `
 PRAGMA foreign_keys = ON;
+
+create table bs.database_info (
+	database_id integer not null,
+	database_version_major integer not null,
+	database_version_minor integer not null,
+	database_version_revision integer not null,
+	check (database_id = 0),
+	primary key (database_id));
 
 create table bs.product_moniker (
 	product_moniker_id integer not null,
@@ -173,6 +215,8 @@ create table bs.product_ranges_published (
 	// 	log.Printf("%q: %s\n", err, sqlStmt)
 	// 	// return
 	// }
+
+	check_db(db)
 
 	db_select_product_info = PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
