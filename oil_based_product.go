@@ -140,7 +140,6 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 	group_panel.Dock(sg_field, windigo.Bottom)
 
 	update := func(qc_product QCProduct) {
-		log.Println("update BuildNewOilBasedProductRangesView", qc_product)
 		visual_field.Update(qc_product.Appearance)
 		mass_field.Update(qc_product.SG)
 		sg_field.Update(qc_product.SG)

@@ -21,8 +21,11 @@ var (
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
 	db_insert_sample_point,
 	db_insert_measurement *sql.Stmt
-	err        error
+	err error
+
 	DB_VERSION = "0.0.0"
+
+	INVALID_ID int64 = -1
 )
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
@@ -732,7 +735,7 @@ func insert(insert_statement *sql.Stmt, proc_name string, args ...any) int64 {
 	result, err := insert_statement.Exec(args...)
 	if err != nil {
 		log.Printf("%q: %s\n", err, proc_name)
-		return -1
+		return INVALID_ID
 	}
 	insert_id, err = result.LastInsertId()
 	if err != nil {

@@ -53,25 +53,40 @@ func edit_and_parse_field(field windigo.LabeledEdit) float64 {
 	return parse_field(field)
 }
 
-func fill_combobox_from_query(control windigo.LabeledComboBox, select_statement *sql.Stmt, select_id int64) {
+func fill_combobox_from_query_rows(control windigo.LabeledComboBox, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
-	rows, err := select_statement.Query(select_id)
 	if err != nil {
-		log.Printf("%q: %s\n", err, "insel_lot_id")
+		log.Printf("%q: %s\n", err, "fill_combobox_from_query")
 		// return -1
 	}
 	control.DeleteAllItems()
-	for rows.Next() {
+	i := 0
+	for selected_rows.Next() {
+		fn(selected_rows)
+		i++
+	}
+	if i == 1 {
+		control.SetSelectedItem(0)
+	}
+}
+
+func fill_combobox_from_query_fn(control windigo.LabeledComboBox, select_statement *sql.Stmt, select_id int64, fn func(*sql.Rows)) {
+	rows, err := select_statement.Query(select_id)
+	fill_combobox_from_query_rows(control, rows, err, fn)
+}
+
+func fill_combobox_from_query(control windigo.LabeledComboBox, select_statement *sql.Stmt, select_id int64) {
+	fill_combobox_from_query_fn(control, select_statement, select_id, func(rows *sql.Rows) {
 		var (
 			id   uint8
 			name string
 		)
 
-		if error := rows.Scan(&id, &name); error == nil {
+		if err := rows.Scan(&id, &name); err == nil {
 			// data[id] = value
 			control.AddItem(name)
 		}
-	}
+	})
 }
 
 func build_text_dock(parent windigo.Controller, labels []string) windigo.Pane {

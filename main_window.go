@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"strings"
@@ -47,7 +48,6 @@ func show_window() {
 	customer_text := "Customer Name"
 
 	var qc_product QCProduct
-
 
 	// build window
 	mainWindow := windigo.NewForm(nil)
@@ -109,27 +109,20 @@ func show_window() {
 	status_bar = windigo.NewStatusBar(mainWindow)
 	mainWindow.SetStatusBar(status_bar)
 
-	//TODO extract
+	// functionality
+
 	rows, err := db_select_product_info.Query()
-	if err != nil {
-		log.Printf("%q: %s\n", err, "insel_lot_id")
-		// return -1
-	}
-	for rows.Next() {
+	fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
 			id                   uint8
 			internal_name        string
 			product_moniker_name string
 		)
-
-		if error := rows.Scan(&id, &internal_name, &product_moniker_name); error == nil {
+		if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
 			// data[id] = internal_name
 			product_field.AddItem(product_moniker_name + " " + internal_name)
 		}
-	}
-
-
-		// functionality
+	})
 
 	new_product_cb := func() BaseProduct {
 		qc_product.Sample_point = sample_field.Text()
@@ -148,34 +141,6 @@ func show_window() {
 		update_fr(qc_product)
 	}
 
-	keygrab.OnSetFocus().Bind(func(e *windigo.Event) {
-		keygrab.SetText("{")
-		keygrab.SelectText(1, 1)
-	})
-
-	lot_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		lot_field.SetText(strings.ToUpper(strings.TrimSpace(lot_field.Text())))
-		if lot_field.Text() != "" && product_field.Text() != "" {
-			qc_product.Lot_number = lot_field.Text()
-			qc_product.insel_lot_self()
-			mainWindow.SetText(lot_field.Text())
-
-		}
-
-	})
-	customer_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
-		qc_product.Product_name_customer = customer_field.Text()
-
-		if customer_field.Text() != "" && product_field.Text() != "" {
-			insert_product_name_customer(qc_product.Product_name_customer, qc_product.product_id)
-		}
-	})
-
-	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		mainWindow.SetText(product_field.GetSelectedItem())
-	})
-
 	product_field_pop_data := func(str string) {
 		log.Println("product_field_pop_data product_id", qc_product.product_id)
 
@@ -184,6 +149,7 @@ func show_window() {
 		qc_product.Product_type = str
 		qc_product.insel_product_self()
 		if qc_product.product_id != old_product_id {
+			mainWindow.SetText(qc_product.Product_type)
 			log.Println("product_field_pop_data product_id changes", qc_product.product_id)
 
 			qc_product.reset()
@@ -192,7 +158,6 @@ func show_window() {
 			qc_product.Update()
 
 			if qc_product.product_type.Valid {
-
 				tabs.SetCurrent(qc_product.product_type.toIndex())
 			}
 
@@ -200,24 +165,74 @@ func show_window() {
 			fill_combobox_from_query(lot_field, db_select_lot_info, qc_product.product_id)
 		}
 	}
-
 	product_field_text_pop_data := func(str string) {
-		product_field.SetText(strings.ToUpper(strings.TrimSpace(str)))
+		formatted_text := strings.ToUpper(strings.TrimSpace(str))
+		product_field.SetText(formatted_text)
+		qc_product.product_id = INVALID_ID
 		if product_field.Text() != "" {
-
 			log.Println("product_field OnKillFocus Text", product_field.Text())
 			product_field_pop_data(product_field.Text())
 			log.Println("product_field started", qc_product)
-
 		}
+	}
 
+	lot_field_pop_data := func(str string) {
+		qc_product.Lot_number = str
+		qc_product.insel_lot_self()
+		mainWindow.SetText(str)
+	}
+	lot_field_text_pop_data := func(str string) {
+		formatted_text := strings.ToUpper(strings.TrimSpace(str))
+		lot_field.SetText(formatted_text)
+		qc_product.lot_id = INVALID_ID
+		log.Println("lot_field_text_pop_data product_id", qc_product.product_id)
+		if lot_field.Text() != "" && qc_product.product_id != INVALID_ID {
+			lot_field_pop_data(lot_field.Text())
+		}
+		log.Println("lot_field_text_pop_data lot_field", qc_product.lot_id)
 	}
 
 	qr_pop_data := func(product QRJson) {
 		product_field_text_pop_data(product.Product_type)
-		lot_field.SetText(strings.ToUpper(strings.TrimSpace(product.Lot_number)))
-		lot_field.OnKillFocus().Fire(nil)
+		lot_field_text_pop_data(product.Lot_number)
 	}
+
+	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		product_field_pop_data(product_field.GetSelectedItem())
+	})
+	product_field.OnKillFocus().Bind(func(e *windigo.Event) {
+		product_field_text_pop_data(product_field.Text())
+	})
+
+	lot_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		lot_field_pop_data(lot_field.GetSelectedItem())
+	})
+	lot_field.OnKillFocus().Bind(func(e *windigo.Event) {
+		lot_field_text_pop_data(lot_field.Text())
+	})
+
+	customer_field.OnKillFocus().Bind(func(e *windigo.Event) {
+		customer_field.SetText(strings.ToUpper(strings.TrimSpace(customer_field.Text())))
+		qc_product.Product_name_customer = customer_field.Text()
+
+		if qc_product.Product_name_customer != "" && qc_product.product_id != INVALID_ID {
+			insert_product_name_customer(qc_product.Product_name_customer, qc_product.product_id)
+		}
+	})
+
+	ranges_button.OnClick().Bind(func(e *windigo.Event) {
+		if qc_product.Product_type != "" {
+			qc_product.show_ranges_window()
+			log.Println("product_lot", qc_product)
+		}
+	})
+
+	// QR keyboard handling
+
+	keygrab.OnSetFocus().Bind(func(e *windigo.Event) {
+		keygrab.SetText("{")
+		keygrab.SelectText(1, 1)
+	})
 
 	mainWindow.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModShift, Key: windigo.KeyOEM4}, // {
 		func() bool {
@@ -238,23 +253,6 @@ func show_window() {
 			}
 			return true
 		})
-
-	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-
-		log.Println("product_field OnSelectedChange GetSelectedItem", product_field.GetSelectedItem())
-		product_field_pop_data(product_field.GetSelectedItem())
-	})
-
-	product_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		product_field_text_pop_data(product_field.Text())
-	})
-
-	ranges_button.OnClick().Bind(func(e *windigo.Event) {
-		if qc_product.Product_type != "" {
-			qc_product.show_ranges_window()
-			log.Println("product_lot", qc_product)
-		}
-	})
 
 	mainWindow.Center()
 	mainWindow.Show()

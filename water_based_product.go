@@ -144,8 +144,6 @@ func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QC
 	group_panel.Dock(ph_field, windigo.Top)
 
 	update := func(qc_product QCProduct) {
-		log.Println("update BuildNewWaterBasedProductRangesView", qc_product)
-
 		visual_field.Update(qc_product.Appearance)
 		sg_field.Update(qc_product.SG)
 		ph_field.Update(qc_product.PH)
