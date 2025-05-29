@@ -11,13 +11,22 @@ import (
 )
 
 var (
-	GROUP_WIDTH  = 300
+	RANGE_WIDTH  = 200
+	GROUP_WIDTH  = 210
 	GROUP_HEIGHT = 170
 	GROUP_MARGIN = 5
 
-	LABEL_WIDTH  = 100
-	FIELD_WIDTH  = 200
-	FIELD_HEIGHT = 28
+	LABEL_WIDTH         = 100
+	PRODUCT_FIELD_WIDTH = 150
+	DATA_FIELD_WIDTH    = 60
+	FIELD_HEIGHT        = 28
+
+	RANGES_PADDING         = 5
+	RANGES_FIELD_HEIGHT    = 50
+	OFF_AXIS               = 0
+	RANGES_RO_FIELD_WIDTH  = 40
+	RANGES_RO_SPACER_WIDTH = 20
+	RANGES_RO_FIELD_HEIGHT = FIELD_HEIGHT
 
 	BUTTON_WIDTH  = 100
 	BUTTON_HEIGHT = 40
@@ -296,7 +305,7 @@ func clear_field(field windigo.LabeledEdit) {
 // func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) windigo.LabeledEdit {
 func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) MassDataView {
 
-	field_width := 60
+	field_width := DATA_FIELD_WIDTH
 
 	sg_text := "Specific Gravity"
 	density_text := "Density"

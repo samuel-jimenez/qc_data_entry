@@ -52,8 +52,7 @@ func (data_view RangeROView) Check(data float64) bool {
 func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data Range, format func(float64) string, data_map func(float64) float64) RangeROView {
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(22, 22)
-	panel.SetMarginTop(5)
+	panel.SetSize(OFF_AXIS, RANGES_RO_FIELD_HEIGHT)
 	//TODO toolti[p]
 	// label := windigo.NewLabel(panel)
 	// label.SetText(field_text)

@@ -62,8 +62,8 @@ func (view *ProductAppearanceROView) Error() {
 }
 
 func BuildNewProductAppearanceROView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceROView {
-	data_field := windigo.NewLabeledLabel(parent, 40, 22, "")
-	data_field.SetPaddingsAll(RANGES_PADDING)
+	data_field := windigo.NewLabeledLabel(parent, OFF_AXIS, RANGES_RO_FIELD_HEIGHT, "")
+	data_field.SetPaddingsAll(ERROR_MARGIN)
 	//TODO toolti[p]
 	// label := windigo.NewLabel(panel)
 	// label.SetText(field_text)

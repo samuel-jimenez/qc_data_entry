@@ -19,19 +19,19 @@ func show_window() {
 	// DEBUG
 	// log.Println(time.Now().UTC().UnixNano())
 
-	window_width := 800
+	window_width := 650
 	window_height := 600
 
-	top_panel_width := 750
+	top_panel_width := window_width
 	top_panel_height := 110
 
-	hpanel_width := 650
+	hpanel_width := top_panel_width
 
 	label_width := LABEL_WIDTH
 
 	hpanel_margin := 10
 
-	field_width := FIELD_WIDTH
+	field_width := PRODUCT_FIELD_WIDTH
 	field_height := 20
 	top_spacer_height := 20
 	inter_spacer_width := 30

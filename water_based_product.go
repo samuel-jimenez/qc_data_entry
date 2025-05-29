@@ -39,7 +39,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	group_margin := GROUP_MARGIN
 
 	label_width := LABEL_WIDTH
-	field_width := FIELD_WIDTH
+	field_width := DATA_FIELD_WIDTH
 	field_height := FIELD_HEIGHT
 
 	button_width := BUTTON_WIDTH
@@ -57,7 +57,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 	group_panel.SetMargins(group_margin, group_margin, 0, 0)
 
-	ranges_panel := BuildNewWaterBasedProductRangesView(parent, qc_product, group_width, group_height)
+	ranges_panel := BuildNewWaterBasedProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
 	visual_field := windigo.NewCheckBox(group_panel)

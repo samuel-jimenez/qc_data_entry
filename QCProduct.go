@@ -8,12 +8,6 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-var (
-	RANGES_PADDING      = 5
-	RANGES_FIELD_HEIGHT = 50
-	OFF_AXIS            = 0
-)
-
 /*
  * QCProduct
  *

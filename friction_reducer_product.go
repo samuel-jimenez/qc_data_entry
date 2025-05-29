@@ -41,7 +41,7 @@ type FrictionReducerProductView struct {
 func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point string, group_width, group_height int, ranges_panel FrictionReducerProductRangesView) FrictionReducerProductView {
 
 	label_width := LABEL_WIDTH
-	field_width := FIELD_WIDTH
+	field_width := DATA_FIELD_WIDTH
 	field_height := FIELD_HEIGHT
 
 	visual_text := "Visual Inspection"
@@ -192,7 +192,7 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
-	ranges_panel := BuildNewFrictionReducerProductRangesView(parent, qc_product, group_width, group_height)
+	ranges_panel := BuildNewFrictionReducerProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
 	top_group := BuildNewFrictionReducerProductView(parent, top_text, group_width, group_height, ranges_panel)
@@ -242,7 +242,7 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 	parent.Dock(button_dock, windigo.Bottom)
 	parent.Dock(top_group, windigo.Left)
 	parent.Dock(bottom_group, windigo.Left)
-	parent.Dock(ranges_panel, windigo.Fill)
+	parent.Dock(ranges_panel, windigo.Right)
 
 	return ranges_panel.Update
 

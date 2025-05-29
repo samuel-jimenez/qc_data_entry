@@ -37,7 +37,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	group_margin := GROUP_MARGIN
 
 	label_width := LABEL_WIDTH
-	field_width := FIELD_WIDTH
+	field_width := DATA_FIELD_WIDTH
 	field_height := FIELD_HEIGHT
 
 	button_width := BUTTON_WIDTH
@@ -54,7 +54,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 	group_panel.SetMargins(group_margin, group_margin, 0, 0)
 
-	ranges_panel := BuildNewOilBasedProductRangesView(parent, qc_product, group_width, group_height)
+	ranges_panel := BuildNewOilBasedProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)

@@ -64,8 +64,8 @@ func (view *NullFloat64ROView) Error() {
 }
 
 func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64, format func(float64) string) NullFloat64ROView {
-	data_field := windigo.NewLabeledLabel(parent, 40, 22, "")
-	data_field.SetPaddingsAll(5)
+	data_field := windigo.NewLabeledLabel(parent, RANGES_RO_FIELD_WIDTH, OFF_AXIS, "")
+	data_field.SetPaddingsAll(ERROR_MARGIN)
 
 	data_field.SetTranslucentBackground()
 
@@ -82,8 +82,8 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64
 }
 
 func BuildNullFloat64SpacerView(parent windigo.Controller, field_data NullFloat64, format string) NullFloat64ROView {
-	data_field := windigo.NewLabeledLabel(parent, 20, 22, "")
-	data_field.SetPaddingsAll(5)
+	data_field := windigo.NewLabeledLabel(parent, RANGES_RO_SPACER_WIDTH, OFF_AXIS, "")
+	data_field.SetPaddingsAll(ERROR_MARGIN)
 
 	update := func(field_data NullFloat64) {
 		if field_data.Valid {
