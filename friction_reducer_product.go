@@ -17,9 +17,8 @@ func (product FrictionReducerProduct) toProduct() Product {
 	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(product.sg*LB_PER_GAL, true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
 }
 
-func newFrictionReducerProduct(base_product BaseProduct, sample_point string, viscosity_field windigo.LabeledEdit, mass_field MassDataView, string_field windigo.LabeledEdit) Product {
+func newFrictionReducerProduct(base_product BaseProduct, viscosity_field windigo.LabeledEdit, mass_field MassDataView, string_field windigo.LabeledEdit) Product {
 
-	base_product.Sample_point = sample_point
 	viscosity := parse_field(viscosity_field)
 	string_test := parse_field(string_field)
 	sg := sg_from_mass(parse_field(mass_field))
@@ -34,7 +33,7 @@ func (product FrictionReducerProduct) check_data() bool {
 
 type FrictionReducerProductView struct {
 	windigo.AutoPanel
-	Get   func(base_product BaseProduct) Product
+	Get   func(base_product BaseProduct, replace_sample_point bool) Product
 	Clear func()
 }
 
@@ -70,9 +69,12 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	group_panel.Dock(mass_field, windigo.Top)
 	group_panel.Dock(string_field, windigo.Top)
 
-	get := func(base_product BaseProduct) Product {
+	get := func(base_product BaseProduct, replace_sample_point bool) Product {
 		base_product.Visual = visual_field.Checked()
-		return newFrictionReducerProduct(base_product, sample_point, viscosity_field, mass_field, string_field)
+		if replace_sample_point {
+			base_product.Sample_point = sample_point
+		}
+		return newFrictionReducerProduct(base_product, viscosity_field, mass_field, string_field)
 
 	}
 	clear := func() {
@@ -202,8 +204,8 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 
 	submit_cb := func() {
 		base_product := create_new_product_cb()
-		top_product := top_group.Get(base_product)
-		bottom_product := bottom_group.Get(base_product)
+		top_product := top_group.Get(base_product, true)
+		bottom_product := bottom_group.Get(base_product, true)
 		log.Println("top", top_product)
 		log.Println("btm", bottom_product)
 		check_dual_data(top_product, bottom_product)
@@ -217,7 +219,7 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 	top_cb := func() {
 		base_product := create_new_product_cb()
 
-		top_product := top_group.Get(base_product)
+		top_product := top_group.Get(base_product, true)
 		if top_product.check_data() {
 			log.Println("data", top_product)
 			top_product.output_sample()
@@ -228,14 +230,26 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 
 		base_product := create_new_product_cb()
 
-		bottom_product := bottom_group.Get(base_product)
+		bottom_product := bottom_group.Get(base_product, true)
 		if bottom_product.check_data() {
 			log.Println("data", bottom_product)
 			bottom_product.output_sample()
 		}
 	}
 
-	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
+	tote_cb := func() {
+		base_product := create_new_product_cb()
+
+		top_product := top_group.Get(base_product, false)
+		if top_product.check_data() {
+			log.Println("tote", top_product)
+			top_product.save()
+			top_product.output()
+
+		}
+	}
+
+	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Accept Top", "Accept Btm", "Tote"}, []int{40, 0, 10, 0, 10}, []func(){submit_cb, clear_cb, top_cb, btm_cb, tote_cb})
 
 	button_dock.SetMarginBtm(bottom_spacer_height)
 
