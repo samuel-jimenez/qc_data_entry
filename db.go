@@ -23,9 +23,12 @@ var (
 	db_insert_measurement *sql.Stmt
 	err error
 
-	DB_VERSION = "0.0.0"
+	DB_VERSION = "0.0.1"
 
 	INVALID_ID int64 = -1
+
+	CONTAINER_TOTE    = 1
+	CONTAINER_RAILCAR = 2
 )
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
@@ -140,16 +143,26 @@ create table bs.qc_samples (
 
 
 
+create table bs.container_types (
+	container_type_id integer not null,
+	container_type_name text not null,
+	primary key (container_type_id),
+	unique(container_type_name));
+
+
 create table bs.product_types (
 	product_type_id integer not null,
-	product_type_name text,
+	product_type_name text not null,
+	container_type_id integer not null,
 	primary key (product_type_id),
+	foreign key (container_type_id) references container_types,
 	unique(product_type_name));
+
 
 
 create table bs.product_appearance (
 	product_appearance_id integer not null,
-	product_appearance_text text,
+	product_appearance_text text not null,
 	primary key (product_appearance_id),
 	unique(product_appearance_text));
 
@@ -157,7 +170,7 @@ create table bs.product_ranges_measured (
 	range_id integer not null,
 	product_id not null,
 	product_type_id integer not null,
-	product_appearance_id integer not null,
+	product_appearance_id integer,
 	ph_min real,
 	ph_target real,
 	ph_max real,
@@ -202,6 +215,10 @@ create table bs.product_ranges_published (
 	foreign key (product_id) references product_line,
 	foreign key (visual_id) references product_appearance,
 	unique (product_id));
+
+insert into bs.container_types
+	(container_type_name)
+	values ('Tote'),('Railcar');
 
 
 
@@ -265,6 +282,7 @@ create table bs.product_ranges_published (
 		measured as (
 			select
 				product_id,
+
 				product_type_id,
 				product_appearance_text,
 
@@ -289,7 +307,8 @@ create table bs.product_ranges_published (
 				viscosity_target,
 				viscosity_max
 			from bs.product_ranges_measured
-			join bs.product_appearance using (product_appearance_id)),
+				left join bs.product_appearance using (product_appearance_id)
+			where product_id = ?1),
 
 		published as (
 			select
@@ -317,9 +336,11 @@ create table bs.product_ranges_published (
 				viscosity_max
 
 			from bs.product_ranges_published
-			join bs.product_appearance using (product_appearance_id))
+				left join bs.product_appearance using (product_appearance_id)
+			where product_id = ?1)
 	select
 		product_type_id,
+		container_type_id,
 		coalesce(measured.product_appearance_text, published.product_appearance_text) as product_appearance_text,
 
 		coalesce(measured.ph_min, published.ph_min) as ph_min,
@@ -343,7 +364,8 @@ create table bs.product_ranges_published (
 		coalesce(measured.viscosity_max, published.viscosity_max) as viscosity_max
 	from measured
 		full join published using (product_id)
-	where product_id = ?
+		join bs.product_types using (product_type_id)
+	where product_id = ?1
 	`)
 
 	db_select_product_coa_details = PrepareOrElse(db, `

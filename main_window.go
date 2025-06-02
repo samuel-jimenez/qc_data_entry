@@ -93,9 +93,14 @@ func show_window() {
 	ranges_button.SetMarginsAll(button_margin)
 	ranges_button.SetSize(ranges_button_width, ranges_button_height) // (width, height)
 
+	container_field := BuildNewDiscreteView(product_panel, 50, 50, "Container Type", qc_product.container_type, []string{"Tote", "Railcar"})
+	container_field.SetSize(150, OFF_AXIS)
+
 	product_panel.Dock(prod_panel, windigo.Top)
 	product_panel.Dock(lot_panel, windigo.Top)
 	product_panel.Dock(ranges_button, windigo.Left)
+	// product_panel.Dock(radio_dock, windigo.Top)
+	product_panel.Dock(container_field, windigo.Left)
 
 	tabs := windigo.NewTabView(mainWindow)
 	tab_wb := tabs.AddAutoPanel("Water Based")
@@ -132,13 +137,15 @@ func show_window() {
 
 	update_water_based := show_water_based(tab_wb, qc_product, new_product_cb)
 	update_oil_based := show_oil_based(tab_oil, qc_product, new_product_cb)
-	update_fr := show_fr(tab_fr, qc_product, new_product_cb)
+	fr_panel := show_fr(tab_fr, qc_product, new_product_cb)
 
 	qc_product.Update = func() {
+		container_field.Update(qc_product.container_type)
 		log.Println("update new_product_cb", qc_product)
 		update_water_based(qc_product)
 		update_oil_based(qc_product)
-		update_fr(qc_product)
+		fr_panel.Update(qc_product)
+		fr_panel.ChangeContainer(qc_product)
 	}
 
 	product_field_pop_data := func(str string) {
@@ -225,6 +232,11 @@ func show_window() {
 			qc_product.show_ranges_window()
 			log.Println("product_lot", qc_product)
 		}
+	})
+
+	container_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		qc_product.container_type = container_field.Get()
+		fr_panel.ChangeContainer(qc_product)
 	})
 
 	// QR keyboard handling

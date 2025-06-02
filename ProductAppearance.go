@@ -37,7 +37,6 @@ func BuildNewProductAppearanceView(parent windigo.Controller, field_text string,
 		field_text := field.Text()
 		field_valid := field_text != ""
 		return ProductAppearance{sql.NullString{String: field_text, Valid: field_valid}}
-		// return ProductAppearance{sql.NullString{String: field.Text(), Valid: true}}
 	}
 
 	return ProductAppearanceView{field, get}

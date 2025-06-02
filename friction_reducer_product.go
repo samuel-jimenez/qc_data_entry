@@ -178,8 +178,13 @@ func check_dual_data(top_product, bottom_product Product) {
 	}
 }
 
+type FrictionReducerPanelView struct {
+	Update          func(qc_product QCProduct)
+	ChangeContainer func(qc_product QCProduct)
+}
+
 // create table product_line (product_id integer not null primary key, product_name text);
-func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
+func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) FrictionReducerPanelView {
 
 	bottom_spacer_height := BUTTON_SPACER_HEIGHT
 
@@ -249,15 +254,31 @@ func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_
 		}
 	}
 
-	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Accept Top", "Accept Btm", "Tote"}, []int{40, 0, 10, 0, 10}, []func(){submit_cb, clear_cb, top_cb, btm_cb, tote_cb})
+	button_dock_totes := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear"}, []int{40, 0}, []func(){tote_cb, clear_cb})
+	button_dock_cars := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
+	button_dock_totes.Hide()
 
-	button_dock.SetMarginBtm(bottom_spacer_height)
+	button_dock_totes.SetMarginBtm(bottom_spacer_height)
+	button_dock_cars.SetMarginBtm(bottom_spacer_height)
 
-	parent.Dock(button_dock, windigo.Bottom)
+	parent.Dock(button_dock_totes, windigo.Bottom)
+	parent.Dock(button_dock_cars, windigo.Bottom)
 	parent.Dock(top_group, windigo.Left)
 	parent.Dock(bottom_group, windigo.Left)
 	parent.Dock(ranges_panel, windigo.Right)
 
-	return ranges_panel.Update
+	changeContainer := func(qc_product QCProduct) {
+		if qc_product.container_type.Int32 == int32(CONTAINER_TOTE) {
+			bottom_group.Hide()
+			button_dock_cars.Hide()
+			button_dock_totes.Show()
+		} else {
+			bottom_group.Show()
+			button_dock_cars.Show()
+			button_dock_totes.Hide()
+		}
+	}
+
+	return FrictionReducerPanelView{ranges_panel.Update, changeContainer}
 
 }

@@ -15,14 +15,15 @@ import (
 
 type QCProduct struct {
 	Product
-	Appearance   ProductAppearance
-	product_type ProductType
-	PH           Range
-	SG           Range
-	Density      Range
-	String_test  Range
-	Viscosity    Range
-	Update       func()
+	Appearance     ProductAppearance
+	product_type   Discrete
+	container_type Discrete
+	PH             Range
+	SG             Range
+	Density        Range
+	String_test    Range
+	Viscosity      Range
+	Update         func()
 }
 
 func (product *QCProduct) reset() {
@@ -35,7 +36,7 @@ func (product *QCProduct) reset() {
 func (product *QCProduct) select_product_details() {
 
 	err := db_select_product_details.QueryRow(product.product_id).Scan(
-		&product.product_type, &product.Appearance,
+		&product.product_type, &product.container_type, &product.Appearance,
 		&product.PH.Min, &product.PH.Target, &product.PH.Max,
 		&product.SG.Min, &product.SG.Target, &product.SG.Max,
 		&product.Density.Min, &product.Density.Target, &product.Density.Max,
@@ -64,7 +65,6 @@ func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 	if err != nil {
 		log.Printf("%q: %s\n", err, "upsert")
 	}
-
 	//TODO?
 	// id, err := result.LastInsertId()
 	// log.Println("upsert", id, err)
@@ -77,7 +77,7 @@ func (product QCProduct) upsert()     { product._upsert(db_upsert_product_detail
 func (product QCProduct) upsert_coa() { product._upsert(db_upsert_product_coa_details) }
 
 func (product *QCProduct) edit(
-	product_type ProductType,
+	product_type Discrete,
 	Appearance ProductAppearance,
 	PH,
 	SG,
@@ -147,6 +147,7 @@ func (product *QCProduct) show_ranges_window() {
 			string_dock.Get(),
 			visco_dock.Get(),
 		)
+
 		product.upsert()
 		show_status("QC Data Updated")
 		product.Update()
