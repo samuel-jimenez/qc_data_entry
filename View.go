@@ -27,3 +27,12 @@ func (view *View) Ok() {
 func (view *View) Error() {
 	view.SetBorder(erroredPen)
 }
+
+/*
+ * UpdatableView
+ *
+ */
+type UpdatableView[T any] interface {
+	ErrableView
+	Update(T)
+}
