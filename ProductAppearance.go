@@ -48,16 +48,8 @@ func BuildNewProductAppearanceView(parent windigo.Controller, field_text string,
  */
 
 type ProductAppearanceROView struct {
-	windigo.LabeledLabel
+	View
 	Update func(field_data ProductAppearance)
-}
-
-func (view *ProductAppearanceROView) Ok() {
-	view.SetBorder(nil)
-}
-
-func (view *ProductAppearanceROView) Error() {
-	view.SetBorder(erroredPen)
 }
 
 func BuildNewProductAppearanceROView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceROView {
@@ -75,5 +67,5 @@ func BuildNewProductAppearanceROView(parent windigo.Controller, field_text strin
 	}
 	update(field_data)
 
-	return ProductAppearanceROView{data_field, update}
+	return ProductAppearanceROView{View{data_field}, update}
 }

@@ -51,16 +51,8 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data NullFloat64, 
  */
 
 type NullFloat64ROView struct {
-	windigo.LabeledLabel
+	View
 	Update func(field_data NullFloat64)
-}
-
-func (view *NullFloat64ROView) Ok() {
-	view.SetBorder(nil)
-}
-
-func (view *NullFloat64ROView) Error() {
-	view.SetBorder(erroredPen)
 }
 
 func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64, format func(float64) string) NullFloat64ROView {
@@ -78,7 +70,7 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64
 	}
 	update(field_data)
 
-	return NullFloat64ROView{data_field, update}
+	return NullFloat64ROView{View{data_field}, update}
 }
 
 func BuildNullFloat64SpacerView(parent windigo.Controller, field_data NullFloat64, format string) NullFloat64ROView {
@@ -94,5 +86,5 @@ func BuildNullFloat64SpacerView(parent windigo.Controller, field_data NullFloat6
 	}
 	update(field_data)
 
-	return NullFloat64ROView{data_field, update}
+	return NullFloat64ROView{View{data_field}, update}
 }

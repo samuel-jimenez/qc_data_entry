@@ -25,16 +25,14 @@ func DiscreteFromIndex(index int) Discrete {
 
 func (product_type Discrete) toIndex() int {
 	return int(product_type.Int32 - 1)
-
 }
 
 /*
  * DiscreteView
  *
  */
-
 type DiscreteView struct {
-	windigo.AutoPanel
+	View
 	buttons          []*windigo.RadioButton
 	selected         Discrete
 	onSelectedChange windigo.EventManager
@@ -49,17 +47,8 @@ func (data_view *DiscreteView) Set(index int) {
 	data_view.onSelectedChange.Fire(nil)
 }
 
-func (view *DiscreteView) Ok() {
-	view.AutoPanel.SetBorder(okPen)
-}
-
-func (view *DiscreteView) Error() {
-	view.AutoPanel.SetBorder(erroredPen)
-}
-
 func (data_view *DiscreteView) Update(field_data Discrete) {
 	if data_view.selected.Valid {
-
 		data_view.buttons[data_view.selected.toIndex()].SetChecked(false)
 	}
 
@@ -77,13 +66,14 @@ func (control *DiscreteView) OnSelectedChange() *windigo.EventManager {
 func BuildNewDiscreteView(parent windigo.Controller, width, height int, group_text string, field_data Discrete, labels []string) *DiscreteView {
 	view := new(DiscreteView)
 
-	view.AutoPanel = windigo.NewGroupAutoPanel(parent)
-	view.AutoPanel.SetSize(OFF_AXIS, height)
-	view.AutoPanel.SetText(group_text)
-	view.AutoPanel.SetPaddingsAll(15)
+	panel := windigo.NewGroupAutoPanel(parent)
+
+	panel.SetSize(OFF_AXIS, height)
+	panel.SetText(group_text)
+	panel.SetPaddingsAll(15)
 
 	for i, label_text := range labels {
-		label := windigo.NewRadioButton(view.AutoPanel)
+		label := windigo.NewRadioButton(panel)
 		label.SetSize(width, OFF_AXIS)
 		label.SetMarginLeft(10)
 		label.SetText(label_text)
@@ -91,8 +81,10 @@ func BuildNewDiscreteView(parent windigo.Controller, width, height int, group_te
 			view.Set(i)
 		})
 		view.buttons = append(view.buttons, label)
-		view.AutoPanel.Dock(label, windigo.Left)
+		panel.Dock(label, windigo.Left)
 	}
+	// view.View.ComponentFrame = View{panel}
+	view.View.ComponentFrame = panel
 
 	view.Update(field_data)
 	view.Ok()
