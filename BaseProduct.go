@@ -32,11 +32,9 @@ func (product BaseProduct) get_base_filename(extension string) string {
 
 func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s", LABEL_PATH, product.get_base_filename("pdf"))
-
 }
 
 func (product BaseProduct) get_json_filename(path string, base_name string) string {
-
 	return fmt.Sprintf("%s/%d-%s", path, time.Now().UTC().UnixNano(), base_name)
 }
 
@@ -49,20 +47,15 @@ func (product BaseProduct) get_json_names() []string {
 		json_names = append(json_names, product.get_json_filename(JSON_PATH, base_name))
 	}
 	return json_names
-
 }
 
 func (product *BaseProduct) insel_product_id(product_name string) {
-	log.Println("insel_product_id product_name", product_name)
-
 	product.product_id = insel_product_id(product_name)
-	log.Println("insel_product_id", product)
+	log.Println("Debug: insel_product_id", product)
 }
 
 func (product *BaseProduct) insel_lot_id(lot_name string) {
 	product.lot_id = insel_lot_id(lot_name, product.product_id)
-	log.Println("lot_id", product.lot_id)
-
 }
 
 func (product *BaseProduct) insel_product_self() *BaseProduct {
@@ -73,7 +66,6 @@ func (product *BaseProduct) insel_product_self() *BaseProduct {
 
 func (product *BaseProduct) insel_lot_self() *BaseProduct {
 	product.insel_lot_id(product.Lot_number)
-	log.Println("insel_lot_self", product.lot_id)
 	return product
 
 }

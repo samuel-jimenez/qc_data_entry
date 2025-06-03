@@ -63,10 +63,18 @@ func edit_and_parse_field(field windigo.LabeledEdit) float64 {
 	return parse_field(field)
 }
 
+func check_or_error(field windigo.Bordered, test bool) {
+	if test {
+		field.SetBorder(okPen)
+	} else {
+		field.SetBorder(erroredPen)
+	}
+}
+
 func fill_combobox_from_query_rows(control windigo.LabeledComboBox, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
 	if err != nil {
-		log.Printf("%q: %s\n", err, "fill_combobox_from_query")
+		log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
 		// return -1
 	}
 	control.DeleteAllItems()
@@ -95,6 +103,9 @@ func fill_combobox_from_query(control windigo.LabeledComboBox, select_statement 
 		if err := rows.Scan(&id, &name); err == nil {
 			// data[id] = value
 			control.AddItem(name)
+		} else {
+			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+			// return -1
 		}
 	})
 }
@@ -178,39 +189,19 @@ func show_combobox(parent windigo.Controller, label_width, control_width, height
 	combobox_field := windigo.NewLabeledComboBox(parent, label_width, control_width, height, field_text)
 
 	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		combobox_field.SetText(strings.TrimSpace(combobox_field.Text()))
+		combobox_field.SetText(strings.ToUpper(strings.TrimSpace(combobox_field.Text())))
 	})
 
 	return combobox_field
 }
 
 func show_edit(parent windigo.Controller, label_width, control_width, height int, field_text string) windigo.LabeledEdit {
-	noop := func(str string) string { return str }
-	return show_edit_with_lose_focus(parent, label_width, control_width, height, field_text, noop)
-}
-
-func show_edit_with_lose_focus(parent windigo.Controller, label_width, control_width, height int, field_text string, focus_cb func(string) string) windigo.LabeledEdit {
-
-	edit_field := windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text)
-
-	edit_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		edit_field.SetText(focus_cb(strings.TrimSpace(edit_field.Text())))
-	})
-
-	return edit_field
-}
-
-func check_or_error(field windigo.Bordered, test bool) {
-	if test {
-		field.SetBorder(okPen)
-	} else {
-		field.SetBorder(erroredPen)
-	}
+	return windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text)
 }
 
 func show_number_edit(parent windigo.Controller, label_width, control_width, height int, field_text string, range_field *RangeROView) windigo.LabeledEdit {
 
-	edit_field := windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text)
+	edit_field := show_edit(parent, label_width, control_width, height, field_text)
 	edit_field.SetPaddingsAll(ERROR_MARGIN)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
 		check_or_error(edit_field, range_field.Check(edit_and_parse_field(edit_field)))
@@ -281,6 +272,7 @@ type MassDataView struct {
 	Clear func()
 }
 
+// TODO View
 func clear_field(field windigo.LabeledEdit) {
 	field.SetText("")
 	field.SetBorder(okPen)
@@ -315,7 +307,6 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	density_units := "lb/gal"
 
 	mass_field := show_edit(parent, label_width, control_width, height, field_text)
-	// mass_field := show_number_edit(parent, label_width, control_width, height, field_text, ranges_panel.mass_field)
 	mass_field.SetPaddingsAll(ERROR_MARGIN)
 
 	//PUSH TO BOTTOM

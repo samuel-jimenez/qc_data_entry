@@ -19,13 +19,14 @@ var (
 	db_select_product_coa_details, db_upsert_product_coa_details,
 	db_select_product_customer_id, db_insert_product_customer, db_select_product_customer_info,
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
-	db_insert_sample_point,
+	db_select_sample_points, db_insert_sample_point,
 	db_insert_measurement *sql.Stmt
 	err error
 
 	DB_VERSION = "0.0.1"
 
-	INVALID_ID int64 = -1
+	INVALID_ID     int64 = -1
+	DEFAULT_LOT_ID int64 = 1
 
 	CONTAINER_TOTE    = 1
 	CONTAINER_RAILCAR = 2
@@ -131,7 +132,7 @@ create table bs.product_sample_points (
 create table bs.qc_samples (
 	qc_id integer not null,
 	lot_id integer not null,
-	sample_point_id integer not null,
+	sample_point_id integer,
 	time_stamp integer,
 	ph real,
 	specific_gravity real,
@@ -690,33 +691,42 @@ insert into bs.container_types
 	select product_customer_id
 		from bs.product_customer_line
 		where product_name_customer = ? and product_id = ?
-		`)
+	`)
 
 	db_insert_product_customer = PrepareOrElse(db, `
 	insert into bs.product_customer_line
 		(product_name_customer,product_id)
 		values (?,?)
 	returning product_customer_id
-		`)
+	`)
 
 	db_select_lot_info = PrepareOrElse(db, `
 	select lot_id, lot_name
 		from bs.product_lot
 		where product_id = ?
-		`)
+	`)
 
 	db_select_lot_id = PrepareOrElse(db, `
 	select lot_id
 		from bs.product_lot
 		where lot_name = ? and product_id = ?
-		`)
+	`)
 
 	db_insert_lot = PrepareOrElse(db, `
 	insert into bs.product_lot
 		(lot_name,product_id)
 		values (?,?)
 		returning lot_id
-		`)
+	`)
+
+	db_select_sample_points = PrepareOrElse(db, `
+	select distinct sample_point_id, sample_point
+		from bs.product_lot
+		join bs.qc_samples using (lot_id)
+		join bs.product_sample_points using (sample_point_id)
+		where product_id = ?
+		order by sample_point_id
+	`)
 
 	db_insert_sample_point = PrepareOrElse(db, `
 	with val (sample_point) as (
@@ -746,9 +756,9 @@ insert into bs.container_types
 		)
 	insert into bs.qc_samples (lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity)
 	select lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity
-	from   sel
+		from   sel
 	returning qc_id;
-		`)
+	`)
 
 }
 
@@ -780,13 +790,13 @@ func insel_product_id(product_name_full string) int64 {
 
 	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
 
-	return insel(db_insert_product, db_select_product_id, "insel_product_id", product_name_internal, product_moniker_name)
+	return insel(db_insert_product, db_select_product_id, "Debug: insel_product_id", product_name_internal, product_moniker_name)
 }
 
 func insel_lot_id(lot_name string, product_id int64) int64 {
-	return insel(db_insert_lot, db_select_lot_id, "insel_lot_id", lot_name, product_id)
+	return insel(db_insert_lot, db_select_lot_id, "Debug: insel_lot_id", lot_name, product_id)
 }
 
 func insert_product_name_customer(product_name_customer string, product_id int64) int64 {
-	return insert(db_insert_product_customer, "insert_product_name_customer", product_name_customer, product_id)
+	return insert(db_insert_product_customer, "Debug: insert_product_name_customer", product_name_customer, product_id)
 }

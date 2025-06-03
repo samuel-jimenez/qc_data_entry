@@ -31,7 +31,7 @@ func do_print_queue(print_queue chan string) {
 		select {
 		case new_file, ok := <-print_queue:
 			if ok {
-				log.Println("printing: ", new_file)
+				log.Println("Info: Printing: ", new_file)
 				err := pdf_print(new_file)
 				if err != nil {
 					log.Println(err)

@@ -56,28 +56,43 @@ func (product Product) output() error {
 	return product.print()
 }
 
-func (product Product) output_sample() error {
+func (product *Product) format_sample() {
 	if product.Product_name_customer != "" {
 		product.Product_type = product.Product_name_customer
 	}
 	product.Sample_point = ""
+}
+
+func (product Product) output_sample() error {
+	product.format_sample()
 	return product.print()
+}
+
+func _print(pdf_path string) {
+	print_queue <- pdf_path
+	show_status("Label Printed")
 }
 
 func (product Product) print() error {
 
 	pdf_path, err := product.export_label_pdf()
-
-	show_status("Label Created")
-
 	if err != nil {
 		return err
 	}
-	print_queue <- pdf_path
-	show_status("Label Printed")
+	show_status("Label Created")
+
+	_print(pdf_path)
 
 	return err
+}
 
+func (product Product) reprint() {
+	_print(product.get_pdf_name())
+}
+
+func (product Product) reprint_sample() {
+	product.format_sample()
+	product.reprint()
 }
 
 func (product Product) export_label_pdf() (string, error) {

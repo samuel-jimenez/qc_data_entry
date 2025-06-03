@@ -33,7 +33,7 @@ func main() {
 	defer log_file.Close()
 
 	log.SetOutput(log_file)
-	log.Println("Logging Started")
+	log.Println("Info: Logging Started")
 
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
