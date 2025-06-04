@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/samuel-jimenez/windigo"
@@ -46,19 +45,6 @@ var (
 	erroredPen = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSolidColorBrush(windigo.RGB(255, 0, 64)))
 	okPen      = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSystemColorBrush(w32.COLOR_BTNFACE))
 )
-
-func parse_field(field windigo.Controller) float64 {
-	val, _ := strconv.ParseFloat(strings.TrimSpace(field.Text()), 64)
-	return val
-}
-
-func check_or_error(field windigo.Bordered, test bool) {
-	if test {
-		field.SetBorder(okPen)
-	} else {
-		field.SetBorder(erroredPen)
-	}
-}
 
 func fill_combobox_from_query_rows(control windigo.LabeledComboBox, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
@@ -201,9 +187,9 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	sg_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, sg_text, sg_units)
 
 	check_or_error_mass := func(mass, sg, density float64) {
-		check_or_error(mass_field, ranges_panel.CheckMass(mass))
-		check_or_error(sg_field, ranges_panel.CheckSG(sg))
-		check_or_error(density_field, ranges_panel.CheckDensity(density))
+		mass_field.Check(ranges_panel.CheckMass(mass))
+		sg_field.Check(ranges_panel.CheckSG(sg))
+		density_field.Check(ranges_panel.CheckDensity(density))
 	}
 
 	mass_field.OnChange().Bind(func(e *windigo.Event) {

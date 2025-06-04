@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/samuel-jimenez/windigo"
@@ -26,7 +27,8 @@ type NumberEditView struct {
 }
 
 func (control NumberEditView) Get() float64 {
-	return parse_field(control)
+	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
+	return val
 }
 
 func (control NumberEditView) GetFixed() float64 {
@@ -37,12 +39,20 @@ func (control NumberEditView) GetFixed() float64 {
 	control.SelectText(start, end)
 	// mass_field.SelectText(-1, 0)
 
-	return parse_field(control)
+	return control.Get()
 }
 
 func (control NumberEditView) Clear() {
 	control.SetText("")
 	control.Ok()
+}
+
+func (control NumberEditView) Check(test bool) {
+	if test {
+		control.Ok()
+	} else {
+		control.Error()
+	}
 }
 
 func NewNumberEditViewFromLabeledEdit(label windigo.LabeledEdit) NumberEditView {
@@ -59,7 +69,7 @@ func BuildNewNumberEditView(parent windigo.Controller, label_width, control_widt
 
 	edit_field := NewNumberEditView(parent, label_width, control_width, height, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
-		check_or_error(edit_field, range_field.Check(edit_field.GetFixed()))
+		edit_field.Check(range_field.Check(edit_field.GetFixed()))
 	})
 	return edit_field
 
