@@ -1,5 +1,7 @@
 package main
 
+import "github.com/samuel-jimenez/windigo"
+
 /* DerivedMassRangesView
  *
  */
@@ -60,3 +62,70 @@ type MassDataView struct {
 // 	data_view.sg_field.Clear()
 // 	data_view.density_field.Clear()
 // }
+
+func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) MassDataView {
+
+	field_width := DATA_FIELD_WIDTH
+
+	sg_text := "Specific Gravity"
+	density_text := "Density"
+
+	sg_units := "g/mL"
+	density_units := "lb/gal"
+
+	mass_field := NewNumberEditView(parent, label_width, control_width, height, field_text)
+
+	//PUSH TO BOTTOM
+	density_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, density_text, density_units)
+	sg_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, sg_text, sg_units)
+
+	check_or_error_mass := func(mass, sg, density float64) {
+		mass_field.Check(ranges_panel.CheckMass(mass))
+		sg_field.Check(ranges_panel.CheckSG(sg))
+		density_field.Check(ranges_panel.CheckDensity(density))
+	}
+
+	mass_field.OnChange().Bind(func(e *windigo.Event) {
+		mass := mass_field.GetFixed()
+		sg := sg_from_mass(mass)
+		density := density_from_sg(sg)
+
+		sg_field.SetText(format_sg(sg, false))
+		density_field.SetText(format_density(density))
+
+		check_or_error_mass(mass, sg, density)
+
+	})
+
+	sg_field.OnChange().Bind(func(e *windigo.Event) {
+		sg := sg_field.GetFixed()
+		mass := mass_from_sg(sg)
+		density := density_from_sg(sg)
+
+		mass_field.SetText(format_mass(mass))
+		density_field.SetText(format_density(density))
+
+		check_or_error_mass(mass, sg, density)
+	})
+
+	density_field.OnChange().Bind(func(e *windigo.Event) {
+
+		density := density_field.GetFixed()
+		sg := sg_from_density(density)
+		mass := mass_from_sg(sg)
+
+		sg_field.SetText(format_sg(sg, false))
+		mass_field.SetText(format_mass(mass))
+
+		check_or_error_mass(mass, sg, density)
+
+	})
+
+	Clear := func() {
+		mass_field.Clear()
+		sg_field.Clear()
+		density_field.Clear()
+	}
+
+	return MassDataView{mass_field, Clear}
+}

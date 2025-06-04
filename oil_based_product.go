@@ -63,7 +63,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	visual_field.SetText(visual_text)
 	visual_field.SetMarginsAll(ERROR_MARGIN)
 
-	mass_field := show_mass_sg(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
+	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)

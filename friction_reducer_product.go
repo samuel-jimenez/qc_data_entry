@@ -58,7 +58,7 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 
 	viscosity_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
 
-	mass_field := show_mass_sg(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
+	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
 
 	string_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
 
