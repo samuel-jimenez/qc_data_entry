@@ -56,11 +56,11 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	visual_field := windigo.NewCheckBox(group_panel)
 	visual_field.SetText(visual_text)
 
-	viscosity_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
+	viscosity_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
 
 	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
 
-	string_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
+	string_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)

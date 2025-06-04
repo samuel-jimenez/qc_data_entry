@@ -2,6 +2,15 @@ package main
 
 import "github.com/samuel-jimenez/windigo"
 
+/* MassRangesView
+ *
+ */
+type MassRangesView interface {
+	CheckMass(data float64) bool
+	CheckSG(data float64) bool
+	CheckDensity(data float64) bool
+}
+
 /* DerivedMassRangesView
  *
  */
@@ -29,39 +38,28 @@ func (data_view DerivedMassRangesView) Clear() {
 	data_view.density_field.Clear()
 }
 
-/* MassRangesView
+/* MassView
  *
  */
-type MassRangesView interface {
-	CheckMass(data float64) bool
-	CheckSG(data float64) bool
-	CheckDensity(data float64) bool
+type MassDataViewable interface {
+	NumberEditView
+	Clear()
 }
 
 /* MassDataView
  *
  */
 type MassDataView struct {
-	NumberEditView
-	Clear func()
+	*NumberEditView
+	sg_field,
+	density_field *NumberEditView
 }
 
-// type MassDataView interface {
-// 	windigo.LabeledEdit
-// 	Clear()
-// }
-
-// func (data_view MassDataView) Clear() {
-// 	data_view.mass_field.Clear()
-// 	data_view.sg_field.Clear()
-// 	data_view.density_field.Clear()
-// }
-
-// func (data_view windigo.LabeledEdit) Clear() {
-// 	data_view.mass_field.Clear()
-// 	data_view.sg_field.Clear()
-// 	data_view.density_field.Clear()
-// }
+func (data_view MassDataView) Clear() {
+	data_view.NumberEditView.Clear()
+	data_view.sg_field.Clear()
+	data_view.density_field.Clear()
+}
 
 func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) MassDataView {
 
@@ -121,11 +119,5 @@ func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, heigh
 
 	})
 
-	Clear := func() {
-		mass_field.Clear()
-		sg_field.Clear()
-		density_field.Clear()
-	}
-
-	return MassDataView{mass_field, Clear}
+	return MassDataView{mass_field, sg_field, density_field}
 }

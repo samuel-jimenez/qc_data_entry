@@ -55,17 +55,17 @@ func (control NumberEditView) Check(test bool) {
 	}
 }
 
-func NewNumberEditViewFromLabeledEdit(label windigo.LabeledEdit) NumberEditView {
-	return NumberEditView{&View{label.ComponentFrame}, label.Edit}
+func NewNumberEditViewFromLabeledEdit(label windigo.LabeledEdit) *NumberEditView {
+	return &NumberEditView{&View{label.ComponentFrame}, label.Edit}
 }
 
-func NewNumberEditView(parent windigo.Controller, label_width, control_width, height int, field_text string) NumberEditView {
+func NewNumberEditView(parent windigo.Controller, label_width, control_width, height int, field_text string) *NumberEditView {
 	edit_field := NewNumberEditViewFromLabeledEdit(windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text))
 	edit_field.SetPaddingsAll(ERROR_MARGIN)
 	return edit_field
 }
 
-func BuildNewNumberEditView(parent windigo.Controller, label_width, control_width, height int, field_text string, range_field *RangeROView) NumberEditView {
+func NewNumberEditViewWithChange(parent windigo.Controller, label_width, control_width, height int, field_text string, range_field *RangeROView) *NumberEditView {
 
 	edit_field := NewNumberEditView(parent, label_width, control_width, height, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
@@ -75,7 +75,7 @@ func BuildNewNumberEditView(parent windigo.Controller, label_width, control_widt
 
 }
 
-func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_width, field_height int, field_text, field_units string) NumberEditView {
+func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_width, field_height int, field_text, field_units string) *NumberEditView {
 
 	margin := 10
 	panel := windigo.NewAutoPanel(parent)
@@ -100,5 +100,5 @@ func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_wid
 	panel.Dock(text_units, windigo.Left)
 	parent.Dock(panel, windigo.Bottom)
 
-	return NumberEditView{ErrableView: &View{panel}, Edit: text_field}
+	return &NumberEditView{ErrableView: &View{panel}, Edit: text_field}
 }
