@@ -59,7 +59,6 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	ranges_panel.SetMarginTop(group_margin)
 
 	visual_field := show_checkbox(group_panel, OFF_AXIS, field_height, visual_text)
-	visual_field.SetMarginsAll(ERROR_MARGIN)
 
 	sg_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, sg_text, ranges_panel.sg_field)
 	ph_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, ph_text, ranges_panel.ph_field)

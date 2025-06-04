@@ -148,6 +148,7 @@ func show_checkbox(parent windigo.Controller, width, height int, field_text stri
 	checkbox_field := windigo.NewCheckBox(parent)
 	checkbox_field.SetSize(width, height)
 	checkbox_field.SetText(field_text)
+	checkbox_field.SetMarginsAll(ERROR_MARGIN)
 	return checkbox_field
 }
 
