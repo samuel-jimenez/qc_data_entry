@@ -90,6 +90,7 @@ func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_wid
 	text_label := windigo.NewLabel(panel)
 	text_label.SetSize(label_width, height)
 	text_label.SetText(field_text)
+	text_label.SetMarginTop(ERROR_MARGIN)
 
 	text_field := windigo.NewEdit(panel)
 	text_field.SetSize(field_width, height)
@@ -99,7 +100,7 @@ func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_wid
 	text_units := windigo.NewLabel(panel)
 	text_units.SetSize(unit_width, height)
 	text_units.SetText(field_units)
-	text_units.SetMarginsAll(ERROR_MARGIN)
+	text_units.SetMarginTop(ERROR_MARGIN)
 
 	panel.Dock(text_label, windigo.Left)
 	panel.Dock(text_field, windigo.Left)
