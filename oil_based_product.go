@@ -18,8 +18,8 @@ func (product OilBasedProduct) toProduct() Product {
 }
 
 func newOilBasedProduct(base_product BaseProduct,
-	visual_field *windigo.CheckBox, mass float64) Product {
-	base_product.Visual = visual_field.Checked()
+	have_visual bool, mass float64) Product {
+	base_product.Visual = have_visual
 	sg := sg_from_mass(mass)
 
 	return OilBasedProduct{base_product, sg}.toProduct()
@@ -57,7 +57,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	ranges_panel := BuildNewOilBasedProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
-	visual_field := show_checkbox(group_panel, OFF_AXIS, field_height, visual_text)
+	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
 
 	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
 
@@ -65,7 +65,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	group_panel.Dock(mass_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field.CheckBox, mass_field.Get())
+		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), mass_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
@@ -74,15 +74,14 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	}
 
 	clear_cb := func() {
-		visual_field.SetChecked(false)
-
+		visual_field.Clear()
 		mass_field.Clear()
 		ranges_panel.Clear()
 
 	}
 
 	log_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field.CheckBox, mass_field.Get())
+		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), mass_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()

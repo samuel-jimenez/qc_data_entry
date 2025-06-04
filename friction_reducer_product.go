@@ -51,7 +51,7 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	group_panel.SetText(sample_point)
 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-	visual_field := show_checkbox(group_panel, OFF_AXIS, field_height, visual_text)
+	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
 
 	viscosity_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
 

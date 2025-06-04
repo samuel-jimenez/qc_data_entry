@@ -18,9 +18,9 @@ func (product WaterBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg, ph float64) Product {
+func newWaterBasedProduct(base_product BaseProduct, have_visual bool, sg, ph float64) Product {
 
-	base_product.Visual = visual_field.Checked()
+	base_product.Visual = have_visual
 
 	return WaterBasedProduct{base_product, sg, ph}.toProduct()
 
@@ -58,7 +58,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	ranges_panel := BuildNewWaterBasedProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
-	visual_field := show_checkbox(group_panel, OFF_AXIS, field_height, visual_text)
+	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
 
 	sg_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, sg_text, ranges_panel.sg_field)
 	ph_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, ph_text, ranges_panel.ph_field)
@@ -68,7 +68,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	group_panel.Dock(ph_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field.CheckBox, sg_field.Get(), ph_field.Get())
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
@@ -84,7 +84,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	}
 
 	log_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field.CheckBox, sg_field.Get(), ph_field.Get())
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
