@@ -17,11 +17,9 @@ func (product FrictionReducerProduct) toProduct() Product {
 	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(product.sg*LB_PER_GAL, true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
 }
 
-func newFrictionReducerProduct(base_product BaseProduct, viscosity_field windigo.LabeledEdit, mass_field MassDataView, string_field windigo.LabeledEdit) Product {
+func newFrictionReducerProduct(base_product BaseProduct, viscosity, mass, string_test float64) Product {
 
-	viscosity := parse_field(viscosity_field)
-	string_test := parse_field(string_field)
-	sg := sg_from_mass(parse_field(mass_field))
+	sg := sg_from_mass(mass)
 
 	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
 
@@ -58,11 +56,11 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 	visual_field := windigo.NewCheckBox(group_panel)
 	visual_field.SetText(visual_text)
 
-	viscosity_field := show_number_edit(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
+	viscosity_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
 
 	mass_field := show_mass_sg(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
 
-	string_field := show_number_edit(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
+	string_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)
@@ -74,16 +72,16 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 		if replace_sample_point {
 			base_product.Sample_point = sample_point
 		}
-		return newFrictionReducerProduct(base_product, viscosity_field, mass_field, string_field)
+		return newFrictionReducerProduct(base_product, viscosity_field.Get(), mass_field.Get(), string_field.Get())
 
 	}
 	clear := func() {
 		visual_field.SetChecked(false)
-		clear_field(viscosity_field)
+		viscosity_field.Clear()
 
 		mass_field.Clear()
 
-		clear_field(string_field)
+		string_field.Clear()
 
 		ranges_panel.Clear()
 

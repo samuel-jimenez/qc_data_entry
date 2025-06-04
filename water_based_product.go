@@ -18,11 +18,9 @@ func (product WaterBasedProduct) toProduct() Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg_field windigo.LabeledEdit, ph_field windigo.LabeledEdit) Product {
+func newWaterBasedProduct(base_product BaseProduct, visual_field *windigo.CheckBox, sg, ph float64) Product {
 
 	base_product.Visual = visual_field.Checked()
-	sg := parse_field(sg_field)
-	ph := parse_field(ph_field)
 
 	return WaterBasedProduct{base_product, sg, ph}.toProduct()
 
@@ -64,15 +62,15 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	visual_field.SetText(visual_text)
 	visual_field.SetMarginsAll(ERROR_MARGIN)
 
-	sg_field := show_number_edit(group_panel, label_width, field_width, field_height, sg_text, ranges_panel.sg_field)
-	ph_field := show_number_edit(group_panel, label_width, field_width, field_height, ph_text, ranges_panel.ph_field)
+	sg_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, sg_text, ranges_panel.sg_field)
+	ph_field := BuildNewNumberEditView(group_panel, label_width, field_width, field_height, ph_text, ranges_panel.ph_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field.Get(), ph_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
@@ -82,16 +80,13 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 
 	clear_cb := func() {
 		visual_field.SetChecked(false)
-
-		clear_field(sg_field)
-
-		clear_field(ph_field)
-
+		sg_field.Clear()
+		ph_field.Clear()
 		ranges_panel.Clear()
 	}
 
 	log_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field, ph_field)
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field.Get(), ph_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()

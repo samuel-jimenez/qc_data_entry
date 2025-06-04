@@ -315,5 +315,5 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 		clear_field(density_field)
 	}
 
-	return MassDataView{mass_field, Clear}
+	return MassDataView{NumberEditView{mass_field}, Clear}
 }

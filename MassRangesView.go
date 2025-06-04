@@ -1,7 +1,5 @@
 package main
 
-import "github.com/samuel-jimenez/windigo"
-
 /* DerivedMassRangesView
  *
  */
@@ -42,7 +40,7 @@ type MassRangesView interface {
  *
  */
 type MassDataView struct {
-	windigo.LabeledEdit
+	NumberEditView
 	Clear func()
 }
 
