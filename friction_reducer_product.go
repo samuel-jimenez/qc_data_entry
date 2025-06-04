@@ -93,7 +93,7 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 
 type FrictionReducerProductRangesView struct {
 	windigo.AutoPanel
-	DerivedMassRangesView
+	MassRangesView
 
 	viscosity_field,
 	// mass_field,
@@ -105,7 +105,7 @@ type FrictionReducerProductRangesView struct {
 }
 
 func (data_view FrictionReducerProductRangesView) Clear() {
-	data_view.DerivedMassRangesView.Clear()
+	data_view.MassRangesView.Clear()
 	data_view.viscosity_field.Clear()
 	data_view.string_field.Clear()
 }
@@ -152,7 +152,7 @@ func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_produ
 	}
 
 	return FrictionReducerProductRangesView{group_panel,
-		DerivedMassRangesView{&mass_field,
+		MassRangesView{&mass_field,
 			&sg_field,
 			&density_field},
 		&viscosity_field,

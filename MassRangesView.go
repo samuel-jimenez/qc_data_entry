@@ -2,43 +2,43 @@ package main
 
 import "github.com/samuel-jimenez/windigo"
 
-/* MassRangesView
+/* MassRangesViewable
  *
  */
-type MassRangesView interface {
+type MassRangesViewable interface {
 	CheckMass(data float64) bool
 	CheckSG(data float64) bool
 	CheckDensity(data float64) bool
 }
 
-/* DerivedMassRangesView
+/* MassRangesView
  *
  */
-type DerivedMassRangesView struct {
+type MassRangesView struct {
 	mass_field,
 	sg_field,
 	density_field *RangeROView
 }
 
-func (view DerivedMassRangesView) CheckMass(data float64) bool {
+func (view MassRangesView) CheckMass(data float64) bool {
 	return view.mass_field.Check(data)
 }
 
-func (view DerivedMassRangesView) CheckSG(data float64) bool {
+func (view MassRangesView) CheckSG(data float64) bool {
 	return view.sg_field.Check(data)
 }
 
-func (view DerivedMassRangesView) CheckDensity(data float64) bool {
+func (view MassRangesView) CheckDensity(data float64) bool {
 	return view.density_field.Check(data)
 }
 
-func (data_view DerivedMassRangesView) Clear() {
+func (data_view MassRangesView) Clear() {
 	data_view.mass_field.Clear()
 	data_view.sg_field.Clear()
 	data_view.density_field.Clear()
 }
 
-/* MassView
+/* MassDataViewable
  *
  */
 type MassDataViewable interface {
@@ -61,7 +61,7 @@ func (data_view MassDataView) Clear() {
 	data_view.density_field.Clear()
 }
 
-func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) MassDataView {
+func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesViewable) MassDataView {
 
 	field_width := DATA_FIELD_WIDTH
 

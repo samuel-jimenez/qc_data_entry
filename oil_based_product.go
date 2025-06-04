@@ -107,13 +107,13 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 
 type OilBasedProductRangesView struct {
 	windigo.AutoPanel
-	DerivedMassRangesView
+	MassRangesView
 
 	Update func(qc_product QCProduct)
 }
 
 func (data_view OilBasedProductRangesView) Clear() {
-	data_view.DerivedMassRangesView.Clear()
+	data_view.MassRangesView.Clear()
 }
 
 func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) OilBasedProductRangesView {
@@ -147,7 +147,7 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 	}
 
 	return OilBasedProductRangesView{group_panel,
-		DerivedMassRangesView{&mass_field,
+		MassRangesView{&mass_field,
 			&sg_field,
 			&density_field},
 		update}
