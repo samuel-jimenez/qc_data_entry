@@ -9,7 +9,7 @@ import (
  *
  */
 type BoolCheckboxViewable interface {
-	windigo.ComponentFrame
+	ErrableView
 	windigo.Controller
 	Get() bool
 	Clear()

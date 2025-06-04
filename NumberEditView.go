@@ -12,7 +12,7 @@ import (
  *
  */
 type NumberEditViewable interface {
-	windigo.ComponentFrame
+	ErrableView
 	windigo.Controller
 	Get() float64
 	GetFixed() float64
