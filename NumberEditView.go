@@ -8,11 +8,12 @@ import (
 )
 
 /*
- * NumberEditableView
+ * NumberEditViewable
  *
  */
-type NumberEditableView interface {
-	windigo.LabeledEdit
+type NumberEditViewable interface {
+	windigo.ComponentFrame
+	windigo.Controller
 	Get() float64
 	GetFixed() float64
 	Clear()

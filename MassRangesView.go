@@ -42,7 +42,7 @@ func (data_view MassRangesView) Clear() {
  *
  */
 type MassDataViewable interface {
-	NumberEditView
+	NumberEditViewable
 	Clear()
 }
 
@@ -61,7 +61,7 @@ func (data_view MassDataView) Clear() {
 	data_view.density_field.Clear()
 }
 
-func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesViewable) MassDataView {
+func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesViewable) *MassDataView {
 
 	field_width := DATA_FIELD_WIDTH
 
@@ -119,5 +119,5 @@ func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, heigh
 
 	})
 
-	return MassDataView{mass_field, sg_field, density_field}
+	return &MassDataView{mass_field, sg_field, density_field}
 }

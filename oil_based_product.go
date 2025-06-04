@@ -18,9 +18,9 @@ func (product OilBasedProduct) toProduct() Product {
 }
 
 func newOilBasedProduct(base_product BaseProduct,
-	visual_field *windigo.CheckBox, mass_field MassDataView) Product {
+	visual_field *windigo.CheckBox, mass float64) Product {
 	base_product.Visual = visual_field.Checked()
-	sg := sg_from_mass(mass_field.Get())
+	sg := sg_from_mass(mass)
 
 	return OilBasedProduct{base_product, sg}.toProduct()
 
@@ -69,7 +69,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	group_panel.Dock(mass_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field)
+		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
@@ -86,7 +86,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	}
 
 	log_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field)
+		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
