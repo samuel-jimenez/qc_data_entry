@@ -20,7 +20,7 @@ func (product OilBasedProduct) toProduct() Product {
 func newOilBasedProduct(base_product BaseProduct,
 	visual_field *windigo.CheckBox, mass_field MassDataView) Product {
 	base_product.Visual = visual_field.Checked()
-	sg := sg_from_mass(parse_field(mass_field))
+	sg := sg_from_mass(mass_field.Get())
 
 	return OilBasedProduct{base_product, sg}.toProduct()
 

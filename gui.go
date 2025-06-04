@@ -52,17 +52,6 @@ func parse_field(field windigo.Controller) float64 {
 	return val
 }
 
-func edit_and_parse_field(field windigo.LabeledEdit) float64 {
-	start, end := field.Selected()
-	// IndexAny(s, chars string) int
-	field.SetText(strings.TrimSpace(field.Text()))
-	// mass_field.SelectText(-1, -1)
-	field.SelectText(start, end)
-	// mass_field.SelectText(-1, 0)
-
-	return parse_field(field)
-}
-
 func check_or_error(field windigo.Bordered, test bool) {
 	if test {
 		field.SetBorder(okPen)
@@ -195,55 +184,6 @@ func show_combobox(parent windigo.Controller, label_width, control_width, height
 	return combobox_field
 }
 
-func show_edit(parent windigo.Controller, label_width, control_width, height int, field_text string) windigo.LabeledEdit {
-	return windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text)
-}
-
-func show_number_edit(parent windigo.Controller, label_width, control_width, height int, field_text string, range_field *RangeROView) windigo.LabeledEdit {
-
-	edit_field := show_edit(parent, label_width, control_width, height, field_text)
-	edit_field.SetPaddingsAll(ERROR_MARGIN)
-	edit_field.OnChange().Bind(func(e *windigo.Event) {
-		check_or_error(edit_field, range_field.Check(edit_and_parse_field(edit_field)))
-	})
-	return edit_field
-
-}
-
-func show_text(parent windigo.AutoPanel, label_width, field_width, field_height int, field_text string, field_units string) windigo.LabeledEdit {
-
-	margin := 10
-	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(label_width+2*field_width, field_height)
-
-	text_label := windigo.NewLabel(panel)
-	text_label.SetSize(label_width, field_height)
-	text_label.SetText(field_text)
-
-	text_field := windigo.NewEdit(panel)
-	text_field.SetSize(field_width-margin, field_height)
-	text_field.SetText("0.000")
-	text_field.SetMarginRight(margin)
-
-	text_units := windigo.NewLabel(panel)
-	text_units.SetSize(field_width, field_height)
-	text_units.SetText(field_units)
-
-	panel.Dock(text_label, windigo.Left)
-	panel.Dock(text_field, windigo.Left)
-	panel.Dock(text_units, windigo.Left)
-	parent.Dock(panel, windigo.Bottom)
-
-	return windigo.LabeledEdit{ComponentFrame: panel, Edit: text_field}
-}
-
-// TODO View
-func clear_field(field windigo.LabeledEdit) {
-	field.SetText("")
-	field.SetBorder(okPen)
-}
-
-// func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) windigo.LabeledEdit {
 func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesView) MassDataView {
 
 	field_width := DATA_FIELD_WIDTH
@@ -254,15 +194,11 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	sg_units := "g/mL"
 	density_units := "lb/gal"
 
-	mass_field := show_edit(parent, label_width, control_width, height, field_text)
-	mass_field.SetPaddingsAll(ERROR_MARGIN)
+	mass_field := NewNumberEditView(parent, label_width, control_width, height, field_text)
 
 	//PUSH TO BOTTOM
-	density_field := show_text(parent, label_width, field_width, height, density_text, density_units)
-	density_field.SetPaddingsAll(ERROR_MARGIN)
-
-	sg_field := show_text(parent, label_width, field_width, height, sg_text, sg_units)
-	sg_field.SetPaddingsAll(ERROR_MARGIN)
+	density_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, density_text, density_units)
+	sg_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, sg_text, sg_units)
 
 	check_or_error_mass := func(mass, sg, density float64) {
 		check_or_error(mass_field, ranges_panel.CheckMass(mass))
@@ -271,7 +207,7 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	}
 
 	mass_field.OnChange().Bind(func(e *windigo.Event) {
-		mass := edit_and_parse_field(mass_field)
+		mass := mass_field.GetFixed()
 		sg := sg_from_mass(mass)
 		density := density_from_sg(sg)
 
@@ -283,7 +219,7 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	})
 
 	sg_field.OnChange().Bind(func(e *windigo.Event) {
-		sg := edit_and_parse_field(sg_field)
+		sg := sg_field.GetFixed()
 		mass := mass_from_sg(sg)
 		density := density_from_sg(sg)
 
@@ -295,7 +231,7 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 
 	density_field.OnChange().Bind(func(e *windigo.Event) {
 
-		density := edit_and_parse_field(density_field)
+		density := density_field.GetFixed()
 		sg := sg_from_density(density)
 		mass := mass_from_sg(sg)
 
@@ -307,13 +243,10 @@ func show_mass_sg(parent windigo.AutoPanel, label_width, control_width, height i
 	})
 
 	Clear := func() {
-		// mass_field.Clear()
-		// sg_field.Clear()
-		// density_field.Clear()
-		clear_field(mass_field)
-		clear_field(sg_field)
-		clear_field(density_field)
+		mass_field.Clear()
+		sg_field.Clear()
+		density_field.Clear()
 	}
 
-	return MassDataView{NumberEditView{mass_field}, Clear}
+	return MassDataView{mass_field, Clear}
 }
