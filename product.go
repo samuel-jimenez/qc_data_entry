@@ -21,11 +21,15 @@ type Product struct {
 	Viscosity   NullFloat64
 }
 
-func (product Product) save() error {
+func (product Product) save() {
 	db_insert_sample_point.Exec(product.Sample_point)
 	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
-	show_status("Sample Recorded")
-	return err
+	if err != nil {
+		log.Println("error:", err)
+		show_status("Sample Recording Failed")
+	} else {
+		show_status("Sample Recorded")
+	}
 }
 
 func (product Product) export_json() {
