@@ -21,7 +21,8 @@ type NumberEditableView interface {
  *
  */
 type NumberEditView struct {
-	windigo.LabeledEdit
+	ErrableView
+	*windigo.Edit
 }
 
 func (control NumberEditView) Get() float64 {
@@ -41,11 +42,15 @@ func (control NumberEditView) GetFixed() float64 {
 
 func (control NumberEditView) Clear() {
 	control.SetText("")
-	control.SetBorder(okPen)
+	control.Ok()
+}
+
+func NewNumberEditViewFromLabeledEdit(label windigo.LabeledEdit) NumberEditView {
+	return NumberEditView{&View{label.ComponentFrame}, label.Edit}
 }
 
 func NewNumberEditView(parent windigo.Controller, label_width, control_width, height int, field_text string) NumberEditView {
-	edit_field := NumberEditView{windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text)}
+	edit_field := NewNumberEditViewFromLabeledEdit(windigo.NewLabeledEdit(parent, label_width, control_width, height, field_text))
 	edit_field.SetPaddingsAll(ERROR_MARGIN)
 	return edit_field
 }
@@ -85,5 +90,5 @@ func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_wid
 	panel.Dock(text_units, windigo.Left)
 	parent.Dock(panel, windigo.Bottom)
 
-	return NumberEditView{windigo.LabeledEdit{ComponentFrame: panel, Edit: text_field}}
+	return NumberEditView{ErrableView: &View{panel}, Edit: text_field}
 }
