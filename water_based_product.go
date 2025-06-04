@@ -68,7 +68,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	group_panel.Dock(ph_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field.Get(), ph_field.Get())
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field.CheckBox, sg_field.Get(), ph_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
@@ -84,7 +84,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 	}
 
 	log_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field, sg_field.Get(), ph_field.Get())
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field.CheckBox, sg_field.Get(), ph_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()

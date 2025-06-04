@@ -36,7 +36,7 @@ var (
 	ERROR_MARGIN = 3
 
 	TOP_SPACER_WIDTH     = 7
-	TOP_SPACER_HEIGHT    = 22
+	TOP_SPACER_HEIGHT    = 17
 	INTER_SPACER_HEIGHT  = 2
 	BTM_SPACER_WIDTH     = 2
 	BTM_SPACER_HEIGHT    = 2
@@ -144,11 +144,9 @@ func build_marginal_button_dock(parent windigo.Controller, width, height int, la
 	return panel
 }
 
-func show_checkbox(parent windigo.Controller, width, height int, field_text string) *windigo.CheckBox {
-	checkbox_field := windigo.NewCheckBox(parent)
-	checkbox_field.SetSize(width, height)
-	checkbox_field.SetText(field_text)
-	checkbox_field.SetMarginsAll(ERROR_MARGIN)
+func show_checkbox(parent windigo.Controller, width, height int, field_text string) windigo.LabeledCheckBox {
+	checkbox_field := windigo.NewLabeledCheckBox(parent, width, height, field_text)
+	checkbox_field.SetPaddingsAll(ERROR_MARGIN)
 	return checkbox_field
 }
 

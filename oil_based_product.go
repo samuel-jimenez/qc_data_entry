@@ -65,7 +65,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	group_panel.Dock(mass_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field.Get())
+		product := newOilBasedProduct(create_new_product_cb(), visual_field.CheckBox, mass_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
@@ -82,7 +82,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	}
 
 	log_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field, mass_field.Get())
+		product := newOilBasedProduct(create_new_product_cb(), visual_field.CheckBox, mass_field.Get())
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
