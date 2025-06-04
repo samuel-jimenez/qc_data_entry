@@ -77,24 +77,27 @@ func NewNumberEditViewWithChange(parent windigo.Controller, label_width, control
 	return edit_field
 }
 
-func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_width, field_height int, field_text, field_units string) *NumberEditView {
+func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_width, unit_width, height int, field_text, field_units string) *NumberEditView {
 
 	margin := 10
+	field_width = field_width - margin
+	unit_width = unit_width - margin
+
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(label_width+2*field_width, field_height)
+	panel.SetSize(label_width+field_width+unit_width+margin, height)
 	panel.SetPaddingsAll(ERROR_MARGIN)
 
 	text_label := windigo.NewLabel(panel)
-	text_label.SetSize(label_width, field_height)
+	text_label.SetSize(label_width, height)
 	text_label.SetText(field_text)
 
 	text_field := windigo.NewEdit(panel)
-	text_field.SetSize(field_width-margin, field_height)
+	text_field.SetSize(field_width, height)
 	text_field.SetText("0.000")
 	text_field.SetMarginRight(margin)
 
 	text_units := windigo.NewLabel(panel)
-	text_units.SetSize(field_width, field_height)
+	text_units.SetSize(unit_width, height)
 	text_units.SetText(field_units)
 
 	panel.Dock(text_label, windigo.Left)

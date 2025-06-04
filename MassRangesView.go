@@ -64,6 +64,7 @@ func (data_view MassDataView) Clear() {
 func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesViewable) *MassDataView {
 
 	field_width := DATA_FIELD_WIDTH
+	unit_width := RANGES_RO_FIELD_WIDTH
 
 	sg_text := "Specific Gravity"
 	density_text := "Density"
@@ -74,8 +75,8 @@ func NewMassDataView(parent windigo.AutoPanel, label_width, control_width, heigh
 	mass_field := NewNumberEditView(parent, label_width, control_width, height, field_text)
 
 	//PUSH TO BOTTOM
-	density_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, density_text, density_units)
-	sg_field := NewNumberEditViewWithUnits(parent, label_width, field_width, height, sg_text, sg_units)
+	density_field := NewNumberEditViewWithUnits(parent, label_width, field_width, unit_width, height, density_text, density_units)
+	sg_field := NewNumberEditViewWithUnits(parent, label_width, field_width, unit_width, height, sg_text, sg_units)
 
 	check_or_error_mass := func(mass, sg, density float64) {
 		mass_field.Check(ranges_panel.CheckMass(mass))
