@@ -57,10 +57,7 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 	ranges_panel := BuildNewOilBasedProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
-	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-
-	visual_field := windigo.NewCheckBox(group_panel)
-	visual_field.SetText(visual_text)
+	visual_field := show_checkbox(group_panel, OFF_AXIS, field_height, visual_text)
 	visual_field.SetMarginsAll(ERROR_MARGIN)
 
 	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)

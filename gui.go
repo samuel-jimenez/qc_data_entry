@@ -144,19 +144,10 @@ func build_marginal_button_dock(parent windigo.Controller, width, height int, la
 	return panel
 }
 
-func show_checkbox(parent windigo.Controller, x_label_pos, x_field_pos, y_pos int, field_text string) *windigo.CheckBox {
-	checkbox_label := windigo.NewLabel(parent)
-	checkbox_label.SetPos(x_label_pos, y_pos)
-
-	checkbox_label.SetText(field_text)
-
+func show_checkbox(parent windigo.Controller, width, height int, field_text string) *windigo.CheckBox {
 	checkbox_field := windigo.NewCheckBox(parent)
-	checkbox_field.SetText("")
-
-	checkbox_field.SetPos(x_field_pos, y_pos)
-	// visual_label.OnClick().Bind(func(e *windigo.Event) {
-	// 		visual_field.SetFocus()
-	// })
+	checkbox_field.SetSize(width, height)
+	checkbox_field.SetText(field_text)
 	return checkbox_field
 }
 
