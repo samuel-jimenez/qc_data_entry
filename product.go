@@ -193,7 +193,7 @@ func (product Product) export_label_pdf() (string, error) {
 	pdf.Cell(label_width, field_height, strings.ToUpper(product.Lot_number))
 	pdf.CellFormat(unit_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
 
-	log.Println("saving to: ", file_path)
+	log.Println("Info: Saving to: ", file_path)
 	err := pdf.OutputFileAndClose(file_path)
 	return file_path, err
 }

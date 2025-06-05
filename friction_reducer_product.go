@@ -161,13 +161,13 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 // TODO
 func check_dual_data(top_product, bottom_product Product) {
 	if top_product.check_data() {
-		log.Println("data", top_product)
+		log.Println("debug: check_data", top_product)
 		top_product.save()
 		top_product.output()
 
 	}
 	if bottom_product.check_data() {
-		log.Println("data", bottom_product)
+		log.Println("debug: check_data", bottom_product)
 		bottom_product.save()
 		bottom_product.output()
 	}
@@ -206,8 +206,8 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		base_product := create_new_product_cb()
 		top_product := top_group.Get(base_product, true)
 		bottom_product := bottom_group.Get(base_product, true)
-		log.Println("top", top_product)
-		log.Println("btm", bottom_product)
+		log.Println("debug: submit_cb top", top_product)
+		log.Println("debug: submit_cb btm", bottom_product)
 		check_dual_data(top_product, bottom_product)
 	}
 
@@ -221,7 +221,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 
 		top_product := top_group.Get(base_product, true)
 		if top_product.check_data() {
-			log.Println("data", top_product)
+			log.Println("debug: submit_cb top sample", top_product)
 			top_product.output_sample()
 		}
 	}
@@ -232,7 +232,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 
 		bottom_product := bottom_group.Get(base_product, true)
 		if bottom_product.check_data() {
-			log.Println("data", bottom_product)
+			log.Println("debug: submit_cb btm sample", bottom_product)
 			bottom_product.output_sample()
 		}
 	}
@@ -242,7 +242,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 
 		top_product := top_group.Get(base_product, false)
 		if top_product.check_data() {
-			log.Println("tote", top_product)
+			log.Println("debug: submit_cb tote", top_product)
 			top_product.save()
 			top_product.output()
 
