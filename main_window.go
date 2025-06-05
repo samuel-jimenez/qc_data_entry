@@ -190,6 +190,7 @@ func show_window() {
 			fill_combobox_from_query(customer_field, db_select_product_customer_info, qc_product.product_id)
 			fill_combobox_from_query(sample_field, db_select_sample_points, qc_product.product_id)
 
+			lot_field.OnKillFocus().Fire(nil)
 			qc_product.Product_name_customer = customer_field.Text()
 			qc_product.Sample_point = sample_field.Text()
 
@@ -217,6 +218,7 @@ func show_window() {
 		if formatted_text != "" && qc_product.product_id != INVALID_ID {
 			lot_field_pop_data(lot_field.Text())
 		} else {
+			qc_product.Lot_number = ""
 			qc_product.lot_id = DEFAULT_LOT_ID
 		}
 	}
