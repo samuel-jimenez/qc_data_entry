@@ -30,7 +30,7 @@ func (product OilBasedProduct) check_data() bool {
 	return true
 }
 
-func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
+func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
 
 	group_width := GROUP_WIDTH
 	group_height := GROUP_HEIGHT
@@ -101,8 +101,8 @@ func show_oil_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_p
 }
 
 type OilBasedProductRangesView struct {
-	windigo.AutoPanel
-	MassRangesView
+	*windigo.AutoPanel
+	*MassRangesView
 
 	Update func(qc_product QCProduct)
 }
@@ -111,7 +111,7 @@ func (data_view OilBasedProductRangesView) Clear() {
 	data_view.MassRangesView.Clear()
 }
 
-func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) OilBasedProductRangesView {
+func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) OilBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
@@ -142,7 +142,7 @@ func BuildNewOilBasedProductRangesView(parent windigo.AutoPanel, qc_product QCPr
 	}
 
 	return OilBasedProductRangesView{group_panel,
-		MassRangesView{&mass_field,
+		&MassRangesView{&mass_field,
 			&sg_field,
 			&density_field},
 		update}

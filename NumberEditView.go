@@ -13,7 +13,7 @@ import (
  */
 type NumberEditViewable interface {
 	ErrableView
-	windigo.Controller
+	windigo.Editable
 	Get() float64
 	GetFixed() float64
 	Clear()
@@ -58,7 +58,7 @@ func (control *NumberEditView) Check(test bool) {
 	}
 }
 
-func NewNumberEditViewFromLabeledEdit(label windigo.LabeledEdit) *NumberEditView {
+func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
 	return &NumberEditView{&View{label.ComponentFrame}, label.Edit}
 }
 
@@ -77,7 +77,7 @@ func NewNumberEditViewWithChange(parent windigo.Controller, label_width, control
 	return edit_field
 }
 
-func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_width, unit_width, height int, field_text, field_units string) *NumberEditView {
+func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, label_width, field_width, unit_width, height int, field_text, field_units string) *NumberEditView {
 
 	margin := 10
 	field_width = field_width - margin
@@ -107,5 +107,5 @@ func NewNumberEditViewWithUnits(parent windigo.AutoPanel, label_width, field_wid
 	panel.Dock(text_units, windigo.Left)
 	parent.Dock(panel, windigo.Bottom)
 
-	return &NumberEditView{ErrableView: &View{panel}, Edit: text_field}
+	return &NumberEditView{&View{panel}, text_field}
 }

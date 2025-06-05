@@ -30,12 +30,12 @@ func (product FrictionReducerProduct) check_data() bool {
 }
 
 type FrictionReducerProductView struct {
-	windigo.AutoPanel
+	*windigo.AutoPanel
 	Get   func(base_product BaseProduct, replace_sample_point bool) Product
 	Clear func()
 }
 
-func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point string, group_width, group_height int, ranges_panel FrictionReducerProductRangesView) FrictionReducerProductView {
+func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point string, group_width, group_height int, ranges_panel FrictionReducerProductRangesView) FrictionReducerProductView {
 
 	label_width := LABEL_WIDTH
 	field_width := DATA_FIELD_WIDTH
@@ -89,8 +89,8 @@ func BuildNewFrictionReducerProductView(parent windigo.AutoPanel, sample_point s
 }
 
 type FrictionReducerProductRangesView struct {
-	windigo.AutoPanel
-	MassRangesView
+	*windigo.AutoPanel
+	*MassRangesView
 
 	viscosity_field,
 	// mass_field,
@@ -107,7 +107,7 @@ func (data_view FrictionReducerProductRangesView) Clear() {
 	data_view.string_field.Clear()
 }
 
-func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) FrictionReducerProductRangesView {
+func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) FrictionReducerProductRangesView {
 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
@@ -149,7 +149,7 @@ func BuildNewFrictionReducerProductRangesView(parent windigo.AutoPanel, qc_produ
 	}
 
 	return FrictionReducerProductRangesView{group_panel,
-		MassRangesView{&mass_field,
+		&MassRangesView{&mass_field,
 			&sg_field,
 			&density_field},
 		&viscosity_field,
@@ -179,7 +179,7 @@ type FrictionReducerPanelView struct {
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
-func show_fr(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) FrictionReducerPanelView {
+func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) FrictionReducerPanelView {
 
 	bottom_spacer_height := BUTTON_SPACER_HEIGHT
 

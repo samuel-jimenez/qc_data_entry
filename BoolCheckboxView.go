@@ -10,7 +10,7 @@ import (
  */
 type BoolCheckboxViewable interface {
 	ErrableView
-	windigo.Controller
+	windigo.Buttonable
 	Get() bool
 	Clear()
 }
@@ -32,7 +32,7 @@ func (control *BoolCheckboxView) Clear() {
 	control.SetChecked(false)
 }
 
-func NewBoolCheckboxViewFromLabeledCheckBox(label windigo.LabeledCheckBox) *BoolCheckboxView {
+func NewBoolCheckboxViewFromLabeledCheckBox(label *windigo.LabeledCheckBox) *BoolCheckboxView {
 	return &BoolCheckboxView{&View{label.ComponentFrame}, label.CheckBox}
 }
 

@@ -20,7 +20,7 @@ type ProductAppearance struct {
  *
  */
 type ProductAppearanceView struct {
-	windigo.LabeledEdit
+	*windigo.LabeledEdit
 	Get func() ProductAppearance
 }
 

@@ -30,7 +30,7 @@ func (product WaterBasedProduct) check_data() bool {
 	return true
 }
 
-func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
+func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
 
 	group_width := GROUP_WIDTH
 	group_height := GROUP_HEIGHT
@@ -104,7 +104,7 @@ func show_water_based(parent windigo.AutoPanel, qc_product QCProduct, create_new
 }
 
 type WaterBasedProductRangesView struct {
-	windigo.AutoPanel
+	*windigo.AutoPanel
 	ph_field,
 	sg_field *RangeROView
 
@@ -116,7 +116,7 @@ func (data_view WaterBasedProductRangesView) Clear() {
 	data_view.sg_field.Clear()
 }
 
-func BuildNewWaterBasedProductRangesView(parent windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) WaterBasedProductRangesView {
+func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) WaterBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"

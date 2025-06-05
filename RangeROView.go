@@ -8,7 +8,7 @@ import "github.com/samuel-jimenez/windigo"
  */
 
 type RangeROView struct {
-	windigo.AutoPanel
+	*windigo.AutoPanel
 	field_data Range
 	min_field,
 	min_field_spacer,

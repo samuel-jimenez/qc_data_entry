@@ -40,7 +40,7 @@ func (field_data Range) Map(data_map func(float64) float64) Range {
  */
 
 type RangeView struct {
-	windigo.AutoPanel
+	*windigo.AutoPanel
 	Get func() Range
 }
 

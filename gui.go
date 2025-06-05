@@ -46,7 +46,7 @@ var (
 	okPen      = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSystemColorBrush(w32.COLOR_BTNFACE))
 )
 
-func fill_combobox_from_query_rows(control windigo.LabeledComboBox, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
+func fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
 	if err != nil {
 		log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
@@ -63,12 +63,12 @@ func fill_combobox_from_query_rows(control windigo.LabeledComboBox, selected_row
 	}
 }
 
-func fill_combobox_from_query_fn(control windigo.LabeledComboBox, select_statement *sql.Stmt, select_id int64, fn func(*sql.Rows)) {
+func fill_combobox_from_query_fn(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64, fn func(*sql.Rows)) {
 	rows, err := select_statement.Query(select_id)
 	fill_combobox_from_query_rows(control, rows, err, fn)
 }
 
-func fill_combobox_from_query(control windigo.LabeledComboBox, select_statement *sql.Stmt, select_id int64) {
+func fill_combobox_from_query(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64) {
 	fill_combobox_from_query_fn(control, select_statement, select_id, func(rows *sql.Rows) {
 		var (
 			id   uint8
@@ -144,13 +144,7 @@ func build_marginal_button_dock(parent windigo.Controller, width, height int, la
 	return panel
 }
 
-func show_checkbox(parent windigo.Controller, width, height int, field_text string) windigo.LabeledCheckBox {
-	checkbox_field := windigo.NewLabeledCheckBox(parent, width, height, field_text)
-	checkbox_field.SetPaddingsAll(ERROR_MARGIN)
-	return checkbox_field
-}
-
-func show_combobox(parent windigo.Controller, label_width, control_width, height int, field_text string) windigo.LabeledComboBox {
+func show_combobox(parent windigo.Controller, label_width, control_width, height int, field_text string) *windigo.LabeledComboBox {
 	combobox_field := windigo.NewLabeledComboBox(parent, label_width, control_width, height, field_text)
 
 	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {

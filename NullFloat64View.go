@@ -60,8 +60,6 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64
 	data_field.SetPaddingsAll(ERROR_MARGIN)
 	data_field.SetPaddingTop(2 * ERROR_MARGIN)
 
-	data_field.SetTranslucentBackground()
-
 	update := func(field_data NullFloat64) {
 		if field_data.Valid {
 			data_field.SetText(format(field_data.Float64))
