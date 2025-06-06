@@ -109,7 +109,19 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.AddColumn(
 		"Sample Point", col_width)
 	table.AddColumn(
-		"time_stamp", col_width)
+		"Time Stamp", col_width)
+	table.AddColumn(
+		"pH", col_width)
+	table.AddColumn(
+		"Specific Gravity", col_width)
+	table.AddColumn(
+		"String Test", col_width)
+	table.AddColumn(
+		"Viscosity", col_width)
+	// table.AddColumn(
+	// 	"Density"
+	// 	, col_width)
+
 	return &QCDataView{table, nil}
 }
 
