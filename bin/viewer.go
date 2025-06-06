@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -70,7 +71,39 @@ type QCData struct {
 	viscosity sql.NullFloat64
 }
 
-func (data QCData) Text() []string  { return []string{data.lot_name, data.sample_point.String} }
+/*
+func ToString(data sql.NullFloat64, format func(float64) string) string {
+	if data.Valid {
+		return format(data.Float64)
+	}
+	return ""
+}
+
+func (data QCData) Text() []string {
+	return []string{data.lot_name,
+		data.sample_point.String,
+		data.time_stamp.Format(time.DateTime),
+		ToString(data.ph, format_ph)}
+}*/
+
+func ToString(data sql.NullFloat64) string {
+	if data.Valid {
+		return fmt.Sprint(data.Float64)
+	}
+	return ""
+}
+
+func (data QCData) Text() []string {
+	return []string{data.lot_name,
+		data.sample_point.String,
+		data.time_stamp.Format(time.DateTime),
+		ToString(data.ph),
+		ToString(data.specific_gravity),
+		ToString(data.string_test),
+		ToString(data.viscosity)}
+	// format_ph
+}
+
 func (data QCData) ImageIndex() int { return 0 }
 
 // func (data QCData) Checked() bool           { return data.Check }
@@ -102,22 +135,25 @@ func (data_view QCDataView) Update() {
 
 func NewQCDataView(parent windigo.Controller) *QCDataView {
 
-	col_width := 100
+	lot_width := 100
+	sample_width := 50
+	time_width := 120
+	data_width := 100
 	table := windigo.NewListView(parent)
 	table.AddColumn(
-		"Lot Number", col_width)
+		"Lot Number", lot_width)
 	table.AddColumn(
-		"Sample Point", col_width)
+		"Sample Point", sample_width)
 	table.AddColumn(
-		"Time Stamp", col_width)
+		"Time Stamp", time_width)
 	table.AddColumn(
-		"pH", col_width)
+		"pH", data_width)
 	table.AddColumn(
-		"Specific Gravity", col_width)
+		"Specific Gravity", data_width)
 	table.AddColumn(
-		"String Test", col_width)
+		"String Test", data_width)
 	table.AddColumn(
-		"Viscosity", col_width)
+		"Viscosity", data_width)
 	// table.AddColumn(
 	// 	"Density"
 	// 	, col_width)
