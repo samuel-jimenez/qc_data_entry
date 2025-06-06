@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 )
 
 var (
@@ -31,16 +32,6 @@ var (
 	CONTAINER_TOTE    = 1
 	CONTAINER_RAILCAR = 2
 )
-
-func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
-	preparedStatement, err := db.Prepare(sqlStatement)
-	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStatement)
-		panic(err)
-
-	}
-	return preparedStatement
-}
 
 func check_db(db *sql.DB) {
 
@@ -238,7 +229,7 @@ insert into bs.container_types
 
 	check_db(db)
 
-	db_select_product_info = PrepareOrElse(db, `
+	db_select_product_info = DB.PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
@@ -246,7 +237,7 @@ insert into bs.container_types
 
 	`)
 
-	db_select_product_id = PrepareOrElse(db, `
+	db_select_product_id = DB.PrepareOrElse(db, `
 	select product_id
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
@@ -254,7 +245,7 @@ insert into bs.container_types
 		and product_moniker_name = ?
 		`)
 
-	db_insert_product = PrepareOrElse(db, `
+	db_insert_product = DB.PrepareOrElse(db, `
 	insert into bs.product_line
 		(product_name_internal, product_moniker_id)
 		select ?, product_moniker_id
@@ -263,7 +254,7 @@ insert into bs.container_types
 		returning product_id
 		`)
 
-	db_insert_appearance = PrepareOrElse(db, `
+	db_insert_appearance = DB.PrepareOrElse(db, `
 	with val (product_appearance_text) as (
 		values
 			(?)
@@ -278,7 +269,7 @@ insert into bs.container_types
 	returning product_appearance_id, product_appearance_text
 	`)
 
-	db_select_product_details = PrepareOrElse(db, `
+	db_select_product_details = DB.PrepareOrElse(db, `
 	with
 		measured as (
 			select
@@ -369,7 +360,7 @@ insert into bs.container_types
 	where product_id = ?1
 	`)
 
-	db_select_product_coa_details = PrepareOrElse(db, `
+	db_select_product_coa_details = DB.PrepareOrElse(db, `
 	select
 		product_appearance_text,
 
@@ -398,7 +389,7 @@ insert into bs.container_types
 	where product_id = ?
 	`)
 
-	db_upsert_product_details = PrepareOrElse(db, `
+	db_upsert_product_details = DB.PrepareOrElse(db, `
 	with
 		val
 			(product_id,
@@ -541,7 +532,7 @@ insert into bs.container_types
 
 		returning range_id
 		`)
-	db_upsert_product_coa_details = PrepareOrElse(db, `
+	db_upsert_product_coa_details = DB.PrepareOrElse(db, `
 	with
 		val
 			(product_id,
@@ -681,45 +672,45 @@ insert into bs.container_types
 		returning qc_range_id
 		`)
 
-	db_select_product_customer_info = PrepareOrElse(db, `
+	db_select_product_customer_info = DB.PrepareOrElse(db, `
 	select product_customer_id, product_name_customer
 		from bs.product_customer_line
 		where product_id = ?
 		`)
 
-	db_select_product_customer_id = PrepareOrElse(db, `
+	db_select_product_customer_id = DB.PrepareOrElse(db, `
 	select product_customer_id
 		from bs.product_customer_line
 		where product_name_customer = ? and product_id = ?
 	`)
 
-	db_insert_product_customer = PrepareOrElse(db, `
+	db_insert_product_customer = DB.PrepareOrElse(db, `
 	insert into bs.product_customer_line
 		(product_name_customer,product_id)
 		values (?,?)
 	returning product_customer_id
 	`)
 
-	db_select_lot_info = PrepareOrElse(db, `
+	db_select_lot_info = DB.PrepareOrElse(db, `
 	select lot_id, lot_name
 		from bs.product_lot
 		where product_id = ?
 	`)
 
-	db_select_lot_id = PrepareOrElse(db, `
+	db_select_lot_id = DB.PrepareOrElse(db, `
 	select lot_id
 		from bs.product_lot
 		where lot_name = ? and product_id = ?
 	`)
 
-	db_insert_lot = PrepareOrElse(db, `
+	db_insert_lot = DB.PrepareOrElse(db, `
 	insert into bs.product_lot
 		(lot_name,product_id)
 		values (?,?)
 		returning lot_id
 	`)
 
-	db_select_sample_points = PrepareOrElse(db, `
+	db_select_sample_points = DB.PrepareOrElse(db, `
 	select distinct sample_point_id, sample_point
 		from bs.product_lot
 		join bs.qc_samples using (lot_id)
@@ -728,7 +719,7 @@ insert into bs.container_types
 		order by sample_point_id
 	`)
 
-	db_insert_sample_point = PrepareOrElse(db, `
+	db_insert_sample_point = DB.PrepareOrElse(db, `
 	with val (sample_point) as (
 		values
 			(?)
@@ -743,7 +734,7 @@ insert into bs.container_types
 	returning sample_point_id, sample_point
 	`)
 
-	db_insert_measurement = PrepareOrElse(db, `
+	db_insert_measurement = DB.PrepareOrElse(db, `
 	with
 		val (lot_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity) as (
 			values
