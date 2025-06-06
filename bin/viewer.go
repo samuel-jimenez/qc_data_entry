@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
@@ -71,7 +71,6 @@ type QCData struct {
 	viscosity sql.NullFloat64
 }
 
-/*
 func ToString(data sql.NullFloat64, format func(float64) string) string {
 	if data.Valid {
 		return format(data.Float64)
@@ -80,28 +79,19 @@ func ToString(data sql.NullFloat64, format func(float64) string) string {
 }
 
 func (data QCData) Text() []string {
-	return []string{data.lot_name,
-		data.sample_point.String,
-		data.time_stamp.Format(time.DateTime),
-		ToString(data.ph, format_ph)}
-}*/
-
-func ToString(data sql.NullFloat64) string {
-	if data.Valid {
-		return fmt.Sprint(data.Float64)
+	var sg_derived bool
+	if data.ph.Valid {
+		sg_derived = false
+	} else {
+		sg_derived = true
 	}
-	return ""
-}
-
-func (data QCData) Text() []string {
 	return []string{data.lot_name,
 		data.sample_point.String,
 		data.time_stamp.Format(time.DateTime),
-		ToString(data.ph),
-		ToString(data.specific_gravity),
-		ToString(data.string_test),
-		ToString(data.viscosity)}
-	// format_ph
+		ToString(data.ph, formats.Format_ph),
+		ToString(data.specific_gravity, func(sg float64) string { return formats.Format_sg(sg, !sg_derived) }),
+		ToString(data.string_test, formats.Format_string_test),
+		ToString(data.viscosity, formats.Format_viscosity)}
 }
 
 func (data QCData) ImageIndex() int { return 0 }
@@ -138,7 +128,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	lot_width := 100
 	sample_width := 50
 	time_width := 120
-	data_width := 100
+	data_width := 70
 	table := windigo.NewListView(parent)
 	table.AddColumn(
 		"Lot Number", lot_width)

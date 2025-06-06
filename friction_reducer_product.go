@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -14,12 +15,12 @@ type FrictionReducerProduct struct {
 }
 
 func (product FrictionReducerProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(product.sg*LB_PER_GAL, true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
+	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(formats.Density_from_sg(product.sg), true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
 }
 
 func newFrictionReducerProduct(base_product BaseProduct, viscosity, mass, string_test float64) Product {
 
-	sg := sg_from_mass(mass)
+	sg := formats.SG_from_mass(mass)
 
 	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
 
@@ -122,14 +123,14 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 
 	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	viscosity_field := BuildNewRangeROView(group_panel, viscosity_text, qc_product.Viscosity, format_ranges_viscosity)
+	viscosity_field := BuildNewRangeROView(group_panel, viscosity_text, qc_product.Viscosity, formats.Format_ranges_viscosity)
 
-	string_field := BuildNewRangeROView(group_panel, string_text, qc_product.SG, format_ranges_string_test)
+	string_field := BuildNewRangeROView(group_panel, string_text, qc_product.SG, formats.Format_ranges_string_test)
 
-	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, format_mass, mass_from_sg)
+	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
 
-	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
-	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
+	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
+	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)

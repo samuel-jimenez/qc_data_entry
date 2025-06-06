@@ -1,6 +1,9 @@
 package main
 
-import "github.com/samuel-jimenez/windigo"
+import (
+	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/windigo"
+)
 
 /* MassRangesViewable
  *
@@ -86,11 +89,11 @@ func NewMassDataView(parent *windigo.AutoPanel, label_width, control_width, heig
 
 	mass_field.OnChange().Bind(func(e *windigo.Event) {
 		mass := mass_field.GetFixed()
-		sg := sg_from_mass(mass)
-		density := density_from_sg(sg)
+		sg := formats.SG_from_mass(mass)
+		density := formats.Density_from_sg(sg)
 
-		sg_field.SetText(format_sg(sg, false))
-		density_field.SetText(format_density(density))
+		sg_field.SetText(formats.Format_sg(sg, false))
+		density_field.SetText(formats.Format_density(density))
 
 		check_or_error_mass(mass, sg, density)
 
@@ -98,11 +101,11 @@ func NewMassDataView(parent *windigo.AutoPanel, label_width, control_width, heig
 
 	sg_field.OnChange().Bind(func(e *windigo.Event) {
 		sg := sg_field.GetFixed()
-		mass := mass_from_sg(sg)
-		density := density_from_sg(sg)
+		mass := formats.Mass_from_sg(sg)
+		density := formats.Density_from_sg(sg)
 
-		mass_field.SetText(format_mass(mass))
-		density_field.SetText(format_density(density))
+		mass_field.SetText(formats.Format_mass(mass))
+		density_field.SetText(formats.Format_density(density))
 
 		check_or_error_mass(mass, sg, density)
 	})
@@ -110,11 +113,11 @@ func NewMassDataView(parent *windigo.AutoPanel, label_width, control_width, heig
 	density_field.OnChange().Bind(func(e *windigo.Event) {
 
 		density := density_field.GetFixed()
-		sg := sg_from_density(density)
-		mass := mass_from_sg(sg)
+		sg := formats.SG_from_density(density)
+		mass := formats.Mass_from_sg(sg)
 
-		sg_field.SetText(format_sg(sg, false))
-		mass_field.SetText(format_mass(mass))
+		sg_field.SetText(formats.Format_sg(sg, false))
+		mass_field.SetText(formats.Format_mass(mass))
 
 		check_or_error_mass(mass, sg, density)
 

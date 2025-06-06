@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	QR "github.com/samuel-jimenez/qc_data_entry/qr"
+	"github.com/samuel-jimenez/qc_data_entry/QR"
 	"github.com/samuel-jimenez/windigo"
 )
 

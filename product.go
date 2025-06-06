@@ -10,6 +10,7 @@ import (
 	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 )
 
 type Product struct {
@@ -149,7 +150,7 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
-		pdf.Cell(field_width, field_height, format_ph(product.PH.Float64))
+		pdf.Cell(field_width, field_height, formats.Format_ph(product.PH.Float64))
 		sg_derived = false
 	} else {
 		sg_derived = true
@@ -159,7 +160,7 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, format_sg(product.SG.Float64, !sg_derived))
+		pdf.Cell(field_width, field_height, formats.Format_sg(product.SG.Float64, !sg_derived))
 		pdf.Cell(unit_width, unit_height, "g/mL")
 	}
 
@@ -167,7 +168,7 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
-		pdf.Cell(field_width, field_height, format_density(product.Density.Float64))
+		pdf.Cell(field_width, field_height, formats.Format_density(product.Density.Float64))
 		pdf.Cell(unit_width, unit_height, "lb/gal")
 	}
 
@@ -175,7 +176,7 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
-		pdf.Cell(field_width, field_height, format_string_test(product.String_test.Float64))
+		pdf.Cell(field_width, field_height, formats.Format_string_test(product.String_test.Float64))
 		pdf.Cell(unit_width, unit_height, "s")
 	}
 
@@ -183,7 +184,7 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
-		pdf.Cell(field_width, field_height, format_viscosity(product.Viscosity.Float64))
+		pdf.Cell(field_width, field_height, formats.Format_viscosity(product.Viscosity.Float64))
 		pdf.Cell(unit_width, unit_height, "cP")
 	}
 

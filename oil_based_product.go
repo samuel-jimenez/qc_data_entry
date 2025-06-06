@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -20,7 +21,7 @@ func (product OilBasedProduct) toProduct() Product {
 func newOilBasedProduct(base_product BaseProduct,
 	have_visual bool, mass float64) Product {
 	base_product.Visual = have_visual
-	sg := sg_from_mass(mass)
+	sg := formats.SG_from_mass(mass)
 
 	return OilBasedProduct{base_product, sg}.toProduct()
 
@@ -125,9 +126,9 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCP
 
 	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, format_mass, mass_from_sg)
-	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
-	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, format_ranges_density)
+	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
+	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)

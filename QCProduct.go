@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -126,12 +127,12 @@ func (product *QCProduct) show_ranges_window() {
 	appearance_dock := BuildNewProductAppearanceView(rangeWindow, "Appearance", product.Appearance)
 
 	labels := build_text_dock(rangeWindow, []string{"", "Min", "Target", "Max"})
-	ph_dock := BuildNewRangeView(rangeWindow, "pH", product.PH, format_ranges_ph)
-	sg_dock := BuildNewRangeView(rangeWindow, "Specific Gravity", product.SG, format_ranges_sg)
-	density_dock := BuildNewRangeView(rangeWindow, "Density", product.Density, format_ranges_density)
-	string_dock := BuildNewRangeView(rangeWindow, "String Test \n\t at 0.5gpt", product.String_test, format_ranges_string_test)
+	ph_dock := BuildNewRangeView(rangeWindow, "pH", product.PH, formats.Format_ranges_ph)
+	sg_dock := BuildNewRangeView(rangeWindow, "Specific Gravity", product.SG, formats.Format_ranges_sg)
+	density_dock := BuildNewRangeView(rangeWindow, "Density", product.Density, formats.Format_ranges_density)
+	string_dock := BuildNewRangeView(rangeWindow, "String Test \n\t at 0.5gpt", product.String_test, formats.Format_ranges_string_test)
 	//TODO store string_amt "at 0.5gpt"
-	visco_dock := BuildNewRangeView(rangeWindow, "Viscosity", product.Viscosity, format_ranges_viscosity)
+	visco_dock := BuildNewRangeView(rangeWindow, "Viscosity", product.Viscosity, formats.Format_ranges_viscosity)
 
 	exit := func() {
 		rangeWindow.Close()

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -129,8 +130,8 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product Q
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, format_ranges_sg)
-	ph_field := BuildNewRangeROView(group_panel, ph_text, qc_product.PH, format_ranges_ph)
+	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
+	ph_field := BuildNewRangeROView(group_panel, ph_text, qc_product.PH, formats.Format_ranges_ph)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)
