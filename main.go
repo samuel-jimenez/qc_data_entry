@@ -12,7 +12,7 @@ import (
 
 func main() {
 	//load config
-	config.Main_config = config.Load_config()
+	config.Main_config = config.Load_config("qc_data_entry")
 
 	// log to file
 	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
