@@ -251,9 +251,14 @@ func show_window() {
 	// tab_oil := tabs.AddAutoPanel("Oil Based")
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
+	// table := windigo.ListView(mainWindow)
+	table := windigo.NewListView(mainWindow)
+	table.AddColumn("heelo", 150)
+	table.AddColumn("nurse", 50)
+	table.DeleteAllItems()
+
 	dock.Dock(product_panel, windigo.Top)
-	// dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
-	// dock.Dock(tabs.Panels(), windigo.Fill) // tab panels dock just below tabs and fill area
+	dock.Dock(table, windigo.Fill)
 
 	// status_bar = windigo.NewStatusBar(mainWindow)
 	// mainWindow.SetStatusBar(status_bar)
