@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -52,8 +53,50 @@ func main() {
 
 // package viewer
 var (
-	db_select_product_info *sql.Stmt
+	db_select_product_info,
+	db_select_product_samples *sql.Stmt
 )
+
+type QCData struct {
+	lot_name,
+	sample_point string
+	time_stamp time.Time
+	ph,
+	specific_gravity,
+	string_test,
+	viscosity sql.NullFloat64
+}
+
+func select_product_samples(product_id int) []QCData {
+	rows, err := db_select_product_samples.Query(product_id)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, "select_product_samples")
+		// return -1
+	}
+
+	data := make([]QCData, 0)
+	for rows.Next() {
+		var (
+			qc_data    QCData
+			_timestamp int64
+		)
+
+		if err := rows.Scan(&qc_data.lot_name,
+			&qc_data.sample_point,
+			&_timestamp,
+			&qc_data.ph,
+			&qc_data.specific_gravity,
+			&qc_data.string_test,
+			&qc_data.viscosity); err != nil {
+			log.Fatal(err)
+		}
+		qc_data.time_stamp = time.Unix(0, _timestamp)
+
+		// time.Unix(unixTime.Unix(), 0).UTC()
+		data = append(data, qc_data)
+	}
+	return data
+}
 
 func dbinit(db *sql.DB) {
 
@@ -65,6 +108,21 @@ func dbinit(db *sql.DB) {
 		join bs.product_moniker using (product_moniker_id)
 		order by product_moniker_name,product_name_internal
 
+	`)
+
+	db_select_product_samples = DB.PrepareOrElse(db, `
+	select
+		lot_name,
+		sample_point,
+		time_stamp,
+		ph ,
+		specific_gravity ,
+		string_test ,
+		viscosity
+	from bs.qc_samples
+		join bs.product_lot using (lot_id)
+		join bs.product_sample_points using (sample_point_id)
+	where product_id = ?
 	`)
 }
 
@@ -109,6 +167,7 @@ func show_window() {
 	// var product_data map [int]string
 	// var product_data map[string]int
 	product_data := make(map[string]int)
+	// var qc_data QCData
 
 	window_width := 650
 	window_height := 600
@@ -218,7 +277,9 @@ func show_window() {
 
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		// product_field_pop_data(product_field.GetSelectedItem())
-		log.Println(product_data[product_field.GetSelectedItem()])
+
+		product_id := product_data[product_field.GetSelectedItem()]
+		log.Println(select_product_samples(product_id))
 
 	})
 
