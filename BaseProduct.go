@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	"github.com/samuel-jimenez/qc_data_entry/config"
 )
 
 type BaseProduct struct {
@@ -31,7 +33,7 @@ func (product BaseProduct) get_base_filename(extension string) string {
 }
 
 func (product BaseProduct) get_pdf_name() string {
-	return fmt.Sprintf("%s/%s", LABEL_PATH, product.get_base_filename("pdf"))
+	return fmt.Sprintf("%s/%s", config.LABEL_PATH, product.get_base_filename("pdf"))
 }
 
 func (product BaseProduct) get_json_filename(path string, base_name string) string {
@@ -42,7 +44,7 @@ func (product BaseProduct) get_json_names() []string {
 	var json_names []string
 	base_name := product.get_base_filename("json")
 
-	for _, JSON_PATH := range JSON_PATHS {
+	for _, JSON_PATH := range config.JSON_PATHS {
 
 		json_names = append(json_names, product.get_json_filename(JSON_PATH, base_name))
 	}

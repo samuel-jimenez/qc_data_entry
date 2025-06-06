@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	main_config *viper.Viper
+	Main_config *viper.Viper
 	DB_PATH,
 	DB_FILE,
 	LABEL_PATH,
@@ -17,16 +17,7 @@ var (
 	JSON_PATHS []string
 )
 
-/*
- * QRJson
- *
- */
-type QRJson struct {
-	Product_type string `json:"product_name"`
-	Lot_number   string `json:"lot_number"`
-}
-
-func load_config() *viper.Viper {
+func Load_config() *viper.Viper {
 	viper_config := viper.New()
 	viper_config.SetConfigName("config") // name of config file (without extension)
 	viper_config.SetConfigType("toml")   // REQUIRED if the config file does not have the extension in the name

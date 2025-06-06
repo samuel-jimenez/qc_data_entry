@@ -7,14 +7,15 @@ import (
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 )
 
 func main() {
 	//load config
-	main_config = load_config()
+	config.Main_config = config.Load_config()
 
 	// log to file
-	log_file, err := os.OpenFile(LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
@@ -26,7 +27,7 @@ func main() {
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
 	qc_db, err := sql.Open("sqlite3", ":memory:")
-	qc_db.Exec("attach ? as 'bs'", DB_FILE)
+	qc_db.Exec("attach ? as 'bs'", config.DB_FILE)
 	if err != nil {
 		log.Fatal(err)
 	}

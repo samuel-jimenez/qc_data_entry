@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	QR "github.com/samuel-jimenez/qc_data_entry/qr"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -246,7 +247,7 @@ func show_window() {
 		sample_field_pop_data(formatted_text)
 	}
 
-	qr_pop_data := func(product QRJson) {
+	qr_pop_data := func(product QR.QRJson) {
 		product_field_text_pop_data(product.Product_type)
 		lot_field_text_pop_data(product.Lot_number)
 	}
@@ -325,7 +326,7 @@ func show_window() {
 
 	mainWindow.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModShift, Key: windigo.KeyOEM6}, // }
 		func() bool {
-			var product QRJson
+			var product QR.QRJson
 
 			qr_json := keygrab.Text() + "}"
 			log.Println("debug: ReadFromScanner: ", qr_json)
