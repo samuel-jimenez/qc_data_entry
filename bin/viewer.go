@@ -57,6 +57,9 @@ var (
 	db_select_product_samples *sql.Stmt
 )
 
+/* QCData
+ *
+ */
 type QCData struct {
 	lot_name     string
 	sample_point sql.NullString
@@ -65,6 +68,49 @@ type QCData struct {
 	specific_gravity,
 	string_test,
 	viscosity sql.NullFloat64
+}
+
+func (data QCData) Text() []string  { return []string{data.lot_name, data.sample_point.String} }
+func (data QCData) ImageIndex() int { return 0 }
+
+// func (data QCData) Checked() bool           { return data.Check }
+// func (data QCData) SetChecked(checked bool) { data.Check = checked }
+/*
+func (data QCData) Checked() bool           { return false }
+func (data QCData) SetChecked(checked bool) {}
+*/
+
+/* QCDataView
+ *
+ */
+type QCDataView struct {
+	*windigo.ListView
+	data []QCData
+}
+
+func (data_view *QCDataView) Set(data []QCData) {
+	data_view.data = data
+}
+
+func (data_view QCDataView) Update() {
+
+	data_view.DeleteAllItems()
+	for _, row := range data_view.data {
+		data_view.AddItem(row)
+	}
+}
+
+func NewQCDataView(parent windigo.Controller) *QCDataView {
+
+	col_width := 100
+	table := windigo.NewListView(parent)
+	table.AddColumn(
+		"Lot Number", col_width)
+	table.AddColumn(
+		"Sample Point", col_width)
+	table.AddColumn(
+		"time_stamp", col_width)
+	return &QCDataView{table, nil}
 }
 
 func select_product_samples(product_id int) []QCData {
@@ -251,11 +297,7 @@ func show_window() {
 	// tab_oil := tabs.AddAutoPanel("Oil Based")
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
-	// table := windigo.ListView(mainWindow)
-	table := windigo.NewListView(mainWindow)
-	table.AddColumn("heelo", 150)
-	table.AddColumn("nurse", 50)
-	table.DeleteAllItems()
+	table := NewQCDataView(mainWindow)
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(table, windigo.Fill)
@@ -284,7 +326,11 @@ func show_window() {
 		// product_field_pop_data(product_field.GetSelectedItem())
 
 		product_id := product_data[product_field.GetSelectedItem()]
-		log.Println(select_product_samples(product_id))
+		samples := select_product_samples(product_id)
+		table.Set(samples)
+		table.Update()
+
+		// log.Println()
 
 	})
 
