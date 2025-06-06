@@ -58,9 +58,9 @@ var (
 )
 
 type QCData struct {
-	lot_name,
-	sample_point string
-	time_stamp time.Time
+	lot_name     string
+	sample_point sql.NullString
+	time_stamp   time.Time
 	ph,
 	specific_gravity,
 	string_test,
@@ -121,7 +121,7 @@ func dbinit(db *sql.DB) {
 		viscosity
 	from bs.qc_samples
 		join bs.product_lot using (lot_id)
-		join bs.product_sample_points using (sample_point_id)
+		left join bs.product_sample_points using (sample_point_id)
 	where product_id = ?
 	`)
 }
