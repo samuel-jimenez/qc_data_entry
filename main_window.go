@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	QR "github.com/samuel-jimenez/qc_data_entry/qr"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -75,8 +76,8 @@ func show_window() {
 	prod_panel := windigo.NewAutoPanel(product_panel)
 	prod_panel.SetSize(hpanel_width, field_height)
 
-	product_field := show_combobox(prod_panel, label_width, field_width, field_height, product_text)
-	customer_field := show_combobox(prod_panel, label_width, field_width, field_height, customer_text)
+	product_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, product_text)
+	customer_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, customer_text)
 
 	customer_field.SetMarginLeft(inter_spacer_width)
 	prod_panel.SetMarginLeft(hpanel_margin)
@@ -87,8 +88,8 @@ func show_window() {
 	lot_panel := windigo.NewAutoPanel(product_panel)
 	lot_panel.SetSize(hpanel_width, field_height)
 
-	lot_field := show_combobox(lot_panel, label_width, field_width, field_height, lot_text)
-	sample_field := show_combobox(lot_panel, label_width, field_width, field_height, sample_text)
+	lot_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, lot_text)
+	sample_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, sample_text)
 
 	lot_panel.SetMarginTop(inter_spacer_height)
 	lot_panel.SetMarginLeft(hpanel_margin)
@@ -137,7 +138,7 @@ func show_window() {
 	// functionality
 
 	rows, err := db_select_product_info.Query()
-	fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
+	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
 			id                   uint8
 			internal_name        string
@@ -187,9 +188,9 @@ func show_window() {
 				tabs.SetCurrent(qc_product.product_type.toIndex())
 			}
 
-			fill_combobox_from_query(lot_field, db_select_lot_info, qc_product.product_id)
-			fill_combobox_from_query(customer_field, db_select_product_customer_info, qc_product.product_id)
-			fill_combobox_from_query(sample_field, db_select_sample_points, qc_product.product_id)
+			GUI.Fill_combobox_from_query(lot_field, db_select_lot_info, qc_product.product_id)
+			GUI.Fill_combobox_from_query(customer_field, db_select_product_customer_info, qc_product.product_id)
+			GUI.Fill_combobox_from_query(sample_field, db_select_sample_points, qc_product.product_id)
 
 			lot_field.OnKillFocus().Fire(nil)
 			qc_product.Product_name_customer = customer_field.Text()
