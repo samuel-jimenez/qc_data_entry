@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -18,14 +19,20 @@ var (
 )
 
 func Load_config(appname string) *viper.Viper {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "."
+	}
+	config_name := fmt.Sprintf("config_%s.toml", appname)
+	config_path := fmt.Sprintf("%s/.config/%s", home, appname)
+	config_file := fmt.Sprintf("%s/%s", config_path, config_name)
 	viper_config := viper.New()
-	viper_config.SetConfigName("config") // name of config file (without extension)
-	viper_config.SetConfigType("toml")   // REQUIRED if the config file does not have the extension in the name
-	viper_config.AddConfigPath(".")      // optionally look for config in the working directory
+	viper_config.SetConfigName(config_name) // name of config file (without extension)
+	viper_config.SetConfigType("toml")      // REQUIRED if the config file does not have the extension in the name
+	viper_config.AddConfigPath(".")         // optionally look for config in the working directory
 	// viper_config.AddConfigPath("/etc/appname/")  // path to look for the config file in
-	// viper.AddConfigPath("$HOME/.config/qc_data_entry") // call multiple times to add many search paths
-	viper_config.AddConfigPath("$HOME/.config/" + appname) // call multiple times to add many search paths
-	err := viper_config.ReadInConfig()                     // Find and read the config file
+	viper_config.AddConfigPath(config_path) // call multiple times to add many search paths
+	err = viper_config.ReadInConfig()       // Find and read the config file
 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 		// Config file not found; ignore error if desired
 
@@ -34,7 +41,8 @@ func Load_config(appname string) *viper.Viper {
 		viper_config.Set("log_file", fmt.Sprintf("./%s.log", appname))
 		viper_config.Set("json_paths", []string{"."})
 
-		log.Println(viper_config.WriteConfigAs("config.toml"))
+		os.MkdirAll(config_path, 660)
+		log.Println(viper_config.WriteConfigAs(config_file))
 	} else if err != nil { // Handle errors reading the config file
 		panic(fmt.Errorf("fatal error config file: %w", err))
 	}
