@@ -2,8 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -13,7 +11,6 @@ import (
 )
 
 var (
-	qc_db *sql.DB
 	db_select_product_id, db_insert_product, db_select_product_info,
 	db_insert_appearance,
 	db_select_product_details, db_upsert_product_details,
@@ -24,43 +21,12 @@ var (
 	db_insert_measurement *sql.Stmt
 	err error
 
-	DB_VERSION = "0.0.1"
-
 	INVALID_ID     int64 = -1
 	DEFAULT_LOT_ID int64 = 1
 
 	CONTAINER_TOTE    = 1
 	CONTAINER_RAILCAR = 2
 )
-
-func check_db(db *sql.DB) {
-
-	var found_database_version_major,
-		found_database_version_minor,
-		found_database_version_revision int
-
-	sqlStmt := `
-		select database_version_major, database_version_minor, database_version_revision
-		from bs.database_info
-		`
-	err = db.QueryRow(sqlStmt).Scan(&found_database_version_major,
-		&found_database_version_minor,
-		&found_database_version_revision)
-	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStmt)
-		panic(err)
-	}
-
-	found_db_version := fmt.Sprintf("%d.%d.%d", found_database_version_major,
-		found_database_version_minor,
-		found_database_version_revision)
-
-	if DB_VERSION != found_db_version {
-		err = errors.New(fmt.Sprintf("Database version mismatch: Required: %s, found: %s", DB_VERSION, found_db_version))
-		log.Printf("%q\n", err)
-		panic(err)
-	}
-}
 
 // ON UPDATE CASCADE
 //        ON DELETE CASCADE
@@ -227,7 +193,7 @@ insert into bs.container_types
 	// 	// return
 	// }
 
-	check_db(db)
+	DB.Check_db(db)
 
 	db_select_product_info = DB.PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
