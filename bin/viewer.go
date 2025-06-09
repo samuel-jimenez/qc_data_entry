@@ -1,9 +1,12 @@
 package main
 
 import (
+	"cmp"
 	"database/sql"
 	"log"
 	"os"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
@@ -58,20 +61,66 @@ var (
 	db_select_product_samples *sql.Stmt
 )
 
+/* NullString
+ *
+ */
+type NullString struct {
+	sql.NullString
+}
+
+func (a_n NullString) Compare(b_n NullString) int {
+	var a, b string
+	if a_n.Valid {
+		a = a_n.String
+	}
+	if b_n.Valid {
+		b = b_n.String
+	}
+	return strings.Compare(a, b)
+}
+
+/* NullFloat64
+ *
+ */
+type NullFloat64 struct {
+	sql.NullFloat64
+}
+
+func (a_n NullFloat64) Compare(b_n NullFloat64) int {
+	var a, b float64
+	if a_n.Valid {
+		a = a_n.Float64
+	}
+	if b_n.Valid {
+		b = b_n.Float64
+	}
+	return cmp.Compare(a, b)
+}
+
 /* QCData
  *
  */
 type QCData struct {
 	lot_name     string
-	sample_point sql.NullString
+	sample_point NullString
 	time_stamp   time.Time
 	ph,
 	specific_gravity,
 	string_test,
-	viscosity sql.NullFloat64
+	viscosity NullFloat64
 }
 
-func ToString(data sql.NullFloat64, format func(float64) string) string {
+func compare_lot_name(a, b QCData) int     { return strings.Compare(a.lot_name, b.lot_name) }
+func compare_sample_point(a, b QCData) int { return a.sample_point.Compare(b.sample_point) }
+func compare_time_stamp(a, b QCData) int   { return a.time_stamp.Compare(b.time_stamp) }
+
+func compare_ph(a, b QCData) int               { return a.ph.Compare(b.ph) }
+func compare_specific_gravity(a, b QCData) int { return a.specific_gravity.Compare(b.specific_gravity) }
+func compare_string_test(a, b QCData) int      { return a.string_test.Compare(b.string_test) }
+func compare_viscosity(a, b QCData) int        { return a.viscosity.Compare(b.viscosity) }
+func uno_reverse(fn lessFunc) lessFunc         { return func(a, b QCData) int { return -fn(a, b) } }
+
+func ToString(data NullFloat64, format func(float64) string) string {
 	if data.Valid {
 		return format(data.Float64)
 	}
@@ -99,9 +148,9 @@ func (data QCData) ImageIndex() int { return 0 }
 // func (data QCData) Checked() bool           { return data.Check }
 // func (data QCData) SetChecked(checked bool) { data.Check = checked }
 /*
-func (data QCData) Checked() bool           { return false }
-func (data QCData) SetChecked(checked bool) {}
-*/
+ */
+
+type lessFunc func(a, b QCData) int
 
 /* QCDataView
  *
@@ -109,18 +158,40 @@ func (data QCData) SetChecked(checked bool) {}
 type QCDataView struct {
 	*windigo.ListView
 	data []QCData
+	less []lessFunc
 }
 
 func (data_view *QCDataView) Set(data []QCData) {
 	data_view.data = data
 }
 
-func (data_view QCDataView) Update() {
+func (data_view *QCDataView) Get(row, column int) string {
+	if row < 0 {
+		return ""
+	}
+	return data_view.data[row].Text()[column]
+}
+
+func (data_view QCDataView) Refresh() {
 
 	data_view.DeleteAllItems()
+
 	for _, row := range data_view.data {
 		data_view.AddItem(row)
 	}
+}
+
+func (data_view QCDataView) Update() {
+	data_view.Refresh()
+}
+
+func (data_view *QCDataView) Sort(col int, asc bool) {
+	if asc {
+		slices.SortStableFunc(data_view.data, data_view.less[col])
+	} else {
+		slices.SortStableFunc(data_view.data, uno_reverse(data_view.less[col]))
+	}
+	data_view.Refresh()
 }
 
 func NewQCDataView(parent windigo.Controller) *QCDataView {
@@ -129,7 +200,12 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	sample_width := 50
 	time_width := 120
 	data_width := 70
-	table := windigo.NewListView(parent)
+	table := &QCDataView{windigo.NewListView(parent), nil, nil}
+	table.EnableGridlines(true)
+	table.EnableFullRowSelect(true)
+	table.EnableDoubleBuffer(true)
+	table.EnableSortHeader(true, table.Sort)
+
 	table.AddColumn(
 		"Lot Number", lot_width)
 	table.AddColumn(
@@ -147,8 +223,24 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	// table.AddColumn(
 	// 	"Density"
 	// 	, col_width)
+	table.OnClick().Bind(func(e *windigo.Event) { log.Println(e) })
+	table.OnRClick().Bind(func(e *windigo.Event) {
+		listViewEvent := e.Data.(windigo.ListViewEvent)
+		if listViewEvent.Row >= 0 { // ignore invalid
+			table.ClipboardCopyText(table.Get(listViewEvent.Row, listViewEvent.Column))
+		}
+	})
 
-	return &QCDataView{table, nil}
+	table.less = []lessFunc{
+		compare_lot_name,
+		compare_sample_point,
+		compare_time_stamp,
+		compare_ph,
+		compare_specific_gravity,
+		compare_string_test,
+		compare_viscosity}
+
+	return table
 }
 
 func select_product_samples(product_id int) []QCData {
@@ -175,8 +267,6 @@ func select_product_samples(product_id int) []QCData {
 			log.Fatal(err)
 		}
 		qc_data.time_stamp = time.Unix(0, _timestamp)
-
-		// time.Unix(unixTime.Unix(), 0).UTC()
 		data = append(data, qc_data)
 	}
 	return data
@@ -248,10 +338,7 @@ func show_window() {
 
 	log.Println("Info: Process started")
 
-	// var product_data map [int]string
-	// var product_data map[string]int
 	product_data := make(map[string]int)
-	// var qc_data QCData
 
 	window_width := 650
 	window_height := 600
