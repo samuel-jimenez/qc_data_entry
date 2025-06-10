@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
@@ -27,7 +28,12 @@ func show_window() {
 	top_panel_width := window_width
 	top_panel_height := 110
 
-	hpanel_width := top_panel_width
+	clock_width := 90
+	clock_timer_width := 35
+	clock_timer_offset_h := 10
+	clock_timer_offset_v := 25
+
+	hpanel_width := top_panel_width - clock_width
 
 	label_width := LABEL_WIDTH
 
@@ -71,9 +77,13 @@ func show_window() {
 	product_panel := windigo.NewAutoPanel(mainWindow)
 	product_panel.SetSize(top_panel_width, top_panel_height)
 
+	product_panel_0 := windigo.NewAutoPanel(product_panel)
+	product_panel_0.SetSize(top_panel_width,
+		top_spacer_height+2*field_height+inter_spacer_height)
+
 	//TODO array db_select_all_product
 
-	prod_panel := windigo.NewAutoPanel(product_panel)
+	prod_panel := windigo.NewAutoPanel(product_panel_0)
 	prod_panel.SetSize(hpanel_width, field_height)
 
 	product_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, product_text)
@@ -85,7 +95,7 @@ func show_window() {
 	prod_panel.Dock(product_field, windigo.Left)
 	prod_panel.Dock(customer_field, windigo.Left)
 
-	lot_panel := windigo.NewAutoPanel(product_panel)
+	lot_panel := windigo.NewAutoPanel(product_panel_0)
 	lot_panel.SetSize(hpanel_width, field_height)
 
 	lot_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, lot_text)
@@ -96,6 +106,21 @@ func show_window() {
 	sample_field.SetMarginLeft(inter_spacer_width)
 	lot_panel.Dock(lot_field, windigo.Left)
 	lot_panel.Dock(sample_field, windigo.Left)
+
+	clock_panel := windigo.NewAutoPanel(product_panel_0)
+	clock_panel.SetSize(clock_width, OFF_AXIS)
+
+	clock_display_now := windigo.NewLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
+	clock_display_future := windigo.NewLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
+	clock_display_future.SetMarginTop(clock_timer_offset_v)
+	clock_display_future.SetMarginLeft(clock_timer_offset_h)
+	clock_display_future.SetMarginRight(clock_timer_offset_h)
+	clock_font := windigo.NewFont(clock_display_now.Font().Family(), 25, 0)
+
+	clock_display_now.SetFont(clock_font)
+	clock_display_future.SetFont(clock_font)
+
+	clock_ticker := time.Tick(time.Second)
 
 	ranges_button := windigo.NewPushButton(product_panel)
 	ranges_button.SetText("Ranges")
@@ -116,8 +141,14 @@ func show_window() {
 	reprint_sample_button.SetMarginsAll(reprint_button_margins)
 	reprint_sample_button.SetSize(reprint_button_width, OFF_AXIS)
 
-	product_panel.Dock(prod_panel, windigo.Top)
-	product_panel.Dock(lot_panel, windigo.Top)
+	clock_panel.Dock(clock_display_now, windigo.Left)
+	clock_panel.Dock(clock_display_future, windigo.Left)
+
+	product_panel_0.Dock(clock_panel, windigo.Right)
+	product_panel_0.Dock(prod_panel, windigo.Top)
+	product_panel_0.Dock(lot_panel, windigo.Top)
+
+	product_panel.Dock(product_panel_0, windigo.Top)
 	product_panel.Dock(ranges_button, windigo.Left)
 	product_panel.Dock(container_field, windigo.Left)
 	product_panel.Dock(reprint_button, windigo.Left)
@@ -310,6 +341,16 @@ func show_window() {
 		qc_product.container_type = container_field.Get()
 		fr_panel.ChangeContainer(qc_product)
 	})
+
+	// Clock
+
+	go func() {
+		mix_time := 20 * time.Second
+		for tock := range clock_ticker {
+			clock_display_now.SetText(tock.Format("05"))
+			clock_display_future.SetText(tock.Add(mix_time).Format("05"))
+		}
+	}()
 
 	// QR keyboard handling
 
