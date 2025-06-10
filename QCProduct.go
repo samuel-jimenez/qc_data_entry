@@ -54,7 +54,7 @@ func (product *QCProduct) select_product_details() {
 func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 
 	db_insert_appearance.Exec(product.Appearance)
-
+	db_upsert_product_type.Exec(product.product_id, product.product_type)
 	_, err := db_upsert_statement.Exec(
 		product.product_id, product.product_type, product.Appearance,
 		product.PH.Min, product.PH.Target, product.PH.Max,

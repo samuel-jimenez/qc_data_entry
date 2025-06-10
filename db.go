@@ -13,7 +13,7 @@ import (
 var (
 	db_select_product_id, db_insert_product, db_select_product_info,
 	db_insert_appearance,
-	db_select_product_details, db_upsert_product_details,
+	db_select_product_details, db_upsert_product_details, db_upsert_product_type,
 	db_select_product_coa_details, db_upsert_product_coa_details,
 	db_select_product_customer_id, db_insert_product_customer, db_select_product_customer_info,
 	db_select_lot_id, db_insert_lot, db_select_lot_info,
@@ -495,6 +495,18 @@ insert into bs.container_types
 		viscosity_min=excluded.viscosity_min,
 		viscosity_target=excluded.viscosity_target,
 		viscosity_max=excluded.viscosity_max
+
+		returning range_id
+		`)
+
+	db_upsert_product_type = DB.PrepareOrElse(db, `
+	insert into bs.product_ranges_measured
+		(product_id,
+		product_type_id)
+	values (?,?)
+	on conflict(product_id) do update set
+
+		product_type_id=excluded.product_type_id
 
 		returning range_id
 		`)
