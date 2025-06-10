@@ -26,7 +26,7 @@ func show_window() {
 	window_height := 600
 
 	top_panel_width := window_width
-	top_panel_height := 110
+	top_panel_height := 115
 
 	clock_width := 90
 	clock_timer_width := 35
@@ -79,7 +79,7 @@ func show_window() {
 
 	product_panel_0 := windigo.NewAutoPanel(product_panel)
 	product_panel_0.SetSize(top_panel_width,
-		top_spacer_height+2*field_height+inter_spacer_height)
+		top_spacer_height+2*field_height+2*inter_spacer_height)
 
 	//TODO array db_select_all_product
 

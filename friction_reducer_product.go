@@ -182,8 +182,6 @@ type FrictionReducerPanelView struct {
 // create table product_line (product_id integer not null primary key, product_name text);
 func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) FrictionReducerPanelView {
 
-	bottom_spacer_height := BUTTON_SPACER_HEIGHT
-
 	group_width := GROUP_WIDTH
 	group_height := GROUP_HEIGHT
 	group_margin := GROUP_MARGIN
@@ -195,13 +193,14 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
-	ranges_panel := BuildNewFrictionReducerProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
-	ranges_panel.SetMarginTop(group_margin)
+	panel := windigo.NewAutoPanel(parent)
+	panel.SetSize(OFF_AXIS, group_height)
+	panel.SetMargins(group_margin, group_margin, 0, 0)
 
-	top_group := BuildNewFrictionReducerProductView(parent, top_text, group_width, group_height, ranges_panel)
-	bottom_group := BuildNewFrictionReducerProductView(parent, bottom_text, group_width, group_height, ranges_panel)
-	top_group.SetMargins(group_margin, group_margin, 0, 0)
-	bottom_group.SetMarginTop(group_margin)
+	ranges_panel := BuildNewFrictionReducerProductRangesView(panel, qc_product, RANGE_WIDTH, group_height)
+
+	top_group := BuildNewFrictionReducerProductView(panel, top_text, group_width, group_height, ranges_panel)
+	bottom_group := BuildNewFrictionReducerProductView(panel, bottom_text, group_width, group_height, ranges_panel)
 
 	submit_cb := func() {
 		base_product := create_new_product_cb()
@@ -254,14 +253,13 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 	button_dock_cars := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
 	button_dock_totes.Hide()
 
-	button_dock_totes.SetMarginBtm(bottom_spacer_height)
-	button_dock_cars.SetMarginBtm(bottom_spacer_height)
+	panel.Dock(top_group, windigo.Left)
+	panel.Dock(bottom_group, windigo.Left)
+	panel.Dock(ranges_panel, windigo.Right)
 
-	parent.Dock(button_dock_totes, windigo.Bottom)
-	parent.Dock(button_dock_cars, windigo.Bottom)
-	parent.Dock(top_group, windigo.Left)
-	parent.Dock(bottom_group, windigo.Left)
-	parent.Dock(ranges_panel, windigo.Right)
+	parent.Dock(panel, windigo.Top)
+	parent.Dock(button_dock_totes, windigo.Top)
+	parent.Dock(button_dock_cars, windigo.Top)
 
 	changeContainer := func(qc_product QCProduct) {
 		if qc_product.container_type.Int32 == int32(CONTAINER_TOTE) {

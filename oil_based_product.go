@@ -44,18 +44,19 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 	button_width := BUTTON_WIDTH
 	button_height := BUTTON_HEIGHT
 
-	bottom_spacer_height := BUTTON_SPACER_HEIGHT
-
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
 
-	group_panel := windigo.NewAutoPanel(parent)
+	panel := windigo.NewAutoPanel(parent)
+	panel.SetSize(OFF_AXIS, group_height)
+	panel.SetMargins(group_margin, group_margin, 0, 0)
+
+	group_panel := windigo.NewAutoPanel(panel)
 	group_panel.SetSize(group_width, group_height)
 
 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
-	group_panel.SetMargins(group_margin, group_margin, 0, 0)
 
-	ranges_panel := BuildNewOilBasedProductRangesView(parent, qc_product, RANGE_WIDTH, group_height)
+	ranges_panel := BuildNewOilBasedProductRangesView(panel, qc_product, RANGE_WIDTH, group_height)
 	ranges_panel.SetMarginTop(group_margin)
 
 	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
@@ -91,11 +92,12 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 	}
 
 	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
-	button_dock.SetMarginBtm(bottom_spacer_height)
 
-	parent.Dock(button_dock, windigo.Bottom)
-	parent.Dock(group_panel, windigo.Left)
-	parent.Dock(ranges_panel, windigo.Right)
+	panel.Dock(group_panel, windigo.Left)
+	panel.Dock(ranges_panel, windigo.Right)
+
+	parent.Dock(panel, windigo.Top)
+	parent.Dock(button_dock, windigo.Top)
 
 	return ranges_panel.Update
 
