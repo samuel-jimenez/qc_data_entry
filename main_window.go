@@ -32,6 +32,8 @@ func show_window() {
 	clock_timer_width := 35
 	clock_timer_offset_h := 10
 	clock_timer_offset_v := 25
+	clock_font_size := 25
+	clock_font_style_flags := byte(0x0) //FontNormal
 
 	hpanel_width := top_panel_width - clock_width
 
@@ -44,12 +46,14 @@ func show_window() {
 	top_spacer_height := 20
 	inter_spacer_width := 30
 	inter_spacer_height := INTER_SPACER_HEIGHT
+	top_subpanel_height := top_spacer_height + 2*field_height + 2*inter_spacer_height
 
 	button_margin := 5
 
 	ranges_button_width := 80
 
 	container_field_width := 150
+	container_item_width := 50
 
 	reprint_button_width := 80
 	reprint_button_margin_l := 150
@@ -78,8 +82,7 @@ func show_window() {
 	product_panel.SetSize(top_panel_width, top_panel_height)
 
 	product_panel_0 := windigo.NewAutoPanel(product_panel)
-	product_panel_0.SetSize(top_panel_width,
-		top_spacer_height+2*field_height+2*inter_spacer_height)
+	product_panel_0.SetSize(top_panel_width, top_subpanel_height)
 
 	//TODO array db_select_all_product
 
@@ -111,7 +114,7 @@ func show_window() {
 	clock_display_future.SetMarginTop(clock_timer_offset_v)
 	clock_display_future.SetMarginLeft(clock_timer_offset_h)
 	clock_display_future.SetMarginRight(clock_timer_offset_h)
-	clock_font := windigo.NewFont(clock_display_now.Font().Family(), 25, 0)
+	clock_font := windigo.NewFont(clock_display_now.Font().Family(), clock_font_size, clock_font_style_flags)
 
 	clock_display_now.SetFont(clock_font)
 	clock_display_future.SetFont(clock_font)
@@ -123,7 +126,7 @@ func show_window() {
 	ranges_button.SetMarginsAll(button_margin)
 	ranges_button.SetSize(ranges_button_width, OFF_AXIS)
 
-	container_field := BuildNewDiscreteView(product_panel, 50, 50, "Container Type", qc_product.container_type, []string{"Tote", "Railcar"})
+	container_field := BuildNewDiscreteView(product_panel, container_item_width, OFF_AXIS, "Container Type", qc_product.container_type, []string{"Tote", "Railcar"})
 	container_field.SetSize(container_field_width, OFF_AXIS)
 
 	reprint_button := windigo.NewPushButton(product_panel)
