@@ -83,29 +83,25 @@ func show_window() {
 
 	//TODO array db_select_all_product
 
-	prod_panel := windigo.NewAutoPanel(product_panel_0)
-	prod_panel.SetSize(hpanel_width, field_height)
+	product_panel_0_0 := windigo.NewAutoPanel(product_panel_0)
+	product_panel_0_0.SetSize(hpanel_width, field_height)
 
-	product_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, product_text)
-	customer_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, customer_text)
+	product_field := GUI.Show_combobox(product_panel_0_0, label_width, field_width, field_height, product_text)
+	customer_field := GUI.Show_combobox(product_panel_0_0, label_width, field_width, field_height, customer_text)
 
 	customer_field.SetMarginLeft(inter_spacer_width)
-	prod_panel.SetMarginLeft(hpanel_margin)
-	prod_panel.SetMarginTop(top_spacer_height)
-	prod_panel.Dock(product_field, windigo.Left)
-	prod_panel.Dock(customer_field, windigo.Left)
+	product_panel_0_0.SetMarginLeft(hpanel_margin)
+	product_panel_0_0.SetMarginTop(top_spacer_height)
 
-	lot_panel := windigo.NewAutoPanel(product_panel_0)
-	lot_panel.SetSize(hpanel_width, field_height)
+	product_panel_0_1 := windigo.NewAutoPanel(product_panel_0)
+	product_panel_0_1.SetSize(hpanel_width, field_height)
 
-	lot_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, lot_text)
-	sample_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, sample_text)
+	lot_field := GUI.Show_combobox(product_panel_0_1, label_width, field_width, field_height, lot_text)
+	sample_field := GUI.Show_combobox(product_panel_0_1, label_width, field_width, field_height, sample_text)
 
-	lot_panel.SetMarginTop(inter_spacer_height)
-	lot_panel.SetMarginLeft(hpanel_margin)
+	product_panel_0_1.SetMarginTop(inter_spacer_height)
+	product_panel_0_1.SetMarginLeft(hpanel_margin)
 	sample_field.SetMarginLeft(inter_spacer_width)
-	lot_panel.Dock(lot_field, windigo.Left)
-	lot_panel.Dock(sample_field, windigo.Left)
 
 	clock_panel := windigo.NewAutoPanel(product_panel_0)
 	clock_panel.SetSize(clock_width, OFF_AXIS)
@@ -141,23 +137,31 @@ func show_window() {
 	reprint_sample_button.SetMarginsAll(reprint_button_margins)
 	reprint_sample_button.SetSize(reprint_button_width, OFF_AXIS)
 
+	tabs := windigo.NewTabView(mainWindow)
+	tab_wb := tabs.AddAutoPanel("Water Based")
+	tab_oil := tabs.AddAutoPanel("Oil Based")
+	tab_fr := tabs.AddAutoPanel("Friction Reducer")
+
+	// Dock
+
+	product_panel_0_0.Dock(product_field, windigo.Left)
+	product_panel_0_0.Dock(customer_field, windigo.Left)
+
+	product_panel_0_1.Dock(lot_field, windigo.Left)
+	product_panel_0_1.Dock(sample_field, windigo.Left)
+
 	clock_panel.Dock(clock_display_now, windigo.Left)
 	clock_panel.Dock(clock_display_future, windigo.Left)
 
 	product_panel_0.Dock(clock_panel, windigo.Right)
-	product_panel_0.Dock(prod_panel, windigo.Top)
-	product_panel_0.Dock(lot_panel, windigo.Top)
+	product_panel_0.Dock(product_panel_0_0, windigo.Top)
+	product_panel_0.Dock(product_panel_0_1, windigo.Top)
 
 	product_panel.Dock(product_panel_0, windigo.Top)
 	product_panel.Dock(ranges_button, windigo.Left)
 	product_panel.Dock(container_field, windigo.Left)
 	product_panel.Dock(reprint_button, windigo.Left)
 	product_panel.Dock(reprint_sample_button, windigo.Left)
-
-	tabs := windigo.NewTabView(mainWindow)
-	tab_wb := tabs.AddAutoPanel("Water Based")
-	tab_oil := tabs.AddAutoPanel("Oil Based")
-	tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
