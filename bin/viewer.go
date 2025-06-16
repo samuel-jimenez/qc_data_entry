@@ -137,9 +137,11 @@ func (data QCData) Text() []string {
 	} else {
 		sg_derived = true
 	}
-	return []string{data.product_name, data.lot_name,
-		data.sample_point.String,
+	return []string{
 		data.time_stamp.Format(time.DateTime),
+
+		data.product_name, data.lot_name,
+		data.sample_point.String,
 		ToString(data.ph, formats.Format_ph),
 		ToString(data.specific_gravity, func(sg float64) string { return formats.Format_sg(sg, !sg_derived) }),
 		ToString(data.string_test, formats.Format_string_test),
@@ -210,13 +212,13 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.EnableSortHeader(true, table.Sort)
 
 	table.AddColumn(
+		"Time Stamp", time_width)
+	table.AddColumn(
 		"Product", lot_width)
 	table.AddColumn(
 		"Lot Number", lot_width)
 	table.AddColumn(
 		"Sample Point", sample_width)
-	table.AddColumn(
-		"Time Stamp", time_width)
 	table.AddColumn(
 		"pH", data_width)
 	table.AddColumn(
@@ -237,10 +239,10 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	})
 
 	table.less = []lessFunc{
+		compare_time_stamp,
 		compare_product_name,
 		compare_lot_name,
 		compare_sample_point,
-		compare_time_stamp,
 		compare_ph,
 		compare_specific_gravity,
 		compare_string_test,
