@@ -112,6 +112,7 @@ type QCData struct {
 	viscosity NullFloat64
 }
 
+func compare_product_name(a, b QCData) int { return strings.Compare(a.product_name, b.product_name) }
 func compare_lot_name(a, b QCData) int     { return strings.Compare(a.lot_name, b.lot_name) }
 func compare_sample_point(a, b QCData) int { return a.sample_point.Compare(b.sample_point) }
 func compare_time_stamp(a, b QCData) int   { return a.time_stamp.Compare(b.time_stamp) }
@@ -136,7 +137,7 @@ func (data QCData) Text() []string {
 	} else {
 		sg_derived = true
 	}
-	return []string{data.lot_name,
+	return []string{data.product_name, data.lot_name,
 		data.sample_point.String,
 		data.time_stamp.Format(time.DateTime),
 		ToString(data.ph, formats.Format_ph),
@@ -209,6 +210,8 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.EnableSortHeader(true, table.Sort)
 
 	table.AddColumn(
+		"Product", lot_width)
+	table.AddColumn(
 		"Lot Number", lot_width)
 	table.AddColumn(
 		"Sample Point", sample_width)
@@ -234,6 +237,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	})
 
 	table.less = []lessFunc{
+		compare_product_name,
 		compare_lot_name,
 		compare_sample_point,
 		compare_time_stamp,
@@ -296,7 +300,7 @@ func dbinit(db *sql.DB) {
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
-
+	order by product_moniker_name,product_name_internal
 	`)
 
 	db_select_product_samples = DB.PrepareOrElse(db, `
