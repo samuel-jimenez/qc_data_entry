@@ -255,6 +255,7 @@ func show_window() {
 		panel_water_based.SetFont(windigo.DefaultFont)
 		panel_oil_based.SetFont(windigo.DefaultFont)
 		panel_fr.SetFont(windigo.DefaultFont)
+		status_bar.SetFont(windigo.DefaultFont)
 		refresh(font_size)
 
 	}
