@@ -203,7 +203,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 
 	lot_width := 100
 	sample_width := 50
-	time_width := 120
+	time_width := 150
 	data_width := 70
 	table := &QCDataView{windigo.NewListView(parent), nil, nil}
 	table.EnableGridlines(true)
@@ -214,7 +214,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.AddColumn(
 		"Time Stamp", time_width)
 	table.AddColumn(
-		"Product", lot_width)
+		"Product", time_width)
 	table.AddColumn(
 		"Lot Number", lot_width)
 	table.AddColumn(
