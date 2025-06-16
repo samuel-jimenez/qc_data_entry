@@ -201,10 +201,6 @@ func (data_view *QCDataView) Sort(col int, asc bool) {
 
 func NewQCDataView(parent windigo.Controller) *QCDataView {
 
-	lot_width := 100
-	sample_width := 50
-	time_width := 150
-	data_width := 70
 	table := &QCDataView{windigo.NewListView(parent), nil, nil}
 	table.EnableGridlines(true)
 	table.EnableFullRowSelect(true)
@@ -212,21 +208,21 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.EnableSortHeader(true, table.Sort)
 
 	table.AddColumn(
-		"Time Stamp", time_width)
+		"Time Stamp", COL_WIDTH_TIME)
 	table.AddColumn(
-		"Product", time_width)
+		"Product", COL_WIDTH_TIME)
 	table.AddColumn(
-		"Lot Number", lot_width)
+		"Lot Number", COL_WIDTH_LOT)
 	table.AddColumn(
-		"Sample Point", sample_width)
+		"Sample Point", COL_WIDTH_SAMPLE)
 	table.AddColumn(
-		"pH", data_width)
+		"pH", COL_WIDTH_DATA)
 	table.AddColumn(
-		"Specific Gravity", data_width)
+		"Specific Gravity", COL_WIDTH_DATA)
 	table.AddColumn(
-		"String Test", data_width)
+		"String Test", COL_WIDTH_DATA)
 	table.AddColumn(
-		"Viscosity", data_width)
+		"Viscosity", COL_WIDTH_DATA)
 	// table.AddColumn(
 	// 	"Density"
 	// 	, col_width)
@@ -345,6 +341,17 @@ func dbinit(db *sql.DB) {
 }
 
 var (
+	COL_WIDTH_TIME   = 150
+	COL_WIDTH_LOT    = 100
+	COL_WIDTH_SAMPLE = 50
+	COL_WIDTH_DATA   = 70
+
+	WINDOW_EDGE  = 8
+	SCROLL_WIDTH = 17
+
+	WINDOW_WIDTH  = 2*COL_WIDTH_TIME + COL_WIDTH_LOT + COL_WIDTH_SAMPLE + 4*COL_WIDTH_DATA + 2*WINDOW_EDGE + SCROLL_WIDTH
+	WINDOW_HEIGHT = 600
+
 	RANGE_WIDTH        = 200
 	GROUP_WIDTH        = 210
 	GROUP_HEIGHT       = 170
@@ -384,10 +391,7 @@ func show_window() {
 
 	product_data := make(map[string]int)
 
-	window_width := 650
-	window_height := 600
-
-	top_panel_width := window_width
+	top_panel_width := WINDOW_WIDTH
 	top_panel_height := 110
 
 	hpanel_width := top_panel_width
@@ -414,7 +418,7 @@ func show_window() {
 	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
 
 	mainWindow := windigo.NewForm(nil)
-	mainWindow.SetSize(window_width, window_height)
+	mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	mainWindow.SetText("QC Data Viewer")
 
 	dock := windigo.NewSimpleDock(mainWindow)
