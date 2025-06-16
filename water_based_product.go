@@ -31,39 +31,28 @@ func (product WaterBasedProduct) check_data() bool {
 	return true
 }
 
-func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
+type WaterBasedPanelView struct {
+	Update  func(qc_product QCProduct)
+	SetFont func(font *windigo.Font)
+	Refresh func()
+}
 
-	group_width := GROUP_WIDTH
-	group_height := GROUP_HEIGHT
-	group_margin := GROUP_MARGIN
-
-	label_width := LABEL_WIDTH
-	field_width := DATA_FIELD_WIDTH
-	field_height := FIELD_HEIGHT
-
-	button_width := BUTTON_WIDTH
-	button_height := BUTTON_HEIGHT
+func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) *WaterBasedPanelView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
 	ph_text := "pH"
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(OFF_AXIS, group_height)
-	panel.SetMargins(group_margin, group_margin, 0, 0)
 
 	group_panel := windigo.NewAutoPanel(panel)
-	group_panel.SetSize(group_width, group_height)
 
-	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+	ranges_panel := BuildNewWaterBasedProductRangesView(panel, qc_product)
 
-	ranges_panel := BuildNewWaterBasedProductRangesView(panel, qc_product, RANGE_WIDTH, group_height)
-	ranges_panel.SetMarginTop(group_margin)
+	visual_field := NewBoolCheckboxView(group_panel, visual_text)
 
-	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
-
-	sg_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, sg_text, ranges_panel.sg_field)
-	ph_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, ph_text, ranges_panel.ph_field)
+	sg_field := NewNumberEditViewWithChange(group_panel, sg_text, ranges_panel.sg_field)
+	ph_field := NewNumberEditViewWithChange(group_panel, ph_text, ranges_panel.ph_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)
@@ -94,7 +83,7 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 		}
 	}
 
-	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
+	button_dock := build_marginal_button_dock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
 
 	panel.Dock(group_panel, windigo.Left)
 	panel.Dock(ranges_panel, windigo.Right)
@@ -102,7 +91,35 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 	parent.Dock(panel, windigo.Top)
 	parent.Dock(button_dock, windigo.Top)
 
-	return ranges_panel.Update
+	setFont := func(font *windigo.Font) {
+		ranges_panel.SetFont(font)
+		visual_field.SetFont(font)
+		sg_field.SetFont(font)
+		ph_field.SetFont(font)
+		button_dock.SetFont(font)
+	}
+	refresh := func() {
+
+		panel.SetSize(OFF_AXIS, GROUP_HEIGHT)
+		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
+
+		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+
+		ranges_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		ranges_panel.SetMarginTop(GROUP_MARGIN)
+
+		visual_field.SetSize(OFF_AXIS, FIELD_HEIGHT)
+
+		sg_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+		ph_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+
+		button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+
+		ranges_panel.Refresh()
+	}
+
+	return &WaterBasedPanelView{ranges_panel.Update, setFont, refresh}
 
 }
 
@@ -111,7 +128,9 @@ type WaterBasedProductRangesView struct {
 	ph_field,
 	sg_field *RangeROView
 
-	Update func(qc_product QCProduct)
+	Update  func(qc_product QCProduct)
+	SetFont func(font *windigo.Font)
+	Refresh func()
 }
 
 func (data_view WaterBasedProductRangesView) Clear() {
@@ -119,15 +138,13 @@ func (data_view WaterBasedProductRangesView) Clear() {
 	data_view.sg_field.Clear()
 }
 
-func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) WaterBasedProductRangesView {
+func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct) WaterBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
 	ph_text := "pH"
 
 	group_panel := windigo.NewAutoPanel(parent)
-	group_panel.SetSize(group_width, group_height)
-	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
@@ -144,7 +161,20 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product Q
 		sg_field.Update(qc_product.SG)
 		ph_field.Update(qc_product.PH)
 	}
+	setFont := func(font *windigo.Font) {
+		visual_field.SetFont(font) //?TODO
+		sg_field.SetFont(font)
+		ph_field.SetFont(font)
+	}
+	refresh := func() {
+		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-	return WaterBasedProductRangesView{group_panel, &ph_field, &sg_field, update}
+		visual_field.Refresh()
+		sg_field.Refresh()
+		ph_field.Refresh()
+	}
+
+	return WaterBasedProductRangesView{group_panel, &ph_field, &sg_field, update, setFont, refresh}
 
 }

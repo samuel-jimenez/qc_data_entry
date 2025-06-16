@@ -31,37 +31,25 @@ func (product OilBasedProduct) check_data() bool {
 	return true
 }
 
-func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) func(qc_product QCProduct) {
+type OilBasedPanelView struct {
+	Update  func(qc_product QCProduct)
+	SetFont func(font *windigo.Font)
+	Refresh func()
+}
 
-	group_width := GROUP_WIDTH
-	group_height := GROUP_HEIGHT
-	group_margin := GROUP_MARGIN
-
-	label_width := LABEL_WIDTH
-	field_width := DATA_FIELD_WIDTH
-	field_height := FIELD_HEIGHT
-
-	button_width := BUTTON_WIDTH
-	button_height := BUTTON_HEIGHT
+func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) *OilBasedPanelView {
 
 	visual_text := "Visual Inspection"
-	mass_text := "Mass"
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(OFF_AXIS, group_height)
-	panel.SetMargins(group_margin, group_margin, 0, 0)
 
 	group_panel := windigo.NewAutoPanel(panel)
-	group_panel.SetSize(group_width, group_height)
 
-	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+	ranges_panel := BuildNewOilBasedProductRangesView(panel, qc_product)
 
-	ranges_panel := BuildNewOilBasedProductRangesView(panel, qc_product, RANGE_WIDTH, group_height)
-	ranges_panel.SetMarginTop(group_margin)
+	visual_field := NewBoolCheckboxView(group_panel, visual_text)
 
-	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
-
-	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
+	mass_field := NewMassDataView(group_panel, ranges_panel)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)
@@ -91,7 +79,7 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 		}
 	}
 
-	button_dock := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
+	button_dock := build_marginal_button_dock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
 
 	panel.Dock(group_panel, windigo.Left)
 	panel.Dock(ranges_panel, windigo.Right)
@@ -99,7 +87,32 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 	parent.Dock(panel, windigo.Top)
 	parent.Dock(button_dock, windigo.Top)
 
-	return ranges_panel.Update
+	setFont := func(font *windigo.Font) {
+		ranges_panel.SetFont(font)
+		visual_field.SetFont(font)
+		mass_field.SetFont(font)
+		button_dock.SetFont(font)
+	}
+	refresh := func() {
+
+		panel.SetSize(OFF_AXIS, GROUP_HEIGHT)
+		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
+
+		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+
+		visual_field.SetSize(OFF_AXIS, FIELD_HEIGHT)
+
+		mass_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, FIELD_HEIGHT)
+
+		button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+
+		ranges_panel.SetMarginTop(GROUP_MARGIN)
+		ranges_panel.Refresh()
+
+	}
+
+	return &OilBasedPanelView{ranges_panel.Update, setFont, refresh}
 
 }
 
@@ -107,14 +120,16 @@ type OilBasedProductRangesView struct {
 	*windigo.AutoPanel
 	*MassRangesView
 
-	Update func(qc_product QCProduct)
+	Update  func(qc_product QCProduct)
+	SetFont func(font *windigo.Font)
+	Refresh func()
 }
 
 func (data_view OilBasedProductRangesView) Clear() {
 	data_view.MassRangesView.Clear()
 }
 
-func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) OilBasedProductRangesView {
+func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct) OilBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
@@ -123,8 +138,6 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCP
 	density_text := "Density"
 
 	group_panel := windigo.NewAutoPanel(parent)
-	group_panel.SetSize(group_width, group_height)
-	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
@@ -143,11 +156,26 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCP
 		sg_field.Update(qc_product.SG)
 		density_field.Update(qc_product.Density)
 	}
+	setFont := func(font *windigo.Font) {
+		visual_field.SetFont(font)
+		mass_field.SetFont(font)
+		sg_field.SetFont(font)
+		density_field.SetFont(font)
+	}
+
+	refresh := func() {
+		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+		visual_field.Refresh()
+		mass_field.Refresh()
+		sg_field.Refresh()
+		density_field.Refresh()
+	}
 
 	return OilBasedProductRangesView{group_panel,
 		&MassRangesView{&mass_field,
 			&sg_field,
 			&density_field},
-		update}
+		update, setFont, refresh}
 
 }

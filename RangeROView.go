@@ -14,8 +14,25 @@ type RangeROView struct {
 	min_field_spacer,
 	target_field,
 	max_field_spacer,
-	max_field NullFloat64ROView
+	max_field *NullFloat64ROView
 	data_map func(float64) float64
+}
+
+func (data_view *RangeROView) SetFont(font *windigo.Font) {
+	data_view.min_field.SetFont(font)
+	data_view.min_field_spacer.SetFont(font)
+	data_view.target_field.SetFont(font)
+	data_view.max_field_spacer.SetFont(font)
+	data_view.max_field.SetFont(font)
+}
+
+func (data_view *RangeROView) Refresh() {
+	data_view.SetSize(OFF_AXIS, RANGES_RO_FIELD_HEIGHT)
+	data_view.min_field.Refresh()
+	data_view.min_field_spacer.Refresh()
+	data_view.target_field.Refresh()
+	data_view.max_field_spacer.Refresh()
+	data_view.max_field.Refresh()
 }
 
 func (data_view *RangeROView) Update(update_data Range) {
@@ -52,7 +69,6 @@ func (data_view RangeROView) Check(data float64) bool {
 func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data Range, format func(float64) string, data_map func(float64) float64) RangeROView {
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(OFF_AXIS, RANGES_RO_FIELD_HEIGHT)
 	//TODO toolti[p]
 	// label := windigo.NewLabel(panel)
 	// label.SetText(field_text)

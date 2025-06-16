@@ -36,8 +36,8 @@ func NewBoolCheckboxViewFromLabeledCheckBox(label *windigo.LabeledCheckBox) *Boo
 	return &BoolCheckboxView{&View{label.ComponentFrame}, label.CheckBox}
 }
 
-func NewBoolCheckboxView(parent windigo.Controller, width, height int, field_text string) *BoolCheckboxView {
-	edit_field := NewBoolCheckboxViewFromLabeledCheckBox(windigo.NewLabeledCheckBox(parent, width, height, field_text))
+func NewBoolCheckboxView(parent windigo.Controller, field_text string) *BoolCheckboxView {
+	edit_field := NewBoolCheckboxViewFromLabeledCheckBox(windigo.NewLabeledCheckBox(parent, field_text))
 	edit_field.SetPaddingsAll(ERROR_MARGIN)
 	return edit_field
 }

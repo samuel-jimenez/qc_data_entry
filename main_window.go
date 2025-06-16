@@ -9,6 +9,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -22,12 +23,6 @@ func show_window() {
 	// DEBUG
 	// log.Println(time.Now().UTC().UnixNano())
 
-	window_width := 650
-	window_height := 600
-
-	top_panel_width := window_width
-	top_panel_height := 115
-
 	clock_width := 90
 	clock_timer_width := 35
 	clock_timer_offset_h := 10
@@ -35,29 +30,22 @@ func show_window() {
 	clock_font_size := 25
 	clock_font_style_flags := byte(0x0) //FontNormal
 
-	hpanel_width := top_panel_width - clock_width
+	var (
+		top_panel_height,
 
-	label_width := LABEL_WIDTH
+		hpanel_width,
 
-	hpanel_margin := 10
+		hpanel_margin,
 
-	field_width := PRODUCT_FIELD_WIDTH
-	field_height := 20
-	top_spacer_height := 20
-	inter_spacer_width := 30
-	inter_spacer_height := INTER_SPACER_HEIGHT
-	top_subpanel_height := top_spacer_height + 2*field_height + 2*inter_spacer_height
+		top_spacer_height,
+		top_subpanel_height,
 
-	button_margin := 5
+		ranges_button_width,
 
-	ranges_button_width := 80
+		container_item_width,
 
-	container_field_width := 150
-	container_item_width := 50
-
-	reprint_button_width := 80
-	reprint_button_margin_l := 150
-	reprint_button_margins := button_margin
+		reprint_button_margin_l int
+	)
 
 	product_text := "Product"
 	lot_text := "Lot Number"
@@ -68,9 +56,10 @@ func show_window() {
 	qc_product.product_id = INVALID_ID
 	qc_product.lot_id = DEFAULT_LOT_ID
 
+	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, 0)
+
 	// build window
 	mainWindow := windigo.NewForm(nil)
-	mainWindow.SetSize(window_width, window_height)
 	mainWindow.SetText("QC Data Entry")
 
 	keygrab := windigo.NewEdit(mainWindow)
@@ -79,38 +68,25 @@ func show_window() {
 	dock := windigo.NewSimpleDock(mainWindow)
 
 	product_panel := windigo.NewAutoPanel(mainWindow)
-	product_panel.SetSize(top_panel_width, top_panel_height)
 
 	product_panel_0 := windigo.NewAutoPanel(product_panel)
-	product_panel_0.SetSize(top_panel_width, top_subpanel_height)
 
 	//TODO array db_select_all_product
 
 	product_panel_0_0 := windigo.NewAutoPanel(product_panel_0)
-	product_panel_0_0.SetSize(hpanel_width, field_height)
 
-	product_field := GUI.Show_combobox(product_panel_0_0, label_width, field_width, field_height, product_text)
-	customer_field := GUI.Show_combobox(product_panel_0_0, label_width, field_width, field_height, customer_text)
-
-	customer_field.SetMarginLeft(inter_spacer_width)
-	product_panel_0_0.SetMarginLeft(hpanel_margin)
-	product_panel_0_0.SetMarginTop(top_spacer_height)
+	product_field := GUI.NewComboBox(product_panel_0_0, product_text)
+	customer_field := GUI.NewComboBox(product_panel_0_0, customer_text)
 
 	product_panel_0_1 := windigo.NewAutoPanel(product_panel_0)
-	product_panel_0_1.SetSize(hpanel_width, field_height)
 
-	lot_field := GUI.Show_combobox(product_panel_0_1, label_width, field_width, field_height, lot_text)
-	sample_field := GUI.Show_combobox(product_panel_0_1, label_width, field_width, field_height, sample_text)
-
-	product_panel_0_1.SetMarginTop(inter_spacer_height)
-	product_panel_0_1.SetMarginLeft(hpanel_margin)
-	sample_field.SetMarginLeft(inter_spacer_width)
+	lot_field := GUI.NewComboBox(product_panel_0_1, lot_text)
+	sample_field := GUI.NewComboBox(product_panel_0_1, sample_text)
 
 	clock_panel := windigo.NewAutoPanel(product_panel_0)
 	clock_panel.SetSize(clock_width, OFF_AXIS)
-
-	clock_display_now := windigo.NewLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
-	clock_display_future := windigo.NewLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
+	clock_display_now := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
+	clock_display_future := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
 	clock_display_future.SetMarginTop(clock_timer_offset_v)
 	clock_display_future.SetMarginLeft(clock_timer_offset_h)
 	clock_display_future.SetMarginRight(clock_timer_offset_h)
@@ -123,22 +99,14 @@ func show_window() {
 
 	ranges_button := windigo.NewPushButton(product_panel)
 	ranges_button.SetText("Ranges")
-	ranges_button.SetMarginsAll(button_margin)
-	ranges_button.SetSize(ranges_button_width, OFF_AXIS)
 
-	container_field := BuildNewDiscreteView(product_panel, container_item_width, OFF_AXIS, "Container Type", qc_product.container_type, []string{"Tote", "Railcar"})
-	container_field.SetSize(container_field_width, OFF_AXIS)
+	container_field := BuildNewDiscreteView(product_panel, "Container Type", qc_product.container_type, []string{"Tote", "Railcar"})
 
 	reprint_button := windigo.NewPushButton(product_panel)
 	reprint_button.SetText("Reprint")
-	reprint_button.SetMarginsAll(reprint_button_margins)
-	reprint_button.SetMarginLeft(reprint_button_margin_l)
-	reprint_button.SetSize(reprint_button_width, OFF_AXIS)
 
 	reprint_sample_button := windigo.NewPushButton(product_panel)
 	reprint_sample_button.SetText("Reprint Sample")
-	reprint_sample_button.SetMarginsAll(reprint_button_margins)
-	reprint_sample_button.SetSize(reprint_button_width, OFF_AXIS)
 
 	tabs := windigo.NewTabView(mainWindow)
 	tab_wb := tabs.AddAutoPanel("Water Based")
@@ -173,8 +141,6 @@ func show_window() {
 	status_bar = windigo.NewStatusBar(mainWindow)
 	mainWindow.SetStatusBar(status_bar)
 
-	// functionality
-
 	rows, err := db_select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
@@ -193,17 +159,116 @@ func show_window() {
 		return qc_product.toBaseProduct()
 	}
 
-	update_water_based := show_water_based(tab_wb, qc_product, new_product_cb)
-	update_oil_based := show_oil_based(tab_oil, qc_product, new_product_cb)
-	fr_panel := show_fr(tab_fr, qc_product, new_product_cb)
+	panel_water_based := show_water_based(tab_wb, qc_product, new_product_cb)
+	panel_oil_based := show_oil_based(tab_oil, qc_product, new_product_cb)
+	panel_fr := show_fr(tab_fr, qc_product, new_product_cb)
+
+	// sizing
+	refresh_vars := func(font_size int) {
+
+		refresh_globals(font_size)
+
+		top_spacer_height = 20
+		top_subpanel_height = top_spacer_height + 2*PRODUCT_FIELD_HEIGHT + 2*INTER_SPACER_HEIGHT + BTM_SPACER_HEIGHT
+
+		top_panel_height = top_subpanel_height + 2*GROUPBOX_CUSHION + PRODUCT_FIELD_HEIGHT
+
+		hpanel_margin = 10
+		hpanel_width = TOP_PANEL_WIDTH - clock_width
+
+		ranges_button_width = 8 * font_size
+
+		container_item_width = 6 * font_size
+
+		reprint_button_margin_l = 2*LABEL_WIDTH + PRODUCT_FIELD_WIDTH + TOP_PANEL_INTER_SPACER_WIDTH - ranges_button_width - DISCRETE_FIELD_WIDTH
+	}
+
+	refresh := func(font_size int) {
+		refresh_vars(font_size)
+
+		mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+
+		product_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		customer_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		lot_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		sample_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+
+		product_panel.SetSize(TOP_PANEL_WIDTH, top_panel_height)
+
+		product_panel_0.SetSize(TOP_PANEL_WIDTH, top_subpanel_height)
+
+		product_panel_0_0.SetSize(hpanel_width, PRODUCT_FIELD_HEIGHT)
+		product_panel_0_0.SetMarginLeft(hpanel_margin)
+		product_panel_0_0.SetMarginTop(top_spacer_height)
+
+		customer_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
+		sample_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
+
+		product_panel_0_1.SetSize(hpanel_width, PRODUCT_FIELD_HEIGHT)
+		product_panel_0_1.SetMarginTop(INTER_SPACER_HEIGHT)
+		product_panel_0_1.SetMarginLeft(hpanel_margin)
+
+		ranges_button.SetSize(ranges_button_width, OFF_AXIS)
+		ranges_button.SetMarginsAll(BUTTON_MARGIN)
+
+		container_field.SetSize(DISCRETE_FIELD_WIDTH, OFF_AXIS)
+		container_field.SetItemSize(container_item_width)
+		container_field.SetPaddingsAll(GROUPBOX_CUSHION)
+
+		reprint_button.SetMarginsAll(BUTTON_MARGIN)
+		reprint_button.SetMarginLeft(reprint_button_margin_l)
+		reprint_button.SetSize(REPRINT_BUTTON_WIDTH, OFF_AXIS)
+
+		reprint_sample_button.SetMarginsAll(BUTTON_MARGIN)
+		reprint_sample_button.SetSize(REPRINT_BUTTON_WIDTH, OFF_AXIS)
+
+		tabs.SetSize(PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+
+		panel_water_based.Refresh()
+		panel_oil_based.Refresh()
+		panel_fr.Refresh()
+
+	}
+
+	set_font := func(font_size int) {
+		GUI.BASE_FONT_SIZE = font_size
+
+		config.Main_config.Set("font_size", GUI.BASE_FONT_SIZE)
+		config.Write_config(config.Main_config)
+
+		old_font := windigo.DefaultFont
+		windigo.DefaultFont = windigo.NewFont(old_font.Family(), GUI.BASE_FONT_SIZE, 0)
+		old_font.Dispose()
+
+		mainWindow.SetFont(windigo.DefaultFont)
+		product_field.SetFont(windigo.DefaultFont)
+		customer_field.SetFont(windigo.DefaultFont)
+		lot_field.SetFont(windigo.DefaultFont)
+		sample_field.SetFont(windigo.DefaultFont)
+
+		ranges_button.SetFont(windigo.DefaultFont)
+		container_field.SetFont(windigo.DefaultFont)
+		reprint_button.SetFont(windigo.DefaultFont)
+		reprint_sample_button.SetFont(windigo.DefaultFont)
+		tabs.SetFont(windigo.DefaultFont)
+
+		panel_water_based.SetFont(windigo.DefaultFont)
+		panel_oil_based.SetFont(windigo.DefaultFont)
+		panel_fr.SetFont(windigo.DefaultFont)
+		refresh(font_size)
+
+	}
+	set_font(GUI.BASE_FONT_SIZE)
+
+	// functionality
 
 	qc_product.Update = func() {
 		container_field.Update(qc_product.container_type)
 		log.Println("Debug: update new_product_cb", qc_product)
-		update_water_based(qc_product)
-		update_oil_based(qc_product)
-		fr_panel.Update(qc_product)
-		fr_panel.ChangeContainer(qc_product)
+		panel_water_based.Update(qc_product)
+		panel_oil_based.Update(qc_product)
+		panel_fr.Update(qc_product)
+		panel_fr.ChangeContainer(qc_product)
 	}
 
 	product_field_pop_data := func(str string) {
@@ -346,7 +411,7 @@ func show_window() {
 
 	container_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		qc_product.container_type = container_field.Get()
-		fr_panel.ChangeContainer(qc_product)
+		panel_fr.ChangeContainer(qc_product)
 	})
 
 	// Clock
@@ -382,7 +447,24 @@ func show_window() {
 			err := json.Unmarshal([]byte(qr_json), &product)
 			if err == nil {
 				qr_pop_data(product)
+			} else {
+				log.Printf("error: %q: %s\n", err, "qr_json_keygrab")
 			}
+			keygrab.SetText("")
+			mainWindow.SetFocus()
+			return true
+		})
+
+	// Resize handling
+	mainWindow.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModControl, Key: windigo.KeyOEMPlus}, // {
+		func() bool {
+			set_font(GUI.BASE_FONT_SIZE + 1)
+			return true
+		})
+
+	mainWindow.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModControl, Key: windigo.KeyOEMMinus}, // {
+		func() bool {
+			set_font(GUI.BASE_FONT_SIZE - 1)
 			return true
 		})
 

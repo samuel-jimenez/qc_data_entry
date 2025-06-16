@@ -106,33 +106,51 @@ func (product *QCProduct) show_ranges_window() {
 	} else {
 		WindowText = product.Product_type
 	}
-
-	rangeWindow.SetSize(800, 600) // (width, height)
+	rangeWindow.SetSize(RANGES_WINDOW_WIDTH,
+		RANGES_WINDOW_HEIGHT) // (width, height)
 	rangeWindow.SetText(WindowText)
 
 	dock := windigo.NewSimpleDock(rangeWindow)
-	dock.SetPaddingsAll(5)
+	dock.SetPaddingsAll(RANGES_WINDOW_PADDING)
+	dock.SetPaddingTop(RANGES_PADDING)
 
-	dock.SetPaddingTop(10)
 	prod_label := windigo.NewLabel(rangeWindow)
-
 	prod_label.SetText(WindowText)
+	prod_label.SetSize(OFF_AXIS, RANGES_FIELD_SMALL_HEIGHT)
 
-	radio_dock := BuildNewProductTypeView(rangeWindow, "Type", product.product_type, []string{"Water Based", "Oil Based", "Friction Reducer"})
+	radio_dock := BuildNewDiscreteView(rangeWindow, "Type", product.product_type, []string{"Water Based", "Oil Based", "Friction Reducer"})
+	radio_dock.SetSize(OFF_AXIS, DISCRETE_FIELD_HEIGHT)
+	radio_dock.SetItemSize(PRODUCT_TYPE_WIDTH)
+	radio_dock.SetPaddingsAll(GROUPBOX_CUSHION)
 
 	coa_field := windigo.NewCheckBox(rangeWindow)
 	coa_field.SetText("Save to COA published ranges")
 	coa_field.SetMarginsAll(ERROR_MARGIN)
+	coa_field.SetSize(OFF_AXIS, RANGES_FIELD_SMALL_HEIGHT)
 
 	appearance_dock := BuildNewProductAppearanceView(rangeWindow, "Appearance", product.Appearance)
 
 	labels := build_text_dock(rangeWindow, []string{"", "Min", "Target", "Max"})
+	labels.SetMarginsAll(RANGES_PADDING)
+	labels.SetDockSize(RANGES_FIELD_WIDTH, RANGES_FIELD_SMALL_HEIGHT)
+	//TODO center
+	//TODO layout split n
+
 	ph_dock := BuildNewRangeView(rangeWindow, "pH", product.PH, formats.Format_ranges_ph)
+	ph_dock.SetLabeledSize(LABEL_WIDTH, RANGES_FIELD_WIDTH, RANGES_FIELD_HEIGHT)
+
 	sg_dock := BuildNewRangeView(rangeWindow, "Specific Gravity", product.SG, formats.Format_ranges_sg)
+	sg_dock.SetLabeledSize(LABEL_WIDTH, RANGES_FIELD_WIDTH, RANGES_FIELD_HEIGHT)
+
 	density_dock := BuildNewRangeView(rangeWindow, "Density", product.Density, formats.Format_ranges_density)
+	density_dock.SetLabeledSize(LABEL_WIDTH, RANGES_FIELD_WIDTH, RANGES_FIELD_HEIGHT)
+
 	string_dock := BuildNewRangeView(rangeWindow, "String Test \n\t at 0.5gpt", product.String_test, formats.Format_ranges_string_test)
+	string_dock.SetLabeledSize(LABEL_WIDTH, RANGES_FIELD_WIDTH, RANGES_FIELD_HEIGHT)
 	//TODO store string_amt "at 0.5gpt"
+
 	visco_dock := BuildNewRangeView(rangeWindow, "Viscosity", product.Viscosity, formats.Format_ranges_viscosity)
+	visco_dock.SetLabeledSize(LABEL_WIDTH, RANGES_FIELD_WIDTH, RANGES_FIELD_HEIGHT)
 
 	exit := func() {
 		rangeWindow.Close()
@@ -187,6 +205,8 @@ func (product *QCProduct) show_ranges_window() {
 		}
 	}
 	button_dock := build_button_dock(rangeWindow, []string{"OK", "Cancel"}, []func(){try_save, exit})
+	button_dock.SetDockSize(RANGES_BUTTON_WIDTH, RANGES_BUTTON_HEIGHT)
+	button_dock.SetMarginLeft(RANGES_PADDING)
 
 	dock.Dock(prod_label, windigo.Top)
 	dock.Dock(radio_dock, windigo.Top)

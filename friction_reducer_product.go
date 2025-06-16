@@ -32,33 +32,28 @@ func (product FrictionReducerProduct) check_data() bool {
 
 type FrictionReducerProductView struct {
 	*windigo.AutoPanel
-	Get   func(base_product BaseProduct, replace_sample_point bool) Product
-	Clear func()
+	Get     func(base_product BaseProduct, replace_sample_point bool) Product
+	Clear   func()
+	SetFont func(font *windigo.Font)
+	Refresh func()
 }
 
-func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point string, group_width, group_height int, ranges_panel FrictionReducerProductRangesView) FrictionReducerProductView {
-
-	label_width := LABEL_WIDTH
-	field_width := DATA_FIELD_WIDTH
-	field_height := FIELD_HEIGHT
+func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point string, ranges_panel FrictionReducerProductRangesView) FrictionReducerProductView {
 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
-	mass_text := "Mass"
 	string_text := "String"
 
 	group_panel := windigo.NewGroupAutoPanel(parent)
-	group_panel.SetSize(group_width, group_height)
 	group_panel.SetText(sample_point)
-	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-	visual_field := NewBoolCheckboxView(group_panel, OFF_AXIS, field_height, visual_text)
+	visual_field := NewBoolCheckboxView(group_panel, visual_text)
 
-	viscosity_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, viscosity_text, ranges_panel.viscosity_field)
+	viscosity_field := NewNumberEditViewWithChange(group_panel, viscosity_text, ranges_panel.viscosity_field)
 
-	mass_field := NewMassDataView(group_panel, label_width, field_width, field_height, mass_text, ranges_panel)
+	mass_field := NewMassDataView(group_panel, ranges_panel)
 
-	string_field := NewNumberEditViewWithChange(group_panel, label_width, field_width, field_height, string_text, ranges_panel.string_field)
+	string_field := NewNumberEditViewWithChange(group_panel, string_text, ranges_panel.string_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)
@@ -85,7 +80,25 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 	}
 
-	return FrictionReducerProductView{group_panel, get, clear}
+	setFont := func(font *windigo.Font) {
+		group_panel.SetFont(font)
+		visual_field.SetFont(font)
+		viscosity_field.SetFont(font)
+		mass_field.SetFont(font) //?TODO
+		string_field.SetFont(font)
+	}
+	refresh := func() {
+		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+
+		visual_field.SetSize(OFF_AXIS, FIELD_HEIGHT)
+		viscosity_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+		mass_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, FIELD_HEIGHT)
+		string_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+
+	}
+
+	return FrictionReducerProductView{group_panel, get, clear, setFont, refresh}
 
 }
 
@@ -99,7 +112,9 @@ type FrictionReducerProductRangesView struct {
 	// density_field,
 	string_field *RangeROView
 
-	Update func(qc_product QCProduct)
+	Update  func(qc_product QCProduct)
+	SetFont func(font *windigo.Font)
+	Refresh func()
 }
 
 func (data_view FrictionReducerProductRangesView) Clear() {
@@ -108,7 +123,7 @@ func (data_view FrictionReducerProductRangesView) Clear() {
 	data_view.string_field.Clear()
 }
 
-func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct, group_width, group_height int) FrictionReducerProductRangesView {
+func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct) FrictionReducerProductRangesView {
 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
@@ -118,8 +133,6 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 	density_text := "Density"
 
 	group_panel := windigo.NewAutoPanel(parent)
-	group_panel.SetSize(group_width, group_height)
-	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
@@ -149,13 +162,33 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 		density_field.Update(qc_product.Density)
 	}
 
+	setFont := func(font *windigo.Font) {
+		visual_field.SetFont(font)
+		viscosity_field.SetFont(font)
+		mass_field.SetFont(font)
+		string_field.SetFont(font)
+		sg_field.SetFont(font)
+		density_field.SetFont(font)
+	}
+	refresh := func() {
+		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, RANGES_RO_PADDING, BTM_SPACER_HEIGHT)
+		visual_field.Refresh()
+		viscosity_field.Refresh()
+		mass_field.Refresh()
+		string_field.Refresh()
+		sg_field.Refresh()
+		density_field.Refresh()
+
+	}
+
 	return FrictionReducerProductRangesView{group_panel,
 		&MassRangesView{&mass_field,
 			&sg_field,
 			&density_field},
 		&viscosity_field,
 		&string_field,
-		update}
+		update, setFont, refresh}
 
 }
 
@@ -177,30 +210,23 @@ func check_dual_data(top_product, bottom_product Product) {
 type FrictionReducerPanelView struct {
 	Update          func(qc_product QCProduct)
 	ChangeContainer func(qc_product QCProduct)
+	SetFont         func(font *windigo.Font)
+	Refresh         func()
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
-func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) FrictionReducerPanelView {
-
-	group_width := GROUP_WIDTH
-	group_height := GROUP_HEIGHT
-	group_margin := GROUP_MARGIN
-
-	button_width := BUTTON_WIDTH
-	button_height := BUTTON_HEIGHT
+func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) *FrictionReducerPanelView {
 
 	top_text := "Top"
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(OFF_AXIS, group_height)
-	panel.SetMargins(group_margin, group_margin, 0, 0)
 
-	ranges_panel := BuildNewFrictionReducerProductRangesView(panel, qc_product, RANGE_WIDTH, group_height)
+	ranges_panel := BuildNewFrictionReducerProductRangesView(panel, qc_product)
 
-	top_group := BuildNewFrictionReducerProductView(panel, top_text, group_width, group_height, ranges_panel)
-	bottom_group := BuildNewFrictionReducerProductView(panel, bottom_text, group_width, group_height, ranges_panel)
+	top_group := BuildNewFrictionReducerProductView(panel, top_text, ranges_panel)
+	bottom_group := BuildNewFrictionReducerProductView(panel, bottom_text, ranges_panel)
 
 	submit_cb := func() {
 		base_product := create_new_product_cb()
@@ -249,13 +275,15 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		}
 	}
 
-	button_dock_totes := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear"}, []int{40, 0}, []func(){tote_cb, clear_cb})
-	button_dock_cars := build_marginal_button_dock(parent, button_width, button_height, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
+	button_dock_totes := build_marginal_button_dock(parent, []string{"Submit", "Clear"}, []int{40, 0}, []func(){tote_cb, clear_cb})
+	button_dock_cars := build_marginal_button_dock(parent, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
 	button_dock_totes.Hide()
 
 	panel.Dock(top_group, windigo.Left)
 	panel.Dock(bottom_group, windigo.Left)
+	// TODO
 	panel.Dock(ranges_panel, windigo.Right)
+	// panel.Dock(ranges_panel, windigo.Left)
 
 	parent.Dock(panel, windigo.Top)
 	parent.Dock(button_dock_totes, windigo.Top)
@@ -273,6 +301,26 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		}
 	}
 
-	return FrictionReducerPanelView{ranges_panel.Update, changeContainer}
+	setFont := func(font *windigo.Font) {
+		ranges_panel.SetFont(font)      //?TODO
+		top_group.SetFont(font)         //?TODO
+		bottom_group.SetFont(font)      //?TODO
+		button_dock_totes.SetFont(font) //?TODO
+		button_dock_cars.SetFont(font)  //?TODO
+	}
+	refresh := func() {
+
+		panel.SetSize(OFF_AXIS, GROUP_HEIGHT)
+		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
+
+		button_dock_totes.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+		button_dock_cars.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+
+		top_group.Refresh()
+		bottom_group.Refresh()
+		ranges_panel.Refresh()
+	}
+
+	return &FrictionReducerPanelView{ranges_panel.Update, changeContainer, setFont, refresh}
 
 }

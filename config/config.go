@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/spf13/viper"
 )
 
@@ -32,14 +33,17 @@ func Load_config(appname string) *viper.Viper {
 	viper_config.AddConfigPath(".")         // optionally look for config in the working directory
 	// viper_config.AddConfigPath("/etc/appname/")  // path to look for the config file in
 	viper_config.AddConfigPath(config_path) // call multiple times to add many search paths
-	err = viper_config.ReadInConfig()       // Find and read the config file
+
+	// Set defaults
+	viper_config.SetDefault("db_path", ".")
+	viper_config.SetDefault("label_path", ".")
+	viper_config.SetDefault("log_file", fmt.Sprintf("./%s.log", appname))
+	viper_config.SetDefault("json_paths", []string{"."})
+	viper_config.SetDefault("font_size", GUI.BASE_FONT_SIZE)
+
+	err = viper_config.ReadInConfig() // Find and read the config file
 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 		// Config file not found; ignore error if desired
-
-		viper_config.Set("db_path", ".")
-		viper_config.Set("label_path", ".")
-		viper_config.Set("log_file", fmt.Sprintf("./%s.log", appname))
-		viper_config.Set("json_paths", []string{"."})
 
 		os.MkdirAll(config_path, 660)
 		log.Println(viper_config.WriteConfigAs(config_file))
@@ -51,6 +55,11 @@ func Load_config(appname string) *viper.Viper {
 	LABEL_PATH = viper_config.GetString("label_path")
 	JSON_PATHS = viper_config.GetStringSlice("json_paths")
 	LOG_FILE = viper_config.GetString("log_file")
+	GUI.BASE_FONT_SIZE = viper_config.GetInt("font_size")
 
 	return viper_config
+}
+
+func Write_config(viper_config *viper.Viper) {
+	viper_config.WriteConfigAs(viper_config.ConfigFileUsed())
 }

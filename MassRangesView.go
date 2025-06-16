@@ -55,7 +55,7 @@ type MassDataViewable interface {
 type MassDataView struct {
 	*NumberEditView
 	sg_field,
-	density_field *NumberEditView
+	density_field *NumberUnitsEditView
 }
 
 func (data_view MassDataView) Clear() {
@@ -64,22 +64,32 @@ func (data_view MassDataView) Clear() {
 	data_view.density_field.Clear()
 }
 
-func NewMassDataView(parent *windigo.AutoPanel, label_width, control_width, height int, field_text string, ranges_panel MassRangesViewable) *MassDataView {
+func (data_view MassDataView) SetFont(font *windigo.Font) {
+	data_view.NumberEditView.SetFont(font)
+	data_view.sg_field.SetFont(font)
+	data_view.density_field.SetFont(font)
+}
 
-	field_width := DATA_FIELD_WIDTH
-	unit_width := RANGES_RO_FIELD_WIDTH
+func (data_view MassDataView) SetLabeledSize(label_width, field_width, subfield_width, unit_width, height int) {
+	data_view.NumberEditView.SetLabeledSize(label_width, field_width, height)
+	data_view.sg_field.SetLabeledSize(label_width, subfield_width, unit_width, height)
+	data_view.density_field.SetLabeledSize(label_width, subfield_width, unit_width, height)
+}
 
+func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable) *MassDataView {
+
+	mass_text := "Mass"
 	sg_text := "Specific Gravity"
 	density_text := "Density"
 
 	sg_units := "g/mL"
 	density_units := "lb/gal"
 
-	mass_field := NewNumberEditView(parent, label_width, control_width, height, field_text)
+	mass_field := NewNumberEditView(parent, mass_text)
 
 	//PUSH TO BOTTOM
-	density_field := NewNumberEditViewWithUnits(parent, label_width, field_width, unit_width, height, density_text, density_units)
-	sg_field := NewNumberEditViewWithUnits(parent, label_width, field_width, unit_width, height, sg_text, sg_units)
+	density_field := NewNumberEditViewWithUnits(parent, density_text, density_units)
+	sg_field := NewNumberEditViewWithUnits(parent, sg_text, sg_units)
 
 	check_or_error_mass := func(mass, sg, density float64) {
 		mass_field.Check(ranges_panel.CheckMass(mass))

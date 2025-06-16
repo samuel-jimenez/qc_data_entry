@@ -63,20 +63,33 @@ func (control *DiscreteView) OnSelectedChange() *windigo.EventManager {
 	return &control.onSelectedChange
 }
 
-func BuildNewDiscreteView(parent windigo.Controller, width, height int, group_text string, field_data Discrete, labels []string) *DiscreteView {
+func (control DiscreteView) SetFont(font *windigo.Font) {
+	control.View.ComponentFrame.(*windigo.AutoPanel).SetFont(font)
+	for _, button := range control.buttons {
+		button.SetFont(font)
+	}
+}
+
+func (control DiscreteView) SetItemSize(width int) {
+	for _, button := range control.buttons {
+		button.SetSize(width, OFF_AXIS)
+	}
+}
+
+func BuildNewDiscreteView(parent windigo.Controller, group_text string, field_data Discrete, labels []string) *DiscreteView {
 	view := new(DiscreteView)
 
 	panel := windigo.NewGroupAutoPanel(parent)
+	panel.SetSize(DISCRETE_FIELD_WIDTH, DISCRETE_FIELD_HEIGHT)
 
-	panel.SetSize(OFF_AXIS, height)
 	panel.SetText(group_text)
 	panel.SetPaddingsAll(15)
 
 	for i, label_text := range labels {
 		label := windigo.NewRadioButton(panel)
-		label.SetSize(width, OFF_AXIS)
 		label.SetMarginLeft(10)
 		label.SetText(label_text)
+
 		label.OnClick().Bind(func(e *windigo.Event) {
 			view.Set(i)
 		})
@@ -90,8 +103,4 @@ func BuildNewDiscreteView(parent windigo.Controller, width, height int, group_te
 	view.Ok()
 
 	return view
-}
-
-func BuildNewProductTypeView(parent windigo.Controller, group_text string, field_data Discrete, labels []string) *DiscreteView {
-	return BuildNewDiscreteView(parent, PRODUCT_TYPE_WIDTH, RANGES_FIELD_HEIGHT, group_text, field_data, labels)
 }

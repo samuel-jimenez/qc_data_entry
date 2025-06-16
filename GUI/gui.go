@@ -8,6 +8,10 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
+var (
+	BASE_FONT_SIZE = 10
+)
+
 func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
 	if err != nil {
@@ -47,9 +51,33 @@ func Fill_combobox_from_query(control windigo.ComboBoxable, select_statement *sq
 	})
 }
 
-func Show_combobox(parent windigo.Controller, label_width, control_width, height int, field_text string) *windigo.LabeledComboBox {
-	combobox_field := windigo.NewLabeledComboBox(parent, label_width, control_width, height, field_text)
+type ComboBox struct {
+	*windigo.LabeledComboBox
+}
 
+// TODO SetFont decrease followed by SetLabeledSize disappears lists
+func (control *ComboBox) SetFont(font *windigo.Font) {
+	control.ComboBox.SetFont(font)
+	control.Label().SetFont(font)
+}
+
+func (control *ComboBox) SetLabeledSize(label_width, control_width, height int) {
+	control.SetSize(label_width+control_width, 40*height)
+	control.SetSize(label_width+control_width, height)
+	control.Label().SetSize(label_width, height)
+}
+
+func NewComboBox(parent windigo.Controller, field_text string) *ComboBox {
+	combobox_field := &ComboBox{windigo.NewLabeledComboBox(parent, field_text)}
+	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
+		combobox_field.SetText(strings.ToUpper(strings.TrimSpace(combobox_field.Text())))
+	})
+
+	return combobox_field
+}
+
+func Show_combobox(parent windigo.Controller, label_width, control_width, height int, field_text string) *ComboBox {
+	combobox_field := &ComboBox{windigo.NewSizedLabeledComboBox(parent, label_width, control_width, height, field_text)}
 	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		combobox_field.SetText(strings.ToUpper(strings.TrimSpace(combobox_field.Text())))
 	})

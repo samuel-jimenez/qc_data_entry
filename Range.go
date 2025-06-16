@@ -1,6 +1,8 @@
 package main
 
-import "github.com/samuel-jimenez/windigo"
+import (
+	"github.com/samuel-jimenez/windigo"
+)
 
 /*
  * Range
@@ -41,15 +43,22 @@ func (field_data Range) Map(data_map func(float64) float64) Range {
 
 type RangeView struct {
 	*windigo.AutoPanel
-	Get func() Range
+	Get            func() Range
+	SetLabeledSize func(label_width, control_width, height int)
 }
+
+// func (control RangeView) SetDockSize(width, height int) {
+// 	control.SetSize(width, height)
+// 	for _, label := range control.labels {
+// 		label.SetSize(width, height)
+// 	}
+// }
 
 func BuildNewRangeView(parent windigo.Controller, field_text string, field_data Range, format func(float64) string) RangeView {
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(OFF_AXIS, RANGES_FIELD_HEIGHT)
 	// panel.SetMarginsAll(10)
-	panel.SetPaddingsAll(10)
+	panel.SetPaddingsAll(RANGES_PADDING)
 	label := windigo.NewLabel(panel)
 	label.SetText(field_text)
 
@@ -71,5 +80,13 @@ func BuildNewRangeView(parent windigo.Controller, field_text string, field_data 
 		)
 	}
 
-	return RangeView{panel, get}
+	setLabeledSize := func(label_width, control_width, height int) {
+		panel.SetSize(control_width, height)
+		label.SetSize(label_width, height)
+		min_field.SetSize(control_width, height)
+		target_field.SetSize(control_width, height)
+		max_field.SetSize(control_width, height)
+	}
+
+	return RangeView{panel, get, setLabeledSize}
 }
