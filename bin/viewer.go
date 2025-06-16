@@ -366,6 +366,9 @@ func show_window() {
 	customer_text := "Customer Name"
 
 	// build window
+
+	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
+
 	mainWindow := windigo.NewForm(nil)
 	mainWindow.SetSize(window_width, window_height)
 	mainWindow.SetText("QC Data Viewer")

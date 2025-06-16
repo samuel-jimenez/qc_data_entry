@@ -56,7 +56,7 @@ func show_window() {
 	qc_product.product_id = INVALID_ID
 	qc_product.lot_id = DEFAULT_LOT_ID
 
-	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, 0)
+	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
 
 	// build window
 	mainWindow := windigo.NewForm(nil)
