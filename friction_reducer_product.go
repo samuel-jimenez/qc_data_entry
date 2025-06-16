@@ -275,8 +275,8 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		}
 	}
 
-	button_dock_totes := build_marginal_button_dock(parent, []string{"Submit", "Clear"}, []int{40, 0}, []func(){tote_cb, clear_cb})
-	button_dock_cars := build_marginal_button_dock(parent, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
+	button_dock_totes := NewMarginalButtonDock(parent, []string{"Submit", "Clear"}, []int{40, 0}, []func(){tote_cb, clear_cb})
+	button_dock_cars := NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
 	button_dock_totes.Hide()
 
 	panel.Dock(top_group, windigo.Left)

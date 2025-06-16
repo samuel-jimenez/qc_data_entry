@@ -79,7 +79,7 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 		}
 	}
 
-	button_dock := build_marginal_button_dock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
+	button_dock := NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
 
 	panel.Dock(group_panel, windigo.Left)
 	panel.Dock(ranges_panel, windigo.Right)
