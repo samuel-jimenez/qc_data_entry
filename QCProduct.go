@@ -130,7 +130,7 @@ func (product *QCProduct) show_ranges_window() {
 
 	appearance_dock := BuildNewProductAppearanceView(rangeWindow, "Appearance", product.Appearance)
 
-	labels := build_text_dock(rangeWindow, []string{"", "Min", "Target", "Max"})
+	labels := NewTextDock(rangeWindow, []string{"", "Min", "Target", "Max"})
 	labels.SetMarginsAll(RANGES_PADDING)
 	labels.SetDockSize(RANGES_FIELD_WIDTH, RANGES_FIELD_SMALL_HEIGHT)
 	//TODO center
@@ -204,7 +204,7 @@ func (product *QCProduct) show_ranges_window() {
 			radio_dock.Error()
 		}
 	}
-	button_dock := build_button_dock(rangeWindow, []string{"OK", "Cancel"}, []func(){try_save, exit})
+	button_dock := NewButtonDock(rangeWindow, []string{"OK", "Cancel"}, []func(){try_save, exit})
 	button_dock.SetDockSize(RANGES_BUTTON_WIDTH, RANGES_BUTTON_HEIGHT)
 	button_dock.SetMarginLeft(RANGES_PADDING)
 

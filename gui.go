@@ -158,7 +158,7 @@ func (control TextDock) SetDockSize(width, height int) {
 	}
 }
 
-func build_text_dock(parent windigo.Controller, labels []string) *TextDock {
+func NewTextDock(parent windigo.Controller, labels []string) *TextDock {
 	control := new(TextDock)
 
 	panel := windigo.NewAutoPanel(parent)
@@ -194,7 +194,7 @@ func (control ButtonDock) SetDockSize(width, height int) {
 	}
 }
 
-func build_button_dock(parent windigo.Controller, labels []string, onclicks []func()) *ButtonDock {
+func NewButtonDock(parent windigo.Controller, labels []string, onclicks []func()) *ButtonDock {
 	assertEqual(len(labels), len(onclicks))
 	control := new(ButtonDock)
 	panel := windigo.NewAutoPanel(parent)
@@ -217,7 +217,7 @@ func build_button_dock(parent windigo.Controller, labels []string, onclicks []fu
 	return control
 }
 
-func build_marginal_button_dock(parent windigo.Controller, labels []string, margins []int, onclicks []func()) *ButtonDock {
+func NewMarginalButtonDock(parent windigo.Controller, labels []string, margins []int, onclicks []func()) *ButtonDock {
 	assertEqual(len(labels), len(margins))
 	assertEqual(len(labels), len(onclicks))
 	control := new(ButtonDock)
