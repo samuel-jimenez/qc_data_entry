@@ -58,7 +58,8 @@ func main() {
 // package viewer
 var (
 	db_select_product_info,
-	db_select_product_samples *sql.Stmt
+	db_select_product_samples,
+	db_select_samples *sql.Stmt
 )
 
 /* NullString
@@ -101,7 +102,8 @@ func (a_n NullFloat64) Compare(b_n NullFloat64) int {
  *
  */
 type QCData struct {
-	lot_name     string
+	product_name,
+	lot_name string
 	sample_point NullString
 	time_stamp   time.Time
 	ph,
@@ -243,21 +245,23 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	return table
 }
 
-func select_product_samples(product_id int) []QCData {
-	rows, err := db_select_product_samples.Query(product_id)
+func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, "select_product_samples")
+		log.Printf("error: %q: %s\n", err, fn)
 		// return -1
 	}
 
 	data := make([]QCData, 0)
 	for rows.Next() {
 		var (
-			qc_data    QCData
-			_timestamp int64
+			qc_data              QCData
+			_timestamp           int64
+			product_moniker_name string
+			internal_name        string
 		)
 
-		if err := rows.Scan(&qc_data.lot_name,
+		if err := rows.Scan(&product_moniker_name, &internal_name,
+			&qc_data.lot_name,
 			&qc_data.sample_point,
 			&_timestamp,
 			&qc_data.ph,
@@ -266,10 +270,22 @@ func select_product_samples(product_id int) []QCData {
 			&qc_data.viscosity); err != nil {
 			log.Fatal(err)
 		}
+		qc_data.product_name = product_moniker_name + " " + internal_name
+
 		qc_data.time_stamp = time.Unix(0, _timestamp)
 		data = append(data, qc_data)
 	}
 	return data
+}
+
+func select_samples() []QCData {
+	rows, err := db_select_samples.Query()
+	return _select_samples(rows, err, "select_samples")
+}
+
+func select_product_samples(product_id int) []QCData {
+	rows, err := db_select_product_samples.Query(product_id)
+	return _select_samples(rows, err, "select_product_samples")
 }
 
 func dbinit(db *sql.DB) {
@@ -280,12 +296,13 @@ func dbinit(db *sql.DB) {
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
-		order by product_moniker_name,product_name_internal
 
 	`)
 
 	db_select_product_samples = DB.PrepareOrElse(db, `
 	select
+		product_moniker_name,
+		product_name_internal,
 		lot_name,
 		sample_point,
 		time_stamp,
@@ -295,8 +312,29 @@ func dbinit(db *sql.DB) {
 		viscosity
 	from bs.qc_samples
 		join bs.product_lot using (lot_id)
+		join bs.product_line using (product_id)
+		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_sample_points using (sample_point_id)
 	where product_id = ?
+	`)
+
+	db_select_samples = DB.PrepareOrElse(db, `
+	select
+		product_moniker_name,
+		product_name_internal,
+		lot_name,
+		sample_point,
+		time_stamp,
+		ph ,
+		specific_gravity ,
+		string_test ,
+		viscosity
+	from bs.qc_samples
+		join bs.product_lot using (lot_id)
+		join bs.product_line using (product_id)
+		join bs.product_moniker using (product_moniker_id)
+		left join bs.product_sample_points using (sample_point_id)
+	order by product_moniker_name,product_name_internal
 	`)
 }
 
@@ -426,6 +464,8 @@ func show_window() {
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
 	table := NewQCDataView(mainWindow)
+	table.Set(select_samples())
+	table.Update()
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(table, windigo.Fill)
