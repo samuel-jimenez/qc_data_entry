@@ -26,7 +26,7 @@ func show_window() {
 	clock_width := 90
 	clock_timer_width := 35
 	clock_timer_offset_h := 10
-	clock_timer_offset_v := 25
+	clock_timer_offset_v := 30
 	clock_font_size := 25
 	clock_font_style_flags := byte(0x0) //FontNormal
 
@@ -87,7 +87,7 @@ func show_window() {
 	clock_panel.SetSize(clock_width, OFF_AXIS)
 	clock_display_now := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
 	clock_display_future := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, OFF_AXIS, "")
-	clock_display_future.SetMarginTop(clock_timer_offset_v)
+	clock_display_now.SetMarginTop(clock_timer_offset_v)
 	clock_display_future.SetMarginLeft(clock_timer_offset_h)
 	clock_display_future.SetMarginRight(clock_timer_offset_h)
 	clock_font := windigo.NewFont(clock_display_now.Font().Family(), clock_font_size, clock_font_style_flags)
