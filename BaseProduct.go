@@ -23,6 +23,8 @@ func (product BaseProduct) toBaseProduct() BaseProduct {
 	return product
 }
 
+//TODO product.get_coa_name()
+
 func (product BaseProduct) get_base_filename(extension string) string {
 	// if (product.Sample_point.Valid) {
 	if product.Sample_point != "" {

@@ -16,10 +16,7 @@ import (
 type NullFloat64View struct {
 	*windigo.Edit
 	Get func() nullable.NullFloat64
-}
-
-func NewNullFloat64View(control *windigo.Edit, get func() nullable.NullFloat64) NullFloat64View {
-	return NullFloat64View{control, get}
+	Set func(nullable.NullFloat64)
 }
 
 func BuildNewNullFloat64View(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) NullFloat64View {
@@ -43,8 +40,15 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data nullable.Null
 		//only valid if we have some text which parses correctly
 		return nullable.NewNullFloat64(value, valid)
 	}
+	set := func(field_data nullable.NullFloat64) {
+		field_text := ""
+		if field_data.Valid {
+			field_text = format(field_data.Float64)
+		}
+		edit_field.SetText(field_text)
+	}
 
-	return NewNullFloat64View(edit_field, get)
+	return NullFloat64View{edit_field, get, set}
 }
 
 /*

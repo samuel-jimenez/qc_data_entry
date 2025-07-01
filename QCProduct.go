@@ -6,6 +6,8 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/whatsupdocx/docx"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -46,9 +48,22 @@ func (product *QCProduct) select_product_details() {
 	)
 	if err != nil {
 		log.Printf("Error: %q: %s\n", err, "select_product_details")
-
 	}
+}
 
+func (product *QCProduct) select_product_coa_details() {
+
+	err := db_select_product_coa_details.QueryRow(product.product_id).Scan(
+		&product.Appearance,
+		&product.PH.Min, &product.PH.Target, &product.PH.Max,
+		&product.SG.Min, &product.SG.Target, &product.SG.Max,
+		&product.Density.Min, &product.Density.Target, &product.Density.Max,
+		&product.String_test.Min, &product.String_test.Target, &product.String_test.Max,
+		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
+	)
+	if err != nil {
+		log.Printf("Error: %q: %s\n", err, "select_product_coa_details")
+	}
 }
 
 func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
@@ -76,6 +91,59 @@ func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 }
 func (product QCProduct) upsert()     { product._upsert(db_upsert_product_details) }
 func (product QCProduct) upsert_coa() { product._upsert(db_upsert_product_coa_details) }
+
+func write_CoA_cell(row *docx.Row, value string) {
+	cell := row.AddCell()
+	cell.AddParagraph(value)
+}
+
+func write_CoA_row(table *docx.Table, title, units, spec, result string) {
+	row := table.AddRow()
+	write_CoA_cell(row, title)
+	write_CoA_cell(row, units)
+	write_CoA_cell(row, spec)
+	write_CoA_cell(row, result)
+}
+
+func write_CoA_row_fmt(table *docx.Table, title, units string, spec Range, result nullable.NullFloat64, format_fn func(float64) string) {
+	if result.Valid {
+		write_CoA_row(table, title, units, spec.CoA(format_fn), format_fn(result.Float64))
+	}
+}
+
+func (product QCProduct) write_CoA_rows(table *docx.Table) {
+	var (
+		Appearance_units = "Pass/fail"
+
+		Appearance_title = "Appearance"
+		// Appearance_title = "Clarity/Color"
+
+		viscosity_title = "Viscosity"
+		string_title    = "String"
+		ph_title        = "pH"
+		sg_title        = "Specific Gravity"
+		Density_title   = "Density"
+	)
+
+	var (
+		// visual        = "PASS"
+		visual = "FAIL"
+	)
+	if product.Visual {
+		visual = "PASS"
+	}
+	Format_sg := func(sg float64) string {
+		return formats.Format_sg(sg, product.Product.PH.Valid)
+	}
+
+	product.select_product_coa_details()
+	write_CoA_row(table, Appearance_title, Appearance_units, product.Appearance.String, visual)
+	write_CoA_row_fmt(table, ph_title, formats.DENSITY_UNITS, product.PH, product.Product.PH, formats.Format_ph)
+	write_CoA_row_fmt(table, sg_title, formats.SG_UNITS, product.SG, product.Product.SG, Format_sg)
+	write_CoA_row_fmt(table, Density_title, formats.DENSITY_UNITS, product.Density, product.Product.Density, formats.Format_density)
+	write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
+	write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
+}
 
 func (product *QCProduct) edit(
 	product_type Discrete,
@@ -204,7 +272,19 @@ func (product *QCProduct) show_ranges_window() {
 			radio_dock.Error()
 		}
 	}
-	button_dock := NewButtonDock(rangeWindow, []string{"OK", "Cancel"}, []func(){try_save, exit})
+
+	load_coa := func() {
+		product.reset()
+		product.select_product_coa_details()
+		appearance_dock.Set(product.Appearance)
+		ph_dock.Set(product.PH)
+		sg_dock.Set(product.SG)
+		density_dock.Set(product.Density)
+		string_dock.Set(product.String_test)
+		visco_dock.Set(product.Viscosity)
+	}
+
+	button_dock := NewButtonDock(rangeWindow, []string{"OK", "Cancel", "Load CoA Data"}, []func(){try_save, exit, load_coa})
 	button_dock.SetDockSize(RANGES_BUTTON_WIDTH, RANGES_BUTTON_HEIGHT)
 	button_dock.SetMarginLeft(RANGES_PADDING)
 

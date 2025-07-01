@@ -60,7 +60,10 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
-			product.output()
+			err := product.output()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "OilBasedProduct.output")
+			}
 		}
 	}
 

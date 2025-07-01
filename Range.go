@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -37,6 +39,19 @@ func (field_data Range) Map(data_map func(float64) float64) Range {
 		field_data.Max.Map(data_map)}
 }
 
+func (field_data Range) CoA(format func(float64) string) string {
+	if field_data.Min.Valid {
+		if field_data.Max.Valid {
+			return fmt.Sprintf("%s - %s", format(field_data.Min.Float64), format(field_data.Max.Float64))
+		}
+		return fmt.Sprintf("≥ %s", format(field_data.Min.Float64))
+	} else if field_data.Max.Valid {
+		return fmt.Sprintf("≤ %s", format(field_data.Max.Float64))
+	}
+
+	return "As-is"
+}
+
 /*
  * RangeView
  *
@@ -45,6 +60,7 @@ func (field_data Range) Map(data_map func(float64) float64) Range {
 type RangeView struct {
 	*windigo.AutoPanel
 	Get            func() Range
+	Set            func(Range)
 	SetLabeledSize func(label_width, control_width, height int)
 }
 
@@ -81,6 +97,12 @@ func BuildNewRangeView(parent windigo.Controller, field_text string, field_data 
 		)
 	}
 
+	set := func(field_data Range) {
+		min_field.Set(field_data.Min)
+		target_field.Set(field_data.Target)
+		max_field.Set(field_data.Max)
+	}
+
 	setLabeledSize := func(label_width, control_width, height int) {
 		panel.SetSize(control_width, height)
 		label.SetSize(label_width, height)
@@ -89,5 +111,5 @@ func BuildNewRangeView(parent windigo.Controller, field_text string, field_data 
 		max_field.SetSize(control_width, height)
 	}
 
-	return RangeView{panel, get, setLabeledSize}
+	return RangeView{panel, get, set, setLabeledSize}
 }

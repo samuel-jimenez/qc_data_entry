@@ -198,13 +198,19 @@ func check_dual_data(top_product, bottom_product Product) {
 	if top_product.check_data() {
 		log.Println("debug: check_data", top_product)
 		top_product.save()
-		top_product.output()
+		err := top_product.printout()
+		if err != nil {
+			log.Printf("Error: %q: %s\n", err, "top_product.printout")
+		}
 
 	}
 	if bottom_product.check_data() {
 		log.Println("debug: check_data", bottom_product)
 		bottom_product.save()
-		bottom_product.output()
+		err := bottom_product.printout()
+		if err != nil {
+			log.Printf("Error: %q: %s\n", err, "bottom_product.printout")
+		}
 	}
 }
 
@@ -250,6 +256,10 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		if top_product.check_data() {
 			log.Println("debug: submit_cb top sample", top_product)
 			top_product.output_sample()
+			err := top_product.output_sample()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "top_product.output_sample")
+			}
 		}
 	}
 
@@ -260,7 +270,10 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		bottom_product := bottom_group.Get(base_product, true)
 		if bottom_product.check_data() {
 			log.Println("debug: submit_cb btm sample", bottom_product)
-			bottom_product.output_sample()
+			err := bottom_product.output_sample()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "bottom_product.output_sample")
+			}
 		}
 	}
 
@@ -271,7 +284,10 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		if top_product.check_data() {
 			log.Println("debug: submit_cb tote", top_product)
 			top_product.save()
-			top_product.output()
+			err := top_product.output()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "top_product.output")
+			}
 
 		}
 	}

@@ -14,6 +14,8 @@ var (
 	DB_PATH,
 	DB_FILE,
 	LABEL_PATH,
+	COA_TEMPLATE_PATH,
+	COA_FILEPATH,
 	LOG_FILE string
 
 	JSON_PATHS []string
@@ -37,6 +39,8 @@ func Load_config(appname string) *viper.Viper {
 	// Set defaults
 	viper_config.SetDefault("db_path", ".")
 	viper_config.SetDefault("label_path", ".")
+	viper_config.SetDefault("coa_template_path", ".")
+	viper_config.SetDefault("coa_filepath", ".")
 	viper_config.SetDefault("log_file", fmt.Sprintf("./%s.log", appname))
 	viper_config.SetDefault("json_paths", []string{"."})
 	viper_config.SetDefault("font_size", GUI.BASE_FONT_SIZE)
@@ -54,6 +58,8 @@ func Load_config(appname string) *viper.Viper {
 	DB_FILE = viper_config.GetString("db_path") + "/qc.sqlite3"
 	LABEL_PATH = viper_config.GetString("label_path")
 	JSON_PATHS = viper_config.GetStringSlice("json_paths")
+	COA_TEMPLATE_PATH = viper_config.GetString("coa_template_path")
+	COA_FILEPATH = viper_config.GetString("coa_filepath")
 	LOG_FILE = viper_config.GetString("log_file")
 	GUI.BASE_FONT_SIZE = viper_config.GetInt("font_size")
 

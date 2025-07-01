@@ -7,6 +7,13 @@ import (
 var SAMPLE_VOLUME = 83.2
 var LB_PER_GAL = 8.345 // g/mL
 
+var (
+	SG_UNITS        = "g/mL"
+	DENSITY_UNITS   = "lb/gal"
+	STRING_UNITS    = "s"
+	VISCOSITY_UNITS = "cP"
+)
+
 func SG_from_density(density float64) float64 {
 	sg := density / LB_PER_GAL
 	return sg

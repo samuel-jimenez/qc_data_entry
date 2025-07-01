@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -10,8 +11,11 @@ import (
 	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/whatsupdocx"
+	"github.com/samuel-jimenez/whatsupdocx/wml/ctypes"
 )
 
 type Product struct {
@@ -49,6 +53,103 @@ func (product Product) export_json() {
 	}
 }
 
+func (product Product) get_coa_template() string {
+	//TODO
+	// return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, product.COA_TEMPLATE)
+	return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA.docx")
+}
+
+func (product Product) get_coa_name() string {
+	return fmt.Sprintf("%s/%s", config.COA_FILEPATH, product.get_base_filename("docx"))
+}
+
+func (product Product) export_CoA() error {
+	var (
+		lot_title = "Batch/Lot#"
+
+		p_title   = "[PRODUCT_NAME]"
+		Coa_title = "Parameter"
+	)
+
+	terms := []string{
+		lot_title,
+	}
+
+	template_file := product.get_coa_template()
+	output_file := product.get_coa_name()
+
+	doc, err := whatsupdocx.OpenDocument(template_file)
+	if err != nil {
+		return err
+	}
+
+CHILDREN:
+	for _, item := range doc.Document.Body.Children {
+		if para := item.Para; para != nil {
+			if strings.Contains(para.GetCT().String(), p_title) {
+
+				//TODO para.Clear()
+				// para.Ct.Children = nil
+				// para.Ct.Children.Clear()
+				// para.Ct.Children = []ctypes.ParagraphChild{}
+				// para.AddText(product.Product_name_customer)}
+
+				if run := para.Ct.Children[0].Run; run != nil {
+					//TODO run.Clear()
+					run.Children = nil
+
+					//Add product name
+					//TODO run.AddText()
+					// para.AddText(product.Product_name_customer)}
+					product_name := product.Product_name_customer
+					if product_name == "" {
+						product_name = product.Product_type
+					}
+					t := ctypes.TextFromString(product_name)
+
+					run.Children = append(run.Children, ctypes.RunChild{
+						Text: t,
+					})
+				}
+			}
+		}
+
+		if table := item.Table; table != nil {
+			for _, row := range table.GetCT().RowContents {
+				doing := ""
+				for i, cell := range row.Row.Contents {
+					for _, cont := range cell.Cell.Contents {
+						if field := cont.Paragraph; field != nil {
+							if i == 0 && doing == "" {
+								if strings.Contains(field.String(), Coa_title) {
+									QCProduct{Product: product}.write_CoA_rows(table)
+									continue CHILDREN
+								}
+								for _, term := range terms {
+									if strings.Contains(field.String(), term) {
+										doing = term
+										break
+									}
+								}
+							} else {
+								if i == 1 {
+									switch doing {
+									case lot_title:
+										field.AddText(product.Lot_number)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// save to file
+	return doc.SaveTo(output_file)
+}
+
 func (product Product) toProduct() Product {
 	return product
 }
@@ -57,9 +158,18 @@ func (product Product) check_data() bool {
 	return true
 }
 
-func (product Product) output() error {
+func (product Product) printout() error {
 	product.export_json()
 	return product.print()
+}
+
+func (product Product) output() error {
+	err := product.export_CoA()
+	if err != nil {
+		return err
+	}
+	//TODO test
+	return product.printout()
 }
 
 func (product *Product) format_sample() {
@@ -71,7 +181,14 @@ func (product *Product) format_sample() {
 
 func (product Product) output_sample() error {
 	product.format_sample()
+	err := product.export_CoA()
+	if err != nil {
+		return err
+	}
 	return product.print()
+	//TODO clean
+	// return nil
+
 }
 
 func _print(pdf_path string) {
@@ -162,7 +279,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
 		pdf.Cell(field_width, field_height, formats.Format_sg(product.SG.Float64, !sg_derived))
-		pdf.Cell(unit_width, unit_height, "g/mL")
+		pdf.Cell(unit_width, unit_height, formats.SG_UNITS)
 	}
 
 	if product.Density.Valid {
@@ -170,7 +287,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
 		pdf.Cell(field_width, field_height, formats.Format_density(product.Density.Float64))
-		pdf.Cell(unit_width, unit_height, "lb/gal")
+		pdf.Cell(unit_width, unit_height, formats.DENSITY_UNITS)
 	}
 
 	if product.String_test.Valid {
@@ -178,7 +295,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
 		pdf.Cell(field_width, field_height, formats.Format_string_test(product.String_test.Float64))
-		pdf.Cell(unit_width, unit_height, "s")
+		pdf.Cell(unit_width, unit_height, formats.STRING_UNITS)
 	}
 
 	if product.Viscosity.Valid {
@@ -186,7 +303,7 @@ func (product Product) export_label_pdf() (string, error) {
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
 		pdf.Cell(field_width, field_height, formats.Format_viscosity(product.Viscosity.Float64))
-		pdf.Cell(unit_width, unit_height, "cP")
+		pdf.Cell(unit_width, unit_height, formats.VISCOSITY_UNITS)
 	}
 
 	// log.Println(curr_row)

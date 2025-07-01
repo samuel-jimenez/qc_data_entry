@@ -64,7 +64,10 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 		if product.check_data() {
 			log.Println("data", product)
 			product.save()
-			product.output()
+			err := product.output()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "WaterBasedProduct.output")
+			}
 		}
 	}
 

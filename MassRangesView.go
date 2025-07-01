@@ -82,14 +82,11 @@ func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable)
 	sg_text := "Specific Gravity"
 	density_text := "Density"
 
-	sg_units := "g/mL"
-	density_units := "lb/gal"
-
 	mass_field := NewNumberEditView(parent, mass_text)
 
 	//PUSH TO BOTTOM
-	density_field := NewNumberEditViewWithUnits(parent, density_text, density_units)
-	sg_field := NewNumberEditViewWithUnits(parent, sg_text, sg_units)
+	density_field := NewNumberEditViewWithUnits(parent, density_text, formats.DENSITY_UNITS)
+	sg_field := NewNumberEditViewWithUnits(parent, sg_text, formats.SG_UNITS)
 
 	check_or_error_mass := func(mass, sg, density float64) {
 		mass_field.Check(ranges_panel.CheckMass(mass))
