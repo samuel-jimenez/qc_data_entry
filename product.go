@@ -11,15 +11,16 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 )
 
 type Product struct {
 	BaseProduct
-	SG          NullFloat64
-	PH          NullFloat64
-	Density     NullFloat64
-	String_test NullFloat64
-	Viscosity   NullFloat64
+	SG          nullable.NullFloat64
+	PH          nullable.NullFloat64
+	Density     nullable.NullFloat64
+	String_test nullable.NullFloat64
+	Viscosity   nullable.NullFloat64
 }
 
 func (product Product) save() {

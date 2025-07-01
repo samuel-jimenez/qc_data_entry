@@ -1,0 +1,78 @@
+package viewer
+
+var (
+	COL_WIDTH_TIME   = 150
+	COL_WIDTH_LOT    = 100
+	COL_WIDTH_SAMPLE = 50
+	COL_WIDTH_DATA   = 70
+
+	WINDOW_EDGE  = 8
+	SCROLL_WIDTH = 17
+
+	WINDOW_WIDTH  = 2*COL_WIDTH_TIME + COL_WIDTH_LOT + COL_WIDTH_SAMPLE + 4*COL_WIDTH_DATA + 2*WINDOW_EDGE + SCROLL_WIDTH
+	WINDOW_HEIGHT = 600
+
+	RANGE_WIDTH        = 200
+	GROUP_WIDTH        = 210
+	GROUP_HEIGHT       = 170
+	GROUP_MARGIN       = 5
+	PRODUCT_TYPE_WIDTH = 150
+
+	LABEL_WIDTH         = 100
+	PRODUCT_FIELD_WIDTH = 150
+	DATA_FIELD_WIDTH    = 60
+	FIELD_HEIGHT        = 24
+
+	RANGES_PADDING         = 5
+	RANGES_FIELD_HEIGHT    = 50
+	OFF_AXIS               = 0
+	RANGES_RO_FIELD_WIDTH  = 40
+	RANGES_RO_SPACER_WIDTH = 20
+	RANGES_RO_FIELD_HEIGHT = FIELD_HEIGHT
+
+	BUTTON_WIDTH  = 100
+	BUTTON_HEIGHT = 40
+	// 	200
+	// 50
+	SMOL_BUTTON_EDGE = 15
+	HEADER_HEIGHT    = SMOL_BUTTON_EDGE
+
+	ERROR_MARGIN = 3
+
+	TOP_SPACER_WIDTH     = 7
+	TOP_SPACER_HEIGHT    = 17
+	INTER_SPACER_HEIGHT  = 2
+	BTM_SPACER_WIDTH     = 2
+	BTM_SPACER_HEIGHT    = 2
+	BUTTON_SPACER_HEIGHT = 195
+
+	COL_KEY_TIME   = "time_stamp"
+	COL_LABEL_TIME = "Time Stamp"
+
+	// COL_KEY_LOT = "lot_id" //TODO
+	COL_KEY_LOT   = "lot_name"
+	COL_LABEL_LOT = "Lot Number"
+	COL_ITEMS_LOT []string
+
+	// sample_point_id
+	COL_KEY_SAMPLE   = "sample_point"
+	COL_LABEL_SAMPLE = "Sample Point"
+	COL_ITEMS_SAMPLE []string
+
+	COL_KEY_PH   = "ph"
+	COL_LABEL_PH = "pH"
+
+	/*sg_title*/
+	COL_KEY_SG   = "specific_gravity"
+	COL_LABEL_SG = "SG"
+	// COL_LABEL_SG = "Specific Gravity"
+
+	// Density_title
+	COL_KEY_DENSITY   = "density"
+	COL_LABEL_DENSITY = "Density"
+
+	COL_KEY_STRING      = "string_test"
+	COL_LABEL_STRING    = "String"
+	COL_KEY_VISCOSITY   = "viscosity"
+	COL_LABEL_VISCOSITY = "Viscosity"
+)

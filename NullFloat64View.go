@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -14,14 +15,14 @@ import (
 
 type NullFloat64View struct {
 	*windigo.Edit
-	Get func() NullFloat64
+	Get func() nullable.NullFloat64
 }
 
-func NewNullFloat64View(control *windigo.Edit, get func() NullFloat64) NullFloat64View {
+func NewNullFloat64View(control *windigo.Edit, get func() nullable.NullFloat64) NullFloat64View {
 	return NullFloat64View{control, get}
 }
 
-func BuildNewNullFloat64View(parent windigo.Controller, field_data NullFloat64, format func(float64) string) NullFloat64View {
+func BuildNewNullFloat64View(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) NullFloat64View {
 	edit_field := windigo.NewEdit(parent)
 
 	if field_data.Valid {
@@ -31,7 +32,7 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data NullFloat64, 
 		edit_field.SetText(strings.TrimSpace(edit_field.Text()))
 	})
 
-	get := func() NullFloat64 {
+	get := func() nullable.NullFloat64 {
 		field_text := edit_field.Text()
 		var value float64
 		valid := field_text != ""
@@ -40,7 +41,7 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data NullFloat64, 
 			valid = err == nil
 		}
 		//only valid if we have some text which parses correctly
-		return NewNullFloat64(value, valid)
+		return nullable.NewNullFloat64(value, valid)
 	}
 
 	return NewNullFloat64View(edit_field, get)
@@ -53,15 +54,15 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data NullFloat64, 
 
 type NullFloat64ROView struct {
 	*View
-	Update  func(field_data NullFloat64)
+	Update  func(field_data nullable.NullFloat64)
 	SetFont func(*windigo.Font)
 	Refresh func()
 }
 
-func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64, format func(float64) string) *NullFloat64ROView {
+func BuildNewNullFloat64ROView(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) *NullFloat64ROView {
 	data_field := windigo.NewLabeledLabel(parent, "")
 
-	update := func(field_data NullFloat64) {
+	update := func(field_data nullable.NullFloat64) {
 		if field_data.Valid {
 			data_field.SetText(format(field_data.Float64))
 		} else {
@@ -79,10 +80,10 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data NullFloat64
 	return &NullFloat64ROView{&View{data_field}, update, data_field.SetFont, refresh}
 }
 
-func BuildNullFloat64SpacerView(parent windigo.Controller, field_data NullFloat64, format string) *NullFloat64ROView {
+func BuildNullFloat64SpacerView(parent windigo.Controller, field_data nullable.NullFloat64, format string) *NullFloat64ROView {
 	data_field := windigo.NewLabeledLabel(parent, "")
 
-	update := func(field_data NullFloat64) {
+	update := func(field_data nullable.NullFloat64) {
 		if field_data.Valid {
 			data_field.SetText(format)
 		} else {

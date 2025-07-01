@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -13,7 +14,7 @@ type OilBasedProduct struct {
 }
 
 func (product OilBasedProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false), NewNullFloat64(0, false)}
+	return Product{product.toBaseProduct(), nullable.NewNullFloat64(product.sg, true), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false)}
 
 	//TODO Option?
 }

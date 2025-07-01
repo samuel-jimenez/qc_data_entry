@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -10,20 +11,20 @@ import (
  */
 
 type Range struct {
-	Min    NullFloat64
-	Target NullFloat64
-	Max    NullFloat64
+	Min    nullable.NullFloat64
+	Target nullable.NullFloat64
+	Max    nullable.NullFloat64
 }
 
 func NewRange(
-	min NullFloat64,
-	target NullFloat64,
-	max NullFloat64,
+	min nullable.NullFloat64,
+	target nullable.NullFloat64,
+	max nullable.NullFloat64,
 ) Range {
 	return Range{min, target, max}
 }
 
-// func (field_data Range) Check(data NullFloat64) bool {
+// func (field_data Range) Check(data nullable.NullFloat64) bool {
 func (field_data Range) Check(data float64) bool {
 	return (!field_data.Min.Valid ||
 		field_data.Min.Float64 <= data) && (!field_data.Max.Valid ||

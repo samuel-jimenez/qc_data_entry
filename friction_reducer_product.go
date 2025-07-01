@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -15,7 +16,7 @@ type FrictionReducerProduct struct {
 }
 
 func (product FrictionReducerProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), NewNullFloat64(product.sg, true), NewNullFloat64(0, false), NewNullFloat64(formats.Density_from_sg(product.sg), true), NewNullFloat64(product.string_test, true), NewNullFloat64(product.viscosity, true)}
+	return Product{product.toBaseProduct(), nullable.NewNullFloat64(product.sg, true), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(formats.Density_from_sg(product.sg), true), nullable.NewNullFloat64(product.string_test, true), nullable.NewNullFloat64(product.viscosity, true)}
 }
 
 func newFrictionReducerProduct(base_product BaseProduct, viscosity, mass, string_test float64) Product {

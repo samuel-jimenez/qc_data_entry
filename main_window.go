@@ -188,11 +188,6 @@ func show_window() {
 
 		mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
-		product_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		customer_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		lot_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		sample_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-
 		product_panel.SetSize(TOP_PANEL_WIDTH, top_panel_height)
 
 		product_panel_0.SetSize(TOP_PANEL_WIDTH, top_subpanel_height)
@@ -207,6 +202,11 @@ func show_window() {
 		product_panel_0_1.SetSize(hpanel_width, PRODUCT_FIELD_HEIGHT)
 		product_panel_0_1.SetMarginTop(INTER_SPACER_HEIGHT)
 		product_panel_0_1.SetMarginLeft(hpanel_margin)
+
+		product_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		customer_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		lot_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		sample_field.SetLabeledSize(LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 		ranges_button.SetSize(ranges_button_width, OFF_AXIS)
 		ranges_button.SetMarginsAll(BUTTON_MARGIN)

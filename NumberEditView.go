@@ -131,11 +131,7 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 	}
 	setLabeledSize := func(label_width, control_width, unit_width, height int) {
 
-		control_width = control_width
-		unit_width = unit_width
-
 		panel.SetSize(label_width+control_width+unit_width, height)
-		// panel.SetSize(label_width+control_width+unit_width+margin, height)
 		panel.SetPaddingsAll(ERROR_MARGIN)
 
 		text_label.SetSize(label_width, height)

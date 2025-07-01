@@ -1,22 +1,23 @@
 package main
 
 import (
-	"cmp"
 	"database/sql"
 	"log"
 	"os"
-	"slices"
-	"strings"
 	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/config"
-	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/qc_data_entry/viewer"
 	"github.com/samuel-jimenez/windigo"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+)
+
+var (
+	qc_db *sql.DB
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
-	qc_db, err := sql.Open("sqlite3", ":memory:")
+	qc_db, err = sql.Open("sqlite3", ":memory:")
 	qc_db.Exec("attach ? as 'bs'", config.DB_FILE)
 	if err != nil {
 		log.Fatal(err)
@@ -55,240 +56,57 @@ func main() {
 
 }
 
-// package viewer
-var (
-	db_select_product_info,
-	db_select_product_samples,
-	db_select_samples *sql.Stmt
-)
-
-/* NullString
- *
- */
-type NullString struct {
-	sql.NullString
-}
-
-func (a_n NullString) Compare(b_n NullString) int {
-	var a, b string
-	if a_n.Valid {
-		a = a_n.String
-	}
-	if b_n.Valid {
-		b = b_n.String
-	}
-	return strings.Compare(a, b)
-}
-
-/* NullFloat64
- *
- */
-type NullFloat64 struct {
-	sql.NullFloat64
-}
-
-func (a_n NullFloat64) Compare(b_n NullFloat64) int {
-	var a, b float64
-	if a_n.Valid {
-		a = a_n.Float64
-	}
-	if b_n.Valid {
-		b = b_n.Float64
-	}
-	return cmp.Compare(a, b)
-}
-
-/* QCData
- *
- */
-type QCData struct {
-	product_name,
-	lot_name string
-	sample_point NullString
-	time_stamp   time.Time
-	ph,
-	specific_gravity,
-	string_test,
-	viscosity NullFloat64
-}
-
-func compare_product_name(a, b QCData) int { return strings.Compare(a.product_name, b.product_name) }
-func compare_lot_name(a, b QCData) int     { return strings.Compare(a.lot_name, b.lot_name) }
-func compare_sample_point(a, b QCData) int { return a.sample_point.Compare(b.sample_point) }
-func compare_time_stamp(a, b QCData) int   { return a.time_stamp.Compare(b.time_stamp) }
-
-func compare_ph(a, b QCData) int               { return a.ph.Compare(b.ph) }
-func compare_specific_gravity(a, b QCData) int { return a.specific_gravity.Compare(b.specific_gravity) }
-func compare_string_test(a, b QCData) int      { return a.string_test.Compare(b.string_test) }
-func compare_viscosity(a, b QCData) int        { return a.viscosity.Compare(b.viscosity) }
-func uno_reverse(fn lessFunc) lessFunc         { return func(a, b QCData) int { return -fn(a, b) } }
-
-func ToString(data NullFloat64, format func(float64) string) string {
-	if data.Valid {
-		return format(data.Float64)
-	}
-	return ""
-}
-
-func (data QCData) Text() []string {
-	var sg_derived bool
-	if data.ph.Valid {
-		sg_derived = false
-	} else {
-		sg_derived = true
-	}
-	return []string{
-		data.time_stamp.Format(time.DateTime),
-
-		data.product_name, data.lot_name,
-		data.sample_point.String,
-		ToString(data.ph, formats.Format_ph),
-		ToString(data.specific_gravity, func(sg float64) string { return formats.Format_sg(sg, !sg_derived) }),
-		ToString(data.string_test, formats.Format_string_test),
-		ToString(data.viscosity, formats.Format_viscosity)}
-}
-
-func (data QCData) ImageIndex() int { return 0 }
-
-// func (data QCData) Checked() bool           { return data.Check }
-// func (data QCData) SetChecked(checked bool) { data.Check = checked }
-/*
- */
-
-type lessFunc func(a, b QCData) int
-
-/* QCDataView
- *
- */
-type QCDataView struct {
-	*windigo.ListView
-	data []QCData
-	less []lessFunc
-}
-
-func (data_view *QCDataView) Set(data []QCData) {
-	data_view.data = data
-}
-
-func (data_view *QCDataView) Get(row, column int) string {
-	if row < 0 {
-		return ""
-	}
-	return data_view.data[row].Text()[column]
-}
-
-func (data_view QCDataView) Refresh() {
-
-	data_view.DeleteAllItems()
-
-	for _, row := range data_view.data {
-		data_view.AddItem(row)
-	}
-}
-
-func (data_view QCDataView) Update() {
-	data_view.Refresh()
-}
-
-func (data_view *QCDataView) Sort(col int, asc bool) {
-	if asc {
-		slices.SortStableFunc(data_view.data, data_view.less[col])
-	} else {
-		slices.SortStableFunc(data_view.data, uno_reverse(data_view.less[col]))
-	}
-	data_view.Refresh()
-}
-
-func NewQCDataView(parent windigo.Controller) *QCDataView {
-
-	table := &QCDataView{windigo.NewListView(parent), nil, nil}
-	table.EnableGridlines(true)
-	table.EnableFullRowSelect(true)
-	table.EnableDoubleBuffer(true)
-	table.EnableSortHeader(true, table.Sort)
-
-	table.AddColumn(
-		"Time Stamp", COL_WIDTH_TIME)
-	table.AddColumn(
-		"Product", COL_WIDTH_TIME)
-	table.AddColumn(
-		"Lot Number", COL_WIDTH_LOT)
-	table.AddColumn(
-		"Sample Point", COL_WIDTH_SAMPLE)
-	table.AddColumn(
-		"pH", COL_WIDTH_DATA)
-	table.AddColumn(
-		"Specific Gravity", COL_WIDTH_DATA)
-	table.AddColumn(
-		"String Test", COL_WIDTH_DATA)
-	table.AddColumn(
-		"Viscosity", COL_WIDTH_DATA)
-	// table.AddColumn(
-	// 	"Density"
-	// 	, col_width)
-	table.OnClick().Bind(func(e *windigo.Event) { log.Println(e) })
-	table.OnRClick().Bind(func(e *windigo.Event) {
-		listViewEvent := e.Data.(windigo.ListViewEvent)
-		if listViewEvent.Row >= 0 { // ignore invalid
-			table.ClipboardCopyText(table.Get(listViewEvent.Row, listViewEvent.Column))
-		}
-	})
-
-	table.less = []lessFunc{
-		compare_time_stamp,
-		compare_product_name,
-		compare_lot_name,
-		compare_sample_point,
-		compare_ph,
-		compare_specific_gravity,
-		compare_string_test,
-		compare_viscosity}
-
-	return table
-}
-
-func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
+func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 	if err != nil {
 		log.Printf("error: %q: %s\n", err, fn)
 		// return -1
 	}
 
-	data := make([]QCData, 0)
+	data := make([]viewer.QCData, 0)
 	for rows.Next() {
 		var (
-			qc_data              QCData
+			qc_data              viewer.QCData
 			_timestamp           int64
 			product_moniker_name string
 			internal_name        string
 		)
 
 		if err := rows.Scan(&product_moniker_name, &internal_name,
-			&qc_data.lot_name,
-			&qc_data.sample_point,
+			&qc_data.Lot_name,
+			&qc_data.Sample_point,
 			&_timestamp,
-			&qc_data.ph,
-			&qc_data.specific_gravity,
-			&qc_data.string_test,
-			&qc_data.viscosity); err != nil {
+			&qc_data.PH,
+			&qc_data.Specific_gravity,
+			&qc_data.String_test,
+			&qc_data.Viscosity); err != nil {
 			log.Fatal(err)
 		}
-		qc_data.product_name = product_moniker_name + " " + internal_name
+		qc_data.Product_name = product_moniker_name + " " + internal_name
 
-		qc_data.time_stamp = time.Unix(0, _timestamp)
+		qc_data.Time_stamp = time.Unix(0, _timestamp)
 		data = append(data, qc_data)
 	}
 	return data
 }
 
-func select_samples() []QCData {
+func select_samples() []viewer.QCData {
 	rows, err := db_select_samples.Query()
 	return _select_samples(rows, err, "select_samples")
 }
 
-func select_product_samples(product_id int) []QCData {
+func select_product_samples(product_id int) []viewer.QCData {
 	rows, err := db_select_product_samples.Query(product_id)
 	return _select_samples(rows, err, "select_product_samples")
 }
+
+var (
+	SAMPLE_SELECT_STRING string
+	db_select_product_info,
+	db_select_lot_all, db_select_lot_info,
+	db_select_product_samples,
+	db_select_samples,
+	db_select_sample_points_all, db_select_sample_points *sql.Stmt
+)
 
 func dbinit(db *sql.DB) {
 
@@ -301,7 +119,18 @@ func dbinit(db *sql.DB) {
 	order by product_moniker_name,product_name_internal
 	`)
 
-	db_select_product_samples = DB.PrepareOrElse(db, `
+	db_select_lot_info = DB.PrepareOrElse(db, `
+	select lot_id, lot_name
+		from bs.product_lot
+		where product_id = ?
+	`)
+	db_select_lot_all = DB.PrepareOrElse(db, `
+	select lot_id, lot_name
+		from bs.product_lot
+		order by lot_name
+	`)
+
+	SAMPLE_SELECT_STRING = `
 	select
 		product_moniker_name,
 		product_name_internal,
@@ -317,96 +146,58 @@ func dbinit(db *sql.DB) {
 		join bs.product_line using (product_id)
 		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_sample_points using (sample_point_id)
+	`
+
+	db_select_product_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
 	where product_id = ?
 	`)
 
-	db_select_samples = DB.PrepareOrElse(db, `
-	select
-		product_moniker_name,
-		product_name_internal,
-		lot_name,
-		sample_point,
-		time_stamp,
-		ph ,
-		specific_gravity ,
-		string_test ,
-		viscosity
-	from bs.qc_samples
-		join bs.product_lot using (lot_id)
-		join bs.product_line using (product_id)
-		join bs.product_moniker using (product_moniker_id)
-		left join bs.product_sample_points using (sample_point_id)
+	db_select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
 	order by product_moniker_name,product_name_internal
 	`)
+
+	db_select_sample_points_all = DB.PrepareOrElse(db, `
+	select sample_point_id, sample_point
+		from bs.product_sample_points
+		order by sample_point_id
+	`)
+
+	db_select_sample_points = DB.PrepareOrElse(db, `
+	select distinct sample_point_id, sample_point
+		from bs.product_lot
+		join bs.qc_samples using (lot_id)
+		join bs.product_sample_points using (sample_point_id)
+		where product_id = ?
+		order by sample_point_id
+	`)
 }
-
-var (
-	COL_WIDTH_TIME   = 150
-	COL_WIDTH_LOT    = 100
-	COL_WIDTH_SAMPLE = 50
-	COL_WIDTH_DATA   = 70
-
-	WINDOW_EDGE  = 8
-	SCROLL_WIDTH = 17
-
-	WINDOW_WIDTH  = 2*COL_WIDTH_TIME + COL_WIDTH_LOT + COL_WIDTH_SAMPLE + 4*COL_WIDTH_DATA + 2*WINDOW_EDGE + SCROLL_WIDTH
-	WINDOW_HEIGHT = 600
-
-	RANGE_WIDTH        = 200
-	GROUP_WIDTH        = 210
-	GROUP_HEIGHT       = 170
-	GROUP_MARGIN       = 5
-	PRODUCT_TYPE_WIDTH = 150
-
-	LABEL_WIDTH         = 100
-	PRODUCT_FIELD_WIDTH = 150
-	DATA_FIELD_WIDTH    = 60
-	FIELD_HEIGHT        = 28
-
-	RANGES_PADDING         = 5
-	RANGES_FIELD_HEIGHT    = 50
-	OFF_AXIS               = 0
-	RANGES_RO_FIELD_WIDTH  = 40
-	RANGES_RO_SPACER_WIDTH = 20
-	RANGES_RO_FIELD_HEIGHT = FIELD_HEIGHT
-
-	BUTTON_WIDTH  = 100
-	BUTTON_HEIGHT = 40
-	// 	200
-	// 50
-
-	ERROR_MARGIN = 3
-
-	TOP_SPACER_WIDTH     = 7
-	TOP_SPACER_HEIGHT    = 17
-	INTER_SPACER_HEIGHT  = 2
-	BTM_SPACER_WIDTH     = 2
-	BTM_SPACER_HEIGHT    = 2
-	BUTTON_SPACER_HEIGHT = 195
-)
 
 func show_window() {
 
 	log.Println("Info: Process started")
 
 	product_data := make(map[string]int)
+	lot_data := make(map[string]int)
 
-	top_panel_width := WINDOW_WIDTH
+	top_panel_width := viewer.WINDOW_WIDTH
 	top_panel_height := 110
 
 	hpanel_width := top_panel_width
 
-	label_width := LABEL_WIDTH
+	label_width := viewer.LABEL_WIDTH
 
 	hpanel_margin := 10
 
-	field_width := PRODUCT_FIELD_WIDTH
+	field_width := viewer.PRODUCT_FIELD_WIDTH
 	field_height := 20
 	top_spacer_height := 20
 	inter_spacer_width := 30
-	inter_spacer_height := INTER_SPACER_HEIGHT
+	inter_spacer_height := viewer.INTER_SPACER_HEIGHT
 
 	// button_margin := 5
+	clear_button_width := 20
+	filter_button_width := 50
+	search_button_width := 50
 
 	product_text := "Product"
 	lot_text := "Lot Number"
@@ -418,7 +209,7 @@ func show_window() {
 	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
 
 	mainWindow := windigo.NewForm(nil)
-	mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+	mainWindow.SetSize(viewer.WINDOW_WIDTH, viewer.WINDOW_HEIGHT)
 	mainWindow.SetText("QC Data Viewer")
 
 	dock := windigo.NewSimpleDock(mainWindow)
@@ -431,40 +222,64 @@ func show_window() {
 	prod_panel := windigo.NewAutoPanel(product_panel)
 	prod_panel.SetSize(hpanel_width, field_height)
 
-	product_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, product_text)
-	customer_field := GUI.Show_combobox(prod_panel, label_width, field_width, field_height, customer_text)
+	product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
+	product_clear_button := windigo.NewPushButton(prod_panel)
+	product_clear_button.SetText("-")
+	product_clear_button.SetSize(clear_button_width, viewer.OFF_AXIS)
+	customer_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, customer_text)
 
 	customer_field.SetMarginLeft(inter_spacer_width)
 	prod_panel.SetMarginLeft(hpanel_margin)
 	prod_panel.SetMarginTop(top_spacer_height)
 	prod_panel.Dock(product_field, windigo.Left)
+	prod_panel.Dock(product_clear_button, windigo.Left)
 	prod_panel.Dock(customer_field, windigo.Left)
 
 	lot_panel := windigo.NewAutoPanel(product_panel)
 	lot_panel.SetSize(hpanel_width, field_height)
 
-	lot_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, lot_text)
-	sample_field := GUI.Show_combobox(lot_panel, label_width, field_width, field_height, sample_text)
+	lot_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, lot_text)
+	lot_clear_button := windigo.NewPushButton(lot_panel)
+	lot_clear_button.SetText("-")
+	lot_clear_button.SetSize(clear_button_width, viewer.OFF_AXIS)
+	sample_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, sample_text)
 
 	lot_panel.SetMarginTop(inter_spacer_height)
 	lot_panel.SetMarginLeft(hpanel_margin)
 	sample_field.SetMarginLeft(inter_spacer_width)
 	lot_panel.Dock(lot_field, windigo.Left)
+	lot_panel.Dock(lot_clear_button, windigo.Left)
 	lot_panel.Dock(sample_field, windigo.Left)
+
+	filter_button := windigo.NewPushButton(product_panel)
+	filter_button.SetText("FIlter")
+	filter_button.SetSize(filter_button_width, viewer.OFF_AXIS)
+
+	search_button := windigo.NewPushButton(product_panel)
+	search_button.SetText("Search")
+	search_button.SetSize(search_button_width, viewer.OFF_AXIS)
+
+	// FilterListView := NewSQLFilterListView(product_panel)
+	FilterListView := viewer.NewSQLFilterListView(mainWindow)
 
 	// reprint_button := windigo.NewPushButton(product_panel)
 	// reprint_button.SetText("Reprint")
 	// reprint_button.SetMarginsAll(reprint_button_margins)
 	// reprint_button.SetMarginLeft(reprint_button_margin_l)
-	// reprint_button.SetSize(reprint_button_width, OFF_AXIS)
+	// reprint_button.SetSize(reprint_button_width, viewer.OFF_AXIS)
 	//
 	// reprint_sample_button := windigo.NewPushButton(product_panel)
 	// reprint_sample_button.SetText("Reprint Sample")
 	// reprint_sample_button.SetMarginsAll(reprint_button_margins)
-	// reprint_sample_button.SetSize(reprint_button_width, OFF_AXIS)
+	// reprint_sample_button.SetSize(reprint_button_width, viewer.OFF_AXIS)
 
 	product_panel.Dock(prod_panel, windigo.Top)
 	product_panel.Dock(lot_panel, windigo.Top)
+	product_panel.Dock(filter_button, windigo.Left)
+	product_panel.Dock(search_button, windigo.Left)
+	// product_panel.Dock(FilterListView, windigo.Left)
+	// product_panel.Dock(FilterListView, windigo.Top)
+
 	// product_panel.Dock(reprint_button, windigo.Left)
 	// product_panel.Dock(reprint_sample_button, windigo.Left)
 
@@ -473,11 +288,13 @@ func show_window() {
 	// tab_oil := tabs.AddAutoPanel("Oil Based")
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
-	table := NewQCDataView(mainWindow)
+	table := viewer.NewQCDataView(mainWindow)
 	table.Set(select_samples())
 	table.Update()
 
 	dock.Dock(product_panel, windigo.Top)
+	dock.Dock(FilterListView, windigo.Top)
+
 	dock.Dock(table, windigo.Fill)
 
 	// status_bar = windigo.NewStatusBar(mainWindow)
@@ -500,6 +317,30 @@ func show_window() {
 		}
 	})
 
+	GUI.Fill_combobox_from_query_0_2(lot_field, db_select_lot_all, func(id int, name string) {
+		lot_data[name] = id
+
+		lot_field.AddItem(name)
+		viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
+	})
+
+	GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, func(id int, name string) {
+		// lot_data[name] = id
+
+		sample_field.AddItem(name)
+		viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
+	})
+
+	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
+	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
+	FilterListView.AddDiscreteMulti(viewer.COL_KEY_SAMPLE, viewer.COL_LABEL_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+	FilterListView.AddContinuous(viewer.COL_KEY_PH, viewer.COL_LABEL_PH)
+	FilterListView.AddContinuous(viewer.COL_KEY_SG, viewer.COL_LABEL_SG)
+	//TODO FilterListView.AddContinuous(viewer.COL_KEY_DENSITY, viewer.COL_LABEL_DENSITY)
+	FilterListView.AddContinuous(viewer.COL_KEY_STRING, viewer.COL_LABEL_STRING)
+	FilterListView.AddContinuous(viewer.COL_KEY_VISCOSITY, viewer.COL_LABEL_VISCOSITY)
+	FilterListView.Hide()
+
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		// product_field_pop_data(product_field.GetSelectedItem())
 
@@ -508,8 +349,100 @@ func show_window() {
 		table.Set(samples)
 		table.Update()
 
+		viewer.COL_ITEMS_LOT = nil
+		GUI.Fill_combobox_from_query_1_2(lot_field, db_select_lot_info, int64(product_id), func(id int, name string) {
+			lot_field.AddItem(name)
+			viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
+		})
+
+		viewer.COL_ITEMS_SAMPLE = nil
+		GUI.Fill_combobox_from_query_1_2(sample_field, db_select_sample_points, int64(product_id), func(id int, name string) {
+			sample_field.AddItem(name)
+			viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
+		})
+
+		// FilterListView[viewer.COL_KEY_LOT].Update(viewer.COL_ITEMS_LOT)
+		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
+		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+
 		// log.Println()
 
+	})
+
+	filter_button.OnClick().Bind(func(e *windigo.Event) {
+		if FilterListView.Visible() {
+			FilterListView.Hide()
+			// log.Println(" Hide ize: ", FilterListView.Width(), FilterListView.ClientWidth(), FilterListView.Height())
+			// product_panel.Update()
+
+		} else {
+			FilterListView.Show()
+			// log.Println(" Show ize: ", FilterListView.Width(), FilterListView.ClientWidth(), FilterListView.Height())
+			// product_panel.Update()
+			// FilterListView.SetSize(viewer.WINDOW_WIDTH, FilterListView.Height())
+			// log.Println(" Show ize: ", FilterListView.Width(), FilterListView.ClientWidth(), FilterListView.Height())
+
+		}
+	})
+
+	search_button.OnClick().Bind(func(e *windigo.Event) {
+		//TODO
+		log.Println(FilterListView.Get().Get())
+		log.Println(SAMPLE_SELECT_STRING + FilterListView.Get().Get())
+		rows, err := qc_db.Query(SAMPLE_SELECT_STRING + FilterListView.Get().Get())
+		table.Set(_select_samples(rows, err, "search samples"))
+		table.Update()
+
+	})
+
+	clear_product := func() {
+		table.Set(select_samples())
+		table.Update()
+		product_field.SetSelectedItem(-1)
+
+		viewer.COL_ITEMS_LOT = nil
+		lot_field.DeleteAllItems()
+		for name := range lot_data {
+			lot_field.AddItem(name)
+			viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
+		}
+
+		viewer.COL_ITEMS_SAMPLE = nil
+		GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, func(id int, name string) {
+			// lot_data[name] = id
+
+			sample_field.AddItem(name)
+			viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
+		})
+
+		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
+		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+	}
+
+	clear_lot := func() {
+		//TODO
+		product_id := product_data[product_field.GetSelectedItem()]
+		if product_id > 0 {
+			table.Set(select_product_samples(product_id))
+		}
+		table.Update()
+		lot_field.SetSelectedItem(-1)
+	}
+
+	// clear := func() {
+	// 	clear_product()
+	// 	clear_lot()
+	// }
+
+	product_clear_button.OnClick().Bind(func(e *windigo.Event) {
+		// log.Println("product_field", product_field.SelectedItem())
+
+		// clear()
+		clear_product()
+	})
+
+	lot_clear_button.OnClick().Bind(func(e *windigo.Event) {
+		clear_lot()
 	})
 
 	mainWindow.Center()
