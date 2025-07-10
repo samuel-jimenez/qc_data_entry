@@ -85,8 +85,8 @@ func (product Product) export_CoA() error {
 
 CHILDREN:
 	for _, item := range doc.Document.Body.Children {
-		if para := item.Para; para != nil {
-			if strings.Contains(para.GetCT().String(), p_title) {
+		if para := item.Paragraph; para != nil {
+			if strings.Contains(para.String(), p_title) {
 
 				//TODO para.Clear()
 				// para.Ct.Children = nil
@@ -94,7 +94,7 @@ CHILDREN:
 				// para.Ct.Children = []ctypes.ParagraphChild{}
 				// para.AddText(product.Product_name_customer)}
 
-				if run := para.Ct.Children[0].Run; run != nil {
+				if run := para.Children[0].Run; run != nil {
 					//TODO run.Clear()
 					run.Children = nil
 
@@ -115,7 +115,7 @@ CHILDREN:
 		}
 
 		if table := item.Table; table != nil {
-			for _, row := range table.GetCT().RowContents {
+			for _, row := range table.RowContents {
 				doing := ""
 				for i, cell := range row.Row.Contents {
 					for _, cont := range cell.Cell.Contents {
