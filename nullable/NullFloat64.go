@@ -14,6 +14,17 @@ type NullFloat64 struct {
 	sql.NullFloat64
 }
 
+func (a_n NullFloat64) Diff(b_n NullFloat64) float64 {
+	var a, b float64
+	if a_n.Valid {
+		a = a_n.Float64
+	}
+	if b_n.Valid {
+		b = b_n.Float64
+	}
+	return a - b
+}
+
 func NewNullFloat64(Float64 float64, Valid bool) NullFloat64 {
 	return NullFloat64{sql.NullFloat64{Float64: Float64, Valid: Valid}}
 }

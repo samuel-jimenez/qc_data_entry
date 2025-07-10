@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
@@ -195,23 +196,32 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 
 // TODO
 func check_dual_data(top_product, bottom_product Product) {
-	if top_product.check_data() {
-		log.Println("debug: check_data", top_product)
-		top_product.save()
-		err := top_product.printout()
-		if err != nil {
-			log.Printf("Error: %q: %s\n", err, "top_product.printout")
-		}
+	DELTA_DIFF_VISCO := 200.
 
-	}
-	if bottom_product.check_data() {
-		log.Println("debug: check_data", bottom_product)
-		bottom_product.save()
-		err := bottom_product.printout()
-		if err != nil {
-			log.Printf("Error: %q: %s\n", err, "bottom_product.printout")
+	if math.Abs(top_product.Viscosity.Diff(bottom_product.Viscosity)) <= DELTA_DIFF_VISCO {
+
+		if top_product.check_data() {
+			log.Println("debug: check_data", top_product)
+			top_product.save()
+			err := top_product.printout()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "top_product.printout")
+			}
+
 		}
+		if bottom_product.check_data() {
+			log.Println("debug: check_data", bottom_product)
+			bottom_product.save()
+			err := bottom_product.printout()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "bottom_product.printout")
+			}
+			//TODO
+			bottom_product.output_sample()
+		}
+	} else { // TODO
 	}
+
 }
 
 type FrictionReducerPanelView struct {
