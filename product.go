@@ -54,8 +54,14 @@ func (product Product) export_json() {
 }
 
 func (product Product) get_coa_template() string {
-	//TODO
+	//TODO db
 	// return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, product.COA_TEMPLATE)
+	// Product_type split
+	//TODO fix this
+	product_moniker := strings.Split(product.Product_type, " ")[0]
+	if product_moniker == "PETROFLO" {
+		return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA-PETROFLO.docx")
+	}
 	return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA.docx")
 }
 
