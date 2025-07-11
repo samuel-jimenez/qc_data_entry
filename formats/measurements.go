@@ -5,7 +5,7 @@ import (
 )
 
 var SAMPLE_VOLUME = 83.2
-var LB_PER_GAL = 8.345 // g/mL
+var LB_PER_GAL = 8.34 // g/mL
 
 var (
 	SG_UNITS        = "g/mL"
