@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/samuel-jimenez/whatsupdocx/docx"
+
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 
 	// "github.com/samuel-jimenez/whatsupdocx/docx"
-	"github.com/samuel-jimenez/whatsupdocx/wml/ctypes"
+
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -94,14 +96,12 @@ func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 func (product QCProduct) upsert()     { product._upsert(db_upsert_product_details) }
 func (product QCProduct) upsert_coa() { product._upsert(db_upsert_product_coa_details) }
 
-/*
-//TODO iface{}
-func write_CoA_cell(row docx.Row, value string) {
+func write_CoA_cell(row *docx.Row, value string) {
 	cell := row.AddCell()
 	cell.AddParagraph(value)
 }
 
-func write_CoA_row(table docx.Table, title, units, spec, result string) {
+func write_CoA_row(table *docx.Table, title, units, spec, result string) {
 	row := table.AddRow()
 	write_CoA_cell(row, title)
 	write_CoA_cell(row, units)
@@ -109,34 +109,13 @@ func write_CoA_row(table docx.Table, title, units, spec, result string) {
 	write_CoA_cell(row, result)
 }
 
-func write_CoA_row_fmt(table docx.Table, title, units string, spec Range, result nullable.NullFloat64, format_fn func(float64) string) {
+func write_CoA_row_fmt(table *docx.Table, title, units string, spec Range, result nullable.NullFloat64, format_fn func(float64) string) {
 	if result.Valid {
 		write_CoA_row(table, title, units, spec.CoA(format_fn), format_fn(result.Float64))
 	}
 }
 
-func (product QCProduct) write_CoA_rows(table docx.Table) {*/
-
-func write_CoA_cell(row *ctypes.Row, value string) {
-	cell := row.AddCell()
-	cell.AddParagraph(value)
-}
-
-func write_CoA_row(table *ctypes.Table, title, units, spec, result string) {
-	row := table.AddRow()
-	write_CoA_cell(row, title)
-	write_CoA_cell(row, units)
-	write_CoA_cell(row, spec)
-	write_CoA_cell(row, result)
-}
-
-func write_CoA_row_fmt(table *ctypes.Table, title, units string, spec Range, result nullable.NullFloat64, format_fn func(float64) string) {
-	if result.Valid {
-		write_CoA_row(table, title, units, spec.CoA(format_fn), format_fn(result.Float64))
-	}
-}
-
-func (product QCProduct) write_CoA_rows(table *ctypes.Table) {
+func (product QCProduct) write_CoA_rows(table *docx.Table) {
 	var (
 		Appearance_units = "Pass/fail"
 

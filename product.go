@@ -15,7 +15,6 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/whatsupdocx"
-	"github.com/samuel-jimenez/whatsupdocx/wml/ctypes"
 )
 
 type Product struct {
@@ -93,29 +92,15 @@ CHILDREN:
 	for _, item := range doc.Document.Body.Children {
 		if para := item.Paragraph; para != nil {
 			if strings.Contains(para.String(), p_title) {
-
-				//TODO para.Clear()
-				// para.Ct.Children = nil
-				// para.Ct.Children.Clear()
-				// para.Ct.Children = []ctypes.ParagraphChild{}
-				// para.AddText(product.Product_name_customer)}
-
 				if run := para.Children[0].Run; run != nil {
-					//TODO run.Clear()
-					run.Children = nil
+					run.Clear()
 
 					//Add product name
-					//TODO run.AddText()
-					// para.AddText(product.Product_name_customer)}
 					product_name := product.Product_name_customer
 					if product_name == "" {
 						product_name = product.Product_type
 					}
-					t := ctypes.TextFromString(product_name)
-
-					run.Children = append(run.Children, ctypes.RunChild{
-						Text: t,
-					})
+					run.AddText(product_name)
 				}
 			}
 		}

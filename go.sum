@@ -26,12 +26,12 @@ github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZV
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/sagikazarmark/locafero v0.9.0 h1:GbgQGNtTrEmddYDSAH9QLRyfAHY12md+8YFTqyMTC9k=
 github.com/sagikazarmark/locafero v0.9.0/go.mod h1:UBUyz37V+EdMS3hDF3QWIiVr/2dPrx49OMO0Bn0hJqk=
-github.com/samuel-jimenez/whatsupdocx v0.5.0 h1:jqPWjiGdPTIS8Lr5hhIimaRPepExSlpJvwUyFhwQugA=
-github.com/samuel-jimenez/whatsupdocx v0.5.0/go.mod h1:vyIfszSpdsV9BwYI4Rc9U0BCUQWnCXetf/553f61ZhE=
+github.com/samuel-jimenez/whatsupdocx v0.6.0 h1:XmjpaTkVPWI9ixPHqlfLXg6Ke9vEiZjIoD56k7AK5CQ=
+github.com/samuel-jimenez/whatsupdocx v0.6.0/go.mod h1:Q6uwA1lUjU5GO0Gwx2gEE7ENtK7G68bYqpNYggi5x98=
 github.com/samuel-jimenez/windigo v0.17.0 h1:CTTlk1nKB0+yntUrzHMkuv2EAmkvG5e9am55/FNK0tU=
 github.com/samuel-jimenez/windigo v0.17.0/go.mod h1:GIVFuMGl+ypJEbUrTg2ddEzegfD0SGqKWCRDfvse/3o=
-github.com/samuel-jimenez/xml v0.2.2 h1:mYUdZ6DRmd9f0EDQb+FfOGXAPfR3drAtmJUsH3Q3VMA=
-github.com/samuel-jimenez/xml v0.2.2/go.mod h1:atFEn/gqQFEykTzPoTarhoXuo07OcTt6cscwtStM5U0=
+github.com/samuel-jimenez/xml v0.2.4 h1:f0MZfU02VTeLbBerKbwKhsI55mjf5uYgWoZQq12qV3M=
+github.com/samuel-jimenez/xml v0.2.4/go.mod h1:atFEn/gqQFEykTzPoTarhoXuo07OcTt6cscwtStM5U0=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spf13/afero v1.14.0 h1:9tH6MapGnn/j0eb0yIXiLjERO8RB6xIVZRDCX7PtqWA=
