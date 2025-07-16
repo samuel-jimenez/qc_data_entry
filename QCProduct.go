@@ -142,7 +142,7 @@ func (product QCProduct) write_CoA_rows(table *docx.Table) {
 
 	product.select_product_coa_details()
 	write_CoA_row(table, Appearance_title, Appearance_units, product.Appearance.String, visual)
-	write_CoA_row_fmt(table, ph_title, formats.DENSITY_UNITS, product.PH, product.Product.PH, formats.Format_ph)
+	write_CoA_row_fmt(table, ph_title, "", product.PH, product.Product.PH, formats.Format_ph)
 	write_CoA_row_fmt(table, sg_title, formats.SG_UNITS, product.SG, product.Product.SG, Format_sg)
 	write_CoA_row_fmt(table, Density_title, formats.DENSITY_UNITS, product.Density, product.Product.Density, formats.Format_density)
 	write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)

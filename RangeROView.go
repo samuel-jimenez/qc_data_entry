@@ -35,6 +35,7 @@ func (data_view *RangeROView) Refresh() {
 	data_view.max_field.Refresh()
 }
 
+// TODO As-is here?
 func (data_view *RangeROView) Update(update_data Range) {
 	if data_view.data_map != nil {
 		update_data = update_data.Map(data_view.data_map)

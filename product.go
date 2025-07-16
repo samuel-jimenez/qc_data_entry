@@ -177,17 +177,18 @@ func (product Product) check_data() bool {
 }
 
 func (product Product) printout() error {
+	//TODO test
 	product.export_json()
 	return product.print()
 }
 
 func (product Product) output() error {
-	err := product.export_CoA()
-	if err != nil {
+	if err := product.printout(); err != nil {
 		return err
 	}
-	//TODO test
-	return product.printout()
+	product.format_sample()
+	return product.export_CoA()
+
 }
 
 func (product *Product) format_sample() {
@@ -199,8 +200,7 @@ func (product *Product) format_sample() {
 
 func (product Product) output_sample() error {
 	product.format_sample()
-	err := product.export_CoA()
-	if err != nil {
+	if err := product.export_CoA(); err != nil {
 		return err
 	}
 	return product.print()
@@ -209,6 +209,7 @@ func (product Product) output_sample() error {
 
 }
 
+// TODO: move these to own file
 func withOpenFile(file_name string, FN func(*excelize.File) error) error {
 	xl_file, err := excelize.OpenFile(file_name)
 	if err != nil {
