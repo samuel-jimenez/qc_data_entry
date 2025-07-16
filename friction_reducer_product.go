@@ -216,10 +216,15 @@ func check_dual_data(top_product, bottom_product Product) {
 			if err != nil {
 				log.Printf("Error: %q: %s\n", err, "bottom_product.printout")
 			}
-			//TODO
-			bottom_product.output_sample()
+			//TODO find closest RMS?
+			err = bottom_product.output_sample()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "bottom_product.output_sample")
+			}
 		}
-	} else { // TODO
+	} else { // TODO show confirm box
+		log.Println("ERROR: Viscosity", top_product.Lot_number, top_product.Product_type, top_product.Viscosity, bottom_product.Viscosity)
+
 	}
 
 }
@@ -259,34 +264,6 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 		bottom_group.Clear()
 	}
 
-	top_cb := func() {
-		base_product := create_new_product_cb()
-
-		top_product := top_group.Get(base_product, true)
-		if top_product.check_data() {
-			log.Println("debug: submit_cb top sample", top_product)
-			top_product.output_sample()
-			err := top_product.output_sample()
-			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "top_product.output_sample")
-			}
-		}
-	}
-
-	btm_cb := func() {
-
-		base_product := create_new_product_cb()
-
-		bottom_product := bottom_group.Get(base_product, true)
-		if bottom_product.check_data() {
-			log.Println("debug: submit_cb btm sample", bottom_product)
-			err := bottom_product.output_sample()
-			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.output_sample")
-			}
-		}
-	}
-
 	tote_cb := func() {
 		base_product := create_new_product_cb()
 
@@ -303,7 +280,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product
 	}
 
 	button_dock_totes := NewMarginalButtonDock(parent, []string{"Submit", "Clear"}, []int{40, 0}, []func(){tote_cb, clear_cb})
-	button_dock_cars := NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Accept Top", "Accept Btm"}, []int{40, 0, 10, 0}, []func(){submit_cb, clear_cb, top_cb, btm_cb})
+	button_dock_cars := NewMarginalButtonDock(parent, []string{"Submit", "Clear"}, []int{40, 0}, []func(){submit_cb, clear_cb})
 	button_dock_totes.Hide()
 
 	panel.Dock(top_group, windigo.Left)
