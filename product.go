@@ -15,6 +15,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/whatsupdocx"
+	"github.com/samuel-jimenez/whatsupdocx/docx"
 )
 
 type Product struct {
@@ -70,15 +71,9 @@ func (product Product) get_coa_name() string {
 
 func (product Product) export_CoA() error {
 	var (
-		lot_title = "Batch/Lot#"
-
 		p_title   = "[PRODUCT_NAME]"
 		Coa_title = "Parameter"
 	)
-
-	terms := []string{
-		lot_title,
-	}
 
 	template_file := product.get_coa_template()
 	output_file := product.get_coa_name()
@@ -88,51 +83,66 @@ func (product Product) export_CoA() error {
 		return err
 	}
 
+	product_name := product.Product_name_customer
+	if product_name == "" {
+		product_name = product.Product_type
+	}
 CHILDREN:
 	for _, item := range doc.Document.Body.Children {
-		if para := item.Paragraph; para != nil {
-			if strings.Contains(para.String(), p_title) {
-				for _, child := range para.Children {
-					if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
+		if para := item.Paragraph; para != nil && strings.Contains(para.String(), p_title) {
+			for _, child := range para.Children {
+				if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
 
-						run.Clear()
+					run.Clear()
 
-						//Add product name
-						product_name := product.Product_name_customer
-						if product_name == "" {
-							product_name = product.Product_type
-						}
-						run.AddText(product_name)
-						continue CHILDREN
-					}
+					//Add product name
+					run.AddText(product_name)
+					continue CHILDREN
 				}
 			}
 		}
 
 		if table := item.Table; table != nil {
-			for _, row := range table.RowContents {
-				doing := ""
-				for i, cell := range row.Row.Contents {
-					for _, cont := range cell.Cell.Contents {
-						if field := cont.Paragraph; field != nil {
-							if i == 0 && doing == "" {
-								if strings.Contains(field.String(), Coa_title) {
-									QCProduct{Product: product}.write_CoA_rows(table)
-									continue CHILDREN
-								}
-								for _, term := range terms {
-									if strings.Contains(field.String(), term) {
-										doing = term
-										break
-									}
-								}
-							} else {
-								if i == 1 {
-									switch doing {
-									case lot_title:
-										field.AddText(product.Lot_number)
-									}
-								}
+			if product.search_x(table, Coa_title) {
+				continue CHILDREN
+			}
+
+		}
+	}
+
+	// save to file
+	return doc.SaveTo(output_file)
+}
+
+func (product Product) search_x(table *docx.Table, Coa_title string) (handled bool) {
+	var (
+		lot_title = "Batch/Lot#"
+	)
+
+	terms := []string{
+		lot_title,
+	}
+	for _, row := range table.RowContents {
+		doing := ""
+		for i, cell := range row.Row.Contents {
+			for _, cont := range cell.Cell.Contents {
+				if field := cont.Paragraph; field != nil {
+					if i == 0 && doing == "" {
+						if strings.Contains(field.String(), Coa_title) {
+							QCProduct{Product: product}.write_CoA_rows(table)
+							return true
+						}
+						for _, term := range terms {
+							if strings.Contains(field.String(), term) {
+								doing = term
+								break
+							}
+						}
+					} else {
+						if i == 1 {
+							switch doing {
+							case lot_title:
+								field.AddText(product.Lot_number)
 							}
 						}
 					}
@@ -140,9 +150,8 @@ CHILDREN:
 			}
 		}
 	}
+	return handled
 
-	// save to file
-	return doc.SaveTo(output_file)
 }
 
 func (product Product) toProduct() Product {
