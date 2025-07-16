@@ -198,6 +198,9 @@ func show_window() {
 	clear_button_width := 20
 	filter_button_width := 50
 	search_button_width := 50
+	reprint_sample_button_margin := hpanel_margin + label_width + field_width + clear_button_width + inter_spacer_width - filter_button_width - search_button_width
+	reprint_sample_button_width := 100
+	regen_sample_button_width := 90
 
 	product_text := "Product"
 	lot_text := "Lot Number"
@@ -252,12 +255,21 @@ func show_window() {
 	lot_panel.Dock(sample_field, windigo.Left)
 
 	filter_button := windigo.NewPushButton(product_panel)
-	filter_button.SetText("FIlter")
+	filter_button.SetText("Filter")
 	filter_button.SetSize(filter_button_width, viewer.OFF_AXIS)
 
 	search_button := windigo.NewPushButton(product_panel)
 	search_button.SetText("Search")
 	search_button.SetSize(search_button_width, viewer.OFF_AXIS)
+
+	reprint_sample_button := windigo.NewPushButton(product_panel)
+	reprint_sample_button.SetText("Reprint Sample")
+	reprint_sample_button.SetSize(reprint_sample_button_width, viewer.OFF_AXIS)
+	reprint_sample_button.SetMarginLeft(reprint_sample_button_margin)
+
+	regen_sample_button := windigo.NewPushButton(product_panel)
+	regen_sample_button.SetText("Regen Sample")
+	regen_sample_button.SetSize(regen_sample_button_width, viewer.OFF_AXIS)
 
 	// FilterListView := NewSQLFilterListView(product_panel)
 	FilterListView := viewer.NewSQLFilterListView(mainWindow)
@@ -277,11 +289,13 @@ func show_window() {
 	product_panel.Dock(lot_panel, windigo.Top)
 	product_panel.Dock(filter_button, windigo.Left)
 	product_panel.Dock(search_button, windigo.Left)
+	product_panel.Dock(reprint_sample_button, windigo.Left)
+	product_panel.Dock(regen_sample_button, windigo.Left)
+
 	// product_panel.Dock(FilterListView, windigo.Left)
 	// product_panel.Dock(FilterListView, windigo.Top)
 
 	// product_panel.Dock(reprint_button, windigo.Left)
-	// product_panel.Dock(reprint_sample_button, windigo.Left)
 
 	// tabs := windigo.NewTabView(mainWindow)
 	// tab_wb := tabs.AddAutoPanel("Water Based")
