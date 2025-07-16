@@ -18,6 +18,10 @@ import (
 	"github.com/samuel-jimenez/whatsupdocx/docx"
 )
 
+var (
+	COA_LOT_TITLE = "Batch/Lot#"
+)
+
 type Product struct {
 	BaseProduct
 	SG          nullable.NullFloat64
@@ -74,6 +78,9 @@ func (product Product) export_CoA() error {
 		p_title   = "[PRODUCT_NAME]"
 		Coa_title = "Parameter"
 	)
+	terms := []string{
+		COA_LOT_TITLE,
+	}
 
 	template_file := product.get_coa_template()
 	output_file := product.get_coa_name()
@@ -93,7 +100,7 @@ func (product Product) export_CoA() error {
 		}
 
 		if table := item.Table; table != nil {
-			product.searchCOATable(table, Coa_title)
+			product.searchCOATable(table, Coa_title, terms)
 		}
 	}
 
@@ -116,43 +123,44 @@ func (product Product) searchCOAPara(para *docx.Paragraph, p_title, product_name
 	}
 }
 
-func (product Product) searchCOATable(table *docx.Table, Coa_title string) (handled bool) {
-	var (
-		lot_title = "Batch/Lot#"
-	)
-
-	terms := []string{
-		lot_title,
-	}
+func (product Product) searchCOATable(table *docx.Table, Coa_title string, terms []string) {
 	for _, row := range table.RowContents {
-		doing := ""
-		for i, cell := range row.Row.Contents {
-			for _, cont := range cell.Cell.Contents {
-				if field := cont.Paragraph; field != nil {
-					if i == 0 && doing == "" {
-						if strings.Contains(field.String(), Coa_title) {
-							QCProduct{Product: product}.write_CoA_rows(table)
-							return true
+		if product.searchCOARow(table, row.Row, Coa_title, terms) {
+			return
+		}
+	}
+}
+
+func (product Product) searchCOARow(table *docx.Table, row *docx.Row, Coa_title string, terms []string) (finished bool) {
+	currentHeading := ""
+ROW:
+	for i, cell := range row.Contents {
+		for _, cont := range cell.Cell.Contents {
+			if field := cont.Paragraph; field != nil {
+				if i == 0 && currentHeading == "" {
+					if strings.Contains(field.String(), Coa_title) {
+						QCProduct{Product: product}.write_CoA_rows(table)
+						return true
+					}
+					for _, term := range terms {
+						if strings.Contains(field.String(), term) {
+							currentHeading = term
+							continue ROW
 						}
-						for _, term := range terms {
-							if strings.Contains(field.String(), term) {
-								doing = term
-								break
-							}
-						}
-					} else {
-						if i == 1 {
-							switch doing {
-							case lot_title:
-								field.AddText(product.Lot_number)
-							}
+					}
+				} else {
+					if i == 1 {
+						switch currentHeading {
+						case COA_LOT_TITLE:
+							field.AddText(product.Lot_number)
+							return false
 						}
 					}
 				}
 			}
 		}
 	}
-	return handled
+	return false
 }
 
 func (product Product) toProduct() Product {
