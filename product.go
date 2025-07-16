@@ -87,26 +87,13 @@ func (product Product) export_CoA() error {
 	if product_name == "" {
 		product_name = product.Product_type
 	}
-CHILDREN:
 	for _, item := range doc.Document.Body.Children {
-		if para := item.Paragraph; para != nil && strings.Contains(para.String(), p_title) {
-			for _, child := range para.Children {
-				if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
-
-					run.Clear()
-
-					//Add product name
-					run.AddText(product_name)
-					continue CHILDREN
-				}
-			}
+		if para := item.Paragraph; para != nil {
+			product.searchCOAPara(para, p_title, product_name)
 		}
 
 		if table := item.Table; table != nil {
-			if product.search_x(table, Coa_title) {
-				continue CHILDREN
-			}
-
+			product.searchCOATable(table, Coa_title)
 		}
 	}
 
@@ -114,7 +101,22 @@ CHILDREN:
 	return doc.SaveTo(output_file)
 }
 
-func (product Product) search_x(table *docx.Table, Coa_title string) (handled bool) {
+func (product Product) searchCOAPara(para *docx.Paragraph, p_title, product_name string) {
+	if strings.Contains(para.String(), p_title) {
+		for _, child := range para.Children {
+			if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
+
+				run.Clear()
+
+				//Add product name
+				run.AddText(product_name)
+				return
+			}
+		}
+	}
+}
+
+func (product Product) searchCOATable(table *docx.Table, Coa_title string) (handled bool) {
 	var (
 		lot_title = "Batch/Lot#"
 	)
@@ -151,7 +153,6 @@ func (product Product) search_x(table *docx.Table, Coa_title string) (handled bo
 		}
 	}
 	return handled
-
 }
 
 func (product Product) toProduct() Product {
