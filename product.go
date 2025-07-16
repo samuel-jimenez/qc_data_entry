@@ -92,15 +92,19 @@ CHILDREN:
 	for _, item := range doc.Document.Body.Children {
 		if para := item.Paragraph; para != nil {
 			if strings.Contains(para.String(), p_title) {
-				if run := para.Children[0].Run; run != nil {
-					run.Clear()
+				for _, child := range para.Children {
+					if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
 
-					//Add product name
-					product_name := product.Product_name_customer
-					if product_name == "" {
-						product_name = product.Product_type
+						run.Clear()
+
+						//Add product name
+						product_name := product.Product_name_customer
+						if product_name == "" {
+							product_name = product.Product_type
+						}
+						run.AddText(product_name)
+						continue CHILDREN
 					}
-					run.AddText(product_name)
 				}
 			}
 		}
