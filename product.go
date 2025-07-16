@@ -137,24 +137,26 @@ ROW:
 	for i, cell := range row.Contents {
 		for _, cont := range cell.Cell.Contents {
 			if field := cont.Paragraph; field != nil {
-				if i == 0 && currentHeading == "" {
-					if strings.Contains(field.String(), Coa_title) {
-						QCProduct{Product: product}.write_CoA_rows(table)
-						return true
-					}
-					for _, term := range terms {
-						if strings.Contains(field.String(), term) {
-							currentHeading = term
-							continue ROW
+				switch i {
+				case 0:
+					if currentHeading == "" {
+						field_string := field.String()
+						if strings.Contains(field_string, Coa_title) {
+							QCProduct{Product: product}.write_CoA_rows(table)
+							return true
+						}
+						for _, term := range terms {
+							if strings.Contains(field_string, term) {
+								currentHeading = term
+								continue ROW
+							}
 						}
 					}
-				} else {
-					if i == 1 {
-						switch currentHeading {
-						case COA_LOT_TITLE:
-							field.AddText(product.Lot_number)
-							return false
-						}
+				case 1:
+					switch currentHeading {
+					case COA_LOT_TITLE:
+						field.AddText(product.Lot_number)
+						return false
 					}
 				}
 			}
