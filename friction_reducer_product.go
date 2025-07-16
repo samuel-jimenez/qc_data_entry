@@ -216,10 +216,14 @@ func check_dual_data(top_product, bottom_product Product) {
 			if err != nil {
 				log.Printf("Error: %q: %s\n", err, "bottom_product.printout")
 			}
-			//TODO find closest RMS?
+			//TODO find closest: RMS?
 			err = bottom_product.output_sample()
 			if err != nil {
 				log.Printf("Error: %q: %s\n", err, "bottom_product.output_sample")
+			}
+			err = bottom_product.save_xl()
+			if err != nil {
+				log.Printf("Error: %q: %s\n", err, "bottom_product.save_xl")
 			}
 		}
 	} else { // TODO show confirm box

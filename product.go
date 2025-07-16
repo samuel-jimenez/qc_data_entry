@@ -16,6 +16,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/whatsupdocx"
 	"github.com/samuel-jimenez/whatsupdocx/docx"
+	"github.com/xuri/excelize/v2"
 )
 
 var (
@@ -206,6 +207,47 @@ func (product Product) output_sample() error {
 	//TODO clean
 	// return nil
 
+}
+
+func withOpenFile(file_name string, FN func(*excelize.File) error) error {
+	xl_file, err := excelize.OpenFile(file_name)
+	if err != nil {
+		log.Printf("Error: %q: %s\n", err, "withOpenFile")
+		return err
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := xl_file.Close(); err != nil {
+			log.Printf("Error: %q: %s\n", err, "withOpenFile")
+		}
+	}()
+	return FN(xl_file)
+}
+
+func updateExcel(file_name, worksheet_name string, row ...string) error {
+
+	return withOpenFile(file_name, func(xl_file *excelize.File) error {
+		// Get all the rows in the worksheet.
+		rows, err := xl_file.GetRows(worksheet_name)
+		if err != nil {
+			log.Printf("Error: %q: %s\n", err, "updateExcel")
+			return err
+		}
+		startCell := fmt.Sprintf("A%v", len(rows)+1)
+
+		err = xl_file.SetSheetRow(worksheet_name, startCell, &row)
+		if err != nil {
+			log.Printf("Error: %q: %s\n", err, "updateExcel")
+			return err
+		}
+		return xl_file.Save()
+	})
+}
+
+func (product Product) save_xl() error {
+	isomeric_product := strings.Split(product.Product_type, " ")[1]
+	valence_product := strings.Split(product.Product_name_customer, " ")[1]
+	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, product.Lot_number, isomeric_product, valence_product)
 }
 
 func _print(pdf_path string) {
