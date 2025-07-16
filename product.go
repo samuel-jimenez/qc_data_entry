@@ -136,28 +136,30 @@ func (product Product) searchCOARow(table *docx.Table, row *docx.Row, Coa_title 
 ROW:
 	for i, cell := range row.Contents {
 		for _, cont := range cell.Cell.Contents {
-			if field := cont.Paragraph; field != nil {
-				switch i {
-				case 0:
-					if currentHeading == "" {
-						field_string := field.String()
-						if strings.Contains(field_string, Coa_title) {
-							QCProduct{Product: product}.write_CoA_rows(table)
-							return true
-						}
-						for _, term := range terms {
-							if strings.Contains(field_string, term) {
-								currentHeading = term
-								continue ROW
-							}
+			field := cont.Paragraph
+			if field == nil {
+				continue
+			}
+			switch i {
+			case 0:
+				if currentHeading == "" {
+					field_string := field.String()
+					if strings.Contains(field_string, Coa_title) {
+						QCProduct{Product: product}.write_CoA_rows(table)
+						return true
+					}
+					for _, term := range terms {
+						if strings.Contains(field_string, term) {
+							currentHeading = term
+							continue ROW
 						}
 					}
-				case 1:
-					switch currentHeading {
-					case COA_LOT_TITLE:
-						field.AddText(product.Lot_number)
-						return false
-					}
+				}
+			case 1:
+				switch currentHeading {
+				case COA_LOT_TITLE:
+					field.AddText(product.Lot_number)
+					return false
 				}
 			}
 		}
