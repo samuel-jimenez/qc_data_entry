@@ -177,7 +177,8 @@ func show_window() {
 	log.Println("Info: Process started")
 
 	product_data := make(map[string]int)
-	lot_data := make(map[string]int)
+	// lot_data := make(map[string]int)
+	var lot_data []string
 
 	top_panel_width := viewer.WINDOW_WIDTH
 	top_panel_height := 110
@@ -315,6 +316,15 @@ func show_window() {
 	// mainWindow.SetStatusBar(status_bar)
 
 	// functionality
+	update_lot := func(id int, name string) {
+		lot_field.AddItem(name)
+		viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
+	}
+
+	update_sample := func(id int, name string) {
+		sample_field.AddItem(name)
+		viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
+	}
 
 	rows, err := db_select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
@@ -332,18 +342,12 @@ func show_window() {
 	})
 
 	GUI.Fill_combobox_from_query_0_2(lot_field, db_select_lot_all, func(id int, name string) {
-		lot_data[name] = id
-
-		lot_field.AddItem(name)
-		viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
-	})
-
-	GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, func(id int, name string) {
 		// lot_data[name] = id
-
-		sample_field.AddItem(name)
-		viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
+		lot_data = append(lot_data, name)
+		update_lot(id, name)
 	})
+
+	GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
 
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
@@ -364,16 +368,10 @@ func show_window() {
 		table.Update()
 
 		viewer.COL_ITEMS_LOT = nil
-		GUI.Fill_combobox_from_query_1_2(lot_field, db_select_lot_info, int64(product_id), func(id int, name string) {
-			lot_field.AddItem(name)
-			viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
-		})
+		GUI.Fill_combobox_from_query_1_2(lot_field, db_select_lot_info, int64(product_id), update_lot)
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_1_2(sample_field, db_select_sample_points, int64(product_id), func(id int, name string) {
-			sample_field.AddItem(name)
-			viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
-		})
+		GUI.Fill_combobox_from_query_1_2(sample_field, db_select_sample_points, int64(product_id), update_sample)
 
 		// FilterListView[viewer.COL_KEY_LOT].Update(viewer.COL_ITEMS_LOT)
 		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
@@ -416,20 +414,17 @@ func show_window() {
 
 		viewer.COL_ITEMS_LOT = nil
 		lot_field.DeleteAllItems()
-		for name := range lot_data {
-			lot_field.AddItem(name)
-			viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
+		// for name := range lot_data {
+		for id, name := range lot_data {
+			update_lot(id, name)
 		}
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, func(id int, name string) {
-			// lot_data[name] = id
-
-			sample_field.AddItem(name)
-			viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
-		})
+		GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
 
 		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
+
+		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
 		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
 	}
 
