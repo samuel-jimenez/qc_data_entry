@@ -326,6 +326,43 @@ func show_window() {
 		viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
 	}
 
+	clear_product := func() {
+		table.Set(select_samples())
+		table.Update()
+		product_field.SetSelectedItem(-1)
+
+		viewer.COL_ITEMS_LOT = nil
+		lot_field.DeleteAllItems()
+		// for name := range lot_data {
+		for id, name := range lot_data {
+			update_lot(id, name)
+		}
+
+		viewer.COL_ITEMS_SAMPLE = nil
+		GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
+
+		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
+
+		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
+		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+	}
+
+	clear_lot := func() {
+		//TODO
+		product_id := product_data[product_field.GetSelectedItem()]
+		if product_id > 0 {
+			table.Set(select_product_samples(product_id))
+		}
+		table.Update()
+		lot_field.SetSelectedItem(-1)
+	}
+
+	// clear := func() {
+	// 	clear_product()
+	// 	clear_lot()
+	// }
+
+	// combobox
 	rows, err := db_select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
@@ -348,7 +385,6 @@ func show_window() {
 	})
 
 	GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
-
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
 	FilterListView.AddDiscreteMulti(viewer.COL_KEY_SAMPLE, viewer.COL_LABEL_SAMPLE, viewer.COL_ITEMS_SAMPLE)
@@ -359,6 +395,7 @@ func show_window() {
 	FilterListView.AddContinuous(viewer.COL_KEY_VISCOSITY, viewer.COL_LABEL_VISCOSITY)
 	FilterListView.Hide()
 
+	// listeners
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		// product_field_pop_data(product_field.GetSelectedItem())
 
@@ -406,42 +443,6 @@ func show_window() {
 		table.Update()
 
 	})
-
-	clear_product := func() {
-		table.Set(select_samples())
-		table.Update()
-		product_field.SetSelectedItem(-1)
-
-		viewer.COL_ITEMS_LOT = nil
-		lot_field.DeleteAllItems()
-		// for name := range lot_data {
-		for id, name := range lot_data {
-			update_lot(id, name)
-		}
-
-		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
-
-		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
-
-		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
-		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
-	}
-
-	clear_lot := func() {
-		//TODO
-		product_id := product_data[product_field.GetSelectedItem()]
-		if product_id > 0 {
-			table.Set(select_product_samples(product_id))
-		}
-		table.Update()
-		lot_field.SetSelectedItem(-1)
-	}
-
-	// clear := func() {
-	// 	clear_product()
-	// 	clear_lot()
-	// }
 
 	product_clear_button.OnClick().Bind(func(e *windigo.Event) {
 		// log.Println("product_field", product_field.SelectedItem())
