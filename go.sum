@@ -33,8 +33,8 @@ github.com/sagikazarmark/locafero v0.9.0 h1:GbgQGNtTrEmddYDSAH9QLRyfAHY12md+8YFT
 github.com/sagikazarmark/locafero v0.9.0/go.mod h1:UBUyz37V+EdMS3hDF3QWIiVr/2dPrx49OMO0Bn0hJqk=
 github.com/samuel-jimenez/whatsupdocx v0.6.2 h1:0AGy2/f1l05mtrcplRXdb/Y0kpM3DXuPnIQJJl1e2/I=
 github.com/samuel-jimenez/whatsupdocx v0.6.2/go.mod h1:Q6uwA1lUjU5GO0Gwx2gEE7ENtK7G68bYqpNYggi5x98=
-github.com/samuel-jimenez/windigo v0.17.0 h1:CTTlk1nKB0+yntUrzHMkuv2EAmkvG5e9am55/FNK0tU=
-github.com/samuel-jimenez/windigo v0.17.0/go.mod h1:GIVFuMGl+ypJEbUrTg2ddEzegfD0SGqKWCRDfvse/3o=
+github.com/samuel-jimenez/windigo v0.17.1 h1:cwoy68lmvwgHwe+d4pQAIMApRaSHVhprVJIJ2HITdeU=
+github.com/samuel-jimenez/windigo v0.17.1/go.mod h1:GIVFuMGl+ypJEbUrTg2ddEzegfD0SGqKWCRDfvse/3o=
 github.com/samuel-jimenez/xml v0.2.4 h1:f0MZfU02VTeLbBerKbwKhsI55mjf5uYgWoZQq12qV3M=
 github.com/samuel-jimenez/xml v0.2.4/go.mod h1:atFEn/gqQFEykTzPoTarhoXuo07OcTt6cscwtStM5U0=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=

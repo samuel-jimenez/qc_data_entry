@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/samuel-jimenez/whatsupdocx v0.6.2
-	github.com/samuel-jimenez/windigo v0.17.0
+	github.com/samuel-jimenez/windigo v0.17.1
 	github.com/samuel-jimenez/xml v0.2.4 // indirect
 )
 
