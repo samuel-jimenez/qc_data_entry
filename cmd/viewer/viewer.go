@@ -392,8 +392,8 @@ func show_window() {
 
 	search_button.OnClick().Bind(func(e *windigo.Event) {
 		//TODO
-		log.Println(FilterListView.Get().Get())
-		log.Println(SAMPLE_SELECT_STRING + FilterListView.Get().Get())
+		log.Println("FilterListView:", FilterListView.Get().Get())
+		log.Println("SAMPLE_SELECT_STRING", SAMPLE_SELECT_STRING+FilterListView.Get().Get())
 		rows, err := qc_db.Query(SAMPLE_SELECT_STRING + FilterListView.Get().Get())
 		table.Set(_select_samples(rows, err, "search samples"))
 		table.Update()

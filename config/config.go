@@ -64,7 +64,7 @@ func read_or_create_config(viper_config *viper.Viper, config_path, config_file s
 		// Config file not found; ignore error if desired
 
 		os.MkdirAll(config_path, 660)
-		log.Println(viper_config.WriteConfigAs(config_file))
+		log.Println("viper_config.WriteConfigAs", viper_config.WriteConfigAs(config_file))
 	} else if err != nil { // Handle errors reading the config file
 		panic(fmt.Errorf("fatal error config file: %w", err))
 	}

@@ -68,7 +68,7 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 	submit_cb := func() {
 		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), mass_field.Get())
 		if product.Check_data() {
-			log.Println("data", product)
+			log.Println("ob sub data", product)
 			product.Save()
 			err := product.Output()
 			if err != nil {
@@ -87,7 +87,7 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 	log_cb := func() {
 		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), mass_field.Get())
 		if product.Check_data() {
-			log.Println("data", product)
+			log.Println("ob log data", product)
 			product.Save()
 			product.Export_json()
 		}
