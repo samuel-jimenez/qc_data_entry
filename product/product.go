@@ -254,8 +254,13 @@ func (product Product) Save_xl() error {
 }
 
 func _print(pdf_path string) {
-	threads.PRINT_QUEUE <- pdf_path
-	threads.Show_status("Label Printed")
+	if threads.PRINT_QUEUE != nil {
+		threads.PRINT_QUEUE <- pdf_path
+		threads.Show_status("Label Printed")
+	} else {
+		log.Println("Warn: Print queue not configured. Call threads.Do_print_queue to set up.")
+
+	}
 }
 
 func (product Product) print() error {
@@ -276,7 +281,9 @@ func (product Product) Reprint() {
 }
 
 func (product Product) Reprint_sample() {
+	log.Println("DEBUG: Reprint_sample ", product)
 	product.format_sample()
+	log.Println("DEBUG: Reprint_sample formatted", product)
 	product.Reprint()
 }
 

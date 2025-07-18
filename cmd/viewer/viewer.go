@@ -9,6 +9,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/qc_data_entry/viewer"
 	"github.com/samuel-jimenez/windigo"
 
@@ -44,12 +45,16 @@ func main() {
 	defer qc_db.Close()
 
 	dbinit(qc_db)
-	/*
-		//setup print goroutine
-		print_queue = make(chan string, 4)
-		defer close(print_queue)
-		go do_print_queue(print_queue)
-	*/
+
+	//setup print goroutine
+	threads.PRINT_QUEUE = make(chan string, 4)
+	defer close(threads.PRINT_QUEUE)
+	go threads.Do_print_queue(threads.PRINT_QUEUE)
+
+	//setup status_bar goroutine
+	threads.STATUS_QUEUE = make(chan string, 16)
+	defer close(threads.STATUS_QUEUE)
+	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
 	show_window()
@@ -72,6 +77,7 @@ func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 		)
 
 		if err := rows.Scan(&product_moniker_name, &internal_name,
+			&qc_data.Product_name_customer,
 			&qc_data.Lot_name,
 			&qc_data.Sample_point,
 			&_timestamp,
@@ -114,6 +120,7 @@ func dbinit(db *sql.DB) {
 	select
 		product_moniker_name,
 		product_name_internal,
+		product_name_customer,
 		lot_name,
 		sample_point,
 		time_stamp,
@@ -126,6 +133,7 @@ func dbinit(db *sql.DB) {
 		join bs.product_line using (product_id)
 		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_sample_points using (sample_point_id)
+		left join bs.product_customer_line using (product_customer_id,product_id)
 	`
 
 	DB_Select_product_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`

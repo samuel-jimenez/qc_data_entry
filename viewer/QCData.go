@@ -21,8 +21,9 @@ import (
 type QCData struct {
 	Product_name,
 	Lot_name string
+	Product_name_customer,
 	Sample_point nullable.NullString
-	Time_stamp   time.Time
+	Time_stamp time.Time
 	PH,
 	Specific_gravity,
 	String_test,
@@ -49,9 +50,10 @@ func ToString(data nullable.NullFloat64, format func(float64) string) string {
 
 func (data QCData) Product() *product.Product {
 	return &product.Product{BaseProduct: product.BaseProduct{
-		Product_name: data.Product_name,
-		Lot_number:   data.Lot_name,
-		Sample_point: data.Sample_point.String,
+		Product_name:          data.Product_name,
+		Lot_number:            data.Lot_name,
+		Sample_point:          data.Sample_point.String,
+		Product_name_customer: data.Product_name_customer.String,
 	},
 		PH:          data.PH,
 		SG:          data.Specific_gravity,

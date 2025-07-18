@@ -48,15 +48,24 @@ func Do_print_queue(print_queue chan string) {
 }
 
 func Show_status(message string) {
-	message = fmt.Sprintf("%s\t\t%s", time.Now().Format("15:04:05.000"), message)
-	STATUS_QUEUE <- message
+	if STATUS_QUEUE != nil {
+		message = fmt.Sprintf("%s\t\t%s", time.Now().Format("15:04:05.000"), message)
+		STATUS_QUEUE <- message
+	} else {
+		log.Println("Warn: Status queue not configured. Call threads.Do_status_queue to set up.")
+	}
 }
 
 func status_bar_show(message string, timer *time.Timer) {
-	Status_bar.SetText(message)
-	select {
-	case <-timer.C:
-		Status_bar.SetText("")
+	if Status_bar != nil {
+		Status_bar.SetText(message)
+		select {
+		case <-timer.C:
+			Status_bar.SetText("")
+		}
+	} else {
+		log.Println("Warn: Status bar not configured. Call windigo.NewStatusBar to set up.")
+		log.Println("Info: Status bar message:", message)
 	}
 }
 
