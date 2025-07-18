@@ -1,4 +1,4 @@
-package main
+package GUI
 
 import "github.com/samuel-jimenez/windigo"
 
@@ -25,7 +25,7 @@ func (view *View) Ok() {
 }
 
 func (view *View) Error() {
-	view.SetBorder(erroredPen)
+	view.SetBorder(ErroredPen)
 }
 
 /*

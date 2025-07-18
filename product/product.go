@@ -1,4 +1,4 @@
-package main
+package product
 
 import (
 	"encoding/json"
@@ -11,9 +11,11 @@ import (
 	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/whatsupdocx"
 	"github.com/samuel-jimenez/whatsupdocx/docx"
 	"github.com/xuri/excelize/v2"
@@ -25,25 +27,25 @@ var (
 
 type Product struct {
 	BaseProduct
-	SG          nullable.NullFloat64
 	PH          nullable.NullFloat64
+	SG          nullable.NullFloat64
 	Density     nullable.NullFloat64
 	String_test nullable.NullFloat64
 	Viscosity   nullable.NullFloat64
 }
 
-func (product Product) save() {
-	db_insert_sample_point.Exec(product.Sample_point)
-	_, err := db_insert_measurement.Exec(product.lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
+func (product Product) Save() {
+	DB.DB_insert_sample_point.Exec(product.Sample_point)
+	_, err := DB.DB_insert_measurement.Exec(product.Lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
 	if err != nil {
 		log.Println("error:", err)
-		show_status("Sample Recording Failed")
+		threads.Show_status("Sample Recording Failed")
 	} else {
-		show_status("Sample Recorded")
+		threads.Show_status("Sample Recorded")
 	}
 }
 
-func (product Product) export_json() {
+func (product Product) Export_json() {
 	output_files := product.get_json_names()
 	bytestring, err := json.MarshalIndent(product, "", "\t")
 
@@ -63,7 +65,7 @@ func (product Product) get_coa_template() string {
 	// return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, product.COA_TEMPLATE)
 	// Product_type split
 	//TODO fix this
-	product_moniker := strings.Split(product.Product_type, " ")[0]
+	product_moniker := strings.Split(product.Product_name, " ")[0]
 	if product_moniker == "PETROFLO" {
 		return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA-PETROFLO.docx")
 	}
@@ -93,7 +95,7 @@ func (product Product) export_CoA() error {
 
 	product_name := product.Product_name_customer
 	if product_name == "" {
-		product_name = product.Product_type
+		product_name = product.Product_name
 	}
 	for _, item := range doc.Document.Body.Children {
 		if para := item.Paragraph; para != nil {
@@ -172,18 +174,18 @@ func (product Product) toProduct() Product {
 	return product
 }
 
-func (product Product) check_data() bool {
+func (product Product) Check_data() bool {
 	return true
 }
 
-func (product Product) printout() error {
+func (product Product) Printout() error {
 	//TODO test
-	product.export_json()
+	product.Export_json()
 	return product.print()
 }
 
-func (product Product) output() error {
-	if err := product.printout(); err != nil {
+func (product Product) Output() error {
+	if err := product.Printout(); err != nil {
 		return err
 	}
 	product.format_sample()
@@ -193,12 +195,12 @@ func (product Product) output() error {
 
 func (product *Product) format_sample() {
 	if product.Product_name_customer != "" {
-		product.Product_type = product.Product_name_customer
+		product.Product_name = product.Product_name_customer
 	}
 	product.Sample_point = ""
 }
 
-func (product Product) output_sample() error {
+func (product Product) Output_sample() error {
 	product.format_sample()
 	if err := product.export_CoA(); err != nil {
 		return err
@@ -245,15 +247,15 @@ func updateExcel(file_name, worksheet_name string, row ...string) error {
 	})
 }
 
-func (product Product) save_xl() error {
-	isomeric_product := strings.Split(product.Product_type, " ")[1]
+func (product Product) Save_xl() error {
+	isomeric_product := strings.Split(product.Product_name, " ")[1]
 	valence_product := strings.Split(product.Product_name_customer, " ")[1]
 	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, product.Lot_number, isomeric_product, valence_product)
 }
 
 func _print(pdf_path string) {
-	print_queue <- pdf_path
-	show_status("Label Printed")
+	threads.PRINT_QUEUE <- pdf_path
+	threads.Show_status("Label Printed")
 }
 
 func (product Product) print() error {
@@ -262,20 +264,20 @@ func (product Product) print() error {
 	if err != nil {
 		return err
 	}
-	show_status("Label Created")
+	threads.Show_status("Label Created")
 
 	_print(pdf_path)
 
 	return err
 }
 
-func (product Product) reprint() {
+func (product Product) Reprint() {
 	_print(product.get_pdf_name())
 }
 
-func (product Product) reprint_sample() {
+func (product Product) Reprint_sample() {
 	product.format_sample()
-	product.reprint()
+	product.Reprint()
 }
 
 func (product Product) export_label_pdf() (string, error) {
@@ -311,7 +313,7 @@ func (product Product) export_label_pdf() (string, error) {
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
 	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.Product_type))
+	pdf.Cell(field_width, field_height, strings.ToUpper(product.Product_name))
 
 	if product.Density.Valid {
 		curr_row = 5

@@ -5,12 +5,25 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 )
 
 var (
 	err error
 
 	DB_VERSION = "0.0.1"
+
+	db_select_product_id, db_insert_product,
+	db_select_lot_id, db_insert_lot,
+	db_insert_product_customer,
+	DB_insert_sample_point,
+	DB_insert_measurement,
+	DB_Insert_appearance,
+	DB_Select_product_details,
+	DB_Upsert_product_details, DB_Upsert_product_type,
+	DB_Select_product_coa_details, DB_Upsert_product_coa_details *sql.Stmt
+
+	INVALID_ID int64 = -1
 )
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
@@ -50,4 +63,546 @@ func Check_db(db *sql.DB) {
 		log.Printf("%q\n", err)
 		panic(err)
 	}
+}
+
+func DBinit(db *sql.DB) {
+
+	db_insert_product = PrepareOrElse(db, `
+	insert into bs.product_line
+		(product_name_internal, product_moniker_id)
+		select ?, product_moniker_id
+			from bs.product_moniker
+			where product_moniker_name = ?
+		returning product_id
+		`)
+
+	db_select_product_id = PrepareOrElse(db, `
+	select product_id
+		from bs.product_line
+		join bs.product_moniker using (product_moniker_id)
+		where product_name_internal = ?
+		and product_moniker_name = ?
+		`)
+
+	db_insert_product_customer = PrepareOrElse(db, `
+	insert into bs.product_customer_line
+		(product_name_customer,product_id)
+		values (?,?)
+	returning product_customer_id
+	`)
+
+	db_select_lot_id = PrepareOrElse(db, `
+	select lot_id
+		from bs.product_lot
+		where lot_name = ? and product_id = ?
+	`)
+
+	db_insert_lot = PrepareOrElse(db, `
+	insert into bs.product_lot
+		(lot_name,product_id)
+		values (?,?)
+		returning lot_id
+	`)
+
+	DB_insert_sample_point = PrepareOrElse(db, `
+	with val (sample_point) as (
+		values
+			(?)
+		),
+		sel as (
+			select sample_point, sample_point_id
+			from val
+			left join bs.product_sample_points using (sample_point)
+		)
+	insert into bs.product_sample_points (sample_point)
+	select distinct sample_point from sel where sample_point_id is null
+	returning sample_point_id, sample_point
+	`)
+
+	DB_insert_measurement = PrepareOrElse(db, `
+	with
+		val (lot_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity) as (
+			values
+				(?, ?, ?, ?, ?, ?, ?)
+		),
+		sel as (
+			select lot_id, sample_point_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity
+			from val
+			left join bs.product_sample_points using (sample_point)
+		)
+	insert into bs.qc_samples (lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity)
+	select lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity
+		from   sel
+	returning qc_id;
+	`)
+
+	DB_Insert_appearance = PrepareOrElse(db, `
+	with val (product_appearance_text) as (
+		values
+			(?)
+		),
+		sel as (
+			select product_appearance_text, product_appearance_id
+			from val
+			left join bs.product_appearance using (product_appearance_text)
+		)
+	insert into bs.product_appearance (product_appearance_text)
+	select distinct product_appearance_text from sel where product_appearance_id is null and product_appearance_text is not null
+	returning product_appearance_id, product_appearance_text
+	`)
+
+	DB_Select_product_details = PrepareOrElse(db, `
+	with
+		measured as (
+			select
+				product_id,
+
+				product_type_id,
+				product_appearance_text,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from bs.product_ranges_measured
+				left join bs.product_appearance using (product_appearance_id)
+			where product_id = ?1),
+
+		published as (
+			select
+				product_id,
+				product_appearance_text,
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+
+			from bs.product_ranges_published
+				left join bs.product_appearance using (product_appearance_id)
+			where product_id = ?1)
+	select
+		product_type_id,
+		container_type_id,
+		coalesce(measured.product_appearance_text, published.product_appearance_text) as product_appearance_text,
+
+		coalesce(measured.ph_min, published.ph_min) as ph_min,
+		coalesce(measured.ph_target, published.ph_target) as ph_target,
+		coalesce(measured.ph_max, published.ph_max) as ph_max,
+
+		coalesce(measured.specific_gravity_min, published.specific_gravity_min) as specific_gravity_min,
+		coalesce(measured.specific_gravity_target, published.specific_gravity_target) as specific_gravity_target,
+		coalesce(measured.specific_gravity_max, published.specific_gravity_max) as specific_gravity_max,
+
+		coalesce(measured.density_min, published.density_min) as density_min,
+		coalesce(measured.density_target, published.density_target) as density_target,
+		coalesce(measured.density_max, published.density_max) as density_max,
+
+		coalesce(measured.string_test_min, published.string_test_min) as string_test_min,
+		coalesce(measured.string_test_target, published.string_test_target) as string_test_target,
+		coalesce(measured.string_test_max, published.string_test_max) as string_test_max,
+
+		coalesce(measured.viscosity_min, published.viscosity_min) as viscosity_min,
+		coalesce(measured.viscosity_target, published.viscosity_target) as viscosity_target,
+		coalesce(measured.viscosity_max, published.viscosity_max) as viscosity_max
+	from measured
+		full join published using (product_id)
+		join bs.product_types using (product_type_id)
+	where product_id = ?1
+	`)
+
+	DB_Select_product_coa_details = PrepareOrElse(db, `
+	select
+		product_appearance_text,
+
+		ph_min,
+		ph_target,
+		ph_max,
+
+		specific_gravity_min,
+		specific_gravity_target,
+		specific_gravity_max,
+
+		density_min,
+		density_target,
+		density_max,
+
+		string_test_min,
+		string_test_target,
+		string_test_max,
+
+		viscosity_min,
+		viscosity_target,
+		viscosity_max
+
+	from bs.product_ranges_published
+	join bs.product_appearance using (product_appearance_id)
+	where product_id = ?
+	`)
+
+	DB_Upsert_product_details = PrepareOrElse(db, `
+	with
+		val
+			(product_id,
+			product_type_id,
+			product_appearance_text,
+
+			ph_min,
+			ph_target,
+			ph_max,
+
+			specific_gravity_min,
+			specific_gravity_target,
+			specific_gravity_max,
+
+			density_min,
+			density_target,
+			density_max,
+
+			string_test_min,
+			string_test_target,
+			string_test_max,
+
+			viscosity_min,
+			viscosity_target,
+			viscosity_max)
+		as (
+			values (
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?)
+		),
+		sel as (
+			select
+				product_id,
+				product_type_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from val
+			left join bs.product_appearance using (product_appearance_text)
+		)
+	insert into bs.product_ranges_measured
+		(product_id,
+		product_type_id,
+		product_appearance_id,
+
+
+		ph_min,
+		ph_target,
+		ph_max,
+
+		specific_gravity_min,
+		specific_gravity_target,
+		specific_gravity_max,
+
+		density_min,
+		density_target,
+		density_max,
+
+		string_test_min,
+		string_test_target,
+		string_test_max,
+
+		viscosity_min,
+		viscosity_target,
+		viscosity_max)
+	select
+				product_id,
+				product_type_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from sel
+			where true
+	on conflict(product_id) do update set
+
+		product_type_id=excluded.product_type_id,
+		product_appearance_id=excluded.product_appearance_id,
+
+		ph_min=excluded.ph_min,
+		ph_target=excluded.ph_target,
+		ph_max=excluded.ph_max,
+
+		specific_gravity_min=excluded.specific_gravity_min,
+		specific_gravity_target=excluded.specific_gravity_target,
+		specific_gravity_max=excluded.specific_gravity_max,
+
+		density_min=excluded.density_min,
+		density_target=excluded.density_target,
+		density_max=excluded.density_max,
+
+		string_test_min=excluded.string_test_min,
+		string_test_target=excluded.string_test_target,
+		string_test_max=excluded.string_test_max,
+
+		viscosity_min=excluded.viscosity_min,
+		viscosity_target=excluded.viscosity_target,
+		viscosity_max=excluded.viscosity_max
+
+		returning range_id
+		`)
+
+	DB_Upsert_product_type = PrepareOrElse(db, `
+	insert into bs.product_ranges_measured
+		(product_id,
+		product_type_id)
+	values (?,?)
+	on conflict(product_id) do update set
+
+		product_type_id=excluded.product_type_id
+
+		returning range_id
+		`)
+	DB_Upsert_product_coa_details = PrepareOrElse(db, `
+	with
+		val
+			(product_id,
+			product_type_id,
+			product_appearance_text,
+
+			ph_min,
+			ph_target,
+			ph_max,
+
+			specific_gravity_min,
+			specific_gravity_target,
+			specific_gravity_max,
+
+			density_min,
+			density_target,
+			density_max,
+
+			string_test_min,
+			string_test_target,
+			string_test_max,
+
+			viscosity_min,
+			viscosity_target,
+			viscosity_max)
+		as (
+			values (
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?,
+				?,?,?)
+		),
+		sel as (
+			select
+				product_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from val
+			left join bs.product_appearance using (product_appearance_text)
+		)
+	insert into bs.product_ranges_published
+		(product_id,
+		product_appearance_id,
+
+
+		ph_min,
+		ph_target,
+		ph_max,
+
+		specific_gravity_min,
+		specific_gravity_target,
+		specific_gravity_max,
+
+		density_min,
+		density_target,
+		density_max,
+
+		string_test_min,
+		string_test_target,
+		string_test_max,
+
+		viscosity_min,
+		viscosity_target,
+		viscosity_max)
+	select
+				product_id,
+				product_appearance_id,
+
+
+				ph_min,
+				ph_target,
+				ph_max,
+
+				specific_gravity_min,
+				specific_gravity_target,
+				specific_gravity_max,
+
+				density_min,
+				density_target,
+				density_max,
+
+				string_test_min,
+				string_test_target,
+				string_test_max,
+
+				viscosity_min,
+				viscosity_target,
+				viscosity_max
+			from sel
+			where true
+	on conflict(product_id) do update set
+
+		product_appearance_id=excluded.product_appearance_id,
+
+		ph_min=excluded.ph_min,
+		ph_target=excluded.ph_target,
+		ph_max=excluded.ph_max,
+
+		specific_gravity_min=excluded.specific_gravity_min,
+		specific_gravity_target=excluded.specific_gravity_target,
+		specific_gravity_max=excluded.specific_gravity_max,
+
+		density_min=excluded.density_min,
+		density_target=excluded.density_target,
+		density_max=excluded.density_max,
+
+		string_test_min=excluded.string_test_min,
+		string_test_target=excluded.string_test_target,
+		string_test_max=excluded.string_test_max,
+
+		viscosity_min=excluded.viscosity_min,
+		viscosity_target=excluded.viscosity_target,
+		viscosity_max=excluded.viscosity_max
+
+		returning qc_range_id
+		`)
+
+}
+
+func insert(insert_statement *sql.Stmt, proc_name string, args ...any) int64 {
+	var insert_id int64
+	result, err := insert_statement.Exec(args...)
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return INVALID_ID
+	}
+	insert_id, err = result.LastInsertId()
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return -2
+	}
+	return insert_id
+}
+
+func insel(insert_statement, select_statement *sql.Stmt, proc_name string, args ...any) int64 {
+	var insel_id int64
+	if select_statement.QueryRow(args...).Scan(&insel_id) != nil {
+		//no rows
+		insel_id = insert(insert_statement, proc_name, args...)
+	}
+	return insel_id
+}
+
+func Insel_product_id(product_name_full string) int64 {
+
+	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
+
+	return insel(db_insert_product, db_select_product_id, "Debug: insel_product_id", product_name_internal, product_moniker_name)
+}
+
+func Insel_lot_id(lot_name string, product_id int64) int64 {
+	return insel(db_insert_lot, db_select_lot_id, "Debug: insel_lot_id", lot_name, product_id)
+}
+
+func Insert_product_name_customer(product_name_customer string, product_id int64) int64 {
+	return insert(db_insert_product_customer, "Debug: insert_product_name_customer", product_name_customer, product_id)
 }

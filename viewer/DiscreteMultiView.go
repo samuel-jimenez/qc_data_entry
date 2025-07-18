@@ -41,7 +41,7 @@ func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *Disc
 	overpanel := windigo.NewAutoPanel(parent)
 	// panel.SetPaddingsAll(15)
 	panel := windigo.NewAutoPanel(overpanel)
-	panel.SetSize(OFF_AXIS, delta_height)
+	panel.SetSize(GUI.OFF_AXIS, delta_height)
 	overpanel.Dock(panel, windigo.Top)
 
 	for _, label_text := range labels {
@@ -51,7 +51,7 @@ func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *Disc
 		curr_width -= text_width
 		if curr_width < 0 {
 			panel = windigo.NewAutoPanel(overpanel)
-			panel.SetSize(OFF_AXIS, delta_height)
+			panel.SetSize(GUI.OFF_AXIS, delta_height)
 			overpanel.Dock(panel, windigo.Top)
 			height += delta_height
 
@@ -71,7 +71,7 @@ func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *Disc
 		panel.Dock(label, windigo.Left)
 
 	}
-	overpanel.SetSize(OFF_AXIS, height)
+	overpanel.SetSize(GUI.OFF_AXIS, height)
 	view.AutoPanel = overpanel
 
 	return view

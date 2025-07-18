@@ -3,24 +3,34 @@ package main
 import (
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
 
 type WaterBasedProduct struct {
-	BaseProduct
+	product.BaseProduct
 	sg float64
 	ph float64
 }
 
-func (product WaterBasedProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), nullable.NewNullFloat64(product.sg, true), nullable.NewNullFloat64(product.ph, true), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false)}
+func (wb_product WaterBasedProduct) toProduct() product.Product {
+	return product.Product{
+		BaseProduct: wb_product.Base(),
+		PH:          nullable.NewNullFloat64(wb_product.ph, true),
+		SG:          nullable.NewNullFloat64(wb_product.sg, true),
+		Density:     nullable.NewNullFloat64(0, false),
+		String_test: nullable.NewNullFloat64(0, false),
+		Viscosity:   nullable.NewNullFloat64(0, false),
+	}
 
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product BaseProduct, have_visual bool, sg, ph float64) Product {
+func newWaterBasedProduct(base_product product.BaseProduct, have_visual bool, sg, ph float64) product.Product {
 
 	base_product.Visual = have_visual
 
@@ -28,17 +38,17 @@ func newWaterBasedProduct(base_product BaseProduct, have_visual bool, sg, ph flo
 
 }
 
-func (product WaterBasedProduct) check_data() bool {
+func (product WaterBasedProduct) Check_data() bool {
 	return true
 }
 
 type WaterBasedPanelView struct {
-	Update  func(qc_product QCProduct)
+	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
 	Refresh func()
 }
 
-func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) *WaterBasedPanelView {
+func show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *WaterBasedPanelView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -61,12 +71,12 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 
 	submit_cb := func() {
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
-		if product.check_data() {
+		if product.Check_data() {
 			log.Println("data", product)
-			product.save()
-			err := product.output()
+			product.Save()
+			err := product.Output()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "WaterBasedProduct.output")
+				log.Printf("Error: %q: %s\n", err, "WaterBasedProduct.Output")
 			}
 		}
 	}
@@ -80,14 +90,14 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 
 	log_cb := func() {
 		product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
-		if product.check_data() {
+		if product.Check_data() {
 			log.Println("data", product)
-			product.save()
-			product.export_json()
+			product.Save()
+			product.Export_json()
 		}
 	}
 
-	button_dock := NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
+	button_dock := GUI.NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
 
 	panel.Dock(group_panel, windigo.Left)
 	panel.Dock(ranges_panel, windigo.Right)
@@ -104,7 +114,7 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 	}
 	refresh := func() {
 
-		panel.SetSize(OFF_AXIS, GROUP_HEIGHT)
+		panel.SetSize(GUI.OFF_AXIS, GROUP_HEIGHT)
 		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
 
 		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
@@ -113,10 +123,10 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 		ranges_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
 		ranges_panel.SetMarginTop(GROUP_MARGIN)
 
-		visual_field.SetSize(OFF_AXIS, FIELD_HEIGHT)
+		visual_field.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 
-		sg_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
-		ph_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+		sg_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+		ph_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
 
 		button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
 
@@ -130,9 +140,9 @@ func show_water_based(parent *windigo.AutoPanel, qc_product QCProduct, create_ne
 type WaterBasedProductRangesView struct {
 	*windigo.AutoPanel
 	ph_field,
-	sg_field *RangeROView
+	sg_field *view.RangeROView
 
-	Update  func(qc_product QCProduct)
+	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
 	Refresh func()
 }
@@ -142,7 +152,7 @@ func (data_view WaterBasedProductRangesView) Clear() {
 	data_view.sg_field.Clear()
 }
 
-func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct) WaterBasedProductRangesView {
+func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) WaterBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -151,16 +161,16 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product Q
 	group_panel := windigo.NewAutoPanel(parent)
 
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
+	visual_field := product.BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
-	ph_field := BuildNewRangeROView(group_panel, ph_text, qc_product.PH, formats.Format_ranges_ph)
+	sg_field := view.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
+	ph_field := view.BuildNewRangeROView(group_panel, ph_text, qc_product.PH, formats.Format_ranges_ph)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)
 
-	update := func(qc_product QCProduct) {
+	update := func(qc_product *product.QCProduct) {
 		visual_field.Update(qc_product.Appearance)
 		sg_field.Update(qc_product.SG)
 		ph_field.Update(qc_product.PH)

@@ -1,6 +1,10 @@
-package main
+package view
 
-import "github.com/samuel-jimenez/windigo"
+import (
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/datatypes"
+	"github.com/samuel-jimenez/windigo"
+)
 
 /*
  * RangeROView
@@ -9,7 +13,7 @@ import "github.com/samuel-jimenez/windigo"
 
 type RangeROView struct {
 	*windigo.AutoPanel
-	field_data Range
+	field_data datatypes.Range
 	min_field,
 	min_field_spacer,
 	target_field,
@@ -27,7 +31,7 @@ func (data_view *RangeROView) SetFont(font *windigo.Font) {
 }
 
 func (data_view *RangeROView) Refresh() {
-	data_view.SetSize(OFF_AXIS, RANGES_RO_FIELD_HEIGHT)
+	data_view.SetSize(GUI.OFF_AXIS, GUI.RANGES_RO_FIELD_HEIGHT)
 	data_view.min_field.Refresh()
 	data_view.min_field_spacer.Refresh()
 	data_view.target_field.Refresh()
@@ -36,7 +40,7 @@ func (data_view *RangeROView) Refresh() {
 }
 
 // TODO As-is here?
-func (data_view *RangeROView) Update(update_data Range) {
+func (data_view *RangeROView) Update(update_data datatypes.Range) {
 	if data_view.data_map != nil {
 		update_data = update_data.Map(data_view.data_map)
 	}
@@ -67,7 +71,7 @@ func (data_view RangeROView) Check(data float64) bool {
 	return data_view.field_data.Check(data)
 }
 
-func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data Range, format func(float64) string, data_map func(float64) float64) RangeROView {
+func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string, data_map func(float64) float64) RangeROView {
 
 	panel := windigo.NewAutoPanel(parent)
 	//TODO toolti[p]
@@ -97,6 +101,6 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 		max_field, data_map}
 }
 
-func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data Range, format func(float64) string) RangeROView {
+func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string) RangeROView {
 	return BuildNewRangeROViewMap(parent, field_text, field_data, format, nil)
 }

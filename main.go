@@ -8,6 +8,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/threads"
 )
 
 func main() {
@@ -36,14 +37,14 @@ func main() {
 	dbinit(qc_db)
 
 	//setup print goroutine
-	print_queue = make(chan string, 4)
-	defer close(print_queue)
-	go do_print_queue(print_queue)
+	threads.PRINT_QUEUE = make(chan string, 4)
+	defer close(threads.PRINT_QUEUE)
+	go threads.Do_print_queue(threads.PRINT_QUEUE)
 
 	//setup status_bar goroutine
-	status_queue = make(chan string, 16)
-	defer close(status_queue)
-	go do_status_queue(status_queue)
+	threads.STATUS_QUEUE = make(chan string, 16)
+	defer close(threads.STATUS_QUEUE)
+	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
 	show_window()

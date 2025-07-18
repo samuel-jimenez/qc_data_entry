@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -9,7 +10,7 @@ import (
  *
  */
 type BoolCheckboxViewable interface {
-	ErrableView
+	GUI.ErrableView
 	windigo.Buttonable
 	Get() bool
 	Clear()
@@ -20,7 +21,7 @@ type BoolCheckboxViewable interface {
  *
  */
 type BoolCheckboxView struct {
-	ErrableView
+	GUI.ErrableView
 	*windigo.CheckBox
 }
 
@@ -33,11 +34,11 @@ func (control *BoolCheckboxView) Clear() {
 }
 
 func NewBoolCheckboxViewFromLabeledCheckBox(label *windigo.LabeledCheckBox) *BoolCheckboxView {
-	return &BoolCheckboxView{&View{label.ComponentFrame}, label.CheckBox}
+	return &BoolCheckboxView{&GUI.View{ComponentFrame: label.ComponentFrame}, label.CheckBox}
 }
 
 func NewBoolCheckboxView(parent windigo.Controller, field_text string) *BoolCheckboxView {
 	edit_field := NewBoolCheckboxViewFromLabeledCheckBox(windigo.NewLabeledCheckBox(parent, field_text))
-	edit_field.SetPaddingsAll(ERROR_MARGIN)
+	edit_field.SetPaddingsAll(GUI.ERROR_MARGIN)
 	return edit_field
 }

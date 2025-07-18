@@ -1,22 +1,26 @@
-package main
+package threads
 
 import (
 	"fmt"
 	"log"
 	"os/exec"
 	"time"
+
+	"github.com/samuel-jimenez/windigo"
 )
 
 var (
-	print_queue,
-	status_queue chan string
+	PRINT_QUEUE,
+	STATUS_QUEUE chan string
+
+	Status_bar *windigo.StatusBar
 )
 
 func pdf_print(pdf_path string) error {
 
 	app := "./PDFtoPrinter"
 	cmd := exec.Command(app, pdf_path)
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -26,7 +30,7 @@ func pdf_print(pdf_path string) error {
 
 }
 
-func do_print_queue(print_queue chan string) {
+func Do_print_queue(print_queue chan string) {
 	for {
 		select {
 		case new_file, ok := <-print_queue:
@@ -43,20 +47,20 @@ func do_print_queue(print_queue chan string) {
 	}
 }
 
-func show_status(message string) {
+func Show_status(message string) {
 	message = fmt.Sprintf("%s\t\t%s", time.Now().Format("15:04:05.000"), message)
-	status_queue <- message
+	STATUS_QUEUE <- message
 }
 
 func status_bar_show(message string, timer *time.Timer) {
-	status_bar.SetText(message)
+	Status_bar.SetText(message)
 	select {
 	case <-timer.C:
-		status_bar.SetText("")
+		Status_bar.SetText("")
 	}
 }
 
-func do_status_queue(status_queue chan string) {
+func Do_status_queue(status_queue chan string) {
 	var display_timeout_timer *time.Timer
 	display_timeout := 2 * time.Second
 

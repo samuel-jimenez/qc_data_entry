@@ -8,6 +8,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -44,6 +45,19 @@ func ToString(data nullable.NullFloat64, format func(float64) string) string {
 		return format(data.Float64)
 	}
 	return ""
+}
+
+func (data QCData) Product() *product.Product {
+	return &product.Product{BaseProduct: product.BaseProduct{
+		Product_name: data.Product_name,
+		Lot_number:   data.Lot_name,
+		Sample_point: data.Sample_point.String,
+	},
+		PH:          data.PH,
+		SG:          data.Specific_gravity,
+		Density:     nullable.NewNullFloat64(formats.Density_from_sg(data.Specific_gravity.Float64), data.Specific_gravity.Valid),
+		String_test: data.String_test,
+		Viscosity:   data.Viscosity}
 }
 
 func (data QCData) Text() []string {

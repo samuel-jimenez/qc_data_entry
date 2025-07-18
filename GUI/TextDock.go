@@ -1,4 +1,4 @@
-package main
+package GUI
 
 import "github.com/samuel-jimenez/windigo"
 

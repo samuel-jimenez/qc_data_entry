@@ -1,11 +1,16 @@
-package main
+package view
 
 import (
 	"strconv"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/windigo"
+)
+
+var (
+	err error
 )
 
 /*
@@ -57,7 +62,7 @@ func BuildNewNullFloat64View(parent windigo.Controller, field_data nullable.Null
  */
 
 type NullFloat64ROView struct {
-	*View
+	*GUI.View
 	Update  func(field_data nullable.NullFloat64)
 	SetFont func(*windigo.Font)
 	Refresh func()
@@ -76,12 +81,12 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data nullable.Nu
 	update(field_data)
 
 	refresh := func() {
-		data_field.SetSize(RANGES_RO_FIELD_WIDTH, OFF_AXIS)
-		data_field.SetPaddingsAll(ERROR_MARGIN)
-		data_field.SetPaddingTop(2 * ERROR_MARGIN)
+		data_field.SetSize(GUI.RANGES_RO_FIELD_WIDTH, GUI.OFF_AXIS)
+		data_field.SetPaddingsAll(GUI.ERROR_MARGIN)
+		data_field.SetPaddingTop(2 * GUI.ERROR_MARGIN)
 	}
 
-	return &NullFloat64ROView{&View{data_field}, update, data_field.SetFont, refresh}
+	return &NullFloat64ROView{&GUI.View{ComponentFrame: data_field}, update, data_field.SetFont, refresh}
 }
 
 func BuildNullFloat64SpacerView(parent windigo.Controller, field_data nullable.NullFloat64, format string) *NullFloat64ROView {
@@ -97,10 +102,10 @@ func BuildNullFloat64SpacerView(parent windigo.Controller, field_data nullable.N
 	update(field_data)
 
 	refresh := func() {
-		data_field.SetSize(RANGES_RO_SPACER_WIDTH, OFF_AXIS)
-		data_field.SetPaddingsAll(ERROR_MARGIN)
-		data_field.SetPaddingTop(2 * ERROR_MARGIN)
+		data_field.SetSize(GUI.RANGES_RO_SPACER_WIDTH, GUI.OFF_AXIS)
+		data_field.SetPaddingsAll(GUI.ERROR_MARGIN)
+		data_field.SetPaddingTop(2 * GUI.ERROR_MARGIN)
 	}
 
-	return &NullFloat64ROView{&View{data_field}, update, data_field.SetFont, refresh}
+	return &NullFloat64ROView{&GUI.View{ComponentFrame: data_field}, update, data_field.SetFont, refresh}
 }

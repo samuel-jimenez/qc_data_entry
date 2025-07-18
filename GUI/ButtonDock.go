@@ -1,6 +1,9 @@
-package main
+package GUI
 
-import "github.com/samuel-jimenez/windigo"
+import (
+	"github.com/samuel-jimenez/qc_data_entry/util"
+	"github.com/samuel-jimenez/windigo"
+)
 
 type ButtonDock struct {
 	windigo.Pane
@@ -21,7 +24,7 @@ func (control ButtonDock) SetDockSize(width, height int) {
 }
 
 func NewButtonDock(parent windigo.Controller, labels []string, onclicks []func()) *ButtonDock {
-	assertEqual(len(labels), len(onclicks))
+	util.AssertEqual(len(labels), len(onclicks))
 	control := new(ButtonDock)
 	panel := windigo.NewAutoPanel(parent)
 
@@ -44,8 +47,8 @@ func NewButtonDock(parent windigo.Controller, labels []string, onclicks []func()
 }
 
 func NewMarginalButtonDock(parent windigo.Controller, labels []string, margins []int, onclicks []func()) *ButtonDock {
-	assertEqual(len(labels), len(margins))
-	assertEqual(len(labels), len(onclicks))
+	util.AssertEqual(len(labels), len(margins))
+	util.AssertEqual(len(labels), len(onclicks))
 	control := new(ButtonDock)
 	panel := windigo.NewAutoPanel(parent)
 

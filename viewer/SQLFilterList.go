@@ -3,6 +3,7 @@ package viewer
 import (
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -99,7 +100,7 @@ func NewSQLFilterListView(parent windigo.Controller) *SQLFilterListView {
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 	view.Filters = make(map[string]SQLFilterView)
 	// view.FilterList = NewSQLFilterList()
-	view.SetSize(OFF_AXIS, FIELD_HEIGHT)
+	view.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 
 	return view
 }

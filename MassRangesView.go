@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -20,7 +21,7 @@ type MassRangesViewable interface {
 type MassRangesView struct {
 	mass_field,
 	sg_field,
-	density_field *RangeROView
+	density_field *view.RangeROView
 }
 
 func (view MassRangesView) CheckMass(data float64) bool {

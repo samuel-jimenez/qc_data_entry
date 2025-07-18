@@ -23,20 +23,20 @@ func NewSQLFilterViewHeaderOptionLabel(parent *SQLFilterViewHeader, entry string
 	// panel := windigo.NewLabeledLabel(parent)
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(LABEL_WIDTH+SMOL_BUTTON_EDGE, FIELD_HEIGHT)
+	panel.SetSize(GUI.LABEL_WIDTH+SMOL_BUTTON_EDGE, FIELD_HEIGHT)
 
 	close_button := windigo.NewPushButton(panel)
 	close_button.SetText("X")
 	close_button.SetSize(SMOL_BUTTON_EDGE, SMOL_BUTTON_EDGE)
-	// close_button.SetPos(LABEL_WIDTH, OFF_AXIS)
-	close_button.SetPos(OFF_AXIS, OFF_AXIS)
+	// close_button.SetPos(GUI.LABEL_WIDTH, GUI.OFF_AXIS)
+	close_button.SetPos(GUI.OFF_AXIS, GUI.OFF_AXIS)
 	panel.SetMarginLeft(SMOL_BUTTON_EDGE)
 	panel.SetPaddingLeft(SMOL_BUTTON_EDGE)
 
 	panel_label := windigo.NewLabel(panel)
 	panel_label.SetText(entry)
 
-	// LABEL_WIDTH
+	// GUI.LABEL_WIDTH
 
 	close_button.OnClick().Bind(func(e *windigo.Event) {
 		panel.Close()
@@ -105,12 +105,12 @@ func NewSQLFilterViewHeader(parent *SQLFilterView, label string) *SQLFilterViewH
 				grandma.SetSize(grandma.Width(), grandma.Height()-header.child.Height())
 				hide_button.SetText("+")
 				header.child.Hide()
-				parent.SetSize(OFF_AXIS, SMOL_BUTTON_EDGE)
+				parent.SetSize(GUI.OFF_AXIS, SMOL_BUTTON_EDGE)
 			} else {
 				grandma.SetSize(grandma.Width(), grandma.Height()+header.child.Height())
 				hide_button.SetText("-")
 				header.child.Show()
-				parent.SetSize(OFF_AXIS, SMOL_BUTTON_EDGE+header.child.Height())
+				parent.SetSize(GUI.OFF_AXIS, SMOL_BUTTON_EDGE+header.child.Height())
 			}
 		}
 	})
@@ -160,15 +160,15 @@ func NewSQLFilterViewContinuous(parent windigo.Controller, key, label string) *S
 	view := new(SQLFilterView)
 	panel := windigo.NewAutoPanel(parent)
 	view.AutoPanel = panel
-	panel.SetSize(OFF_AXIS, HEADER_HEIGHT)
+	panel.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
 	panel_label := NewSQLFilterViewHeader(view, label)
-	panel_label.SetSize(OFF_AXIS, HEADER_HEIGHT)
+	panel_label.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
 	field_panel := windigo.NewAutoPanel(panel)
 	panel_label.SetHidePanel(field_panel)
 
-	field_panel.SetSize(OFF_AXIS, FIELD_HEIGHT)
+	field_panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 	min_field := NewNullStringView(field_panel)
 	max_field := NewNullStringView(field_panel)
 	field_panel.Dock(min_field, windigo.Left)
@@ -190,10 +190,10 @@ func NewSQLFilterViewDiscreteMulti(parent windigo.Controller, key, label string,
 	view := new(SQLFilterView)
 	panel := windigo.NewAutoPanel(parent)
 	view.AutoPanel = panel
-	panel.SetSize(OFF_AXIS, HEADER_HEIGHT)
+	panel.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
 	panel_label := NewSQLFilterViewHeader(view, label)
-	panel_label.SetSize(OFF_AXIS, HEADER_HEIGHT)
+	panel_label.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
 	selection_options := BuildNewDiscreteMultiView(panel, set)
 	panel_label.SetHidePanel(selection_options.AutoPanel)
@@ -212,7 +212,7 @@ func NewSQLFilterViewDiscreteMulti(parent windigo.Controller, key, label string,
 			panel_label.SetHidePanel(selection_options.AutoPanel)
 		} else {
 			panel_label.SetShowPanel(selection_options.AutoPanel)
-			panel.SetSize(OFF_AXIS, HEADER_HEIGHT+selection_options.Height())
+			panel.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT+selection_options.Height())
 		}
 		panel.Dock(selection_options, windigo.Top)
 	}
@@ -228,14 +228,14 @@ func NewSQLFilterViewDiscreteSearch(parent windigo.Controller, key, label string
 
 	panel := windigo.NewAutoPanel(parent)
 	view.AutoPanel = panel
-	panel.SetSize(OFF_AXIS, HEADER_HEIGHT)
+	panel.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
 	panel_label := NewSQLFilterViewHeader(view, label)
-	panel_label.SetSize(OFF_AXIS, HEADER_HEIGHT)
+	panel_label.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
 	selection_options := BuildNewDiscreteSearchView(view, set)
 	panel_label.SetHidePanel(selection_options.AutoPanel)
-	selection_options.SetSize(OFF_AXIS, FIELD_HEIGHT)
+	selection_options.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 
 	panel.Dock(panel_label, windigo.Top)
 	panel.Dock(selection_options, windigo.Top)
@@ -322,7 +322,7 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 	// panel := windigo.NewAutoPanel(overpanel)
 
 	data_view.box = GUI.NewComboBox(panel, "")
-	data_view.box.SetLabeledSize(OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
+	data_view.box.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
 	data_view.box.OnChange().Bind(func(e *windigo.Event) {
 
 		start, end := data_view.box.Selected()
@@ -342,8 +342,8 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 		parent.AddItem(entry)
 	})
 
-	// view.box.SetSize(OFF_AXIS, FIELD_HEIGHT)
-	panel.SetSize(OFF_AXIS, FIELD_HEIGHT)
+	// view.box.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 
 	panel.Dock(data_view.box, windigo.Left)
 

@@ -1,8 +1,9 @@
-package main
+package product
 
 import (
 	"database/sql"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -28,8 +29,8 @@ type ProductAppearanceView struct {
 // func BuildNewProductAppearanceView(parent windigo.Controller,  label_width, control_width, height int, field_text string, field_data ProductAppearance) ProductAppearanceView {
 func BuildNewProductAppearanceView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceView {
 
-	field := windigo.NewSizedLabeledEdit(parent, LABEL_WIDTH, OFF_AXIS, RANGES_FIELD_HEIGHT, field_text)
-	field.SetPaddingsAll(RANGES_PADDING)
+	field := windigo.NewSizedLabeledEdit(parent, GUI.LABEL_WIDTH, GUI.OFF_AXIS, GUI.RANGES_FIELD_HEIGHT, field_text)
+	field.SetPaddingsAll(GUI.RANGES_PADDING)
 	if field_data.Valid {
 		field.SetText(field_data.String)
 	}
@@ -56,7 +57,7 @@ func BuildNewProductAppearanceView(parent windigo.Controller, field_text string,
  */
 
 type ProductAppearanceROView struct {
-	*View
+	*GUI.View
 	Update  func(field_data ProductAppearance)
 	SetFont func(*windigo.Font)
 	Refresh func()
@@ -78,9 +79,9 @@ func BuildNewProductAppearanceROView(parent windigo.Controller, field_text strin
 	update(field_data)
 
 	refresh := func() {
-		data_field.SetSize(OFF_AXIS, RANGES_RO_FIELD_HEIGHT)
-		data_field.SetPaddingsAll(ERROR_MARGIN)
+		data_field.SetSize(GUI.OFF_AXIS, GUI.RANGES_RO_FIELD_HEIGHT)
+		data_field.SetPaddingsAll(GUI.ERROR_MARGIN)
 	}
 
-	return ProductAppearanceROView{&View{data_field}, update, data_field.SetFont, refresh}
+	return ProductAppearanceROView{&GUI.View{ComponentFrame: data_field}, update, data_field.SetFont, refresh}
 }

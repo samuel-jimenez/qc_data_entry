@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -12,7 +14,7 @@ import (
  *
  */
 type NumberEditViewable interface {
-	ErrableView
+	GUI.ErrableView
 	windigo.Editable
 	windigo.DiffLabelable
 	Get() float64
@@ -26,7 +28,7 @@ type NumberEditViewable interface {
  *
  */
 type NumberEditView struct {
-	ErrableView
+	GUI.ErrableView
 	*windigo.Edit
 	*windigo.Labeled
 }
@@ -69,12 +71,12 @@ func (control *NumberEditView) SetLabeledSize(label_width, control_width, height
 	control.SetSize(label_width+control_width, height)
 	// control.Edit.SetSize(control_width, height)
 	control.Label().SetSize(label_width, height)
-	control.SetPaddingsAll(ERROR_MARGIN)
+	control.SetPaddingsAll(GUI.ERROR_MARGIN)
 
 }
 
 func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
-	return &NumberEditView{&View{label.ComponentFrame}, label.Edit, &windigo.Labeled{FieldLabel: label.Label()}}
+	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, label.Edit, &windigo.Labeled{FieldLabel: label.Label()}}
 }
 
 func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEditView {
@@ -82,7 +84,7 @@ func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEdit
 	return edit_field
 }
 
-func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
+func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *view.RangeROView) *NumberEditView {
 
 	edit_field := NewNumberEditView(parent, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
@@ -132,18 +134,18 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 	setLabeledSize := func(label_width, control_width, unit_width, height int) {
 
 		panel.SetSize(label_width+control_width+unit_width, height)
-		panel.SetPaddingsAll(ERROR_MARGIN)
+		panel.SetPaddingsAll(GUI.ERROR_MARGIN)
 
 		text_label.SetSize(label_width, height)
-		text_label.SetMarginTop(ERROR_MARGIN)
+		text_label.SetMarginTop(GUI.ERROR_MARGIN)
 
 		text_field.SetSize(control_width, height)
 		text_field.SetMarginRight(DATA_MARGIN)
 
 		text_units.SetSize(unit_width, height)
-		text_units.SetMarginTop(ERROR_MARGIN)
+		text_units.SetMarginTop(GUI.ERROR_MARGIN)
 
 	}
 
-	return &NumberUnitsEditView{&NumberEditView{&View{panel}, text_field, &windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
+	return &NumberUnitsEditView{&NumberEditView{&GUI.View{ComponentFrame: panel}, text_field, &windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
 }

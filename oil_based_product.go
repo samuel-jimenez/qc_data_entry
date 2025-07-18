@@ -3,24 +3,34 @@ package main
 import (
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
 
 type OilBasedProduct struct {
-	BaseProduct
+	product.BaseProduct
 	sg float64
 }
 
-func (product OilBasedProduct) toProduct() Product {
-	return Product{product.toBaseProduct(), nullable.NewNullFloat64(product.sg, true), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false), nullable.NewNullFloat64(0, false)}
+func (ob_product OilBasedProduct) toProduct() product.Product {
+	return product.Product{
+		BaseProduct: ob_product.Base(),
+		PH:          nullable.NewNullFloat64(0, false),
+		SG:          nullable.NewNullFloat64(ob_product.sg, true),
+		Density:     nullable.NewNullFloat64(0, false),
+		String_test: nullable.NewNullFloat64(0, false),
+		Viscosity:   nullable.NewNullFloat64(0, false),
+	}
 
 	//TODO Option?
 }
 
-func newOilBasedProduct(base_product BaseProduct,
-	have_visual bool, mass float64) Product {
+func newOilBasedProduct(base_product product.BaseProduct,
+	have_visual bool, mass float64) product.Product {
 	base_product.Visual = have_visual
 	sg := formats.SG_from_mass(mass)
 
@@ -28,17 +38,17 @@ func newOilBasedProduct(base_product BaseProduct,
 
 }
 
-func (product OilBasedProduct) check_data() bool {
+func (product OilBasedProduct) Check_data() bool {
 	return true
 }
 
 type OilBasedPanelView struct {
-	Update  func(qc_product QCProduct)
+	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
 	Refresh func()
 }
 
-func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_product_cb func() BaseProduct) *OilBasedPanelView {
+func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *OilBasedPanelView {
 
 	visual_text := "Visual Inspection"
 
@@ -57,12 +67,12 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 
 	submit_cb := func() {
 		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), mass_field.Get())
-		if product.check_data() {
+		if product.Check_data() {
 			log.Println("data", product)
-			product.save()
-			err := product.output()
+			product.Save()
+			err := product.Output()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "OilBasedProduct.output")
+				log.Printf("Error: %q: %s\n", err, "OilBasedProduct.Output")
 			}
 		}
 	}
@@ -76,14 +86,14 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 
 	log_cb := func() {
 		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), mass_field.Get())
-		if product.check_data() {
+		if product.Check_data() {
 			log.Println("data", product)
-			product.save()
-			product.export_json()
+			product.Save()
+			product.Export_json()
 		}
 	}
 
-	button_dock := NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
+	button_dock := GUI.NewMarginalButtonDock(parent, []string{"Submit", "Clear", "Log"}, []int{40, 0, 10}, []func(){submit_cb, clear_cb, log_cb})
 
 	panel.Dock(group_panel, windigo.Left)
 	panel.Dock(ranges_panel, windigo.Right)
@@ -99,15 +109,15 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product QCProduct, create_new_
 	}
 	refresh := func() {
 
-		panel.SetSize(OFF_AXIS, GROUP_HEIGHT)
+		panel.SetSize(GUI.OFF_AXIS, GROUP_HEIGHT)
 		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
 
 		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-		visual_field.SetSize(OFF_AXIS, FIELD_HEIGHT)
+		visual_field.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 
-		mass_field.SetLabeledSize(LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, FIELD_HEIGHT)
+		mass_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, FIELD_HEIGHT)
 
 		button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
 
@@ -124,7 +134,7 @@ type OilBasedProductRangesView struct {
 	*windigo.AutoPanel
 	*MassRangesView
 
-	Update  func(qc_product QCProduct)
+	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
 	Refresh func()
 }
@@ -133,7 +143,7 @@ func (data_view OilBasedProductRangesView) Clear() {
 	data_view.MassRangesView.Clear()
 }
 
-func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCProduct) OilBasedProductRangesView {
+func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) OilBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	mass_text := "Mass"
@@ -143,18 +153,18 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product QCP
 
 	group_panel := windigo.NewAutoPanel(parent)
 
-	visual_field := BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
+	visual_field := product.BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	mass_field := BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
-	sg_field := BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
-	density_field := BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
+	mass_field := view.BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	sg_field := view.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
+	density_field := view.BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(mass_field, windigo.Top)
 	group_panel.Dock(density_field, windigo.Bottom)
 	group_panel.Dock(sg_field, windigo.Bottom)
 
-	update := func(qc_product QCProduct) {
+	update := func(qc_product *product.QCProduct) {
 		visual_field.Update(qc_product.Appearance)
 		mass_field.Update(qc_product.SG)
 		sg_field.Update(qc_product.SG)

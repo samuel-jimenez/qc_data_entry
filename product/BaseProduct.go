@@ -1,4 +1,4 @@
-package main
+package product
 
 import (
 	"fmt"
@@ -6,20 +6,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 )
 
 type BaseProduct struct {
-	Product_type          string `json:"product_name"`
+	Product_name          string `json:"product_name"`
 	Lot_number            string `json:"lot_number"`
 	Sample_point          string
 	Visual                bool
-	product_id            int64
-	lot_id                int64
+	Product_id            int64
+	Lot_id                int64
 	Product_name_customer string `json:"customer_product_name"`
 }
 
-func (product BaseProduct) toBaseProduct() BaseProduct {
+func (product BaseProduct) Base() BaseProduct {
 	return product
 }
 
@@ -28,10 +29,10 @@ func (product BaseProduct) toBaseProduct() BaseProduct {
 func (product BaseProduct) get_base_filename(extension string) string {
 	// if (product.Sample_point.Valid) {
 	if product.Sample_point != "" {
-		return fmt.Sprintf("%s-%s-%s.%s", strings.ToUpper(product.Lot_number), product.Sample_point, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), extension)
+		return fmt.Sprintf("%s-%s-%s.%s", strings.ToUpper(product.Lot_number), product.Sample_point, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_name)), " ", "_"), extension)
 	}
 
-	return fmt.Sprintf("%s-%s.%s", strings.ToUpper(product.Lot_number), strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_type)), " ", "_"), extension)
+	return fmt.Sprintf("%s-%s.%s", strings.ToUpper(product.Lot_number), strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_name)), " ", "_"), extension)
 }
 
 func (product BaseProduct) get_pdf_name() string {
@@ -54,26 +55,26 @@ func (product BaseProduct) get_json_names() []string {
 }
 
 func (product *BaseProduct) insel_product_id(product_name string) {
-	product.product_id = insel_product_id(product_name)
+	product.Product_id = DB.Insel_product_id(product_name)
 	log.Println("Debug: insel_product_id", product)
 }
 
 func (product *BaseProduct) insel_lot_id(lot_name string) {
-	product.lot_id = insel_lot_id(lot_name, product.product_id)
+	product.Lot_id = DB.Insel_lot_id(lot_name, product.Product_id)
 }
 
-func (product *BaseProduct) insel_product_self() *BaseProduct {
-	product.insel_product_id(product.Product_type)
+func (product *BaseProduct) Insel_product_self() *BaseProduct {
+	product.insel_product_id(product.Product_name)
 	return product
 
 }
 
-func (product *BaseProduct) insel_lot_self() *BaseProduct {
+func (product *BaseProduct) Insel_lot_self() *BaseProduct {
 	product.insel_lot_id(product.Lot_number)
 	return product
 
 }
 
 func (product BaseProduct) insel_all() *BaseProduct {
-	return product.insel_product_self().insel_lot_self()
+	return product.Insel_product_self().Insel_lot_self()
 }

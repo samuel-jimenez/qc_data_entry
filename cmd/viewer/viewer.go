@@ -111,6 +111,7 @@ var (
 func dbinit(db *sql.DB) {
 
 	DB.Check_db(db)
+	DB.DBinit(db)
 
 	db_select_product_info = DB.PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
@@ -185,7 +186,7 @@ func show_window() {
 
 	hpanel_width := top_panel_width
 
-	label_width := viewer.LABEL_WIDTH
+	label_width := GUI.LABEL_WIDTH
 
 	hpanel_margin := 10
 
@@ -229,7 +230,7 @@ func show_window() {
 	product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
 	product_clear_button := windigo.NewPushButton(prod_panel)
 	product_clear_button.SetText("-")
-	product_clear_button.SetSize(clear_button_width, viewer.OFF_AXIS)
+	product_clear_button.SetSize(clear_button_width, GUI.OFF_AXIS)
 	customer_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, customer_text)
 
 	customer_field.SetMarginLeft(inter_spacer_width)
@@ -245,7 +246,7 @@ func show_window() {
 	lot_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, lot_text)
 	lot_clear_button := windigo.NewPushButton(lot_panel)
 	lot_clear_button.SetText("-")
-	lot_clear_button.SetSize(clear_button_width, viewer.OFF_AXIS)
+	lot_clear_button.SetSize(clear_button_width, GUI.OFF_AXIS)
 	sample_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, sample_text)
 
 	lot_panel.SetMarginTop(inter_spacer_height)
@@ -257,34 +258,23 @@ func show_window() {
 
 	filter_button := windigo.NewPushButton(product_panel)
 	filter_button.SetText("Filter")
-	filter_button.SetSize(filter_button_width, viewer.OFF_AXIS)
+	filter_button.SetSize(filter_button_width, GUI.OFF_AXIS)
 
 	search_button := windigo.NewPushButton(product_panel)
 	search_button.SetText("Search")
-	search_button.SetSize(search_button_width, viewer.OFF_AXIS)
+	search_button.SetSize(search_button_width, GUI.OFF_AXIS)
 
 	reprint_sample_button := windigo.NewPushButton(product_panel)
 	reprint_sample_button.SetText("Reprint Sample")
-	reprint_sample_button.SetSize(reprint_sample_button_width, viewer.OFF_AXIS)
+	reprint_sample_button.SetSize(reprint_sample_button_width, GUI.OFF_AXIS)
 	reprint_sample_button.SetMarginLeft(reprint_sample_button_margin)
 
 	regen_sample_button := windigo.NewPushButton(product_panel)
 	regen_sample_button.SetText("Regen Sample")
-	regen_sample_button.SetSize(regen_sample_button_width, viewer.OFF_AXIS)
+	regen_sample_button.SetSize(regen_sample_button_width, GUI.OFF_AXIS)
 
 	// FilterListView := NewSQLFilterListView(product_panel)
 	FilterListView := viewer.NewSQLFilterListView(mainWindow)
-
-	// reprint_button := windigo.NewPushButton(product_panel)
-	// reprint_button.SetText("Reprint")
-	// reprint_button.SetMarginsAll(reprint_button_margins)
-	// reprint_button.SetMarginLeft(reprint_button_margin_l)
-	// reprint_button.SetSize(reprint_button_width, viewer.OFF_AXIS)
-	//
-	// reprint_sample_button := windigo.NewPushButton(product_panel)
-	// reprint_sample_button.SetText("Reprint Sample")
-	// reprint_sample_button.SetMarginsAll(reprint_button_margins)
-	// reprint_sample_button.SetSize(reprint_button_width, viewer.OFF_AXIS)
 
 	product_panel.Dock(prod_panel, windigo.Top)
 	product_panel.Dock(lot_panel, windigo.Top)
@@ -385,6 +375,7 @@ func show_window() {
 	})
 
 	GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
+
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
 	FilterListView.AddDiscreteMulti(viewer.COL_KEY_SAMPLE, viewer.COL_LABEL_SAMPLE, viewer.COL_ITEMS_SAMPLE)
@@ -453,6 +444,16 @@ func show_window() {
 
 	lot_clear_button.OnClick().Bind(func(e *windigo.Event) {
 		clear_lot()
+	})
+
+	reprint_sample_button.OnClick().Bind(func(e *windigo.Event) {
+		// log.Println(table.SelectedItems())
+		for _, data := range table.SelectedItems() {
+			log.Println("reprint_sample_button", data)
+
+			data.(viewer.QCData).Product().Reprint_sample()
+		}
+
 	})
 
 	mainWindow.Center()
