@@ -14,6 +14,7 @@ var (
 	DB_VERSION = "0.0.2"
 
 	db_select_product_id, db_insert_product,
+	DB_Select_product_info,
 	db_select_lot_id, db_insert_lot,
 	db_select_product_customer, db_insert_product_customer,
 	DB_Update_lot_customer,
@@ -84,6 +85,13 @@ func DBinit(db *sql.DB) {
 		join bs.product_moniker using (product_moniker_id)
 		where product_name_internal = ?
 		and product_moniker_name = ?
+	`)
+
+	DB_Select_product_info = PrepareOrElse(db, `
+	select product_id, product_name_internal, product_moniker_name
+		from bs.product_line
+		join bs.product_moniker using (product_moniker_id)
+	order by product_moniker_name,product_name_internal
 	`)
 
 	db_select_product_customer = PrepareOrElse(db, `

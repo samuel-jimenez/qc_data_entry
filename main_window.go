@@ -141,7 +141,7 @@ func show_window() {
 	threads.Status_bar = windigo.NewStatusBar(mainWindow)
 	mainWindow.SetStatusBar(threads.Status_bar)
 
-	rows, err := db_select_product_info.Query()
+	rows, err := DB.DB_Select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
 			id                   uint8

@@ -9,7 +9,6 @@ import (
 )
 
 var (
-	db_select_product_info,
 	db_select_product_customer_id, db_select_product_customer_info,
 	db_select_lot_info,
 	db_select_sample_points *sql.Stmt
@@ -183,7 +182,7 @@ insert into bs.container_types
 
 	db.Exec(sqlStmt)
 	// _, err = db.Exec(sqlStmt)
-	// if err != nil {
+	if err != nil {
 	// 	log.Printf("%q: %s\n", err, sqlStmt)
 	// 	// return
 	// }
@@ -191,13 +190,7 @@ insert into bs.container_types
 	DB.Check_db(db)
 	DB.DBinit(db)
 
-	db_select_product_info = DB.PrepareOrElse(db, `
-	select product_id, product_name_internal, product_moniker_name
-		from bs.product_line
-		join bs.product_moniker using (product_moniker_id)
-		order by product_moniker_name,product_name_internal
 
-	`)
 
 	db_select_product_customer_info = DB.PrepareOrElse(db, `
 	select product_customer_id, product_name_customer

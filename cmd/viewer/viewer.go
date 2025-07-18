@@ -101,7 +101,6 @@ func select_product_samples(product_id int) []viewer.QCData {
 
 var (
 	SAMPLE_SELECT_STRING string
-	db_select_product_info,
 	db_select_lot_all, db_select_lot_info,
 	db_select_product_samples,
 	db_select_samples,
@@ -112,13 +111,6 @@ func dbinit(db *sql.DB) {
 
 	DB.Check_db(db)
 	DB.DBinit(db)
-
-	db_select_product_info = DB.PrepareOrElse(db, `
-	select product_id, product_name_internal, product_moniker_name
-		from bs.product_line
-		join bs.product_moniker using (product_moniker_id)
-	order by product_moniker_name,product_name_internal
-	`)
 
 	db_select_lot_info = DB.PrepareOrElse(db, `
 	select lot_id, lot_name
@@ -353,7 +345,7 @@ func show_window() {
 	// }
 
 	// combobox
-	rows, err := db_select_product_info.Query()
+	rows, err := DB.DB_Select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
 			id                   int
