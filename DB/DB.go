@@ -16,9 +16,11 @@ var (
 	db_select_product_id, db_insert_product,
 	DB_Select_product_info,
 	db_select_lot_id, db_insert_lot,
-     	DB_Select_lot_all, DB_Select_lot_info,
+	DB_Select_lot_all, DB_Select_lot_info,
+	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
 	DB_Update_lot_customer,
+	DB_Select_sample_points_all, DB_Select_sample_points,
 	DB_insert_sample_point,
 	DB_insert_measurement,
 	DB_Insert_appearance,
@@ -95,6 +97,18 @@ func DBinit(db *sql.DB) {
 	order by product_moniker_name,product_name_internal
 	`)
 
+	DB_Select_product_customer_info = PrepareOrElse(db, `
+	select product_customer_id, product_name_customer
+		from bs.product_customer_line
+		where product_id = ?
+		`)
+
+	DB_Select_product_customer_id = PrepareOrElse(db, `
+	select product_customer_id
+		from bs.product_customer_line
+		where product_name_customer = ? and product_id = ?
+	`)
+
 	db_select_product_customer = PrepareOrElse(db, `
 	select product_customer_id
 		from bs.product_customer_line
@@ -108,14 +122,13 @@ func DBinit(db *sql.DB) {
 	returning product_customer_id
 	`)
 
-
 	db_select_lot_id = PrepareOrElse(db, `
 	select lot_id
 		from bs.product_lot
 		where lot_name = ? and product_id = ?
 	`)
 
-			DB_Select_lot_info = PrepareOrElse(db, `
+	DB_Select_lot_info = PrepareOrElse(db, `
 	select lot_id, lot_name
 		from bs.product_lot
 		where product_id = ?
@@ -146,6 +159,21 @@ func DBinit(db *sql.DB) {
 	insert into bs.product_sample_points (sample_point)
 	select distinct sample_point from sel where sample_point_id is null
 	returning sample_point_id, sample_point
+	`)
+
+	DB_Select_sample_points_all = PrepareOrElse(db, `
+	select sample_point_id, sample_point
+		from bs.product_sample_points
+		order by sample_point_id
+	`)
+
+	DB_Select_sample_points = PrepareOrElse(db, `
+	select distinct sample_point_id, sample_point
+		from bs.product_lot
+		join bs.qc_samples using (lot_id)
+		join bs.product_sample_points using (sample_point_id)
+		where product_id = ?
+		order by sample_point_id
 	`)
 
 	DB_insert_measurement = PrepareOrElse(db, `

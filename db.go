@@ -9,10 +9,6 @@ import (
 )
 
 var (
-	db_select_product_customer_id, db_select_product_customer_info,
-	db_select_sample_points *sql.Stmt
-	err error
-
 	CONTAINER_TOTE    = 1
 	CONTAINER_RAILCAR = 2
 )
@@ -181,36 +177,12 @@ insert into bs.container_types
 
 	db.Exec(sqlStmt)
 	// _, err = db.Exec(sqlStmt)
-	if err != nil {
+	// if err != nil {
 	// 	log.Printf("%q: %s\n", err, sqlStmt)
 	// 	// return
 	// }
 
 	DB.Check_db(db)
 	DB.DBinit(db)
-
-
-
-	db_select_product_customer_info = DB.PrepareOrElse(db, `
-	select product_customer_id, product_name_customer
-		from bs.product_customer_line
-		where product_id = ?
-		`)
-
-	db_select_product_customer_id = DB.PrepareOrElse(db, `
-	select product_customer_id
-		from bs.product_customer_line
-		where product_name_customer = ? and product_id = ?
-	`)
-
-
-	db_select_sample_points = DB.PrepareOrElse(db, `
-	select distinct sample_point_id, sample_point
-		from bs.product_lot
-		join bs.qc_samples using (lot_id)
-		join bs.product_sample_points using (sample_point_id)
-		where product_id = ?
-		order by sample_point_id
-	`)
 
 }

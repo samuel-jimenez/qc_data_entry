@@ -90,28 +90,25 @@ func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 }
 
 func select_samples() []viewer.QCData {
-	rows, err := db_select_samples.Query()
+	rows, err := DB_Select_samples.Query()
 	return _select_samples(rows, err, "select_samples")
 }
 
 func select_product_samples(product_id int) []viewer.QCData {
-	rows, err := db_select_product_samples.Query(product_id)
+	rows, err := DB_Select_product_samples.Query(product_id)
 	return _select_samples(rows, err, "select_product_samples")
 }
 
 var (
 	SAMPLE_SELECT_STRING string
-	db_select_product_samples,
-	db_select_samples,
-	db_select_sample_points_all, db_select_sample_points *sql.Stmt
+	DB_Select_product_samples,
+	DB_Select_samples *sql.Stmt
 )
 
 func dbinit(db *sql.DB) {
 
 	DB.Check_db(db)
 	DB.DBinit(db)
-
-
 
 	SAMPLE_SELECT_STRING = `
 	select
@@ -131,28 +128,14 @@ func dbinit(db *sql.DB) {
 		left join bs.product_sample_points using (sample_point_id)
 	`
 
-	db_select_product_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
+	DB_Select_product_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
 	where product_id = ?
 	`)
 
-	db_select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
+	DB_Select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
 	order by product_moniker_name,product_name_internal
 	`)
 
-	db_select_sample_points_all = DB.PrepareOrElse(db, `
-	select sample_point_id, sample_point
-		from bs.product_sample_points
-		order by sample_point_id
-	`)
-
-	db_select_sample_points = DB.PrepareOrElse(db, `
-	select distinct sample_point_id, sample_point
-		from bs.product_lot
-		join bs.qc_samples using (lot_id)
-		join bs.product_sample_points using (sample_point_id)
-		where product_id = ?
-		order by sample_point_id
-	`)
 }
 
 func show_window() {
@@ -311,7 +294,7 @@ func show_window() {
 		}
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
+		GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_sample_points_all, update_sample)
 
 		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
 
@@ -356,7 +339,7 @@ func show_window() {
 		update_lot(id, name)
 	})
 
-	GUI.Fill_combobox_from_query_0_2(sample_field, db_select_sample_points_all, update_sample)
+	GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_sample_points_all, update_sample)
 
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
@@ -381,7 +364,7 @@ func show_window() {
 		GUI.Fill_combobox_from_query_1_2(lot_field, DB.DB_Select_lot_info, int64(product_id), update_lot)
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_1_2(sample_field, db_select_sample_points, int64(product_id), update_sample)
+		GUI.Fill_combobox_from_query_1_2(sample_field, DB.DB_Select_sample_points, int64(product_id), update_sample)
 
 		// FilterListView[viewer.COL_KEY_LOT].Update(viewer.COL_ITEMS_LOT)
 		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
