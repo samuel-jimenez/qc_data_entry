@@ -64,26 +64,26 @@ func (product *BaseProduct) Insel_product_self() *BaseProduct {
 
 func (product *BaseProduct) Update_lot(lot_number, product_name_customer string) *BaseProduct {
 
+	product.Lot_number = ""
+	product.Lot_id = DB.DEFAULT_LOT_ID
+	product.Product_name_customer = ""
+	product.Product_name_customer_id = nullable.NullInt64Default()
 	log.Println("Debug: Update_lot Product_id", product.Product_id, lot_number, product_name_customer)
-	if product_name_customer != "" && product.Product_id != DB.INVALID_ID {
-		log.Println("Debug: Update_lot product_name_customer", product.Product_name_customer)
+	if product.Product_id == DB.INVALID_ID {
+		return product
+	}
+	if product_name_customer != "" {
 		product.Product_name_customer = product_name_customer
 		product.Product_name_customer_id = nullable.NewNullInt64(DB.Insel_product_name_customer(product.Product_name_customer, product.Product_id))
-	} else {
-		product.Product_name_customer = ""
-		product.Product_name_customer_id = nullable.NullInt64Default()
+		log.Println("Debug: Update_lot Product_name_customer_id", product.Product_name_customer, product.Product_name_customer_id)
 	}
-	log.Println("Debug: Update_lot Product_name_customer_id", product.Product_name_customer, product.Product_name_customer_id)
 
-	if lot_number != "" && product.Product_id != DB.INVALID_ID {
+	if lot_number != "" {
 		product.Lot_number = lot_number
 		product.Lot_id = DB.Insel_lot_id(product.Lot_number, product.Product_id)
 		log.Println("Debug: Update_lot Lot_id", product.Lot_number, product.Lot_id)
 
 		DB.DB_Update_lot_customer.Exec(product.Product_name_customer_id, product.Lot_id)
-	} else {
-		product.Lot_number = ""
-		product.Lot_id = DB.DEFAULT_LOT_ID
 	}
 	return product
 }
