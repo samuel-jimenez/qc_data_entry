@@ -15,8 +15,6 @@ var (
 	db_select_sample_points *sql.Stmt
 	err error
 
-	DEFAULT_LOT_ID int64 = 1
-
 	CONTAINER_TOTE    = 1
 	CONTAINER_RAILCAR = 2
 )
@@ -68,9 +66,13 @@ create table bs.product_lot (
 	lot_id integer not null,
 	lot_name text,
 	product_id not null,
+	product_customer_id,
 	primary key (lot_id),
 	foreign key (product_id) references product_line,
+	foreign key (product_customer_id) references product_customer_line,
 	unique (lot_name,product_id));
+
+
 
 
 create table bs.product_sample_points (

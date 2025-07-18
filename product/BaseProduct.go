@@ -8,16 +8,18 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 )
 
 type BaseProduct struct {
-	Product_name          string `json:"product_name"`
-	Lot_number            string `json:"lot_number"`
-	Sample_point          string
-	Visual                bool
-	Product_id            int64
-	Lot_id                int64
-	Product_name_customer string `json:"customer_product_name"`
+	Product_name             string `json:"product_name"`
+	Lot_number               string `json:"lot_number"`
+	Sample_point             string
+	Visual                   bool
+	Product_id               int64
+	Lot_id                   int64
+	Product_name_customer_id nullable.NullInt64
+	Product_name_customer    string `json:"customer_product_name"`
 }
 
 func (product BaseProduct) Base() BaseProduct {
@@ -54,27 +56,49 @@ func (product BaseProduct) get_json_names() []string {
 	return json_names
 }
 
-func (product *BaseProduct) insel_product_id(product_name string) {
-	product.Product_id = DB.Insel_product_id(product_name)
-	log.Println("Debug: insel_product_id", product)
-}
-
-func (product *BaseProduct) insel_lot_id(lot_name string) {
-	product.Lot_id = DB.Insel_lot_id(lot_name, product.Product_id)
-}
-
 func (product *BaseProduct) Insel_product_self() *BaseProduct {
-	product.insel_product_id(product.Product_name)
+	product.Product_id = DB.Insel_product_id(product.Product_name)
 	return product
 
+}
+
+func (product *BaseProduct) Update_lot(lot_number, product_name_customer string) *BaseProduct {
+
+	log.Println("Debug: Update_lot Product_id", product.Product_id, lot_number, product_name_customer)
+	if product_name_customer != "" && product.Product_id != DB.INVALID_ID {
+		log.Println("Debug: Update_lot product_name_customer", product.Product_name_customer)
+		product.Product_name_customer = product_name_customer
+		product.Product_name_customer_id = nullable.NewNullInt64(DB.Insel_product_name_customer(product.Product_name_customer, product.Product_id))
+	} else {
+		product.Product_name_customer = ""
+		product.Product_name_customer_id = nullable.NullInt64Default()
+	}
+	log.Println("Debug: Update_lot Product_name_customer_id", product.Product_name_customer, product.Product_name_customer_id)
+
+	if lot_number != "" && product.Product_id != DB.INVALID_ID {
+		product.Lot_number = lot_number
+		product.Lot_id = DB.Insel_lot_id(product.Lot_number, product.Product_id)
+		log.Println("Debug: Update_lot Lot_id", product.Lot_number, product.Lot_id)
+
+		DB.DB_Update_lot_customer.Exec(product.Product_name_customer_id, product.Lot_id)
+	} else {
+		product.Lot_number = ""
+		product.Lot_id = DB.DEFAULT_LOT_ID
+	}
+	return product
 }
 
 func (product *BaseProduct) Insel_lot_self() *BaseProduct {
-	product.insel_lot_id(product.Lot_number)
+	product.Insel_product_name_customer()
 	return product
 
 }
 
-func (product BaseProduct) insel_all() *BaseProduct {
+func (product *BaseProduct) Insel_product_name_customer() *BaseProduct {
+	return product
+
+}
+
+func (product BaseProduct) Insel_all() *BaseProduct {
 	return product.Insel_product_self().Insel_lot_self()
 }

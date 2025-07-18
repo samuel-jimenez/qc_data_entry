@@ -54,7 +54,7 @@ func show_window() {
 
 	qc_product := product.NewQCProduct()
 	qc_product.Product_id = DB.INVALID_ID
-	qc_product.Lot_id = DEFAULT_LOT_ID
+	qc_product.Lot_id = DB.DEFAULT_LOT_ID
 
 	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
 
@@ -283,7 +283,7 @@ func show_window() {
 		if qc_product.Product_id != old_product_id {
 			mainWindow.SetText(qc_product.Product_name)
 			qc_product.Reset()
-			qc_product.Lot_id = DEFAULT_LOT_ID
+			qc_product.Lot_id = DB.DEFAULT_LOT_ID
 			qc_product.Select_product_details()
 			qc_product.Update()
 
@@ -295,8 +295,8 @@ func show_window() {
 			GUI.Fill_combobox_from_query(customer_field, db_select_product_customer_info, qc_product.Product_id)
 			GUI.Fill_combobox_from_query(sample_field, db_select_sample_points, qc_product.Product_id)
 
-			lot_field.OnKillFocus().Fire(nil)
-			qc_product.Product_name_customer = customer_field.Text()
+			qc_product.Update_lot(lot_field.Text(), customer_field.Text())
+
 			qc_product.Sample_point = sample_field.Text()
 
 		}
@@ -313,33 +313,24 @@ func show_window() {
 	}
 
 	lot_field_pop_data := func(str string) {
-		qc_product.Lot_number = str
-		qc_product.Insel_lot_self()
+		qc_product.Update_lot(str, customer_field.Text())
 		mainWindow.SetText(str)
 	}
 	lot_field_text_pop_data := func(str string) {
 		formatted_text := strings.ToUpper(strings.TrimSpace(str))
 		lot_field.SetText(formatted_text)
-		if formatted_text != "" && qc_product.Product_id != DB.INVALID_ID {
-			lot_field_pop_data(lot_field.Text())
-		} else {
-			qc_product.Lot_number = ""
-			qc_product.Lot_id = DEFAULT_LOT_ID
-		}
+
+		lot_field_pop_data(formatted_text)
 	}
 
 	customer_field_pop_data := func(str string) {
-		qc_product.Product_name_customer = str
+		qc_product.Update_lot(lot_field.Text(), str)
 	}
 	customer_field_text_pop_data := func(str string) {
 		formatted_text := strings.ToUpper(strings.TrimSpace(str))
 		customer_field.SetText(formatted_text)
 
-		old_product_name := qc_product.Product_name_customer
 		customer_field_pop_data(formatted_text)
-		if qc_product.Product_name_customer != old_product_name && formatted_text != "" && qc_product.Product_id != DB.INVALID_ID {
-			DB.Insert_product_name_customer(qc_product.Product_name_customer, qc_product.Product_id)
-		}
 	}
 
 	sample_field_pop_data := func(str string) {

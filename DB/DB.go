@@ -11,11 +11,12 @@ import (
 var (
 	err error
 
-	DB_VERSION = "0.0.1"
+	DB_VERSION = "0.0.2"
 
 	db_select_product_id, db_insert_product,
 	db_select_lot_id, db_insert_lot,
-	db_insert_product_customer,
+	db_select_product_customer, db_insert_product_customer,
+	DB_Update_lot_customer,
 	DB_insert_sample_point,
 	DB_insert_measurement,
 	DB_Insert_appearance,
@@ -23,7 +24,8 @@ var (
 	DB_Upsert_product_details, DB_Upsert_product_type,
 	DB_Select_product_coa_details, DB_Upsert_product_coa_details *sql.Stmt
 
-	INVALID_ID int64 = -1
+	INVALID_ID     int64 = -1
+	DEFAULT_LOT_ID int64 = 1
 )
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
@@ -82,7 +84,13 @@ func DBinit(db *sql.DB) {
 		join bs.product_moniker using (product_moniker_id)
 		where product_name_internal = ?
 		and product_moniker_name = ?
-		`)
+	`)
+
+	db_select_product_customer = PrepareOrElse(db, `
+	select product_customer_id
+		from bs.product_customer_line
+		where product_name_customer = ? and product_id = ?
+	`)
 
 	db_insert_product_customer = PrepareOrElse(db, `
 	insert into bs.product_customer_line
@@ -566,6 +574,13 @@ func DBinit(db *sql.DB) {
 		returning qc_range_id
 		`)
 
+	DB_Update_lot_customer = PrepareOrElse(db, `
+	update bs.product_lot
+	set
+		product_customer_id=?
+	where lot_id=?
+		`)
+
 }
 
 func insert(insert_statement *sql.Stmt, proc_name string, args ...any) int64 {
@@ -603,6 +618,6 @@ func Insel_lot_id(lot_name string, product_id int64) int64 {
 	return insel(db_insert_lot, db_select_lot_id, "Debug: insel_lot_id", lot_name, product_id)
 }
 
-func Insert_product_name_customer(product_name_customer string, product_id int64) int64 {
-	return insert(db_insert_product_customer, "Debug: insert_product_name_customer", product_name_customer, product_id)
+func Insel_product_name_customer(product_name_customer string, product_id int64) int64 {
+	return insel(db_insert_product_customer, db_select_product_customer, "Debug: Insel_product_name_customer", product_name_customer, product_id)
 }
