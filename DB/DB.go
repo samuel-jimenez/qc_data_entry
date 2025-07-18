@@ -16,6 +16,7 @@ var (
 	db_select_product_id, db_insert_product,
 	DB_Select_product_info,
 	db_select_lot_id, db_insert_lot,
+     	DB_Select_lot_all, DB_Select_lot_info,
 	db_select_product_customer, db_insert_product_customer,
 	DB_Update_lot_customer,
 	DB_insert_sample_point,
@@ -107,10 +108,22 @@ func DBinit(db *sql.DB) {
 	returning product_customer_id
 	`)
 
+
 	db_select_lot_id = PrepareOrElse(db, `
 	select lot_id
 		from bs.product_lot
 		where lot_name = ? and product_id = ?
+	`)
+
+			DB_Select_lot_info = PrepareOrElse(db, `
+	select lot_id, lot_name
+		from bs.product_lot
+		where product_id = ?
+	`)
+	DB_Select_lot_all = PrepareOrElse(db, `
+	select lot_id, lot_name
+		from bs.product_lot
+		order by lot_name
 	`)
 
 	db_insert_lot = PrepareOrElse(db, `

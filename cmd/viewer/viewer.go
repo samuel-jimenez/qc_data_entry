@@ -101,7 +101,6 @@ func select_product_samples(product_id int) []viewer.QCData {
 
 var (
 	SAMPLE_SELECT_STRING string
-	db_select_lot_all, db_select_lot_info,
 	db_select_product_samples,
 	db_select_samples,
 	db_select_sample_points_all, db_select_sample_points *sql.Stmt
@@ -112,16 +111,7 @@ func dbinit(db *sql.DB) {
 	DB.Check_db(db)
 	DB.DBinit(db)
 
-	db_select_lot_info = DB.PrepareOrElse(db, `
-	select lot_id, lot_name
-		from bs.product_lot
-		where product_id = ?
-	`)
-	db_select_lot_all = DB.PrepareOrElse(db, `
-	select lot_id, lot_name
-		from bs.product_lot
-		order by lot_name
-	`)
+
 
 	SAMPLE_SELECT_STRING = `
 	select
@@ -360,7 +350,7 @@ func show_window() {
 		}
 	})
 
-	GUI.Fill_combobox_from_query_0_2(lot_field, db_select_lot_all, func(id int, name string) {
+	GUI.Fill_combobox_from_query_0_2(lot_field, DB.DB_Select_lot_all, func(id int, name string) {
 		// lot_data[name] = id
 		lot_data = append(lot_data, name)
 		update_lot(id, name)
@@ -388,7 +378,7 @@ func show_window() {
 		table.Update()
 
 		viewer.COL_ITEMS_LOT = nil
-		GUI.Fill_combobox_from_query_1_2(lot_field, db_select_lot_info, int64(product_id), update_lot)
+		GUI.Fill_combobox_from_query_1_2(lot_field, DB.DB_Select_lot_info, int64(product_id), update_lot)
 
 		viewer.COL_ITEMS_SAMPLE = nil
 		GUI.Fill_combobox_from_query_1_2(sample_field, db_select_sample_points, int64(product_id), update_sample)

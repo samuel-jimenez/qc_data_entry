@@ -291,7 +291,7 @@ func show_window() {
 				tabs.SetCurrent(qc_product.Product_type.Index())
 			}
 
-			GUI.Fill_combobox_from_query(lot_field, db_select_lot_info, qc_product.Product_id)
+			GUI.Fill_combobox_from_query(lot_field, DB.DB_Select_lot_info, qc_product.Product_id)
 			GUI.Fill_combobox_from_query(customer_field, db_select_product_customer_info, qc_product.Product_id)
 			GUI.Fill_combobox_from_query(sample_field, db_select_sample_points, qc_product.Product_id)
 

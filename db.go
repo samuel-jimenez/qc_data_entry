@@ -10,7 +10,6 @@ import (
 
 var (
 	db_select_product_customer_id, db_select_product_customer_info,
-	db_select_lot_info,
 	db_select_sample_points *sql.Stmt
 	err error
 
@@ -204,11 +203,6 @@ insert into bs.container_types
 		where product_name_customer = ? and product_id = ?
 	`)
 
-	db_select_lot_info = DB.PrepareOrElse(db, `
-	select lot_id, lot_name
-		from bs.product_lot
-		where product_id = ?
-	`)
 
 	db_select_sample_points = DB.PrepareOrElse(db, `
 	select distinct sample_point_id, sample_point
