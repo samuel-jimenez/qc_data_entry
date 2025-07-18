@@ -293,7 +293,7 @@ func show_window() {
 
 			GUI.Fill_combobox_from_query(lot_field, DB.DB_Select_lot_info, qc_product.Product_id)
 			GUI.Fill_combobox_from_query(customer_field, DB.DB_Select_product_customer_info, qc_product.Product_id)
-			GUI.Fill_combobox_from_query(sample_field, DB.DB_Select_sample_points, qc_product.Product_id)
+			GUI.Fill_combobox_from_query(sample_field, DB.DB_Select_product_sample_points, qc_product.Product_id)
 
 			qc_product.Update_lot(lot_field.Text(), customer_field.Text())
 

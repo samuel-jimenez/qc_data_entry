@@ -20,7 +20,7 @@ var (
 	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
 	DB_Update_lot_customer,
-	DB_Select_sample_points_all, DB_Select_sample_points,
+	DB_Select_all_sample_points, DB_Select_product_sample_points,
 	DB_insert_sample_point,
 	DB_insert_measurement,
 	DB_Insert_appearance,
@@ -161,13 +161,13 @@ func DBinit(db *sql.DB) {
 	returning sample_point_id, sample_point
 	`)
 
-	DB_Select_sample_points_all = PrepareOrElse(db, `
+	DB_Select_all_sample_points = PrepareOrElse(db, `
 	select sample_point_id, sample_point
 		from bs.product_sample_points
 		order by sample_point_id
 	`)
 
-	DB_Select_sample_points = PrepareOrElse(db, `
+	DB_Select_product_sample_points = PrepareOrElse(db, `
 	select distinct sample_point_id, sample_point
 		from bs.product_lot
 		join bs.qc_samples using (lot_id)

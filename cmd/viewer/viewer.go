@@ -294,7 +294,7 @@ func show_window() {
 		}
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_sample_points_all, update_sample)
+		GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_all_sample_points, update_sample)
 
 		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
 
@@ -339,7 +339,7 @@ func show_window() {
 		update_lot(id, name)
 	})
 
-	GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_sample_points_all, update_sample)
+	GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_all_sample_points, update_sample)
 
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
@@ -364,7 +364,7 @@ func show_window() {
 		GUI.Fill_combobox_from_query_1_2(lot_field, DB.DB_Select_lot_info, int64(product_id), update_lot)
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_1_2(sample_field, DB.DB_Select_sample_points, int64(product_id), update_sample)
+		GUI.Fill_combobox_from_query_1_2(sample_field, DB.DB_Select_product_sample_points, int64(product_id), update_sample)
 
 		// FilterListView[viewer.COL_KEY_LOT].Update(viewer.COL_ITEMS_LOT)
 		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
