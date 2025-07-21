@@ -184,7 +184,7 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 	}
 	refresh := func() {
 		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
-		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, RANGES_RO_PADDING, BTM_SPACER_HEIGHT)
+		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, GUI.RANGES_RO_PADDING, BTM_SPACER_HEIGHT)
 		visual_field.Refresh()
 		viscosity_field.Refresh()
 		mass_field.Refresh()
