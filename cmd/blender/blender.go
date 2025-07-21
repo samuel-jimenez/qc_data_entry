@@ -160,10 +160,73 @@ func (r *RecipeProduct) Set(name string, i int) {
 	r.Product_id = i
 }
 
+// func (r *RecipeProduct) GetRecipes() (rows *sql.Rows,error){
+// 	return DB_Select_product_recipe.Query(r.Product_id)
+// 	// r.Recipes =
+//
+// 	// rows, err :=
+// 	//TODO
+// }
+
 func (r *RecipeProduct) GetRecipes() {
-	r.Recipes = DB_Select_product_recipe.Query(r.Product_id)
-	//TODO
+	r.Recipes = nil
+	rows, err := DB_Select_product_recipe.Query(r.Product_id)
+	fn := "GetRecipes"
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, fn)
+		// return -1
+	}
+
+	// data := make([]ProductRecipe, 0)
+	for rows.Next() {
+		var (
+			qc_data ProductRecipe
+		)
+
+		if err := rows.Scan(&qc_data.Recipe_id); err != nil {
+			log.Fatal(err)
+		}
+		qc_data.Product_id = r.Product_id
+		log.Println("DEBUG: GetRecipes qc_data", qc_data)
+		r.Recipes = append(r.Recipes, qc_data)
+	}
+
 }
+
+// 	//TODO genericize
+// func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
+// 	if err != nil {
+// 		log.Printf("error: %q: %s\n", err, fn)
+// 		// return -1
+// 	}
+//
+// 	data := make([]viewer.QCData, 0)
+// 	for rows.Next() {
+// 		var (
+// 			qc_data              viewer.QCData
+// 			_timestamp           int64
+// 			product_moniker_name string
+// 			internal_name        string
+// 		)
+//
+// 		if err := rows.Scan(&product_moniker_name, &internal_name,
+// 			&qc_data.Product_name_customer,
+// 			&qc_data.Lot_name,
+// 			&qc_data.Sample_point,
+// 			&_timestamp,
+// 			&qc_data.PH,
+// 			&qc_data.Specific_gravity,
+// 			&qc_data.String_test,
+// 			&qc_data.Viscosity); err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		qc_data.Product_name = product_moniker_name + " " + internal_name
+//
+// 		qc_data.Time_stamp = time.Unix(0, _timestamp)
+// 		data = append(data, qc_data)
+// 	}
+// 	return data
+// }
 
 func NewRecipeProduct() *RecipeProduct {
 	return new(RecipeProduct)
@@ -175,8 +238,8 @@ type ProductRecipe struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int64
-	Recipe_id  int64
+	Product_id int
+	Recipe_id  int
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
@@ -187,7 +250,7 @@ type RecipeComponent struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Component_id int64
+	Component_id int
 	// Lot_id     int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
@@ -201,7 +264,7 @@ type BlendComponent struct {
 	// Sample_point             string
 	// Visual                   bool
 	// Product_id int64
-	Lot_id int64
+	Lot_id int
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
@@ -216,8 +279,8 @@ type ProductBlend struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int64
-	Recipe_id  int64
+	Product_id int
+	Recipe_id  int
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
@@ -227,8 +290,8 @@ type BlendProduct struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int64
-	Lot_id     int64
+	Product_id int
+	Lot_id     int
 	Recipe     ProductBlend
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
