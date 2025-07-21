@@ -126,17 +126,40 @@ func show_window() {
 	window_title := "QC Data Blender"
 
 	product_text := "Product"
+
+	product_data := make(map[string]int)
+
 	// build window
 	mainWindow := windigo.NewForm(nil)
 	mainWindow.SetText(window_title)
-
 	dock := windigo.NewSimpleDock(mainWindow)
 
-	product_field := GUI.NewComboBox(mainWindow, product_text)
+	product_panel := windigo.NewAutoPanel(mainWindow)
+
+	product_field := GUI.NewComboBox(product_panel, product_text)
 
 	// product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
 
-	dock.Dock(product_field, windigo.Top)
+	// Dock
+
+	product_panel.Dock(product_field, windigo.Left)
+	dock.Dock(product_panel, windigo.Top)
+
+	// combobox
+	rows, err := DB.DB_Select_product_info.Query()
+	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
+		var (
+			id                   int
+			internal_name        string
+			product_moniker_name string
+		)
+		if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
+			name := product_moniker_name + " " + internal_name
+			product_data[name] = id
+
+			product_field.AddItem(name)
+		}
+	})
 
 	// sizing
 	refresh_vars := func(font_size int) {
@@ -144,6 +167,9 @@ func show_window() {
 	}
 	refresh := func(font_size int) {
 		refresh_vars(font_size)
+
+		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 	}
