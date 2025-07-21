@@ -33,7 +33,10 @@ type QCProduct struct {
 }
 
 func NewQCProduct() *QCProduct {
-	return new(QCProduct)
+	qc_product := new(QCProduct)
+	qc_product.Product_id = DB.INVALID_ID
+	qc_product.Lot_id = DB.DEFAULT_LOT_ID
+	return qc_product
 }
 
 func (product *QCProduct) Reset() {

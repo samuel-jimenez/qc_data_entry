@@ -54,9 +54,9 @@ func show_window() {
 	sample_text := "Sample Point"
 	customer_text := "Customer Name"
 
+	product_data := make(map[string]int)
+
 	qc_product := product.NewQCProduct()
-	qc_product.Product_id = DB.INVALID_ID
-	qc_product.Lot_id = DB.DEFAULT_LOT_ID
 
 	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
 
@@ -143,16 +143,19 @@ func show_window() {
 	threads.Status_bar = windigo.NewStatusBar(mainWindow)
 	mainWindow.SetStatusBar(threads.Status_bar)
 
+	// combobox
 	rows, err := DB.DB_Select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
-			id                   uint8
+			id                   int
 			internal_name        string
 			product_moniker_name string
 		)
 		if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
-			// data[id] = internal_name
-			product_field.AddItem(product_moniker_name + " " + internal_name)
+			name := product_moniker_name + " " + internal_name
+			product_data[name] = id
+
+			product_field.AddItem(name)
 		}
 	})
 
