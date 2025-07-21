@@ -150,6 +150,8 @@ func show_window() {
 
 	log.Println("Info: Process started")
 
+	window_title := "QC Data Viewer"
+
 	product_data := make(map[string]int)
 	// lot_data := make(map[string]int)
 	var lot_data []string
@@ -188,7 +190,7 @@ func show_window() {
 
 	mainWindow := windigo.NewForm(nil)
 	mainWindow.SetSize(viewer.WINDOW_WIDTH, viewer.WINDOW_HEIGHT)
-	mainWindow.SetText("QC Data Viewer")
+	mainWindow.SetText(window_title)
 
 	dock := windigo.NewSimpleDock(mainWindow)
 
@@ -216,6 +218,8 @@ func show_window() {
 	lot_panel := windigo.NewAutoPanel(product_panel)
 	lot_panel.SetSize(hpanel_width, field_height)
 
+	//TODO fix ListComboBox sizes so it works like for size 10
+	//TODO change this to search like the filter
 	lot_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, lot_text)
 	lot_clear_button := windigo.NewPushButton(lot_panel)
 	lot_clear_button.SetText("-")

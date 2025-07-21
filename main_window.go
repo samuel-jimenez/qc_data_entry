@@ -23,6 +23,8 @@ func show_window() {
 	// DEBUG
 	// log.Println(time.Now().UTC().UnixNano())
 
+	window_title := "QC Data Entry"
+
 	clock_width := 90
 	clock_timer_width := 35
 	clock_timer_offset_h := 10
@@ -60,7 +62,7 @@ func show_window() {
 
 	// build window
 	mainWindow := windigo.NewForm(nil)
-	mainWindow.SetText("QC Data Entry")
+	mainWindow.SetText(window_title)
 
 	keygrab := windigo.NewEdit(mainWindow)
 	keygrab.Hide()

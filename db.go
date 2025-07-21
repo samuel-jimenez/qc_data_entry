@@ -163,9 +163,111 @@ create table bs.product_ranges_published (
 	foreign key (visual_id) references product_appearance,
 	unique (product_id));
 
+
+
+
+
+create table bs.container_list (
+	container_list_id integer not null,
+	container_list_name text not null,
+	primary key (container_list_id),
+	unique(container_list_name));
+
+
+
+create table bs.inbound_provider_list (
+	inbound_provider_list_id integer not null,
+	inbound_provider_list_name text not null,
+	primary key (inbound_provider_list_id),
+	unique(inbound_provider_list_name));
+
+
+
+
+create table bs.inbound_lot (
+	inbound_lot_id integer not null,
+	inbound_lot_name text,
+	inbound_provider_list_id,
+	foreign key (inbound_provider_list_id) references inbound_provider_list,
+	primary key (inbound_lot_id));
+
+
+create table bs.component_inbound(
+	component_inbound_id integer not null,
+	isomeric_lot_name text not null,
+	component_type_id not null,
+	inbound_lot_id not null,
+	container_list_id not null,
+	foreign key (component_type_id) references component_types,
+	foreign key (inbound_lot_id) references inbound_lot,
+	foreign key (container_list_id) references container_list,
+	primary key (component_inbound_id),
+	unique(isomeric_lot_name));
+
+
+
+
+
+
+create table bs.component_types (
+	component_type_id integer not null,
+	component_type_name text not null,
+	primary key (component_type_id),
+	unique(component_type_name));
+
+
+
+
+
+create table bs.component_list(
+	component_list_id integer not null,
+	component_type_id not null,
+	component_inbound_id,
+	lot_id,
+	foreign key (component_type_id) references component_types,
+	foreign key (component_inbound_id) references component_inbound,
+	foreign key (lot_id) references product_lot,
+	primary key (component_list_id));
+
+
+create table bs.recipe_list (
+	recipe_list_id integer not null,
+	component_type_id not null,
+	foreign key (component_type_id) references component_types,
+	primary key (recipe_list_id));
+
+create table bs.recipe_components (
+	recipe_components_id integer not null,
+	recipe_list_id integer not null,
+	component_type_id not null,
+	component_type_amount real,
+	foreign key (recipe_list_id) references recipe_list,
+	foreign key (component_type_id) references component_types,
+	primary key (recipe_components_id));
+
+
+
+
+create table bs.blend_components (
+	blend_components_id integer not null,
+	lot_id not null,
+	recipe_list_id not null,
+	component_list_id not null,
+	component_type_amount real,
+	foreign key (lot_id) references product_lot,
+	foreign key (component_list_id) references component_list,
+	foreign key (recipe_list_id) references recipe_list,
+	primary key (blend_components_id));
+
+
+
+
+
 insert into bs.container_types
 	(container_type_name)
 	values ('Tote'),('Railcar');
+
+
 
 
 
