@@ -166,7 +166,6 @@ create table bs.product_ranges_published (
 
 
 
-
 create table bs.container_list (
 	container_list_id integer not null,
 	container_list_name text not null,
@@ -274,6 +273,17 @@ insert into bs.container_types
 
 
 `
+
+	//TODO
+
+	/*
+
+	   create table bs.sample_container_list (
+	   	sample_container_list_id integer not null,
+	   	sample_container_list_name text not null,
+	   	primary key (sample_container_list_id),
+	   	unique(sample_container_list_name));*/
+
 	// TODO add ranges table
 	// _min real,
 	// _max real,
