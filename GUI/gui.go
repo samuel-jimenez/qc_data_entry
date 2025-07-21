@@ -144,14 +144,12 @@ type ComboBox struct {
 	*windigo.LabeledComboBox
 }
 
-// TODO SetFont decrease followed by SetLabeledSize disappears lists
 func (control *ComboBox) SetFont(font *windigo.Font) {
 	control.ComboBox.SetFont(font)
 	control.Label().SetFont(font)
 }
 
 func (control *ComboBox) SetLabeledSize(label_width, control_width, height int) {
-	control.SetSize(label_width+control_width, 40*height)
 	control.SetSize(label_width+control_width, height)
 	control.Label().SetSize(label_width, height)
 }
