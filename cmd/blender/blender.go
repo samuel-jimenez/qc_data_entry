@@ -104,6 +104,21 @@ func dbinit(db *sql.DB) {
 	DB.DBinit(db)
 }
 
+func refresh_globals(font_size int) {
+
+	GUI.GROUPBOX_CUSHION = font_size * 3 / 2
+	TOP_SPACER_WIDTH = 7
+	TOP_SPACER_HEIGHT = GUI.GROUPBOX_CUSHION + 2
+	INTER_SPACER_HEIGHT = 2
+	BTM_SPACER_WIDTH = 2
+	BTM_SPACER_HEIGHT = 2
+	TOP_PANEL_INTER_SPACER_WIDTH = 30
+
+	GUI.LABEL_WIDTH = 10 * font_size
+	PRODUCT_FIELD_WIDTH = 15 * font_size
+	PRODUCT_FIELD_HEIGHT = font_size*16/10 + 8
+}
+
 func show_window() {
 
 	log.Println("Info: Process started")
@@ -122,6 +137,35 @@ func show_window() {
 	// product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
 
 	dock.Dock(product_field, windigo.Top)
+
+	// sizing
+	refresh_vars := func(font_size int) {
+		refresh_globals(font_size)
+	}
+	refresh := func(font_size int) {
+		refresh_vars(font_size)
+		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+
+	}
+
+	//size
+	set_font := func(font_size int) {
+		GUI.BASE_FONT_SIZE = font_size
+
+		config.Main_config.Set("font_size", GUI.BASE_FONT_SIZE)
+		config.Write_config(config.Main_config)
+
+		old_font := windigo.DefaultFont
+		windigo.DefaultFont = windigo.NewFont(old_font.Family(), GUI.BASE_FONT_SIZE, 0)
+		old_font.Dispose()
+
+		mainWindow.SetFont(windigo.DefaultFont)
+		product_field.SetFont(windigo.DefaultFont)
+		// threads.Status_bar.SetFont(windigo.DefaultFont)
+		refresh(font_size)
+
+	}
+	set_font(GUI.BASE_FONT_SIZE)
 
 	mainWindow.Center()
 	mainWindow.Show()
