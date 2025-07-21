@@ -270,13 +270,14 @@ func show_window() {
 	table.Set(select_samples())
 	table.Update()
 
+	threads.Status_bar = windigo.NewStatusBar(mainWindow)
+	mainWindow.SetStatusBar(threads.Status_bar)
+	dock.Dock(threads.Status_bar, windigo.Bottom)
+
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(FilterListView, windigo.Top)
 
 	dock.Dock(table, windigo.Fill)
-
-	// status_bar = windigo.NewStatusBar(mainWindow)
-	// mainWindow.SetStatusBar(status_bar)
 
 	// functionality
 	update_lot := func(id int, name string) {
