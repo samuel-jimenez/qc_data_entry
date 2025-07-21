@@ -186,6 +186,8 @@ func (product Product) Printout() error {
 
 func (product Product) Output() error {
 	if err := product.Printout(); err != nil {
+		log.Printf("Error: %q: %s\n", err, "Output")
+		log.Printf("Debug: %q: %v\n", err, product)
 		return err
 	}
 	product.format_sample()
@@ -201,8 +203,12 @@ func (product *Product) format_sample() {
 }
 
 func (product Product) Output_sample() error {
+	log.Println("DEBUG: Output_sample ", product)
 	product.format_sample()
+	log.Println("DEBUG: Output_sample formatted", product)
 	if err := product.export_CoA(); err != nil {
+		log.Printf("Error: %q: %s\n", err, "Output_sample")
+		log.Printf("Debug: %q: %v\n", err, product)
 		return err
 	}
 	return product.print()
@@ -281,7 +287,6 @@ func (product Product) Reprint() {
 }
 
 func (product Product) Reprint_sample() {
-	log.Println("DEBUG: Reprint_sample ", product)
 	product.format_sample()
 	log.Println("DEBUG: Reprint_sample formatted", product)
 	product.Reprint()

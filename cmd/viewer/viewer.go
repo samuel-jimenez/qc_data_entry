@@ -421,11 +421,18 @@ func show_window() {
 	})
 
 	reprint_sample_button.OnClick().Bind(func(e *windigo.Event) {
-		// log.Println(table.SelectedItems())
 		for _, data := range table.SelectedItems() {
-			log.Println("reprint_sample_button", data)
-
 			data.(viewer.QCData).Product().Reprint_sample()
+		}
+
+	})
+	regen_sample_button.OnClick().Bind(func(e *windigo.Event) {
+		for _, data := range table.SelectedItems() {
+			if err := data.(viewer.QCData).Product().Output_sample(); err != nil {
+				log.Printf("Error: %q: %s\n", err, "regen_sample_button")
+				log.Printf("Debug: %q: %v\n", err, data)
+				threads.Show_status("Error Creating Label")
+			}
 		}
 
 	})
