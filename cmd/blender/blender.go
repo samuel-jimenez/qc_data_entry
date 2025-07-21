@@ -54,10 +54,6 @@ var (
 	GROUP_MARGIN int
 )
 
-var (
-	qc_db *sql.DB
-)
-
 func main() {
 	//load config
 	config.Main_config = config.Load_config_viewer("qc_data_blender")
@@ -98,10 +94,38 @@ func main() {
 
 }
 
+var (
+	qc_db *sql.DB
+	DB_Select_product_recipe, DB_Insert_product_recipe,
+	DB_Select_recipe_components *sql.Stmt
+)
+
 func dbinit(db *sql.DB) {
 
 	DB.Check_db(db)
 	DB.DBinit(db)
+
+	DB_Select_product_recipe = DB.PrepareOrElse(db, `
+	select recipe_list_id
+		from bs.recipe_list
+		where product_id = ?
+	`)
+
+	DB_Insert_product_recipe = DB.PrepareOrElse(db, `
+	insert into bs.recipe_list
+		(product_id)
+		values (?)
+	returning recipe_list_id
+	`)
+
+	DB_Select_recipe_components = DB.PrepareOrElse(db, `
+	select component_type_name, component_type_amount
+		from bs.recipe_components
+		join bs.component_types
+		using (component_type_id)
+		where recipe_list_id = ?
+	`)
+
 }
 
 func refresh_globals(font_size int) {
@@ -119,6 +143,97 @@ func refresh_globals(font_size int) {
 	PRODUCT_FIELD_HEIGHT = font_size*16/10 + 8
 }
 
+type RecipeProduct struct {
+	Product_name string `json:"product_name"`
+	// Lot_number               string `json:"lot_number"`
+	// Sample_point             string
+	// Visual                   bool
+	Product_id int
+	// Lot_id     int64
+	Recipes []ProductRecipe
+	// Product_name_customer_id nullable.NullInt64
+	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+func (r *RecipeProduct) Set(name string, i int) {
+	r.Product_name = name
+	r.Product_id = i
+}
+
+func (r *RecipeProduct) GetRecipes() {
+	r.Recipes = DB_Select_product_recipe.Query(r.Product_id)
+	//TODO
+}
+
+func NewRecipeProduct() *RecipeProduct {
+	return new(RecipeProduct)
+}
+
+type ProductRecipe struct {
+	Components []BlendComponent
+	// Product_name string `json:"product_name"`
+	// Lot_number               string `json:"lot_number"`
+	// Sample_point             string
+	// Visual                   bool
+	Product_id int64
+	Recipe_id  int64
+	// Product_name_customer_id nullable.NullInt64
+	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+type RecipeComponent struct {
+	Component_name   string `json:"product_name"`
+	Component_amount float64
+	// Lot_number               string `json:"lot_number"`
+	// Sample_point             string
+	// Visual                   bool
+	Component_id int64
+	// Lot_id     int64
+	// Product_name_customer_id nullable.NullInt64
+	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+type BlendComponent struct {
+	RecipeComponent
+	// Component_name string `json:"product_name"`
+	// Component_amount float64
+	// Lot_number               string `json:"lot_number"`
+	// Sample_point             string
+	// Visual                   bool
+	// Product_id int64
+	Lot_id int64
+	// Product_name_customer_id nullable.NullInt64
+	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+/*
+lot_provider
+lot_isomeric*/
+
+type ProductBlend struct {
+	Components []BlendComponent
+	// Product_name string `json:"product_name"`
+	// Lot_number               string `json:"lot_number"`
+	// Sample_point             string
+	// Visual                   bool
+	Product_id int64
+	Recipe_id  int64
+	// Product_name_customer_id nullable.NullInt64
+	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+type BlendProduct struct {
+	Product_name string `json:"product_name"`
+	// Lot_number               string `json:"lot_number"`
+	// Sample_point             string
+	// Visual                   bool
+	Product_id int64
+	Lot_id     int64
+	Recipe     ProductBlend
+	// Product_name_customer_id nullable.NullInt64
+	// Product_name_customer    string `json:"customer_product_name"`
+}
+
 func show_window() {
 
 	log.Println("Info: Process started")
@@ -128,6 +243,9 @@ func show_window() {
 	product_text := "Product"
 
 	product_data := make(map[string]int)
+
+	// Blend_product := new(BlendProduct)
+	Recipe_product := NewRecipeProduct()
 
 	// build window
 	mainWindow := windigo.NewForm(nil)
@@ -192,6 +310,14 @@ func show_window() {
 
 	}
 	set_font(GUI.BASE_FONT_SIZE)
+
+	// functionality
+
+	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		Recipe_product = NewRecipeProduct()
+		name := product_field.GetSelectedItem()
+		Recipe_product.Set(name, product_data[name])
+	})
 
 	mainWindow.Center()
 	mainWindow.Show()

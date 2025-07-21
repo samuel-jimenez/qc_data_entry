@@ -230,10 +230,12 @@ create table bs.component_list(
 	primary key (component_list_id));
 
 
+
+
 create table bs.recipe_list (
 	recipe_list_id integer not null,
-	component_type_id not null,
-	foreign key (component_type_id) references component_types,
+	product_id not null,
+	foreign key (product_id) references product_line,
 	primary key (recipe_list_id));
 
 create table bs.recipe_components (
