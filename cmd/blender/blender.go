@@ -502,37 +502,21 @@ func (data_view *SearchBox) DelItem(entry string) {
 func BuildNewSearchBox(parent windigo.Controller, labels []string) *SearchBox {
 	// func BuildNewSearchBox(parent *SQLFilterView, labels []string) *SearchBox {
 	data_view := new(SearchBox)
-	// 	log.Println("ClientWidth",parent.Width())
-	// width = parent.Width()
-
-	// panel := windigo.NewAutoPanel(parent)
-	// panel.SetPaddingsAll(15)
-	// panel := windigo.NewAutoPanel(overpanel)
 
 	data_view.ComboBox = GUI.NewComboBox(parent, "")
-	data_view.ComboBox.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
-	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+	data_view.OnChange().Bind(func(e *windigo.Event) {
 
-		start, end := data_view.ComboBox.Selected()
-		text := strings.ToUpper(data_view.ComboBox.Text())
+		start, end := data_view.Selected()
+		text := strings.ToUpper(data_view.Text())
 
 		terms := strings.Split(text, " ")
 		data_view.Search(terms)
 
-		data_view.ComboBox.SetText(text)
-		data_view.ComboBox.SelectText(start, end)
-		data_view.ComboBox.ShowDropdown(true)
+		data_view.SetText(text)
+		data_view.SelectText(start, end)
+		data_view.ShowDropdown(true)
 
 	})
-
-	// view.ComboBox.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
-	// panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
-
-	// panel.Dock(data_view.ComboBox, windigo.Left)
-
-	// panel.Dock(view.ComboBox, windigo.Top)
-
-	// data_view.AutoPanel = panel
 
 	data_view.Update(labels)
 
