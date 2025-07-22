@@ -194,14 +194,9 @@ func (object *RecipeProduct) GetRecipes() {
 func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
 	object.Recipes = nil
 	rows, err := DB_Select_product_recipe.Query(object.Product_id)
-	fn := "GetRecipes"
-	if err != nil {
-		log.Printf("error: %q: %s\n", err, fn)
-		// return -1
-	}
 	i := 0
-	// data := make([]ProductRecipe, 0)
-	for rows.Next() {
+	GUI.Fill_combobox_from_query_rows(combo_field, rows, err, func(rows *sql.Rows) {
+
 		var (
 			recipe_data ProductRecipe
 		)
@@ -214,9 +209,8 @@ func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
 		object.Recipes = append(object.Recipes, &recipe_data)
 		// combo_field.AddItem(strconv.FormatInt(i, 10))
 		combo_field.AddItem(strconv.Itoa(i))
-
-	}
-
+		i++
+	})
 }
 
 func (object *RecipeProduct) NewRecipe() *ProductRecipe {
