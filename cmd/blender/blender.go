@@ -94,7 +94,7 @@ func main() {
 var (
 	qc_db *sql.DB
 	DB_Select_product_recipe, DB_Insert_product_recipe,
-	DB_Select_recipe_components *sql.Stmt
+	DB_Select_recipe_components, DB_Insert_recipe_component *sql.Stmt
 )
 
 func dbinit(db *sql.DB) {
@@ -315,9 +315,7 @@ func (object *ProductRecipe) GetComponents() {
 
 	// data := make([]ProductRecipe, 0)
 	for rows.Next() {
-		var (
-			Recipe_component RecipeComponent
-		)
+		Recipe_component := new(RecipeComponent)
 
 		if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
 			log.Fatal(err)
@@ -358,8 +356,8 @@ type RecipeComponent struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Component_id int
-	Add_order    int
+	Component_id int64
+	Add_order    int64
 	// Lot_id     int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
@@ -373,7 +371,7 @@ type BlendComponent struct {
 	// Sample_point             string
 	// Visual                   bool
 	// Product_id int64
-	Lot_id int
+	Lot_id int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
@@ -388,8 +386,8 @@ type ProductBlend struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int
-	Recipe_id  int
+	Product_id int64
+	Recipe_id  int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
@@ -399,8 +397,8 @@ type BlendProduct struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int
-	Lot_id     int
+	Product_id int64
+	Lot_id     int64
 	Recipe     ProductBlend
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
@@ -458,6 +456,8 @@ func show_window() {
 	product_panel.Dock(product_add_button, windigo.Left)
 	recipe_panel.Dock(recipe_field, windigo.Left)
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
+	component_panel.Dock(component_field, windigo.Left)
+	component_panel.Dock(component_add_button, windigo.Left)
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
 	dock.Dock(component_panel, windigo.Top)
