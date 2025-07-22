@@ -254,7 +254,18 @@ func NewSQLFilterViewDiscreteSearch(parent windigo.Controller, key, label string
 }
 
 /*
+ *
  * DiscreteSearchView
+
+*
+* TODO reconcile with SearchBox
+
+GUI.SearchBox
+
+* ComboBoxable ?
+*/
+
+/*
  *
  */
 type DiscreteSearchView struct {

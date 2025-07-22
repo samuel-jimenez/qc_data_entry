@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
-	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -437,92 +435,6 @@ type BlendProduct struct {
 	// Product_name_customer    string `json:"customer_product_name"`
 }
 
-/*
-* SearchBox
-*
-* TODO reconcile with DiscreteSearchView
-
-* ComboBoxable ?
- */
-type SearchBox struct {
-	// *windigo.AutoPanel
-	// box
-	*GUI.ComboBox
-	entries,
-	chosen []string
-}
-
-// TODO ?
-// Filters map[string]SQLFilterView
-func (data_view SearchBox) Get() []string {
-	// var selected []string
-	// for _, button := range data_view.buttons {
-	// 	if button.Checked() {
-	// 		selected = append(selected, button.Text())
-	// 	}
-	// }
-	return data_view.chosen
-	//TODO ?
-}
-
-func (data_view *SearchBox) Update(set []string) {
-	data_view.entries = set
-	data_view.DeleteAllItems()
-	for _, name := range set {
-		data_view.AddItem(name)
-	}
-}
-
-func (data_view SearchBox) Search(terms []string) {
-	data_view.DeleteAllItems()
-
-	for _, entry := range data_view.entries {
-		matched := true
-		upcased := strings.ToUpper(entry)
-
-		for _, term := range terms {
-			if !strings.Contains(upcased, term) {
-				matched = false
-				break
-			}
-		}
-		if matched {
-			data_view.AddItem(entry)
-		}
-	}
-}
-
-func (data_view *SearchBox) DelItem(entry string) {
-	i := slices.Index(data_view.chosen, entry)
-	if i > -1 {
-		data_view.chosen = slices.Delete(data_view.chosen, i, i+1)
-	}
-}
-
-func BuildNewSearchBox(parent windigo.Controller, labels []string) *SearchBox {
-	// func BuildNewSearchBox(parent *SQLFilterView, labels []string) *SearchBox {
-	data_view := new(SearchBox)
-
-	data_view.ComboBox = GUI.NewComboBox(parent, "")
-	data_view.OnChange().Bind(func(e *windigo.Event) {
-
-		start, end := data_view.Selected()
-		text := strings.ToUpper(data_view.Text())
-
-		terms := strings.Split(text, " ")
-		data_view.Search(terms)
-
-		data_view.SetText(text)
-		data_view.SelectText(start, end)
-		data_view.ShowDropdown(true)
-
-	})
-
-	data_view.Update(labels)
-
-	return data_view
-}
-
 func show_window() {
 
 	log.Println("Info: Process started")
@@ -567,7 +479,7 @@ func show_window() {
 	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
 	// component_field := GUI.NewComboBox(component_panel, component_text)
-	component_field := BuildNewSearchBox(component_panel, nil)
+	component_field := GUI.NewSearchBox(component_panel)
 	component_add_button := windigo.NewPushButton(component_panel)
 	component_add_button.SetText("+")
 	component_add_button.SetSize(add_button_width, GUI.OFF_AXIS)

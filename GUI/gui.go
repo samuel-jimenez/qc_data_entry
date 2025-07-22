@@ -180,3 +180,69 @@ func NewSizedListComboBox(parent windigo.Controller, label_width, control_width,
 
 	return combobox_field
 }
+
+/*
+* SearchBox
+*
+* TODO reconcile with DiscreteSearchView
+
+* ComboBoxable ?
+ */
+type SearchBox struct {
+	*ComboBox
+	entries []string
+}
+
+func (data_view *SearchBox) Update(set []string) {
+	data_view.entries = set
+	data_view.DeleteAllItems()
+	for _, name := range set {
+		data_view.AddItem(name)
+	}
+}
+
+func (data_view SearchBox) Search(terms []string) {
+	data_view.DeleteAllItems()
+
+	for _, entry := range data_view.entries {
+		matched := true
+		upcased := strings.ToUpper(entry)
+
+		for _, term := range terms {
+			if !strings.Contains(upcased, term) {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			data_view.AddItem(entry)
+		}
+	}
+}
+
+func NewSearchBox(parent windigo.Controller) *SearchBox {
+	data_view := new(SearchBox)
+
+	data_view.ComboBox = NewComboBox(parent, "")
+	data_view.OnChange().Bind(func(e *windigo.Event) {
+
+		start, end := data_view.Selected()
+		text := strings.ToUpper(data_view.Text())
+
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+
+		data_view.SetText(text)
+		data_view.SelectText(start, end)
+		data_view.ShowDropdown(true)
+
+	})
+
+	return data_view
+}
+
+func NewSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
+	data_view := NewSearchBox(parent)
+	data_view.Update(labels)
+	return data_view
+}
