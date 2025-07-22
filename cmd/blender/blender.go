@@ -667,8 +667,9 @@ func show_window() {
 	})
 
 	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
-		log.Println("CRIT: DEBUG: component_accept_button", component_add_field.Text())
-		component_add_panel.Hide()
+		component_name := component_add_field.Text()
+		log.Println("CRIT: DEBUG: component_accept_button", component_name, product_data[component_name])
+		// component_add_panel.Hide()
 
 	})
 	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {

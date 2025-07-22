@@ -226,16 +226,19 @@ func NewSearchBox(parent windigo.Controller) *SearchBox {
 	data_view.ComboBox = NewComboBox(parent, "")
 	data_view.OnChange().Bind(func(e *windigo.Event) {
 
-		start, end := data_view.Selected()
+		start, _ := data_view.Selected()
 
 		text := strings.ToUpper(data_view.Text())
 
 		terms := strings.Split(text, " ")
 		data_view.Search(terms)
+
+		data_view.ShowDropdown(false)
+		data_view.SetText(text)
 		data_view.ShowDropdown(true)
 
-		data_view.SetText(text)
-		data_view.SelectText(start, end)
+		// data_view.SelectText(start, end)
+		data_view.SelectText(start, -1)
 
 	})
 
