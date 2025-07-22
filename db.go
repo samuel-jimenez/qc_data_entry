@@ -224,6 +224,19 @@ create table bs.component_types (
 
 
 
+create table bs.component_type_product(
+	component_type_product_id integer not null,
+	component_type_id not null,
+	inbound_product_id,
+	product_id,
+	foreign key (component_type_id) references component_types,
+	foreign key (inbound_product_id) references inbound_product,
+	foreign key (product_id) references product_line,
+	primary key (component_type_product_id));
+
+
+
+
 
 create table bs.component_list(
 	component_list_id integer not null,
