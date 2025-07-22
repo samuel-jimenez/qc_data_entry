@@ -183,6 +183,18 @@ func dbinit(db *sql.DB) {
 
 }
 
+func Forall(select_statement *sql.Stmt, start_fn func(), row_fn func(*sql.Rows), calling_fn_name string, args ...any) {
+	rows, err := select_statement.Query(args...)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, calling_fn_name)
+		return
+	}
+	start_fn()
+	for rows.Next() {
+		row_fn(rows)
+	}
+}
+
 func refresh_globals(font_size int) {
 
 	GUI.GROUPBOX_CUSHION = font_size * 3 / 2
@@ -226,29 +238,22 @@ func (object *RecipeProduct) Set(name string, i int64) {
 // }
 
 func (object *RecipeProduct) GetRecipes() {
-	object.Recipes = nil
-	rows, err := DB_Select_product_recipe.Query(object.Product_id)
-	fn := "GetRecipes"
-	if err != nil {
-		log.Printf("error: %q: %s\n", err, fn)
-		// return -1
-	}
+	Forall(DB_Select_product_recipe,
+		func() { object.Recipes = nil },
+		func(rows *sql.Rows) {
+			var (
+				recipe_data ProductRecipe
+			)
 
-	// data := make([]ProductRecipe, 0)
-	for rows.Next() {
-		var (
-			recipe_data ProductRecipe
-		)
+			if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
+				log.Fatal(err)
+			}
+			recipe_data.Product_id = object.Product_id
+			log.Println("DEBUG: GetRecipes qc_data", recipe_data)
+			object.Recipes = append(object.Recipes, &recipe_data)
 
-		if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
-			log.Fatal(err)
-		}
-		recipe_data.Product_id = object.Product_id
-		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
-		object.Recipes = append(object.Recipes, &recipe_data)
-
-	}
-
+		}, "GetRecipes",
+		object.Product_id)
 }
 
 func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
@@ -348,18 +353,6 @@ func forall(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, 
 }
 component_types_list := forall(DB_Select_all_component_types,func(){},func(){}fn)
 component_field.Update(component_types_list)*/
-
-func forall(select_statement *sql.Stmt, start_fn func(), row_fn func(*sql.Rows), calling_fn_name string, args ...any) {
-	rows, err := select_statement.Query(args...)
-	if err != nil {
-		log.Printf("error: %q: %s\n", err, calling_fn_name)
-		return
-	}
-	start_fn()
-	for rows.Next() {
-		row_fn(rows)
-	}
-}
 
 /*
 func forall(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
@@ -775,7 +768,7 @@ func show_window() {
 	}
 	update_component_types := func() {
 
-		forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows *sql.Rows) {
+		Forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows *sql.Rows) {
 			var (
 				id   int
 				name string
