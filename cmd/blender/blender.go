@@ -771,7 +771,7 @@ func show_window() {
 			}
 			val := start_fn()
 			for rows.Next() {
-				row_fn()
+				val = row_fn()
 			}
 			return val
 		}
@@ -793,6 +793,7 @@ func show_window() {
 			}
 			return component_types_list
 		}, "fn")
+		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list.([]string))
 
 		// 			forall := func (select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
