@@ -116,7 +116,7 @@ func dbinit(db *sql.DB) {
 	`)
 
 	DB_Select_recipe_components = DB.PrepareOrElse(db, `
-	select component_type_name, component_type_amount
+	select component_type_id, component_type_name, component_type_amount
 		from bs.recipe_components
 		join bs.component_types
 		using (component_type_id)
@@ -165,7 +165,6 @@ func (object *RecipeProduct) Set(name string, i int64) {
 // 	//TODO
 // }
 
-// recipe_field
 func (object *RecipeProduct) GetRecipes() {
 	object.Recipes = nil
 	rows, err := DB_Select_product_recipe.Query(object.Product_id)
@@ -185,8 +184,10 @@ func (object *RecipeProduct) GetRecipes() {
 			log.Fatal(err)
 		}
 		recipe_data.Product_id = object.Product_id
+		recipe_data.GetComponents()
 		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
 		object.Recipes = append(object.Recipes, &recipe_data)
+
 	}
 
 }
@@ -205,6 +206,7 @@ func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
 			log.Fatal(err)
 		}
 		recipe_data.Product_id = object.Product_id
+		recipe_data.GetComponents()
 		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
 		object.Recipes = append(object.Recipes, &recipe_data)
 		// combo_field.AddItem(strconv.FormatInt(i, 10))
@@ -280,7 +282,7 @@ func NewRecipeProduct() *RecipeProduct {
 }
 
 type ProductRecipe struct {
-	Components []BlendComponent
+	Components []RecipeComponent
 	// Product_name string `json:"product_name"`
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
@@ -289,6 +291,30 @@ type ProductRecipe struct {
 	Recipe_id  int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+func (object *ProductRecipe) GetComponents() {
+	object.Components = nil
+	rows, err := DB_Select_recipe_components.Query(object.Recipe_id)
+	fn := "GetComponents"
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, fn)
+		// return -1
+	}
+
+	// data := make([]ProductRecipe, 0)
+	for rows.Next() {
+		var (
+			Recipe_component RecipeComponent
+		)
+
+		if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount); err != nil {
+			log.Fatal(err)
+		}
+		log.Println("DEBUG: GetComponents qc_data", Recipe_component)
+		object.Components = append(object.Components, Recipe_component)
+	}
+
 }
 
 type RecipeComponent struct {
@@ -458,9 +484,19 @@ func show_window() {
 			//?TODO add  recip button
 			//recip := Recipe_product.NewRecipe()
 			Recipe_product.NewRecipe()
+
+			recipe_field.AddItem(strconv.Itoa(len(Recipe_product.Recipes)))
 			// log.Println("product_field", product_field.SelectedItem())
 
 		}
+	})
+
+	recipe_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		// Recipe_product = NewRecipeProduct()
+		// name := product_field.GetSelectedItem()
+		// Recipe_product.Set(name, product_data[name])
+		// // Recipe_product.GetRecipes()
+		// Recipe_product.LoadRecipeCombo(recipe_field)
 	})
 
 	mainWindow.Center()
