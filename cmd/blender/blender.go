@@ -445,8 +445,9 @@ type BlendProduct struct {
 * ComboBoxable ?
  */
 type SearchBox struct {
-	*windigo.AutoPanel
-	box *GUI.ComboBox
+	// *windigo.AutoPanel
+	// box
+	*GUI.ComboBox
 	entries,
 	chosen []string
 }
@@ -466,14 +467,14 @@ func (data_view SearchBox) Get() []string {
 
 func (data_view *SearchBox) Update(set []string) {
 	data_view.entries = set
-	data_view.box.DeleteAllItems()
+	data_view.DeleteAllItems()
 	for _, name := range set {
-		data_view.box.AddItem(name)
+		data_view.AddItem(name)
 	}
 }
 
 func (data_view SearchBox) Search(terms []string) {
-	data_view.box.DeleteAllItems()
+	data_view.DeleteAllItems()
 
 	for _, entry := range data_view.entries {
 		matched := true
@@ -486,7 +487,7 @@ func (data_view SearchBox) Search(terms []string) {
 			}
 		}
 		if matched {
-			data_view.box.AddItem(entry)
+			data_view.AddItem(entry)
 		}
 	}
 }
@@ -504,34 +505,34 @@ func BuildNewSearchBox(parent windigo.Controller, labels []string) *SearchBox {
 	// 	log.Println("ClientWidth",parent.Width())
 	// width = parent.Width()
 
-	panel := windigo.NewAutoPanel(parent)
+	// panel := windigo.NewAutoPanel(parent)
 	// panel.SetPaddingsAll(15)
 	// panel := windigo.NewAutoPanel(overpanel)
 
-	data_view.box = GUI.NewComboBox(panel, "")
-	data_view.box.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
-	data_view.box.OnChange().Bind(func(e *windigo.Event) {
+	data_view.ComboBox = GUI.NewComboBox(parent, "")
+	data_view.ComboBox.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
 
-		start, end := data_view.box.Selected()
-		text := strings.ToUpper(data_view.box.Text())
+		start, end := data_view.ComboBox.Selected()
+		text := strings.ToUpper(data_view.ComboBox.Text())
 
 		terms := strings.Split(text, " ")
 		data_view.Search(terms)
 
-		data_view.box.SetText(text)
-		data_view.box.SelectText(start, end)
-		data_view.box.ShowDropdown(true)
+		data_view.ComboBox.SetText(text)
+		data_view.ComboBox.SelectText(start, end)
+		data_view.ComboBox.ShowDropdown(true)
 
 	})
 
-	// view.box.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
-	panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	// view.ComboBox.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	// panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
 
-	panel.Dock(data_view.box, windigo.Left)
+	// panel.Dock(data_view.ComboBox, windigo.Left)
 
-	// panel.Dock(view.box, windigo.Top)
+	// panel.Dock(view.ComboBox, windigo.Top)
 
-	data_view.AutoPanel = panel
+	// data_view.AutoPanel = panel
 
 	data_view.Update(labels)
 
@@ -592,8 +593,8 @@ func show_window() {
 	product_panel.Dock(product_add_button, windigo.Left)
 	recipe_panel.Dock(recipe_field, windigo.Left)
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
-	component_panel.Dock(component_add_button, windigo.Top)
-	component_panel.Dock(component_field, windigo.Top)
+	component_panel.Dock(component_field, windigo.Left)
+	component_panel.Dock(component_add_button, windigo.Left)
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
@@ -630,14 +631,14 @@ func show_window() {
 
 		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
 		recipe_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
-		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 		recipe_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 		// TODO
-		// component_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		component_field.box.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		component_field.SetSize(PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		component_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		// component_field.SetSize(PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		// component_field.box.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 	}
 
