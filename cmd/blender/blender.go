@@ -738,14 +738,10 @@ func show_window() {
 	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
 		component := NewComponentType(component_add_field.Text())
 		Product_id := product_data[component.Component_name]
-		log.Println("CRIT: DEBUG: component_accept_button!!!!", component.Component_name, Product_id)
-
 		if Product_id != DB.INVALID_ID {
-			log.Println("CRIT: DEBUG: component_accept_button xxx", component.Component_name, Product_id)
-			// DB_Insert_product_component_type
-
-			// component_add_panel.Hide()
+			component.AddProduct(Product_id)
 		}
+		component_add_panel.Hide()
 	})
 	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {
 		component_add_panel.Hide()
