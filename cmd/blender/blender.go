@@ -97,7 +97,8 @@ var (
 	DB_Select_recipe_components, DB_Insert_recipe_component,
 	DB_Select_component_types, DB_Insert_component_types,
 	// DB_Select_component_type_product,
-	DB_Insert_product_component_type *sql.Stmt
+	DB_Insert_internal_product_component_type,
+	DB_Insert_inbound_product_component_type *sql.Stmt
 )
 
 func dbinit(db *sql.DB) {
@@ -150,19 +151,28 @@ func dbinit(db *sql.DB) {
 
 
 
+
 				DB_Select_component_type_product = DB.PrepareOrElse(db, `
 		select component_type_product_id, component_type_product_name, component_type_product_amount, component_add_order
 			from bs.component_type_product
 			where component_type_id = ?
 		`)
 
+
 	*/
 
-	DB_Insert_product_component_type = DB.PrepareOrElse(db, `
-	insert into bs.component_type_product
-		(component_type_id,inbound_product_id,product_id)
-		values (?,?,?)
-	returning component_type_product_id
+	DB_Insert_internal_product_component_type = DB.PrepareOrElse(db, `
+	insert into bs.component_type_product_internal
+		(component_type_id,product_id)
+		values (?,?)
+	returning component_type_product_internal_id
+	`)
+
+	DB_Insert_inbound_product_component_type = DB.PrepareOrElse(db, `
+	insert into bs.component_type_product_inbound
+		(component_type_id,inbound_product_id)
+		values (?,?)
+	returning component_type_product_inbound_id
 	`)
 
 }
@@ -406,7 +416,12 @@ func (object *ComponentType) Insel() {
 	object.Component_id = DB.Insel(DB_Insert_component_types, DB_Select_component_types, "Debug: ComponentType.Insel", object.Component_name)
 }
 func (object *ComponentType) AddProduct(Product_id int64) {
-	DB_Insert_product_component_type.Exec(object.Component_id, nil, Product_id)
+	DB_Insert_internal_product_component_type.Exec(object.Component_id, Product_id)
+}
+
+// ??TODO
+func (object *ComponentType) AddInbound(Product_id int64) {
+	DB_Insert_inbound_product_component_type.Exec(object.Component_id, Product_id)
 }
 
 //
