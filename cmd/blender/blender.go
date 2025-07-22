@@ -123,6 +123,13 @@ func dbinit(db *sql.DB) {
 		where recipe_list_id = ?
 	`)
 
+	DB_Insert_recipe_component = DB.PrepareOrElse(db, `
+	insert into bs.recipe_components
+		(recipe_list_id,component_type_id,component_type_amount,component_add_order)
+		values (?,?,?,?)
+	returning recipe_components_id
+	`)
+
 }
 
 func refresh_globals(font_size int) {
@@ -286,7 +293,7 @@ func NewRecipeProduct() *RecipeProduct {
 }
 
 type ProductRecipe struct {
-	Components []RecipeComponent
+	Components []*RecipeComponent
 	// Product_name string `json:"product_name"`
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
@@ -319,6 +326,30 @@ func (object *ProductRecipe) GetComponents() {
 		object.Components = append(object.Components, Recipe_component)
 	}
 
+}
+
+// TODO
+func (object *ProductRecipe) AddComponent() *RecipeComponent {
+	proc_name := "ProductRecipe.AddComponent"
+	var (
+		component_data *RecipeComponent
+	)
+	result, err := DB_Insert_recipe_component.Exec(object.Product_id)
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return component_data
+	}
+	insert_id, err := result.LastInsertId()
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return component_data
+	}
+	component_data = new(ProductComponent)
+
+	component_data.Component_id = insert_id
+	component_data.Product_id = object.Product_id
+	object.Components = append(object.Components, component_data)
+	return component_data
 }
 
 type RecipeComponent struct {
@@ -383,6 +414,7 @@ func show_window() {
 
 	product_text := "Product"
 	recipe_text := ""
+	component_text := "Component"
 
 	product_data := make(map[string]int64)
 
@@ -390,6 +422,9 @@ func show_window() {
 
 	// Blend_product := new(BlendProduct)
 	Recipe_product := NewRecipeProduct()
+	var (
+		currentRecipe *ProductRecipe
+	)
 
 	// build window
 	mainWindow := windigo.NewForm(nil)
@@ -412,6 +447,11 @@ func show_window() {
 	recipe_add_button := windigo.NewPushButton(recipe_panel)
 	recipe_add_button.SetText("+")
 	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
+
+	component_field := GUI.NewComboBox(component_panel, component_text)
+	component_add_button := windigo.NewPushButton(component_panel)
+	component_add_button.SetText("+")
+	component_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
 	// Dock
 	product_panel.Dock(product_field, windigo.Left)
@@ -492,6 +532,7 @@ func show_window() {
 		// Recipe_product.GetRecipes()
 		Recipe_product.LoadRecipeCombo(recipe_field)
 		Recipe_product.GetComponents()
+		currentRecipe = nil
 	})
 
 	product_add_button.OnClick().Bind(func(e *windigo.Event) {
@@ -504,9 +545,12 @@ func show_window() {
 		if Recipe_product.Product_id != DB.INVALID_ID {
 			//?TODO add  recip button
 			//recip := Recipe_product.NewRecipe()
-			Recipe_product.NewRecipe()
+			currentRecipe = Recipe_product.NewRecipe()
+			numRecipes := len(Recipe_product.Recipes)
 
-			recipe_field.AddItem(strconv.Itoa(len(Recipe_product.Recipes)))
+			recipe_field.AddItem(strconv.Itoa(numRecipes))
+			recipe_field.SetSelectedItem(numRecipes)
+
 			// log.Println("product_field", product_field.SelectedItem())
 
 		}
@@ -518,7 +562,8 @@ func show_window() {
 		if err != nil {
 			log.Println("ERR: recipe_field strconv", err)
 		}
-		update_components(Recipe_product.Recipes[i])
+		currentRecipe = Recipe_product.Recipes[i]
+		update_components(currentRecipe)
 
 		// Recipe_product = NewRecipeProduct()
 		// name := product_field.GetSelectedItem()
@@ -526,6 +571,32 @@ func show_window() {
 		// // Recipe_product.GetRecipes()
 		// Recipe_product.LoadRecipeCombo(recipe_field)
 	})
+
+	component_add_button.OnClick().Bind(func(e *windigo.Event) {
+		if currentRecipe != nil {
+			//?TODO
+			// currentRecipe.AddComponent
+
+			// component_field.AddItem(strconv.Itoa(len(Recipe_product.Recipes)))
+			// log.Println("product_field", product_field.SelectedItem())
+
+		}
+	})
+
+	// component_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+	//
+	// 	i, err := strconv.Atoi(component_field.GetSelectedItem())
+	// 	if err != nil {
+	// 		log.Println("ERR: component_field strconv", err)
+	// 	}
+	// 	update_components(Recipe_product.Recipes[i])
+	//
+	// 	// Recipe_product = NewRecipeProduct()
+	// 	// name := product_field.GetSelectedItem()
+	// 	// Recipe_product.Set(name, product_data[name])
+	// 	// // Recipe_product.GetRecipes()
+	// 	// Recipe_product.LoadRecipeCombo(component_field)
+	// })
 
 	mainWindow.Center()
 	mainWindow.Show()
