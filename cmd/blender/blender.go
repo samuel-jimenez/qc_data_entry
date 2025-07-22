@@ -327,28 +327,28 @@ func (object *ProductRecipe) GetComponents() {
 }
 
 // TODO
-func (object *ProductRecipe) AddComponent() *RecipeComponent {
-	proc_name := "ProductRecipe.AddComponent"
-	var (
-		component_data *RecipeComponent
-	)
-	result, err := DB_Insert_recipe_component.Exec(object.Product_id)
-	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
-		return component_data
-	}
-	insert_id, err := result.LastInsertId()
-	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
-		return component_data
-	}
-	component_data = new(ProductComponent)
-
-	component_data.Component_id = insert_id
-	component_data.Product_id = object.Product_id
-	object.Components = append(object.Components, component_data)
-	return component_data
-}
+// func (object *ProductRecipe) AddComponent() *RecipeComponent {
+// 	proc_name := "ProductRecipe.AddComponent"
+// 	var (
+// 		component_data *RecipeComponent
+// 	)
+// 	result, err := DB_Insert_recipe_component.Exec(object.Product_id)
+// 	if err != nil {
+// 		log.Printf("%q: %s\n", err, proc_name)
+// 		return component_data
+// 	}
+// 	insert_id, err := result.LastInsertId()
+// 	if err != nil {
+// 		log.Printf("%q: %s\n", err, proc_name)
+// 		return component_data
+// 	}
+// 	component_data = new(RecipeComponent)
+//
+// 	component_data.Component_id = insert_id
+// 	component_data.Product_id = object.Product_id
+// 	object.Components = append(object.Components, component_data)
+// 	return component_data
+// }
 
 type RecipeComponent struct {
 	Component_name   string `json:"product_name"`
