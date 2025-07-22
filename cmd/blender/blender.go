@@ -398,6 +398,7 @@ func show_window() {
 
 	product_panel := windigo.NewAutoPanel(mainWindow)
 	recipe_panel := windigo.NewAutoPanel(mainWindow)
+	component_panel := windigo.NewAutoPanel(mainWindow)
 
 	product_field := GUI.NewComboBox(product_panel, product_text)
 
@@ -419,6 +420,7 @@ func show_window() {
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
+	dock.Dock(component_panel, windigo.Top)
 
 	// combobox
 	rows, err := DB.DB_Select_product_info.Query()
@@ -435,6 +437,8 @@ func show_window() {
 			product_field.AddItem(name)
 		}
 	})
+
+	// functionality
 
 	// sizing
 	refresh_vars := func(font_size int) {
@@ -467,9 +471,20 @@ func show_window() {
 		refresh(font_size)
 
 	}
+
+	update_components := func(object *ProductRecipe) {
+		for _, component := range object.Components {
+			log.Println("DEBUG: update_components", component)
+
+			c_view := windigo.NewLabel(component_panel)
+			c_view.SetText(component.Component_name)
+		}
+
+	}
+
 	set_font(GUI.BASE_FONT_SIZE)
 
-	// functionality
+	//event handling
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		Recipe_product = NewRecipeProduct()
 		name := product_field.GetSelectedItem()
@@ -498,6 +513,13 @@ func show_window() {
 	})
 
 	recipe_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+
+		i, err := strconv.Atoi(recipe_field.GetSelectedItem())
+		if err != nil {
+			log.Println("ERR: recipe_field strconv", err)
+		}
+		update_components(Recipe_product.Recipes[i])
+
 		// Recipe_product = NewRecipeProduct()
 		// name := product_field.GetSelectedItem()
 		// Recipe_product.Set(name, product_data[name])
