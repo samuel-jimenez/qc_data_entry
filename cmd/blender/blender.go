@@ -448,6 +448,8 @@ func show_window() {
 	product_data := make(map[string]int64)
 
 	add_button_width := 20
+	accept_button_width := 50
+	cancel_button_width := 50
 
 	// Blend_product := new(BlendProduct)
 	Recipe_product := NewRecipeProduct()
@@ -464,6 +466,7 @@ func show_window() {
 	product_panel := windigo.NewAutoPanel(mainWindow)
 	recipe_panel := windigo.NewAutoPanel(mainWindow)
 	component_panel := windigo.NewAutoPanel(mainWindow)
+	component_add_panel := windigo.NewAutoPanel(mainWindow)
 
 	product_field := GUI.NewComboBox(product_panel, product_text)
 
@@ -484,17 +487,35 @@ func show_window() {
 	component_add_button.SetText("+")
 	component_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
+	component_new_button := windigo.NewPushButton(component_panel)
+	component_new_button.SetText("+")
+	component_new_button.SetSize(add_button_width, add_button_width)
+
+	component_add_field := GUI.NewSearchBox(component_add_panel)
+	component_accept_button := windigo.NewPushButton(component_add_panel)
+	component_accept_button.SetText("OK")
+	component_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
+	component_cancel_button := windigo.NewPushButton(component_add_panel)
+	component_cancel_button.SetText("Cancel")
+	component_cancel_button.SetSize(cancel_button_width, GUI.OFF_AXIS)
+	// component_add_panel.Hide()
+
 	// Dock
 	product_panel.Dock(product_field, windigo.Left)
 	product_panel.Dock(product_add_button, windigo.Left)
 	recipe_panel.Dock(recipe_field, windigo.Left)
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
+	component_panel.Dock(component_new_button, windigo.Top)
 	component_panel.Dock(component_field, windigo.Left)
 	component_panel.Dock(component_add_button, windigo.Left)
+	component_add_panel.Dock(component_add_field, windigo.Left)
+	component_add_panel.Dock(component_accept_button, windigo.Left)
+	component_add_panel.Dock(component_cancel_button, windigo.Left)
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
 	dock.Dock(component_panel, windigo.Top)
+	dock.Dock(component_add_panel, windigo.Top)
 
 	// combobox
 	rows, err := DB.DB_Select_product_info.Query()
@@ -513,7 +534,9 @@ func show_window() {
 			product_field.AddItem(name)
 		}
 	})
+	//TODO
 	component_field.Update(product_list)
+	component_add_field.Update(product_list)
 
 	// functionality
 
@@ -527,14 +550,17 @@ func show_window() {
 
 		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
 		recipe_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
-		component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		//TODO grow
+		// component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*PRODUCT_FIELD_HEIGHT)
+		component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT+add_button_width)
+
+		component_add_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 		recipe_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		// TODO
 		component_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		// component_field.SetSize(PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		// component_field.box.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		component_add_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 	}
 
@@ -556,6 +582,10 @@ func show_window() {
 		recipe_add_button.SetFont(windigo.DefaultFont)
 		component_field.SetFont(windigo.DefaultFont)
 		component_add_button.SetFont(windigo.DefaultFont)
+		component_new_button.SetFont(windigo.DefaultFont)
+		component_add_field.SetFont(windigo.DefaultFont)
+		component_accept_button.SetFont(windigo.DefaultFont)
+		component_cancel_button.SetFont(windigo.DefaultFont)
 		// threads.Status_bar.SetFont(windigo.DefaultFont)
 		refresh(font_size)
 
@@ -630,6 +660,19 @@ func show_window() {
 			// log.Println("product_field", product_field.SelectedItem())
 
 		}
+	})
+
+	component_new_button.OnClick().Bind(func(e *windigo.Event) {
+		component_add_panel.Show()
+	})
+
+	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
+		log.Println("CRIT: DEBUG: component_accept_button", component_add_field.Text())
+		component_add_panel.Hide()
+
+	})
+	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {
+		component_add_panel.Hide()
 	})
 
 	// component_field.OnSelectedChange().Bind(func(e *windigo.Event) {
