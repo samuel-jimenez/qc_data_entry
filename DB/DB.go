@@ -670,3 +670,15 @@ func Insel_lot_id(lot_name string, product_id int64) int64 {
 func Insel_product_name_customer(product_name_customer string, product_id int64) int64 {
 	return Insel(db_insert_product_customer, db_select_product_customer, "Debug: Insel_product_name_customer", product_name_customer, product_id)
 }
+
+func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows), select_statement *sql.Stmt, args ...any) {
+	rows, err := select_statement.Query(args...)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, calling_fn_name)
+		return
+	}
+	start_fn()
+	for rows.Next() {
+		row_fn(rows)
+	}
+}

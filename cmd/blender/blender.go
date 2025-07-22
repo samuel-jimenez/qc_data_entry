@@ -183,18 +183,6 @@ func dbinit(db *sql.DB) {
 
 }
 
-func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows), select_statement *sql.Stmt, args ...any) {
-	rows, err := select_statement.Query(args...)
-	if err != nil {
-		log.Printf("error: %q: %s\n", err, calling_fn_name)
-		return
-	}
-	start_fn()
-	for rows.Next() {
-		row_fn(rows)
-	}
-}
-
 func refresh_globals(font_size int) {
 
 	GUI.GROUPBOX_CUSHION = font_size * 3 / 2
@@ -238,7 +226,7 @@ func (object *RecipeProduct) Set(name string, i int64) {
 // }
 
 func (object *RecipeProduct) GetRecipes() {
-	Forall("GetRecipes",
+	DB.Forall("GetRecipes",
 		func() { object.Recipes = nil },
 		func(rows *sql.Rows) {
 			var (
@@ -448,7 +436,7 @@ type ProductRecipe struct {
 }
 
 func (object *ProductRecipe) GetComponents() {
-	Forall("GetComponents",
+	DB.Forall("GetComponents",
 		func() {
 			object.Components = nil
 		},
@@ -763,7 +751,7 @@ func show_window() {
 	}
 	update_component_types := func() {
 
-		Forall("update_component_types",
+		DB.Forall("update_component_types",
 			func() { component_types_list = nil },
 			func(rows *sql.Rows) {
 				var (
