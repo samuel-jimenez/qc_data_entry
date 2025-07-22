@@ -305,6 +305,91 @@ func (object *RecipeProduct) GetComponents() {
 /*
 func (object *RecipeProduct) AddRecipe() {
 }*/
+// func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
+
+//TODO forall(DB_Select_all_component_types,fn)
+
+// 	DB_Select_all_component_types
+// 	_list []string
+// 	func forall(rows *sql.Rows, err error, fn string) []viewer.QCData {
+// 			object.Recipes = nil
+// rows, err := DB_Select_product_recipe.Query(object.Product_id)
+// fn := "GetRecipes"
+// if err != nil {
+// 	log.Printf("error: %q: %s\n", err, fn)
+// 	// return -1
+// }
+//
+// // data := make([]ProductRecipe, 0)
+// for rows.Next() {
+// 	var (
+// 		recipe_data ProductRecipe
+// 	)
+//
+// 	if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	recipe_data.Product_id = object.Product_id
+// 	log.Println("DEBUG: GetRecipes qc_data", recipe_data)
+// 	object.Recipes = append(object.Recipes, &recipe_data)
+
+// }}
+/*
+func forall(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
+	rows, err := select_statement.Query(args...)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, fn)
+		return
+	}
+	start_fn()
+	for rows.Next() {
+		row_fn()
+	}
+}
+component_types_list := forall(DB_Select_all_component_types,func(){},func(){}fn)
+component_field.Update(component_types_list)*/
+
+/*
+func forall(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
+	rows, err := select_statement.Query(args...)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, fn)
+		return
+	}
+	start_fn()
+	for rows.Next() {
+		row_fn()
+	}
+}
+// component_types_list :=
+forall(DB_Select_all_component_types,func(){},func(){
+	var (
+			id   int
+			name string
+		)
+
+		if err := rows.Scan(&id, &name); err == nil {
+			fn(id, name)
+		} else {
+			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+			// return -1
+		}
+},fn)
+component_field.Update(component_types_list)*/
+
+//TODO component__type_list := forall(DB_Select_all_component_types,func(){},func(){}fn)
+// component_field.Update(component__type_list)
+// var (
+// 			id   int
+// 			name string
+// 		)
+//
+// 		if err := rows.Scan(&id, &name); err == nil {
+// 			fn(id, name)
+// 		} else {
+// 			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+// 			// return -1
+// 		}
 
 // 	//TODO genericize
 // func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
@@ -530,7 +615,8 @@ func show_window() {
 	Recipe_product := NewRecipeProduct()
 	var (
 		currentRecipe *ProductRecipe
-		product_list  []string
+		product_list,
+		component_types_list []string
 	)
 
 	// build window
@@ -675,6 +761,68 @@ func show_window() {
 		}
 
 	}
+	update_component_types := func() {
+
+		forall := func(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) any {
+			rows, err := select_statement.Query(args...)
+			if err != nil {
+				log.Printf("error: %q: %s\n", err, fn)
+				return nil
+			}
+			val := start_fn()
+			for rows.Next() {
+				row_fn()
+			}
+			return val
+		}
+		component_types_list := forall(DB_Select_all_component_types, func() any { component_types_list = nil; return component_types_list }, func() any {
+			var (
+				id   int
+				name string
+			)
+
+			if err := rows.Scan(&id, &name); err == nil {
+				// component_types_data[name] = id
+
+				component_types_list = append(component_types_list, name)
+
+				// component_field.AddItem(name)
+			} else {
+				log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
+				// return -1
+			}
+			return component_types_list
+		}, "fn")
+		component_field.Update(component_types_list.([]string))
+
+		// 			forall := func (select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
+		// 	rows, err := select_statement.Query(args...)
+		// 	if err != nil {
+		// 		log.Printf("error: %q: %s\n", err, fn)
+		// 		return
+		// 	}
+		// 	start_fn()
+		// 	for rows.Next() {
+		// 		row_fn()
+		// 	}
+		// }
+		// // component_types_list :=
+		// forall(DB_Select_all_component_types,func(){},func(){
+		// 	var (
+		// 			id   int
+		// 			name string
+		// 		)
+		//
+		// 		if err := rows.Scan(&id, &name); err == nil {
+		// 			fn(id, name)
+		// 		} else {
+		// 			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+		// 			// return -1
+		// 		}
+		// },fn)
+		// component_field.Update(component_types_list)
+
+	}
 
 	set_font(GUI.BASE_FONT_SIZE)
 
@@ -748,6 +896,7 @@ func show_window() {
 			component.AddProduct(Product_id)
 		}
 		component_add_panel.Hide()
+		update_component_types()
 	})
 	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {
 		component_add_panel.Hide()
