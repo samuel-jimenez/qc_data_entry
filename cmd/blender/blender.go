@@ -183,7 +183,7 @@ func dbinit(db *sql.DB) {
 
 }
 
-func Forall(select_statement *sql.Stmt, start_fn func(), row_fn func(*sql.Rows), calling_fn_name string, args ...any) {
+func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows), select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
 		log.Printf("error: %q: %s\n", err, calling_fn_name)
@@ -238,7 +238,7 @@ func (object *RecipeProduct) Set(name string, i int64) {
 // }
 
 func (object *RecipeProduct) GetRecipes() {
-	Forall(DB_Select_product_recipe,
+	Forall("GetRecipes",
 		func() { object.Recipes = nil },
 		func(rows *sql.Rows) {
 			var (
@@ -252,7 +252,8 @@ func (object *RecipeProduct) GetRecipes() {
 			log.Println("DEBUG: GetRecipes qc_data", recipe_data)
 			object.Recipes = append(object.Recipes, &recipe_data)
 
-		}, "GetRecipes",
+		},
+		DB_Select_product_recipe,
 		object.Product_id)
 }
 
@@ -768,24 +769,27 @@ func show_window() {
 	}
 	update_component_types := func() {
 
-		Forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows *sql.Rows) {
-			var (
-				id   int
-				name string
-			)
+		Forall("update_component_types",
+			func() { component_types_list = nil },
+			func(rows *sql.Rows) {
+				var (
+					id   int
+					name string
+				)
 
-			if err := rows.Scan(&id, &name); err == nil {
-				// component_types_data[name] = id
-				log.Println("DEBUG: update_component_types nsme", id, name)
+				if err := rows.Scan(&id, &name); err == nil {
+					// component_types_data[name] = id
+					log.Println("DEBUG: update_component_types nsme", id, name)
 
-				component_types_list = append(component_types_list, name)
+					component_types_list = append(component_types_list, name)
 
-				// component_field.AddItem(name)
-			} else {
-				log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
-				// return -1
-			}
-		}, "update_component_types")
+					// component_field.AddItem(name)
+				} else {
+					log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
+					// return -1
+				}
+			},
+			DB_Select_all_component_types)
 		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list)
 
