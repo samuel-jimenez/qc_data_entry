@@ -232,6 +232,8 @@ create table bs.component_type_product(
 	foreign key (component_type_id) references component_types,
 	foreign key (inbound_product_id) references inbound_product,
 	foreign key (product_id) references product_line,
+	unique(component_type_id,inbound_product_id),
+	unique(component_type_id,product_id),
 	primary key (component_type_product_id));
 
 
