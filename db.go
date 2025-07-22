@@ -284,6 +284,9 @@ insert into bs.container_types
 	   	primary key (sample_container_list_id),
 	   	unique(sample_container_list_name));*/
 
+	//TODO lot number authority
+	// https://www.jujens.eu/posts/en/2021/Apr/08/sequence-reset-every-day/
+
 	// TODO add ranges table
 	// _min real,
 	// _max real,

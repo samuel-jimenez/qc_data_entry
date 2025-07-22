@@ -41,10 +41,6 @@ var (
 	FIELD_HEIGHT,
 	NUM_FIELDS,
 
-	RANGES_RO_PADDING,
-	RANGES_RO_FIELD_WIDTH,
-	RANGES_RO_SPACER_WIDTH,
-
 	BUTTON_WIDTH,
 	BUTTON_HEIGHT,
 	BUTTON_MARGIN,
@@ -150,14 +146,14 @@ type RecipeProduct struct {
 	// Visual                   bool
 	Product_id int
 	// Lot_id     int64
-	Recipes []ProductRecipe
+	Recipes []*ProductRecipe
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
 
-func (r *RecipeProduct) Set(name string, i int) {
-	r.Product_name = name
-	r.Product_id = i
+func (object *RecipeProduct) Set(name string, i int) {
+	object.Product_name = name
+	object.Product_id = i
 }
 
 // func (r *RecipeProduct) GetRecipes() (rows *sql.Rows,error){
@@ -168,9 +164,9 @@ func (r *RecipeProduct) Set(name string, i int) {
 // 	//TODO
 // }
 
-func (r *RecipeProduct) GetRecipes() {
-	r.Recipes = nil
-	rows, err := DB_Select_product_recipe.Query(r.Product_id)
+func (object *RecipeProduct) GetRecipes() {
+	object.Recipes = nil
+	rows, err := DB_Select_product_recipe.Query(object.Product_id)
 	fn := "GetRecipes"
 	if err != nil {
 		log.Printf("error: %q: %s\n", err, fn)
@@ -180,18 +176,45 @@ func (r *RecipeProduct) GetRecipes() {
 	// data := make([]ProductRecipe, 0)
 	for rows.Next() {
 		var (
-			qc_data ProductRecipe
+			recipe_data ProductRecipe
 		)
 
-		if err := rows.Scan(&qc_data.Recipe_id); err != nil {
+		if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
 			log.Fatal(err)
 		}
-		qc_data.Product_id = r.Product_id
-		log.Println("DEBUG: GetRecipes qc_data", qc_data)
-		r.Recipes = append(r.Recipes, qc_data)
+		recipe_data.Product_id = object.Product_id
+		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
+		object.Recipes = append(object.Recipes, &recipe_data)
 	}
 
 }
+
+func (object *RecipeProduct) NewRecipe() *ProductRecipe {
+	proc_name := "RecipeProduct.NewRecipe"
+	var (
+		recipe_data *ProductRecipe
+	)
+	result, err := DB_Insert_product_recipe.Exec(object.Product_id)
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return recipe_data
+	}
+	insert_id, err := result.LastInsertId()
+	if err != nil {
+		log.Printf("%q: %s\n", err, proc_name)
+		return recipe_data
+	}
+	recipe_data = new(ProductRecipe)
+
+	recipe_data.Recipe_id = int(insert_id)
+	recipe_data.Product_id = object.Product_id
+	object.Recipes = append(object.Recipes, recipe_data)
+	return recipe_data
+}
+
+/*
+func (object *RecipeProduct) AddRecipe() {
+}*/
 
 // 	//TODO genericize
 // func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
@@ -304,8 +327,11 @@ func show_window() {
 	window_title := "QC Data Blender"
 
 	product_text := "Product"
+	recipe_text := ""
 
 	product_data := make(map[string]int)
+
+	add_button_width := 20
 
 	// Blend_product := new(BlendProduct)
 	Recipe_product := NewRecipeProduct()
@@ -316,15 +342,28 @@ func show_window() {
 	dock := windigo.NewSimpleDock(mainWindow)
 
 	product_panel := windigo.NewAutoPanel(mainWindow)
+	recipe_panel := windigo.NewAutoPanel(mainWindow)
 
 	product_field := GUI.NewComboBox(product_panel, product_text)
 
 	// product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
+	//
+	product_add_button := windigo.NewPushButton(product_panel)
+	product_add_button.SetText("+")
+	product_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
+
+	recipe_field := GUI.NewComboBox(recipe_panel, recipe_text)
+	recipe_add_button := windigo.NewPushButton(recipe_panel)
+	recipe_add_button.SetText("+")
+	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
 	// Dock
-
 	product_panel.Dock(product_field, windigo.Left)
+	product_panel.Dock(product_add_button, windigo.Left)
+	recipe_panel.Dock(recipe_field, windigo.Left)
+	recipe_panel.Dock(recipe_add_button, windigo.Left)
 	dock.Dock(product_panel, windigo.Top)
+	dock.Dock(recipe_panel, windigo.Top)
 
 	// combobox
 	rows, err := DB.DB_Select_product_info.Query()
@@ -368,6 +407,7 @@ func show_window() {
 
 		mainWindow.SetFont(windigo.DefaultFont)
 		product_field.SetFont(windigo.DefaultFont)
+		product_add_button.SetFont(windigo.DefaultFont)
 		// threads.Status_bar.SetFont(windigo.DefaultFont)
 		refresh(font_size)
 
@@ -380,6 +420,24 @@ func show_window() {
 		Recipe_product = NewRecipeProduct()
 		name := product_field.GetSelectedItem()
 		Recipe_product.Set(name, product_data[name])
+		Recipe_product.GetRecipes()
+	})
+
+	product_add_button.OnClick().Bind(func(e *windigo.Event) {
+		// log.Println("product_field", product_field.SelectedItem())
+
+		// clear()
+		// clear_product()
+	})
+	recipe_add_button.OnClick().Bind(func(e *windigo.Event) {
+
+		//?TODO add  recip button
+		//recip := Recipe_product.NewRecipe()
+		Recipe_product.NewRecipe()
+		// log.Println("product_field", product_field.SelectedItem())
+
+		// clear()
+		// clear_product()
 	})
 
 	mainWindow.Center()
