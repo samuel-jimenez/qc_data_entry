@@ -253,8 +253,7 @@ func (object *RecipeProduct) GetRecipes() {
 			object.Recipes = append(object.Recipes, &recipe_data)
 
 		},
-		DB_Select_product_recipe,
-		object.Product_id)
+		DB_Select_product_recipe, object.Product_id)
 }
 
 func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
@@ -449,25 +448,20 @@ type ProductRecipe struct {
 }
 
 func (object *ProductRecipe) GetComponents() {
-	object.Components = nil
-	rows, err := DB_Select_recipe_components.Query(object.Recipe_id)
-	fn := "GetComponents"
-	if err != nil {
-		log.Printf("error: %q: %s\n", err, fn)
-		// return -1
-	}
+	Forall("GetComponents",
+		func() {
+			object.Components = nil
+		},
+		func(rows *sql.Rows) {
+			Recipe_component := new(RecipeComponent)
 
-	// data := make([]ProductRecipe, 0)
-	for rows.Next() {
-		Recipe_component := new(RecipeComponent)
-
-		if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
-			log.Fatal(err)
-		}
-		log.Println("DEBUG: GetComponents qc_data", Recipe_component)
-		object.Components = append(object.Components, Recipe_component)
-	}
-
+			if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
+				log.Fatal(err)
+			}
+			log.Println("DEBUG: GetComponents qc_data", Recipe_component)
+			object.Components = append(object.Components, Recipe_component)
+		},
+		DB_Select_recipe_components, object.Recipe_id)
 }
 
 // TODO
