@@ -349,6 +349,18 @@ func forall(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, 
 component_types_list := forall(DB_Select_all_component_types,func(){},func(){}fn)
 component_field.Update(component_types_list)*/
 
+func forall(select_statement *sql.Stmt, start_fn func(), row_fn func(*sql.Rows), calling_fn_name string, args ...any) {
+	rows, err := select_statement.Query(args...)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, calling_fn_name)
+		return
+	}
+	start_fn()
+	for rows.Next() {
+		row_fn(rows)
+	}
+}
+
 /*
 func forall(select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
 	rows, err := select_statement.Query(args...)
@@ -763,17 +775,6 @@ func show_window() {
 	}
 	update_component_types := func() {
 
-		forall := func(select_statement *sql.Stmt, start_fn func(), row_fn func(*sql.Rows), fn string, args ...any) {
-			rows, err := select_statement.Query(args...)
-			if err != nil {
-				log.Printf("error: %q: %s\n", err, fn)
-				return
-			}
-			start_fn()
-			for rows.Next() {
-				row_fn(rows)
-			}
-		}
 		forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows *sql.Rows) {
 			var (
 				id   int
@@ -791,7 +792,7 @@ func show_window() {
 				log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
 				// return -1
 			}
-		}, "fn")
+		}, "update_component_types")
 		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list)
 
