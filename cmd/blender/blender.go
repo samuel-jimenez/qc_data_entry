@@ -95,7 +95,7 @@ var (
 	qc_db *sql.DB
 	DB_Select_product_recipe, DB_Insert_product_recipe,
 	DB_Select_recipe_components, DB_Insert_recipe_component,
-	DB_Select_component_types, DB_Insert_component_types,
+	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	// DB_Select_component_type_product,
 	DB_Insert_internal_product_component_type,
 	DB_Insert_inbound_product_component_type *sql.Stmt
@@ -134,10 +134,16 @@ func dbinit(db *sql.DB) {
 	returning recipe_components_id
 	`)
 
-	DB_Select_component_types = DB.PrepareOrElse(db, `
+	DB_Select_name_component_types = DB.PrepareOrElse(db, `
 	select component_type_id
 		from bs.component_types
 		where component_type_name = ?
+	`)
+
+	DB_Select_all_component_types = DB.PrepareOrElse(db, `
+	select component_type_id, component_type_name
+		from bs.component_types
+		order by component_type_name
 	`)
 
 	DB_Insert_component_types = DB.PrepareOrElse(db, `
@@ -413,7 +419,7 @@ func NewComponentType(Component_name string) *ComponentType {
 }
 
 func (object *ComponentType) Insel() {
-	object.Component_id = DB.Insel(DB_Insert_component_types, DB_Select_component_types, "Debug: ComponentType.Insel", object.Component_name)
+	object.Component_id = DB.Insel(DB_Insert_component_types, DB_Select_name_component_types, "Debug: ComponentType.Insel", object.Component_name)
 }
 func (object *ComponentType) AddProduct(Product_id int64) {
 	DB_Insert_internal_product_component_type.Exec(object.Component_id, Product_id)
