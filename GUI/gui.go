@@ -233,12 +233,10 @@ func NewSearchBox(parent windigo.Controller) *SearchBox {
 		terms := strings.Split(text, " ")
 		data_view.Search(terms)
 
-		data_view.ShowDropdown(false)
 		data_view.SetText(text)
 		data_view.ShowDropdown(true)
 
-		// data_view.SelectText(start, end)
-		data_view.SelectText(start, -1)
+		data_view.SelectText(start, -1) //everything after start point
 
 	})
 
