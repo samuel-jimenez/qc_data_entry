@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -144,14 +145,14 @@ type RecipeProduct struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int
+	Product_id int64
 	// Lot_id     int64
 	Recipes []*ProductRecipe
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
 
-func (object *RecipeProduct) Set(name string, i int) {
+func (object *RecipeProduct) Set(name string, i int64) {
 	object.Product_name = name
 	object.Product_id = i
 }
@@ -164,6 +165,7 @@ func (object *RecipeProduct) Set(name string, i int) {
 // 	//TODO
 // }
 
+// recipe_field
 func (object *RecipeProduct) GetRecipes() {
 	object.Recipes = nil
 	rows, err := DB_Select_product_recipe.Query(object.Product_id)
@@ -189,6 +191,34 @@ func (object *RecipeProduct) GetRecipes() {
 
 }
 
+func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
+	object.Recipes = nil
+	rows, err := DB_Select_product_recipe.Query(object.Product_id)
+	fn := "GetRecipes"
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, fn)
+		// return -1
+	}
+	i := 0
+	// data := make([]ProductRecipe, 0)
+	for rows.Next() {
+		var (
+			recipe_data ProductRecipe
+		)
+
+		if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
+			log.Fatal(err)
+		}
+		recipe_data.Product_id = object.Product_id
+		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
+		object.Recipes = append(object.Recipes, &recipe_data)
+		// combo_field.AddItem(strconv.FormatInt(i, 10))
+		combo_field.AddItem(strconv.Itoa(i))
+
+	}
+
+}
+
 func (object *RecipeProduct) NewRecipe() *ProductRecipe {
 	proc_name := "RecipeProduct.NewRecipe"
 	var (
@@ -206,7 +236,7 @@ func (object *RecipeProduct) NewRecipe() *ProductRecipe {
 	}
 	recipe_data = new(ProductRecipe)
 
-	recipe_data.Recipe_id = int(insert_id)
+	recipe_data.Recipe_id = insert_id
 	recipe_data.Product_id = object.Product_id
 	object.Recipes = append(object.Recipes, recipe_data)
 	return recipe_data
@@ -261,8 +291,8 @@ type ProductRecipe struct {
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
 	// Visual                   bool
-	Product_id int
-	Recipe_id  int
+	Product_id int64
+	Recipe_id  int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
@@ -329,7 +359,7 @@ func show_window() {
 	product_text := "Product"
 	recipe_text := ""
 
-	product_data := make(map[string]int)
+	product_data := make(map[string]int64)
 
 	add_button_width := 20
 
@@ -369,7 +399,7 @@ func show_window() {
 	rows, err := DB.DB_Select_product_info.Query()
 	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
 		var (
-			id                   int
+			id                   int64
 			internal_name        string
 			product_moniker_name string
 		)
@@ -415,12 +445,12 @@ func show_window() {
 	set_font(GUI.BASE_FONT_SIZE)
 
 	// functionality
-
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		Recipe_product = NewRecipeProduct()
 		name := product_field.GetSelectedItem()
 		Recipe_product.Set(name, product_data[name])
-		Recipe_product.GetRecipes()
+		// Recipe_product.GetRecipes()
+		Recipe_product.LoadRecipeCombo(recipe_field)
 	})
 
 	product_add_button.OnClick().Bind(func(e *windigo.Event) {
@@ -430,14 +460,13 @@ func show_window() {
 		// clear_product()
 	})
 	recipe_add_button.OnClick().Bind(func(e *windigo.Event) {
+		if Recipe_product.Product_id != DB.INVALID_ID {
+			//?TODO add  recip button
+			//recip := Recipe_product.NewRecipe()
+			Recipe_product.NewRecipe()
+			// log.Println("product_field", product_field.SelectedItem())
 
-		//?TODO add  recip button
-		//recip := Recipe_product.NewRecipe()
-		Recipe_product.NewRecipe()
-		// log.Println("product_field", product_field.SelectedItem())
-
-		// clear()
-		// clear_product()
+		}
 	})
 
 	mainWindow.Center()
