@@ -647,7 +647,7 @@ func insert(insert_statement *sql.Stmt, proc_name string, args ...any) int64 {
 	return insert_id
 }
 
-func insel(insert_statement, select_statement *sql.Stmt, proc_name string, args ...any) int64 {
+func Insel(insert_statement, select_statement *sql.Stmt, proc_name string, args ...any) int64 {
 	var insel_id int64
 	if select_statement.QueryRow(args...).Scan(&insel_id) != nil {
 		//no rows
@@ -660,13 +660,13 @@ func Insel_product_id(product_name_full string) int64 {
 
 	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
 
-	return insel(db_insert_product, db_select_product_id, "Debug: insel_product_id", product_name_internal, product_moniker_name)
+	return Insel(db_insert_product, db_select_product_id, "Debug: insel_product_id", product_name_internal, product_moniker_name)
 }
 
 func Insel_lot_id(lot_name string, product_id int64) int64 {
-	return insel(db_insert_lot, db_select_lot_id, "Debug: insel_lot_id", lot_name, product_id)
+	return Insel(db_insert_lot, db_select_lot_id, "Debug: insel_lot_id", lot_name, product_id)
 }
 
 func Insel_product_name_customer(product_name_customer string, product_id int64) int64 {
-	return insel(db_insert_product_customer, db_select_product_customer, "Debug: Insel_product_name_customer", product_name_customer, product_id)
+	return Insel(db_insert_product_customer, db_select_product_customer, "Debug: Insel_product_name_customer", product_name_customer, product_id)
 }

@@ -94,7 +94,10 @@ func main() {
 var (
 	qc_db *sql.DB
 	DB_Select_product_recipe, DB_Insert_product_recipe,
-	DB_Select_recipe_components, DB_Insert_recipe_component *sql.Stmt
+	DB_Select_recipe_components, DB_Insert_recipe_component,
+	DB_Select_component_types, DB_Insert_component_types,
+	// DB_Select_component_type_product,
+	DB_Insert_product_component_type *sql.Stmt
 )
 
 func dbinit(db *sql.DB) {
@@ -128,6 +131,38 @@ func dbinit(db *sql.DB) {
 		(recipe_list_id,component_type_id,component_type_amount,component_add_order)
 		values (?,?,?,?)
 	returning recipe_components_id
+	`)
+
+	DB_Select_component_types = DB.PrepareOrElse(db, `
+	select component_type_id
+		from bs.component_types
+		where component_type_name = ?
+	`)
+
+	DB_Insert_component_types = DB.PrepareOrElse(db, `
+	insert into bs.component_types
+		(component_type_name)
+		values (?)
+	returning component_type_id
+	`)
+
+	/*
+
+
+
+				DB_Select_component_type_product = DB.PrepareOrElse(db, `
+		select component_type_product_id, component_type_product_name, component_type_product_amount, component_add_order
+			from bs.component_type_product
+			where component_type_id = ?
+		`)
+
+	*/
+
+	DB_Insert_product_component_type = DB.PrepareOrElse(db, `
+	insert into bs.component_type_product
+		(component_type_id,inbound_product_id,product_id)
+		values (?,?,?)
+	returning component_type_product_id
 	`)
 
 }
@@ -354,6 +389,25 @@ func (object *ProductRecipe) GetComponents() {
 
 //
 //
+
+type ComponentType struct {
+	Component_name string
+	Component_id   int64
+}
+
+func NewComponentType(Component_name string) *ComponentType {
+	component := new(ComponentType)
+	component.Component_name = Component_name
+	component.Insel()
+	return component
+}
+
+func (object *ComponentType) Insel() {
+	object.Component_id = DB.Insel(DB_Insert_component_types, DB_Select_component_types, "Debug: ComponentType.Insel", object.Component_name)
+}
+func (object *ComponentType) AddProduct(Product_id int64) {
+	DB_Insert_product_component_type.Exec(object.Component_id, nil, Product_id)
+}
 
 //
 //new comp, new from prod
@@ -667,12 +721,14 @@ func show_window() {
 	})
 
 	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
-		component_name := component_add_field.Text()
-		Product_id := product_data[component_name]
-		log.Println("CRIT: DEBUG: component_accept_button!!!!", component_name, Product_id)
+		component := NewComponentType(component_add_field.Text())
+		Product_id := product_data[component.Component_name]
+		log.Println("CRIT: DEBUG: component_accept_button!!!!", component.Component_name, Product_id)
 
 		if Product_id != DB.INVALID_ID {
-			log.Println("CRIT: DEBUG: component_accept_button xxx", component_name, Product_id)
+			log.Println("CRIT: DEBUG: component_accept_button xxx", component.Component_name, Product_id)
+			// DB_Insert_product_component_type
+
 			// component_add_panel.Hide()
 		}
 	})
