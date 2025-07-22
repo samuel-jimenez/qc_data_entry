@@ -190,7 +190,8 @@ func NewSizedListComboBox(parent windigo.Controller, label_width, control_width,
  */
 type SearchBox struct {
 	*ComboBox
-	entries []string
+	entries  []string
+	onChange windigo.EventManager
 }
 
 func (data_view *SearchBox) Update(set []string) {
@@ -220,24 +221,26 @@ func (data_view SearchBox) Search(terms []string) {
 	}
 }
 
+func (control *SearchBox) OnChange() *windigo.EventManager {
+	return &control.onChange
+}
+
 func NewSearchBox(parent windigo.Controller) *SearchBox {
 	data_view := new(SearchBox)
 
 	data_view.ComboBox = NewComboBox(parent, "")
-	data_view.OnChange().Bind(func(e *windigo.Event) {
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
 
 		start, _ := data_view.Selected()
 
 		text := strings.ToUpper(data_view.Text())
-
 		terms := strings.Split(text, " ")
 		data_view.Search(terms)
 
 		data_view.SetText(text)
-		data_view.ShowDropdown(true)
 
-		data_view.SelectText(start, -1) //everything after start point
-
+		data_view.SelectText(start, -1)
+		data_view.onChange.Fire(e)
 	})
 
 	return data_view

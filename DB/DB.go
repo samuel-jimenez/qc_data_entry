@@ -28,7 +28,7 @@ var (
 	DB_Upsert_product_details, DB_Upsert_product_type,
 	DB_Select_product_coa_details, DB_Upsert_product_coa_details *sql.Stmt
 
-	INVALID_ID     int64 = -1
+	INVALID_ID     int64 = 0
 	DEFAULT_LOT_ID int64 = 1
 )
 

@@ -366,3 +366,32 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 
 	return data_view
 }
+
+//TODO
+// func NewSearchBox(parent windigo.Controller) *SearchBox {
+// 	data_view := new(SearchBox)
+//
+// 	data_view.ComboBox = NewComboBox(parent, "")
+// 	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+// 		log.Println("CRIT: DEBUG: NewSearchBox OnChange", data_view.Text(), data_view.SelectedItem())
+//
+// 		start, _ := data_view.Selected()
+//
+// 		text := strings.ToUpper(data_view.Text())
+//
+// 		terms := strings.Split(text, " ")
+// 		data_view.Search(terms)
+//
+// 		data_view.ShowDropdown(true)
+//
+// 		data_view.SetText(text)
+//
+// 		// data_view.SelectText(start, end)
+// 		data_view.SelectText(start, -1)
+// 		data_view.onChange.Fire(e)
+// 		// data_view.OnChange().Fire(e)
+//
+// 	})
+//
+// 	return data_view
+// }

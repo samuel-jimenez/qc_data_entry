@@ -668,13 +668,27 @@ func show_window() {
 
 	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
 		component_name := component_add_field.Text()
-		log.Println("CRIT: DEBUG: component_accept_button", component_name, product_data[component_name])
-		// component_add_panel.Hide()
+		Product_id := product_data[component_name]
+		log.Println("CRIT: DEBUG: component_accept_button!!!!", component_name, Product_id)
 
+		if Product_id != DB.INVALID_ID {
+			log.Println("CRIT: DEBUG: component_accept_button xxx", component_name, Product_id)
+			// component_add_panel.Hide()
+		}
 	})
 	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {
 		component_add_panel.Hide()
 	})
+
+	// component_add_field.OnChange().Bind(func(e *windigo.Event) {
+	// 	log.Println("CRIT: DEBUG: component_add_field OnChange", component_add_field.Text(), component_add_field.SelectedItem())
+	// 	component_add_field.ShowDropdown(true)
+	//
+	// 	// component_add_field.SetText(text)
+	//
+	// 	// data_view.SelectText(start, end)
+	// 	// component_add_field.SelectText(start, -1)
+	// })
 
 	// component_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 	//
