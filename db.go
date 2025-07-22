@@ -183,10 +183,17 @@ create table bs.inbound_provider_list (
 
 
 
+create table bs.inbound_product (
+	inbound_product_id integer not null,
+	inbound_product_name text,
+	primary key (inbound_product_id));
+
 create table bs.inbound_lot (
 	inbound_lot_id integer not null,
 	inbound_lot_name text,
+	inbound_product_id,
 	inbound_provider_list_id,
+	foreign key (inbound_product_id) references inbound_product,
 	foreign key (inbound_provider_list_id) references inbound_provider_list,
 	primary key (inbound_lot_id));
 
