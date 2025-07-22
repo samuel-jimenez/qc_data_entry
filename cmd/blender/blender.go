@@ -184,7 +184,6 @@ func (object *RecipeProduct) GetRecipes() {
 			log.Fatal(err)
 		}
 		recipe_data.Product_id = object.Product_id
-		recipe_data.GetComponents()
 		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
 		object.Recipes = append(object.Recipes, &recipe_data)
 
@@ -206,7 +205,6 @@ func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
 			log.Fatal(err)
 		}
 		recipe_data.Product_id = object.Product_id
-		recipe_data.GetComponents()
 		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
 		object.Recipes = append(object.Recipes, &recipe_data)
 		// combo_field.AddItem(strconv.FormatInt(i, 10))
@@ -236,6 +234,12 @@ func (object *RecipeProduct) NewRecipe() *ProductRecipe {
 	recipe_data.Product_id = object.Product_id
 	object.Recipes = append(object.Recipes, recipe_data)
 	return recipe_data
+}
+
+func (object *RecipeProduct) GetComponents() {
+	for _, recipe_data := range object.Recipes {
+		recipe_data.GetComponents()
+	}
 }
 
 /*
