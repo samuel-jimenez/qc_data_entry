@@ -763,21 +763,18 @@ func show_window() {
 	}
 	update_component_types := func() {
 
-		forall := func(select_statement *sql.Stmt, start_fn, row_fn func(any) any, fn string, args ...any) any {
+		forall := func(select_statement *sql.Stmt, start_fn func(), row_fn func(any), fn string, args ...any) {
 			rows, err := select_statement.Query(args...)
 			if err != nil {
 				log.Printf("error: %q: %s\n", err, fn)
-				return nil
+				return
 			}
-			val := start_fn(nil)
+			start_fn()
 			for rows.Next() {
-				val = row_fn(rows)
+				row_fn(rows)
 			}
-			log.Println("DEBUG: update_component_types val", val)
-
-			return val
 		}
-		component_types_list := forall(DB_Select_all_component_types, func(any) any { component_types_list = nil; return component_types_list }, func(rows any) any {
+		forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows any) {
 			var (
 				id   int
 				name string
@@ -794,10 +791,46 @@ func show_window() {
 				log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
 				// return -1
 			}
-			return component_types_list
 		}, "fn")
 		log.Println("DEBUG: update_component_types", component_types_list)
-		component_field.Update(component_types_list.([]string))
+		component_field.Update(component_types_list)
+
+		/*
+			forall := func(select_statement *sql.Stmt, start_fn, row_fn func(any) any, fn string, args ...any) any {
+				rows, err := select_statement.Query(args...)
+				if err != nil {
+					log.Printf("error: %q: %s\n", err, fn)
+					return nil
+				}
+				val := start_fn(nil)
+				for rows.Next() {
+					val = row_fn(rows)
+				}
+				log.Println("DEBUG: update_component_types val", val)
+
+				return val
+			}
+			component_types_list := forall(DB_Select_all_component_types, func(any) any { component_types_list = nil; return component_types_list }, func(rows any) any {
+				var (
+					id   int
+					name string
+				)
+
+				if err := rows.(*sql.Rows).Scan(&id, &name); err == nil {
+					// component_types_data[name] = id
+					log.Println("DEBUG: update_component_types nsme", id, name)
+
+					component_types_list = append(component_types_list, name)
+
+					// component_field.AddItem(name)
+				} else {
+					log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
+					// return -1
+				}
+				return component_types_list
+			}, "fn")
+			log.Println("DEBUG: update_component_types", component_types_list)
+			component_field.Update(component_types_list.([]string))*/
 
 		// 			forall := func (select_statement *sql.Stmt, start_fn, row_fn func() any, fn string, args ...any) {
 		// 	rows, err := select_statement.Query(args...)
@@ -827,6 +860,7 @@ func show_window() {
 		// component_field.Update(component_types_list)
 
 	}
+	update_component_types()
 
 	set_font(GUI.BASE_FONT_SIZE)
 
