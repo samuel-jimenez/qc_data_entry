@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -145,6 +147,8 @@ func refresh_globals(font_size int) {
 	GUI.LABEL_WIDTH = 10 * font_size
 	PRODUCT_FIELD_WIDTH = 15 * font_size
 	PRODUCT_FIELD_HEIGHT = font_size*16/10 + 8
+	FIELD_HEIGHT = 24
+
 }
 
 type RecipeProduct struct {
@@ -350,6 +354,35 @@ func (object *ProductRecipe) GetComponents() {
 // 	return component_data
 // }
 
+//
+//
+
+//
+//new comp, new from prod
+//TODO
+// func NewComponent() *ProductComponent {
+// 	proc_name := "NewComponent"
+// 	var (
+// 		recipe_data *ProductComponent
+// 	)
+// 	result, err := DB_Insert_product_recipe.Exec(object.Product_id)
+// 	if err != nil {
+// 		log.Printf("%q: %s\n", err, proc_name)
+// 		return recipe_data
+// 	}
+// 	insert_id, err := result.LastInsertId()
+// 	if err != nil {
+// 		log.Printf("%q: %s\n", err, proc_name)
+// 		return recipe_data
+// 	}
+// 	recipe_data = new(ProductComponent)
+//
+// 	recipe_data.Component_id = insert_id
+// 	recipe_data.Product_id = object.Product_id
+// 	object.Components = append(object.Components, recipe_data)
+// 	return recipe_data
+// }
+
 type RecipeComponent struct {
 	Component_name   string `json:"product_name"`
 	Component_amount float64
@@ -404,6 +437,107 @@ type BlendProduct struct {
 	// Product_name_customer    string `json:"customer_product_name"`
 }
 
+/*
+* SearchBox
+*
+* TODO reconcile with DiscreteSearchView
+
+* ComboBoxable ?
+ */
+type SearchBox struct {
+	*windigo.AutoPanel
+	box *GUI.ComboBox
+	entries,
+	chosen []string
+}
+
+// TODO ?
+// Filters map[string]SQLFilterView
+func (data_view SearchBox) Get() []string {
+	// var selected []string
+	// for _, button := range data_view.buttons {
+	// 	if button.Checked() {
+	// 		selected = append(selected, button.Text())
+	// 	}
+	// }
+	return data_view.chosen
+	//TODO ?
+}
+
+func (data_view *SearchBox) Update(set []string) {
+	data_view.entries = set
+	data_view.box.DeleteAllItems()
+	for _, name := range set {
+		data_view.box.AddItem(name)
+	}
+}
+
+func (data_view SearchBox) Search(terms []string) {
+	data_view.box.DeleteAllItems()
+
+	for _, entry := range data_view.entries {
+		matched := true
+		upcased := strings.ToUpper(entry)
+
+		for _, term := range terms {
+			if !strings.Contains(upcased, term) {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			data_view.box.AddItem(entry)
+		}
+	}
+}
+
+func (data_view *SearchBox) DelItem(entry string) {
+	i := slices.Index(data_view.chosen, entry)
+	if i > -1 {
+		data_view.chosen = slices.Delete(data_view.chosen, i, i+1)
+	}
+}
+
+func BuildNewSearchBox(parent windigo.Controller, labels []string) *SearchBox {
+	// func BuildNewSearchBox(parent *SQLFilterView, labels []string) *SearchBox {
+	data_view := new(SearchBox)
+	// 	log.Println("ClientWidth",parent.Width())
+	// width = parent.Width()
+
+	panel := windigo.NewAutoPanel(parent)
+	// panel.SetPaddingsAll(15)
+	// panel := windigo.NewAutoPanel(overpanel)
+
+	data_view.box = GUI.NewComboBox(panel, "")
+	data_view.box.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
+	data_view.box.OnChange().Bind(func(e *windigo.Event) {
+
+		start, end := data_view.box.Selected()
+		text := strings.ToUpper(data_view.box.Text())
+
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+
+		data_view.box.SetText(text)
+		data_view.box.SelectText(start, end)
+		data_view.box.ShowDropdown(true)
+
+	})
+
+	// view.box.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+
+	panel.Dock(data_view.box, windigo.Left)
+
+	// panel.Dock(view.box, windigo.Top)
+
+	data_view.AutoPanel = panel
+
+	data_view.Update(labels)
+
+	return data_view
+}
+
 func show_window() {
 
 	log.Println("Info: Process started")
@@ -412,7 +546,7 @@ func show_window() {
 
 	product_text := "Product"
 	recipe_text := ""
-	component_text := "Component"
+	// component_text := "Component"
 
 	product_data := make(map[string]int64)
 
@@ -422,6 +556,7 @@ func show_window() {
 	Recipe_product := NewRecipeProduct()
 	var (
 		currentRecipe *ProductRecipe
+		product_list  []string
 	)
 
 	// build window
@@ -446,7 +581,8 @@ func show_window() {
 	recipe_add_button.SetText("+")
 	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
-	component_field := GUI.NewComboBox(component_panel, component_text)
+	// component_field := GUI.NewComboBox(component_panel, component_text)
+	component_field := BuildNewSearchBox(component_panel, nil)
 	component_add_button := windigo.NewPushButton(component_panel)
 	component_add_button.SetText("+")
 	component_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
@@ -456,8 +592,9 @@ func show_window() {
 	product_panel.Dock(product_add_button, windigo.Left)
 	recipe_panel.Dock(recipe_field, windigo.Left)
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
-	component_panel.Dock(component_field, windigo.Left)
-	component_panel.Dock(component_add_button, windigo.Left)
+	component_panel.Dock(component_add_button, windigo.Top)
+	component_panel.Dock(component_field, windigo.Top)
+
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
 	dock.Dock(component_panel, windigo.Top)
@@ -474,22 +611,33 @@ func show_window() {
 			name := product_moniker_name + " " + internal_name
 			product_data[name] = id
 
+			product_list = append(product_list, name)
+
 			product_field.AddItem(name)
 		}
 	})
+	component_field.Update(product_list)
 
 	// functionality
 
 	// sizing
 	refresh_vars := func(font_size int) {
 		refresh_globals(font_size)
+
 	}
 	refresh := func(font_size int) {
 		refresh_vars(font_size)
 
 		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		recipe_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		recipe_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		// TODO
+		// component_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		component_field.box.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		component_field.SetSize(PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 	}
 
@@ -507,6 +655,10 @@ func show_window() {
 		mainWindow.SetFont(windigo.DefaultFont)
 		product_field.SetFont(windigo.DefaultFont)
 		product_add_button.SetFont(windigo.DefaultFont)
+		recipe_field.SetFont(windigo.DefaultFont)
+		recipe_add_button.SetFont(windigo.DefaultFont)
+		component_field.SetFont(windigo.DefaultFont)
+		component_add_button.SetFont(windigo.DefaultFont)
 		// threads.Status_bar.SetFont(windigo.DefaultFont)
 		refresh(font_size)
 
