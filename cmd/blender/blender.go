@@ -763,7 +763,7 @@ func show_window() {
 	}
 	update_component_types := func() {
 
-		forall := func(select_statement *sql.Stmt, start_fn func(), row_fn func(any), fn string, args ...any) {
+		forall := func(select_statement *sql.Stmt, start_fn func(), row_fn func(*sql.Rows), fn string, args ...any) {
 			rows, err := select_statement.Query(args...)
 			if err != nil {
 				log.Printf("error: %q: %s\n", err, fn)
@@ -774,13 +774,13 @@ func show_window() {
 				row_fn(rows)
 			}
 		}
-		forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows any) {
+		forall(DB_Select_all_component_types, func() { component_types_list = nil }, func(rows *sql.Rows) {
 			var (
 				id   int
 				name string
 			)
 
-			if err := rows.(*sql.Rows).Scan(&id, &name); err == nil {
+			if err := rows.Scan(&id, &name); err == nil {
 				// component_types_data[name] = id
 				log.Println("DEBUG: update_component_types nsme", id, name)
 
