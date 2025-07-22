@@ -242,6 +242,8 @@ create table bs.recipe_components (
 	recipe_list_id integer not null,
 	component_type_id not null,
 	component_type_amount real,
+	component_add_order not null,
+	unique(recipe_list_id,component_add_order),
 	foreign key (recipe_list_id) references recipe_list,
 	foreign key (component_type_id) references component_types,
 	primary key (recipe_components_id));

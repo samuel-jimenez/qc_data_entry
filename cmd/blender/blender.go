@@ -116,7 +116,7 @@ func dbinit(db *sql.DB) {
 	`)
 
 	DB_Select_recipe_components = DB.PrepareOrElse(db, `
-	select component_type_id, component_type_name, component_type_amount
+	select component_type_id, component_type_name, component_type_amount, component_add_order
 		from bs.recipe_components
 		join bs.component_types
 		using (component_type_id)
@@ -312,7 +312,7 @@ func (object *ProductRecipe) GetComponents() {
 			Recipe_component RecipeComponent
 		)
 
-		if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount); err != nil {
+		if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
 			log.Fatal(err)
 		}
 		log.Println("DEBUG: GetComponents qc_data", Recipe_component)
@@ -328,6 +328,7 @@ type RecipeComponent struct {
 	// Sample_point             string
 	// Visual                   bool
 	Component_id int
+	Add_order    int
 	// Lot_id     int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
@@ -475,6 +476,7 @@ func show_window() {
 		Recipe_product.Set(name, product_data[name])
 		// Recipe_product.GetRecipes()
 		Recipe_product.LoadRecipeCombo(recipe_field)
+		Recipe_product.GetComponents()
 	})
 
 	product_add_button.OnClick().Bind(func(e *windigo.Event) {
