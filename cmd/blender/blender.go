@@ -253,6 +253,7 @@ func show_window() {
 	// component_text := "Component"
 
 	product_data := make(map[string]int64)
+	component_types_data := make(map[string]int64)
 
 	add_button_width := 20
 	accept_button_width := 50
@@ -439,12 +440,12 @@ func show_window() {
 			func() { component_types_list = nil },
 			func(rows *sql.Rows) {
 				var (
-					id   int
+					id   int64
 					name string
 				)
 
 				if err := rows.Scan(&id, &name); err == nil {
-					// component_types_data[name] = id
+					component_types_data[name] = id
 					log.Println("DEBUG: update_component_types nsme", id, name)
 
 					component_types_list = append(component_types_list, name)
@@ -458,7 +459,7 @@ func show_window() {
 			DB.DB_Select_all_component_types)
 		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list)
-		Recipe_View.Update_component_types(component_types_list)
+		Recipe_View.Update_component_types(component_types_list, component_types_data)
 	}
 	update_component_types()
 

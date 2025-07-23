@@ -64,7 +64,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	// order_field := NewNumbEditView(view.AutoPanel) //todo
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
-	component_del_button.SetText("+")
+	component_del_button.SetText("-")
 	component_del_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.AutoPanel.Dock(component_field, windigo.Left)
