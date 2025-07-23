@@ -587,6 +587,13 @@ type BlendProduct struct {
 	// Product_name_customer    string `json:"customer_product_name"`
 }
 
+type RecipeViewer interface {
+	Get() *ProductRecipe
+	Update(recipe *ProductRecipe)
+	Update_component_types(component_types_list []string)
+	AddComponent()
+}
+
 type RecipeView struct {
 	*windigo.AutoPanel
 	Recipe               *ProductRecipe
@@ -594,18 +601,43 @@ type RecipeView struct {
 	component_types_list []string
 	// Product_id int64
 	// Recipe_id  int64
-	Get    func() *ProductRecipe
-	Update func(*ProductRecipe)
 }
 
-func (view *RecipeView) AddComponent( /*Product_id int64*/ ) {
-	if view.Recipe != nil {
-		// object.Recipe.AddComponent
-		//TODO
-		// (object.Recipe_id,)
-		component_data := NewRecipeComponentView(view)
-		view.Components = append(view.Components, component_data)
+func (view *RecipeView) Get() *ProductRecipe {
+	if view.Recipe == nil {
+		return nil
 	}
+	// object.Recipe.AddComponent
+
+	// Recipe =SQLFilterDiscrete{key,
+	// 	selection_options.Get()}
+	return view.Recipe
+
+}
+
+func (view *RecipeView) Update(recipe *ProductRecipe) {
+	if view.Recipe == recipe {
+		return
+	}
+
+	for _, component := range view.Components {
+		component.Close()
+	}
+	view.Components = nil
+	view.Recipe = recipe
+	log.Println("RecipeView Update", view.Recipe)
+	if view.Recipe == nil {
+		return
+	}
+
+	for _, component := range view.Recipe.Components {
+		log.Println("DEBUG: RecipeView update_components", component)
+		component_view := NewRecipeComponentView(view)
+		view.Components = append(view.Components, component_view)
+		//TODO
+		// component_view.Update(component)
+	}
+
 }
 
 func (view *RecipeView) Update_component_types(component_types_list []string) {
@@ -620,40 +652,19 @@ func (view *RecipeView) Update_component_types(component_types_list []string) {
 	}
 }
 
+func (view *RecipeView) AddComponent() {
+	if view.Recipe != nil {
+		// object.Recipe.AddComponent
+		//TODO
+		// (object.Recipe_id,)
+		component_data := NewRecipeComponentView(view)
+		view.Components = append(view.Components, component_data)
+	}
+}
+
 func NewRecipeView(parent windigo.Controller) *RecipeView {
 	view := new(RecipeView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
-	view.Get = func() *ProductRecipe {
-		// Recipe =SQLFilterDiscrete{key,
-		// 	selection_options.Get()}
-		return view.Recipe
-
-	}
-
-	view.Update = func(recipe *ProductRecipe) {
-		if view.Recipe == recipe {
-			return
-		}
-
-		for _, component := range view.Components {
-			component.Close()
-		}
-		view.Components = nil
-		view.Recipe = recipe
-		log.Println("RecipeView Update", view.Recipe)
-		if view.Recipe == nil {
-			return
-		}
-
-		for _, component := range view.Recipe.Components {
-			log.Println("DEBUG: RecipeView update_components", component)
-			component_view := NewRecipeComponentView(view)
-			view.Components = append(view.Components, component_view)
-			//TODO
-			// component_view.Update(component)
-		}
-
-	}
 
 	return view
 }
