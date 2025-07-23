@@ -56,6 +56,7 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 		log.Println("DEBUG: RecipeView update_components", component)
 		component_view := NewRecipeComponentView(view)
 		view.Components = append(view.Components, component_view)
+		view.AutoPanel.Dock(component_view, windigo.Top)
 		//TODO
 		// component_view.Update(component)
 	}
@@ -79,8 +80,9 @@ func (view *RecipeView) AddComponent() {
 		// object.Recipe.AddComponent
 		//TODO
 		// (object.Recipe_id,)
-		component_data := NewRecipeComponentView(view)
-		view.Components = append(view.Components, component_data)
+		component_view := NewRecipeComponentView(view)
+		view.Components = append(view.Components, component_view)
+		view.AutoPanel.Dock(component_view, windigo.Top)
 	}
 }
 
@@ -93,6 +95,8 @@ func (view *RecipeView) SetFont(font *windigo.Font) {
 func NewRecipeView(parent windigo.Controller) *RecipeView {
 	view := new(RecipeView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
+
+	//TODO normalize amounts
 
 	return view
 }

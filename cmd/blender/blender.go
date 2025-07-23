@@ -376,6 +376,10 @@ func show_window() {
 		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*PRODUCT_FIELD_HEIGHT)
 		component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT+add_button_width)
 
+		//TODO grow
+		Recipe_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		// Recipe_View.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+
 		component_add_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
 
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)

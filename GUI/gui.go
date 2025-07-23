@@ -284,9 +284,11 @@ func NewListSearchBox(parent windigo.Controller) *SearchBox {
 		text := strings.ToUpper(data_view.Text())
 		terms := strings.Split(text, " ")
 		data_view.Search(terms)
+
 		//TODO split
-		data_view.ShowDropdown(true)
+		data_view.ShowDropdown(false)
 		data_view.SetText(text)
+		data_view.ShowDropdown(true)
 
 		data_view.SelectText(start, -1)
 		data_view.onChange.Fire(e)
