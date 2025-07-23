@@ -13,6 +13,9 @@ var (
 
 	DB_VERSION = "0.0.2"
 
+	DB_Select_product_recipe, DB_Insert_product_recipe,
+	DB_Select_recipe_components, DB_Insert_recipe_component,
+	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	db_select_product_id, db_insert_product,
 	DB_Select_product_info,
 	db_select_lot_id, db_insert_lot,
@@ -72,6 +75,53 @@ func Check_db(db *sql.DB) {
 }
 
 func DBinit(db *sql.DB) {
+
+	DB_Select_product_recipe = PrepareOrElse(db, `
+	select recipe_list_id
+		from bs.recipe_list
+		where product_id = ?
+	`)
+
+	DB_Insert_product_recipe = PrepareOrElse(db, `
+	insert into bs.recipe_list
+		(product_id)
+		values (?)
+	returning recipe_list_id
+	`)
+
+	DB_Select_recipe_components = PrepareOrElse(db, `
+	select component_type_id, component_type_name, component_type_amount, component_add_order
+		from bs.recipe_components
+		join bs.component_types
+		using (component_type_id)
+		where recipe_list_id = ?
+	`)
+
+	DB_Insert_recipe_component = PrepareOrElse(db, `
+	insert into bs.recipe_components
+		(recipe_list_id,component_type_id,component_type_amount,component_add_order)
+		values (?,?,?,?)
+	returning recipe_components_id
+	`)
+
+	DB_Select_name_component_types = PrepareOrElse(db, `
+	select component_type_id
+		from bs.component_types
+		where component_type_name = ?
+	`)
+
+	DB_Select_all_component_types = PrepareOrElse(db, `
+	select component_type_id, component_type_name
+		from bs.component_types
+		order by component_type_name
+	`)
+
+	DB_Insert_component_types = PrepareOrElse(db, `
+	insert into bs.component_types
+		(component_type_name)
+		values (?)
+	returning component_type_id
+	`)
 
 	db_insert_product = PrepareOrElse(db, `
 	insert into bs.product_line

@@ -8,6 +8,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
@@ -93,9 +94,6 @@ func main() {
 
 var (
 	qc_db *sql.DB
-	DB_Select_product_recipe, DB_Insert_product_recipe,
-	DB_Select_recipe_components, DB_Insert_recipe_component,
-	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	// DB_Select_component_type_product,
 	DB_Insert_internal_product_component_type,
 	DB_Insert_inbound_product_component_type *sql.Stmt
@@ -105,53 +103,6 @@ func dbinit(db *sql.DB) {
 
 	DB.Check_db(db)
 	DB.DBinit(db)
-
-	DB_Select_product_recipe = DB.PrepareOrElse(db, `
-	select recipe_list_id
-		from bs.recipe_list
-		where product_id = ?
-	`)
-
-	DB_Insert_product_recipe = DB.PrepareOrElse(db, `
-	insert into bs.recipe_list
-		(product_id)
-		values (?)
-	returning recipe_list_id
-	`)
-
-	DB_Select_recipe_components = DB.PrepareOrElse(db, `
-	select component_type_id, component_type_name, component_type_amount, component_add_order
-		from bs.recipe_components
-		join bs.component_types
-		using (component_type_id)
-		where recipe_list_id = ?
-	`)
-
-	DB_Insert_recipe_component = DB.PrepareOrElse(db, `
-	insert into bs.recipe_components
-		(recipe_list_id,component_type_id,component_type_amount,component_add_order)
-		values (?,?,?,?)
-	returning recipe_components_id
-	`)
-
-	DB_Select_name_component_types = DB.PrepareOrElse(db, `
-	select component_type_id
-		from bs.component_types
-		where component_type_name = ?
-	`)
-
-	DB_Select_all_component_types = DB.PrepareOrElse(db, `
-	select component_type_id, component_type_name
-		from bs.component_types
-		order by component_type_name
-	`)
-
-	DB_Insert_component_types = DB.PrepareOrElse(db, `
-	insert into bs.component_types
-		(component_type_name)
-		values (?)
-	returning component_type_id
-	`)
 
 	/*
 
@@ -200,168 +151,6 @@ func refresh_globals(font_size int) {
 
 }
 
-type RecipeProduct struct {
-	Product_name string `json:"product_name"`
-	// Lot_number               string `json:"lot_number"`
-	// Sample_point             string
-	// Visual                   bool
-	Product_id int64
-	// Lot_id     int64
-	Recipes []*ProductRecipe
-	// Product_name_customer_id nullable.NullInt64
-	// Product_name_customer    string `json:"customer_product_name"`
-}
-
-func (object *RecipeProduct) Set(name string, i int64) {
-	object.Product_name = name
-	object.Product_id = i
-}
-
-// func (r *RecipeProduct) GetRecipes() (rows *sql.Rows,error){
-// 	return DB_Select_product_recipe.Query(r.Product_id)
-// 	// r.Recipes =
-//
-// 	// rows, err :=
-// 	//TODO
-// }
-
-func (object *RecipeProduct) GetRecipes() {
-	DB.Forall("GetRecipes",
-		func() { object.Recipes = nil },
-		func(rows *sql.Rows) {
-			var (
-				recipe_data ProductRecipe
-			)
-
-			if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
-				log.Fatal(err)
-			}
-			recipe_data.Product_id = object.Product_id
-			log.Println("DEBUG: GetRecipes qc_data", recipe_data)
-			object.Recipes = append(object.Recipes, &recipe_data)
-
-		},
-		DB_Select_product_recipe, object.Product_id)
-}
-
-func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
-	object.Recipes = nil
-	rows, err := DB_Select_product_recipe.Query(object.Product_id)
-	i := 0
-	GUI.Fill_combobox_from_query_rows(combo_field, rows, err, func(rows *sql.Rows) {
-
-		var (
-			recipe_data ProductRecipe
-		)
-
-		if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
-			log.Fatal(err)
-		}
-		recipe_data.Product_id = object.Product_id
-		log.Println("DEBUG: GetRecipes qc_data", recipe_data)
-		object.Recipes = append(object.Recipes, &recipe_data)
-		// combo_field.AddItem(strconv.FormatInt(i, 10))
-		combo_field.AddItem(strconv.Itoa(i))
-		i++
-	})
-	if i != 0 {
-		combo_field.SetSelectedItem(0)
-	}
-}
-
-func (object *RecipeProduct) NewRecipe() *ProductRecipe {
-	proc_name := "RecipeProduct.NewRecipe"
-	var (
-		recipe_data *ProductRecipe
-	)
-	result, err := DB_Insert_product_recipe.Exec(object.Product_id)
-	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
-		return recipe_data
-	}
-	insert_id, err := result.LastInsertId()
-	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
-		return recipe_data
-	}
-	recipe_data = new(ProductRecipe)
-
-	recipe_data.Recipe_id = insert_id
-	recipe_data.Product_id = object.Product_id
-	object.Recipes = append(object.Recipes, recipe_data)
-	return recipe_data
-}
-
-func (object *RecipeProduct) GetComponents() {
-	for _, recipe_data := range object.Recipes {
-		recipe_data.GetComponents()
-	}
-}
-
-func NewRecipeProduct() *RecipeProduct {
-	return new(RecipeProduct)
-}
-
-type ProductRecipe struct {
-	Components []*RecipeComponent
-	// Product_name string `json:"product_name"`
-	// Lot_number               string `json:"lot_number"`
-	// Sample_point             string
-	// Visual                   bool
-	Product_id int64
-	Recipe_id  int64
-	// Product_name_customer_id nullable.NullInt64
-	// Product_name_customer    string `json:"customer_product_name"`
-}
-
-func (object *ProductRecipe) GetComponents() {
-	DB.Forall("GetComponents",
-		func() {
-			object.Components = nil
-		},
-		func(rows *sql.Rows) {
-			Recipe_component := new(RecipeComponent)
-
-			if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
-				log.Fatal(err)
-			}
-			log.Println("DEBUG: GetComponents qc_data", Recipe_component)
-			object.Components = append(object.Components, Recipe_component)
-		},
-		DB_Select_recipe_components, object.Recipe_id)
-}
-
-// recipe_list_id integer not null,
-// component_type_id not null,
-// component_type_amount real,
-// component_add_order not null,
-// TODO
-// func (object *ProductRecipe) AddComponent() *RecipeComponent {
-// 	proc_name := "ProductRecipe.AddComponent"
-// 	var (
-// 		component_data *RecipeComponent
-// 	)
-// 	result, err := DB_Insert_recipe_component.Exec(object.Product_id)
-// 	if err != nil {
-// 		log.Printf("%q: %s\n", err, proc_name)
-// 		return component_data
-// 	}
-// 	insert_id, err := result.LastInsertId()
-// 	if err != nil {
-// 		log.Printf("%q: %s\n", err, proc_name)
-// 		return component_data
-// 	}
-// 	component_data = new(RecipeComponent)
-//
-// 	component_data.Component_id = insert_id
-// 	component_data.Product_id = object.Product_id
-// 	object.Components = append(object.Components, component_data)
-// 	return component_data
-// }
-
-//
-//
-
 type ComponentType struct {
 	Component_name string
 	Component_id   int64
@@ -375,7 +164,7 @@ func NewComponentType(Component_name string) *ComponentType {
 }
 
 func (object *ComponentType) Insel() {
-	object.Component_id = DB.Insel(DB_Insert_component_types, DB_Select_name_component_types, "Debug: ComponentType.Insel", object.Component_name)
+	object.Component_id = DB.Insel(DB.DB_Insert_component_types, DB.DB_Select_name_component_types, "Debug: ComponentType.Insel", object.Component_name)
 }
 func (object *ComponentType) AddProduct(Product_id int64) {
 	DB_Insert_internal_product_component_type.Exec(object.Component_id, Product_id)
@@ -412,18 +201,8 @@ func (object *ComponentType) AddInbound(Product_id int64) {
 // 	return recipe_data
 // }
 
-type RecipeComponent struct {
-	Component_name   string
-	Component_amount float64
-	Component_id     int64
-	Add_order        int64
-	// Lot_id     int64
-	// Product_name_customer_id nullable.NullInt64
-	// Product_name_customer    string `json:"customer_product_name"`
-}
-
 type BlendComponent struct {
-	RecipeComponent
+	blender.RecipeComponent
 	// Component_name string `json:"product_name"`
 	// Component_amount float64
 	// Lot_number               string `json:"lot_number"`
@@ -463,134 +242,6 @@ type BlendProduct struct {
 	// Product_name_customer    string `json:"customer_product_name"`
 }
 
-type RecipeViewer interface {
-	Get() *ProductRecipe
-	Update(recipe *ProductRecipe)
-	Update_component_types(component_types_list []string)
-	AddComponent()
-}
-
-type RecipeView struct {
-	*windigo.AutoPanel
-	Recipe               *ProductRecipe
-	Components           []*RecipeComponentView
-	component_types_list []string
-	// Product_id int64
-	// Recipe_id  int64
-}
-
-func (view *RecipeView) Get() *ProductRecipe {
-	if view.Recipe == nil {
-		return nil
-	}
-	// object.Recipe.AddComponent
-
-	// Recipe =SQLFilterDiscrete{key,
-	// 	selection_options.Get()}
-	return view.Recipe
-
-}
-
-func (view *RecipeView) Update(recipe *ProductRecipe) {
-	if view.Recipe == recipe {
-		return
-	}
-
-	for _, component := range view.Components {
-		component.Close()
-	}
-	view.Components = nil
-	view.Recipe = recipe
-	log.Println("RecipeView Update", view.Recipe)
-	if view.Recipe == nil {
-		return
-	}
-
-	for _, component := range view.Recipe.Components {
-		log.Println("DEBUG: RecipeView update_components", component)
-		component_view := NewRecipeComponentView(view)
-		view.Components = append(view.Components, component_view)
-		//TODO
-		// component_view.Update(component)
-	}
-
-}
-
-func (view *RecipeView) Update_component_types(component_types_list []string) {
-	view.component_types_list = component_types_list
-	if view.Recipe == nil {
-		return
-	}
-
-	for _, component := range view.Components {
-		log.Println("DEBUG: RecipeView update_component_types", component)
-		component.Update_component_types(component_types_list)
-	}
-}
-
-func (view *RecipeView) AddComponent() {
-	if view.Recipe != nil {
-		// object.Recipe.AddComponent
-		//TODO
-		// (object.Recipe_id,)
-		component_data := NewRecipeComponentView(view)
-		view.Components = append(view.Components, component_data)
-	}
-}
-
-func NewRecipeView(parent windigo.Controller) *RecipeView {
-	view := new(RecipeView)
-	view.AutoPanel = windigo.NewAutoPanel(parent)
-
-	return view
-}
-
-type RecipeComponentView struct {
-	*windigo.AutoPanel
-	RecipeComponent *RecipeComponent
-	// Component_name   string
-	// Component_amount float64
-	// Component_id int64
-	// Add_order    int64
-	Get                    func() *RecipeComponent
-	Update                 func(*RecipeComponent)
-	Update_component_types func(component_types_list []string)
-}
-
-func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
-	DEL_BUTTON_WIDTH := 20
-
-	view := new(RecipeComponentView)
-	view.AutoPanel = windigo.NewAutoPanel(parent)
-
-	component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
-
-	component_del_button := windigo.NewPushButton(view.AutoPanel)
-	component_del_button.SetText("+")
-	component_del_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
-
-	view.AutoPanel.Dock(component_field, windigo.Left)
-	view.AutoPanel.Dock(component_del_button, windigo.Left)
-
-	view.Get = func() *RecipeComponent {
-		// Recipe =SQLFilterDiscrete{key,
-		// 	selection_options.Get()}
-		return view.RecipeComponent
-
-	}
-
-	view.Update_component_types = func(component_types_list []string) {
-		text := component_field.Text()
-		log.Println("DEBUG: RecipeComponentView update_component_types", text)
-		component_field.Update(component_types_list)
-		component_field.SetText(text)
-		// c_view := windigo.NewLabel(component_panel)
-		// c_view.SetText(component.Component_name)
-	}
-
-	return view
-}
-
 func show_window() {
 
 	log.Println("Info: Process started")
@@ -608,9 +259,9 @@ func show_window() {
 	cancel_button_width := 50
 
 	// Blend_product := new(BlendProduct)
-	Recipe_product := NewRecipeProduct()
+	Recipe_product := blender.NewRecipeProduct()
 	var (
-		currentRecipe *ProductRecipe
+		currentRecipe *blender.ProductRecipe
 		product_list,
 		component_types_list []string
 	)
@@ -638,7 +289,7 @@ func show_window() {
 	recipe_add_button.SetText("+")
 	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
-	Recipe_View := NewRecipeView(mainWindow)
+	Recipe_View := blender.NewRecipeView(mainWindow)
 
 	// component_field := GUI.NewComboBox(component_panel, component_text)
 	component_field := GUI.NewSearchBox(component_panel)
@@ -762,7 +413,7 @@ func show_window() {
 	}
 
 	//TODO
-	update_components := func(object *ProductRecipe) {
+	update_components := func(object *blender.ProductRecipe) {
 		for _, component := range object.Components {
 			log.Println("DEBUG: update_components", component)
 
@@ -793,7 +444,7 @@ func show_window() {
 					// return -1
 				}
 			},
-			DB_Select_all_component_types)
+			DB.DB_Select_all_component_types)
 		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list)
 		Recipe_View.Update_component_types(component_types_list)
@@ -804,7 +455,8 @@ func show_window() {
 
 	//event handling
 	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		Recipe_product = NewRecipeProduct()
+		//TODO move to view
+		Recipe_product = blender.NewRecipeProduct()
 		name := product_field.GetSelectedItem()
 		Recipe_product.Set(name, product_data[name])
 		// Recipe_product.GetRecipes()
