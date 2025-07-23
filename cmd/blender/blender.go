@@ -618,6 +618,22 @@ func (object *RecipeView) Update_component_types( /*Product_id int64* ) {
 		component_data := NewRecipeComponentView(object)
 		object.Components = append(object.Components, component_data)
 	}
+
+
+	func (view *RecipeView) Update_component_types(component_types_list []string) {
+		if view.Recipe == nil {
+			return
+		}
+		view.component_types_list = component_types_list
+
+		for _, component := range view.Components {
+			log.Println("DEBUG: RecipeView update_component_types", component)
+			component.Update_component_types(component_types_list)
+
+			// c_view := windigo.NewLabel(component_panel)
+			// c_view.SetText(component.Component_name)
+		}
+	}
 }*/
 
 func NewRecipeView(parent windigo.Controller) *RecipeView {
@@ -647,10 +663,10 @@ func NewRecipeView(parent windigo.Controller) *RecipeView {
 	}
 
 	view.Update_component_types = func(component_types_list []string) {
+		view.component_types_list = component_types_list
 		if view.Recipe == nil {
 			return
 		}
-		view.component_types_list = component_types_list
 
 		for _, component := range view.Components {
 			log.Println("DEBUG: RecipeView update_component_types", component)
