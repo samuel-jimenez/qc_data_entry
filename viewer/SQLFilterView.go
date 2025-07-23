@@ -367,7 +367,7 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 	return data_view
 }
 
-//TODO
+//TODO reconcile
 // func NewSearchBox(parent windigo.Controller) *SearchBox {
 // 	data_view := new(SearchBox)
 //

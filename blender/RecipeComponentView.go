@@ -27,7 +27,8 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	// view.RecipeComponent.
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
+	// component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
+	component_field := GUI.NewListSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("+")

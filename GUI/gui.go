@@ -274,3 +274,29 @@ func NewSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchB
 	data_view.Update(labels)
 	return data_view
 }
+
+func NewListSearchBox(parent windigo.Controller) *SearchBox {
+	data_view := NewSearchBox(parent)
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+
+		start, _ := data_view.Selected()
+
+		text := strings.ToUpper(data_view.Text())
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+		//TODO split
+		data_view.ShowDropdown(true)
+		data_view.SetText(text)
+
+		data_view.SelectText(start, -1)
+		data_view.onChange.Fire(e)
+	})
+	return data_view
+
+}
+
+func NewListSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
+	data_view := NewListSearchBox(parent)
+	data_view.Update(labels)
+	return data_view
+}
