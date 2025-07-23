@@ -22,11 +22,9 @@ type NumbEditView struct {
 }
 
 func NewNumbEditView(parent windigo.Controller) *NumbEditView {
-	// edit_field := new(NumbEditView)
-	// edit_field.Edit = windigo.NewEdit(parent)
-	// return edit_field
-	return &NumbEditView{windigo.NewEdit(parent)}
-
+	edit_field := new(NumbEditView)
+	edit_field.Edit = windigo.NewEdit(parent)
+	return edit_field
 }
 
 func (control *NumbEditView) Get() float64 {
@@ -41,7 +39,10 @@ func (control *NumbEditView) Get() float64 {
 type RecipeComponentView struct {
 	*windigo.AutoPanel
 	RecipeComponent      *RecipeComponent
+	component_field      *GUI.SearchBox
+	amount_field         *NumbEditView
 	component_types_data map[string]int64
+
 	// Component_name   string
 	// Component_amount float64
 	// Component_id int64
@@ -61,34 +62,35 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	view.component_types_data = parent.component_types_data
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	// component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
-	component_field := GUI.NewListSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
+	// view.component_field = GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
+	view.component_field = GUI.NewListSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
 
 	// cf NumberEditView
-	// amount_field := windigo.NewEdit(view.AutoPanel)
-	amount_field := NewNumbEditView(view.AutoPanel)
+	// view.amount_field = windigo.NewEdit(view.AutoPanel)
+	view.amount_field = NewNumbEditView(view.AutoPanel)
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("-")
 
 	view.AutoPanel.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	component_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	amount_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.component_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.amount_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	component_del_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-	view.AutoPanel.Dock(component_field, windigo.Left)
-	view.AutoPanel.Dock(amount_field, windigo.Left)
+	view.AutoPanel.Dock(view.component_field, windigo.Left)
+	view.AutoPanel.Dock(view.amount_field, windigo.Left)
 	// view.AutoPanel.Dock(order_field, windigo.Left)
 	view.AutoPanel.Dock(component_del_button, windigo.Left)
 
 	view.Get = func() *RecipeComponent {
-		view.RecipeComponent.Component_name = component_field.Text()
+		view.RecipeComponent.Component_name = view.component_field.Text()
 		view.RecipeComponent.Component_id = view.component_types_data[view.RecipeComponent.Component_name]
 		if view.RecipeComponent.Component_id == DB.INVALID_ID {
+			//TODO make error
 			return nil
 		}
-		view.RecipeComponent.Component_amount = amount_field.Get()
-		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, component_field.GetSelectedItem(), component_field.SelectedItem(), view.component_types_data[component_field.Text()])
+		view.RecipeComponent.Component_amount = view.amount_field.Get()
+		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, view.component_field.GetSelectedItem(), view.component_field.SelectedItem(), view.component_types_data[view.component_field.Text()])
 
 		return view.RecipeComponent
 
@@ -104,14 +106,14 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 		view.RecipeComponent = RecipeComponent
 
-		component_field.SetText(RecipeComponent.Component_name)
+		view.component_field.SetText(RecipeComponent.Component_name)
 	}
 
 	view.Update_component_types = func(component_types_list []string) {
-		text := component_field.Text()
+		text := view.component_field.Text()
 		log.Println("DEBUG: RecipeComponentView update_component_types", text)
-		component_field.Update(component_types_list)
-		component_field.SetText(text)
+		view.component_field.Update(component_types_list)
+		view.component_field.SetText(text)
 		// c_view := windigo.NewLabel(component_panel)
 		// c_view.SetText(component.Component_name)
 	}
