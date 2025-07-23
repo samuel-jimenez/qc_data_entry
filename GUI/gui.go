@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/windigo"
 	"github.com/samuel-jimenez/windigo/w32"
 )
@@ -92,52 +93,46 @@ func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *
 		control.SetSelectedItem(0)
 	}
 }
-func Fill_combobox_from_query_0_fn(control windigo.ComboBoxable, select_statement *sql.Stmt, fn func(*sql.Rows)) {
-	rows, err := select_statement.Query()
-	Fill_combobox_from_query_rows(control, rows, err, fn)
+func Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
+	i := 0
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			control.DeleteAllItems()
+		},
+		func(rows *sql.Rows) {
+			var (
+				id   int
+				name string
+			)
+
+			if err := rows.Scan(&id, &name); err == nil {
+				fn(id, name)
+			} else {
+				log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+				// return -1
+			}
+			i++
+		},
+		select_statement, args...)
+	if i == 1 {
+		control.SetSelectedItem(0)
+	}
 }
 
-func Fill_combobox_from_query_1_fn(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64, fn func(*sql.Rows)) {
-	rows, err := select_statement.Query(select_id)
-	Fill_combobox_from_query_rows(control, rows, err, fn)
-}
-
+// TODO combine
 func Fill_combobox_from_query_0_2(control windigo.ComboBoxable, select_statement *sql.Stmt, fn func(int, string)) {
-	Fill_combobox_from_query_0_fn(control, select_statement, func(rows *sql.Rows) {
-		var (
-			id   int
-			name string
-		)
-
-		if err := rows.Scan(&id, &name); err == nil {
-			fn(id, name)
-		} else {
-			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
-			// return -1
-		}
-	})
+	Fill_combobox_from_query_fn(control, fn, select_statement)
 }
 
 func Fill_combobox_from_query_1_2(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64, fn func(int, string)) {
-	Fill_combobox_from_query_1_fn(control, select_statement, select_id, func(rows *sql.Rows) {
-		var (
-			id   int
-			name string
-		)
-
-		if err := rows.Scan(&id, &name); err == nil {
-			fn(id, name)
-		} else {
-			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
-			// return -1
-		}
-	})
+	Fill_combobox_from_query_fn(control, fn, select_statement, select_id)
 }
 
 func Fill_combobox_from_query(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64) {
-	Fill_combobox_from_query_1_2(control, select_statement, select_id, func(id int, name string) {
+	Fill_combobox_from_query_fn(control, func(id int, name string) {
 		control.AddItem(name)
-	})
+	},
+		select_statement, select_id)
 }
 
 type ComboBox struct {
