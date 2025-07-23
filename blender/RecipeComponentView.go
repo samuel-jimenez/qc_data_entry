@@ -2,6 +2,8 @@ package blender
 
 import (
 	"log"
+	"strconv"
+	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
@@ -19,6 +21,30 @@ type RecipeComponentView struct {
 	Update_component_types func(component_types_list []string)
 }
 
+/*
+* NumbEditView
+* 	// cf NumberEditView
+
+*
+ */
+type NumbEditView struct {
+	// GUI.ErrableView
+	*windigo.Edit
+}
+
+func NewNumbEditView(parent windigo.Controller) *NumbEditView {
+	// edit_field := new(NumbEditView)
+	// edit_field.Edit = windigo.NewEdit(parent)
+	// return edit_field
+	return &NumbEditView{windigo.NewEdit(parent)}
+
+}
+
+func (control *NumbEditView) Get() float64 {
+	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
+	return val
+}
+
 func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	DEL_BUTTON_WIDTH := 20
 
@@ -30,20 +56,36 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	// component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
 	component_field := GUI.NewListSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
 
+	// cf NumberEditView
+	// amount_field := windigo.NewEdit(view.AutoPanel)
+	amount_field := NewNumbEditView(view.AutoPanel)
+
+	// order_field := windigo.NewEdit(view.AutoPanel) //todo
+	// order_field := NewNumbEditView(view.AutoPanel) //todo
+
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("+")
 	component_del_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.AutoPanel.Dock(component_field, windigo.Left)
+	view.AutoPanel.Dock(amount_field, windigo.Left)
+	// view.AutoPanel.Dock(order_field, windigo.Left)
 	view.AutoPanel.Dock(component_del_button, windigo.Left)
 
 	view.Get = func() *RecipeComponent {
 		view.RecipeComponent.Component_name = component_field.Text()
+		view.RecipeComponent.Component_amount = amount_field.Get()
+		// view.RecipeComponent.Add_order = order_field.Get() //TODO
+		// view.RecipeComponent.Component_id = component_field.Text()
+		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent)
+
 		return view.RecipeComponent
 
 	}
 
 	view.Update = func(RecipeComponent *RecipeComponent) {
+		log.Println("DEBUG: RecipeComponentView Update", RecipeComponent)
+
 		if view.RecipeComponent == RecipeComponent {
 			return
 		}
