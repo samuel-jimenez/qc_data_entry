@@ -67,9 +67,6 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	// amount_field := windigo.NewEdit(view.AutoPanel)
 	amount_field := NewNumbEditView(view.AutoPanel)
 
-	// order_field := windigo.NewEdit(view.AutoPanel) //todo
-	// order_field := NewNumbEditView(view.AutoPanel) //todo
-
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("-")
 
@@ -85,9 +82,8 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	view.Get = func() *RecipeComponent {
 		view.RecipeComponent.Component_name = component_field.Text()
+		view.RecipeComponent.Component_id = view.component_types_data[view.RecipeComponent.Component_name]
 		view.RecipeComponent.Component_amount = amount_field.Get()
-		// view.RecipeComponent.Add_order = order_field.Get() //TODO
-		view.RecipeComponent.Component_id = view.component_types_data[component_field.Text()]
 		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, component_field.GetSelectedItem(), component_field.SelectedItem(), view.component_types_data[component_field.Text()])
 
 		return view.RecipeComponent
