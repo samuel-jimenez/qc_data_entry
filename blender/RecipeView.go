@@ -132,6 +132,8 @@ func (view *RecipeView) RefreshSize() {
 	delta_height := GUI.PRODUCT_FIELD_HEIGHT
 	width := view.ClientWidth()
 
+	log.Println("Crit: DEBUG: RecipeView RefreshSize", height, GUI.PRODUCT_FIELD_HEIGHT, len(view.Components))
+
 	view.SetSize(GUI.OFF_AXIS, height+len(view.Components)*delta_height)
 	for _, component := range view.Components {
 

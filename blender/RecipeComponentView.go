@@ -86,7 +86,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 		view.RecipeComponent.Component_amount = amount_field.Get()
 		// view.RecipeComponent.Add_order = order_field.Get() //TODO
 		// view.RecipeComponent.Component_id = component_field.Text()
-		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent)
+		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, component_field.GetSelectedItem(), component_field.SelectedItem(), parent.component_types_data[component_field.Text()])
 
 		return view.RecipeComponent
 
