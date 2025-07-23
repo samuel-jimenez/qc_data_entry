@@ -67,3 +67,11 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	return view
 }
+
+/*
+func (view *RecipeComponentView) SetLabeledSize(label_width, control_width, height int) {
+	view.SetSize(label_width+control_width, height)
+
+	view.Label().SetSize(label_width, height)
+
+}*/
