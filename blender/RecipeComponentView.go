@@ -39,7 +39,8 @@ func (control *NumbEditView) Get() float64 {
  */
 type RecipeComponentView struct {
 	*windigo.AutoPanel
-	RecipeComponent *RecipeComponent
+	RecipeComponent      *RecipeComponent
+	component_types_data map[string]int
 	// Component_name   string
 	// Component_amount float64
 	// Component_id int64
@@ -56,6 +57,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	view.RecipeComponent = NewRecipeComponent()
 	view.RecipeComponent.Add_order = len(parent.Components)
 	// view.RecipeComponent.
+	view.component_types_data = parent.component_types_data
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
 	// component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
@@ -85,8 +87,8 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 		view.RecipeComponent.Component_name = component_field.Text()
 		view.RecipeComponent.Component_amount = amount_field.Get()
 		// view.RecipeComponent.Add_order = order_field.Get() //TODO
-		// view.RecipeComponent.Component_id = component_field.Text()
-		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, component_field.GetSelectedItem(), component_field.SelectedItem(), parent.component_types_data[component_field.Text()])
+		view.RecipeComponent.Component_id = view.component_types_data[component_field.Text()]
+		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, component_field.GetSelectedItem(), component_field.SelectedItem(), view.component_types_data[component_field.Text()])
 
 		return view.RecipeComponent
 
