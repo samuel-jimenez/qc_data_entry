@@ -667,22 +667,57 @@ func show_window() {
 	dock.Dock(component_add_panel, windigo.Top)
 
 	// combobox
-	rows, err := DB.DB_Select_product_info.Query()
-	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
-		var (
-			id                   int64
-			internal_name        string
-			product_moniker_name string
-		)
-		if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
-			name := product_moniker_name + " " + internal_name
-			product_data[name] = id
+	// TODO combinefunc Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
+	// 	i := 0
+	// 	DB.Forall("fill_combobox_from_query",
+	// 		func() {
+	// 			control.DeleteAllItems()
+	// 		},
+	// 		func(rows *sql.Rows) {
+	// 			var (
+	// 				id   int
+	// 				name string
+	// 			)
+	//
+	// 			if err := rows.Scan(&id, &name); err == nil {
+	// 				fn(id, name)
+	// 			} else {
+	// 				log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+	// 				// return -1
+	// 			}
+	// 			i++
+	// 		},
+	// 		select_statement, args...)
+	// 	if i == 1 {
+	// 		control.SetSelectedItem(0)
+	// 	}
+	// }
 
-			product_list = append(product_list, name)
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			product_field.DeleteAllItems()
+		},
+		func(rows *sql.Rows) {
+			var (
+				id                   int64
+				internal_name        string
+				product_moniker_name string
+			)
+			if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
+				name := product_moniker_name + " " + internal_name
+				product_data[name] = id
 
-			product_field.AddItem(name)
-		}
-	})
+				product_list = append(product_list, name)
+
+				product_field.AddItem(name)
+			} else {
+				log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+				// return -1
+			}
+		},
+
+		DB.DB_Select_product_info)
+
 	//TODO
 	component_field.Update(product_list)
 	component_add_field.Update(product_list)

@@ -77,6 +77,34 @@ var (
 	GROUP_MARGIN int
 )
 
+// TODO combine func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
+//
+//	func Fill_combobox_from_query_rows(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
+//		i := 0
+//		DB.Forall("fill_combobox_from_query",
+//			func() {
+//				control.DeleteAllItems()
+//			},
+//			func(rows *sql.Rows) {
+//
+// fn(rows)
+//
+//				i++
+//			},
+//			select_statement, args...)
+//		if i == 1 {
+//			control.SetSelectedItem(0)
+//		}
+//	}
+
+// TODO
+//
+//	if err := rows.Scan(&id, &name); err != nil {
+//		return err
+//	}
+//
+//		fn(id, name)
+//	i++
 func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
 	if err != nil {
