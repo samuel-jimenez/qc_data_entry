@@ -46,9 +46,10 @@ func (view *RecipeView) Get() *ProductRecipe {
 		recipeComponent := component.Get()
 		log.Println("DEBUG: RecipeView Get", recipeComponent)
 		if recipeComponent != nil {
-			view.Recipe.AddComponent(component.Get())
+			view.Recipe.AddComponent(recipeComponent)
 		}
 	}
+	view.Recipe.SaveComponents()
 	return view.Recipe
 
 }

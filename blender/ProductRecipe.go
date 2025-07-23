@@ -9,7 +9,7 @@ import (
 
 // TODO []*
 type ProductRecipe struct {
-	Components []*RecipeComponent
+	Components, db_components []*RecipeComponent
 	// Product_name string `json:"product_name"`
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
@@ -26,7 +26,7 @@ func (object *ProductRecipe) GetComponents() {
 			object.Components = nil
 		},
 		func(rows *sql.Rows) {
-			Recipe_component := new(RecipeComponent)
+			Recipe_component := NewRecipeComponent()
 
 			if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
 				log.Fatal(err)
@@ -35,6 +35,7 @@ func (object *ProductRecipe) GetComponents() {
 			object.Components = append(object.Components, Recipe_component)
 		},
 		DB.DB_Select_recipe_components, object.Recipe_id)
+	object.db_components = object.Components
 }
 func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
 	object.Components = append(object.Components, component_data)
@@ -46,26 +47,29 @@ func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
 // component_type_amount real,
 // component_add_order not null,
 // TODO
-// func (object *ProductRecipe) SetComponents(component_data []*RecipeComponent) {
-// 	proc_name := "ProductRecipe.AddComponent"
-//
-// 	result, err := DB.DB_Insert_recipe_component.Exec(object.Product_id)
-// 	if err != nil {
-// 		log.Printf("%q: %s\n", err, proc_name)
-// 		return component_data
-// 	}
-// 	insert_id, err := result.LastInsertId()
-// 	if err != nil {
-// 		log.Printf("%q: %s\n", err, proc_name)
-// 		return component_data
-// 	}
-// 	component_data = new(RecipeComponent)
-//
-// 	component_data.Component_id = insert_id
-// 	component_data.Product_id = object.Product_id
-// 	object.Components = append(object.Components, component_data)
-// 	return component_data
-// }
+// func (object *ProductRecipe) SaveComponents(component_data []*RecipeComponent) {
+func (object *ProductRecipe) SaveComponents() {
+	log.Println("DEBUG: SetComponents", object.db_components, object.Components)
+	// for db :=
+	//
+	// 	proc_name := "ProductRecipe.AddComponent"
+	//
+	// 	result, err := DB.DB_Insert_recipe_component.Exec(object.Product_id)
+	// 	if err != nil {
+	// 		log.Printf("%q: %s\n", err, proc_name)
+	// 		return component_data
+	// 	}
+	// 	insert_id, err := result.LastInsertId()
+	// 	if err != nil {
+	// 		log.Printf("%q: %s\n", err, proc_name)
+	// 		return component_data
+	// 	}
+	// 	component_data = new(RecipeComponent)
+	//
+	// 	component_data.Component_id = insert_id
+	// 	component_data.Product_id = object.Product_id
+	// 	object.Components = append(object.Components, component_data)
+	// 	return component_data
+	// }
 
-//
-//
+}
