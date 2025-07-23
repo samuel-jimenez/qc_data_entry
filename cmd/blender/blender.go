@@ -34,8 +34,6 @@ var (
 
 	RANGE_WIDTH,
 
-	PRODUCT_FIELD_WIDTH,
-	PRODUCT_FIELD_HEIGHT,
 	DATA_FIELD_WIDTH,
 	DATA_SUBFIELD_WIDTH,
 	DATA_UNIT_WIDTH,
@@ -145,8 +143,8 @@ func refresh_globals(font_size int) {
 	TOP_PANEL_INTER_SPACER_WIDTH = 30
 
 	GUI.LABEL_WIDTH = 10 * font_size
-	PRODUCT_FIELD_WIDTH = 15 * font_size
-	PRODUCT_FIELD_HEIGHT = font_size*16/10 + 8
+	GUI.PRODUCT_FIELD_WIDTH = 15 * font_size
+	GUI.PRODUCT_FIELD_HEIGHT = font_size*16/10 + 8
 	FIELD_HEIGHT = 24
 
 }
@@ -376,23 +374,23 @@ func show_window() {
 	refresh := func(font_size int) {
 		refresh_vars(font_size)
 
-		product_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
-		recipe_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		product_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		recipe_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		//TODO grow
-		// component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
-		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*PRODUCT_FIELD_HEIGHT)
-		component_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT+add_button_width)
+		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
+		component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+add_button_width)
 
 		//TODO grow
-		// Recipe_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
-		// Recipe_View.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		// Recipe_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// Recipe_View.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
-		component_add_panel.SetSize(TOP_PANEL_WIDTH, PRODUCT_FIELD_HEIGHT)
+		component_add_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
-		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		recipe_sel_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		component_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		component_add_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		recipe_sel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		component_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		component_add_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	}
 

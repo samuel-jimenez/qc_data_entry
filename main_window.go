@@ -174,9 +174,9 @@ func show_window() {
 		refresh_globals(font_size)
 
 		top_spacer_height = 20
-		top_subpanel_height = top_spacer_height + 2*PRODUCT_FIELD_HEIGHT + 2*INTER_SPACER_HEIGHT + BTM_SPACER_HEIGHT
+		top_subpanel_height = top_spacer_height + 2*GUI.PRODUCT_FIELD_HEIGHT + 2*INTER_SPACER_HEIGHT + BTM_SPACER_HEIGHT
 
-		top_panel_height = top_subpanel_height + 2*GUI.GROUPBOX_CUSHION + PRODUCT_FIELD_HEIGHT
+		top_panel_height = top_subpanel_height + 2*GUI.GROUPBOX_CUSHION + GUI.PRODUCT_FIELD_HEIGHT
 
 		hpanel_margin = 10
 		hpanel_width = TOP_PANEL_WIDTH - clock_width
@@ -185,7 +185,7 @@ func show_window() {
 
 		container_item_width = 6 * font_size
 
-		reprint_button_margin_l = 2*GUI.LABEL_WIDTH + PRODUCT_FIELD_WIDTH + TOP_PANEL_INTER_SPACER_WIDTH - ranges_button_width - GUI.DISCRETE_FIELD_WIDTH
+		reprint_button_margin_l = 2*GUI.LABEL_WIDTH + GUI.PRODUCT_FIELD_WIDTH + TOP_PANEL_INTER_SPACER_WIDTH - ranges_button_width - GUI.DISCRETE_FIELD_WIDTH
 	}
 
 	refresh := func(font_size int) {
@@ -197,21 +197,21 @@ func show_window() {
 
 		product_panel_0.SetSize(TOP_PANEL_WIDTH, top_subpanel_height)
 
-		product_panel_0_0.SetSize(hpanel_width, PRODUCT_FIELD_HEIGHT)
+		product_panel_0_0.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 		product_panel_0_0.SetMarginLeft(hpanel_margin)
 		product_panel_0_0.SetMarginTop(top_spacer_height)
 
 		customer_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
 		sample_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
 
-		product_panel_0_1.SetSize(hpanel_width, PRODUCT_FIELD_HEIGHT)
+		product_panel_0_1.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 		product_panel_0_1.SetMarginTop(INTER_SPACER_HEIGHT)
 		product_panel_0_1.SetMarginLeft(hpanel_margin)
 
-		product_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		customer_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		lot_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
-		sample_field.SetLabeledSize(GUI.LABEL_WIDTH, PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		customer_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		sample_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 		ranges_button.SetSize(ranges_button_width, GUI.OFF_AXIS)
 		ranges_button.SetMarginsAll(BUTTON_MARGIN)
@@ -227,7 +227,7 @@ func show_window() {
 		reprint_sample_button.SetMarginsAll(BUTTON_MARGIN)
 		reprint_sample_button.SetSize(REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-		tabs.SetSize(PRODUCT_FIELD_WIDTH, PRODUCT_FIELD_HEIGHT)
+		tabs.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 		panel_water_based.Refresh()
 		panel_oil_based.Refresh()
