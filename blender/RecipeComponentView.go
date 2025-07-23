@@ -70,6 +70,10 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("-")
+
+	view.AutoPanel.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	component_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	amount_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	component_del_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.AutoPanel.Dock(component_field, windigo.Left)
@@ -112,6 +116,10 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	return view
 }
+
+// func (view *RecipeComponentView) SetLabeledSize(label_width, control_width, height int) {
+// 	view.SetSize(label_width+control_width, height)
+// }
 
 //??TODO
 

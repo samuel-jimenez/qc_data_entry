@@ -131,7 +131,9 @@ func (view *RecipeView) RefreshSize() {
 
 	view.SetSize(GUI.OFF_AXIS, height+len(view.Components)*delta_height)
 	for _, component := range view.Components {
+
 		component.SetSize(width, delta_height)
+		// component.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, delta_height)
 	}
 
 }
