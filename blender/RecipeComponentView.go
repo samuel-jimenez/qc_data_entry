@@ -33,6 +33,16 @@ func (control *NumbEditView) Get() float64 {
 }
 
 /*
+ * RecipeComponentViewer
+ *
+ */
+type RecipeComponentViewer interface {
+	SetFont(font *windigo.Font)
+	MoveUp()
+	MoveDown()
+}
+
+/*
  * RecipeComponentView
  *
  */

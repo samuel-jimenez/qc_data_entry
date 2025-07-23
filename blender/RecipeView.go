@@ -14,6 +14,7 @@ type RecipeViewer interface {
 	Update_component_types(component_types_list []string, component_types_data map[string]int64)
 	AddComponent()
 	SetFont(font *windigo.Font)
+	RefreshSize()
 }
 
 type RecipeView struct {
