@@ -530,13 +530,10 @@ func (object *ComponentType) AddInbound(Product_id int64) {
 // }
 
 type RecipeComponent struct {
-	Component_name   string `json:"product_name"`
+	Component_name   string
 	Component_amount float64
-	// Lot_number               string `json:"lot_number"`
-	// Sample_point             string
-	// Visual                   bool
-	Component_id int64
-	Add_order    int64
+	Component_id     int64
+	Add_order        int64
 	// Lot_id     int64
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
@@ -581,6 +578,20 @@ type BlendProduct struct {
 	Recipe     ProductBlend
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
+}
+
+type RecipeView struct {
+	Recipe *ProductRecipe
+	// Components []*RecipeComponent
+	// Product_id int64
+	// Recipe_id  int64
+}
+type RecipeComponentView struct {
+	RecipeComponent *RecipeComponent
+	// Component_name   string
+	// Component_amount float64
+	// Component_id int64
+	// Add_order    int64
 }
 
 func show_window() {
@@ -667,31 +678,6 @@ func show_window() {
 	dock.Dock(component_add_panel, windigo.Top)
 
 	// combobox
-	// TODO combinefunc Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
-	// 	i := 0
-	// 	DB.Forall("fill_combobox_from_query",
-	// 		func() {
-	// 			control.DeleteAllItems()
-	// 		},
-	// 		func(rows *sql.Rows) {
-	// 			var (
-	// 				id   int
-	// 				name string
-	// 			)
-	//
-	// 			if err := rows.Scan(&id, &name); err == nil {
-	// 				fn(id, name)
-	// 			} else {
-	// 				log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
-	// 				// return -1
-	// 			}
-	// 			i++
-	// 		},
-	// 		select_statement, args...)
-	// 	if i == 1 {
-	// 		control.SetSelectedItem(0)
-	// 	}
-	// }
 
 	DB.Forall("fill_combobox_from_query",
 		func() {
@@ -718,7 +704,7 @@ func show_window() {
 
 		DB.DB_Select_product_info)
 
-	//TODO
+	//TODO fixme
 	component_field.Update(product_list)
 	component_add_field.Update(product_list)
 
@@ -891,7 +877,7 @@ func show_window() {
 	})
 
 	product_add_button.OnClick().Bind(func(e *windigo.Event) {
-		// log.Println("product_field", product_field.SelectedItem())
+		log.Println("TODO product_add_button")
 
 		// clear()
 		// clear_product()
@@ -901,7 +887,7 @@ func show_window() {
 			//?TODO add  recip button
 			//recip := Recipe_product.NewRecipe()
 			currentRecipe = Recipe_product.NewRecipe()
-			numRecipes := len(Recipe_product.Recipes)
+			numRecipes := len(Recipe_product.Recipes) - 1
 
 			recipe_field.AddItem(strconv.Itoa(numRecipes))
 			recipe_field.SetSelectedItem(numRecipes)
