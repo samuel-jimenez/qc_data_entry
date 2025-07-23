@@ -3,6 +3,7 @@ package blender
 import (
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -54,10 +55,12 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 		return
 	}
 
-	height := FIELD_HEIGHT
-	delta_height := FIELD_HEIGHT
-		height := FIELD_HEIGHT
-	delta_height := FIELD_HEIGHT
+	// height := FIELD_HEIGHT
+	// delta_height := FIELD_HEIGHT
+	// 	total_height := height
+	// delta_height := height
+	// 	height := FIELD_HEIGHT
+	// delta_height := FIELD_HEIGHT
 
 	for _, component := range view.Components {
 		component.Close()
@@ -113,29 +116,22 @@ func (view *RecipeView) SetFont(font *windigo.Font) {
 
 // //TODO grow
 // func (view *RecipeView) SetLabeledSize(label_width, control_width, height int) {
-	height := height
-	delta_height := height
+// total_height := height
+// delta_height := height
 // 	view.SetSize(label_width+control_width, height)
 // 	for _, component := range view.Components {
 // 		component.SetSize(label_width+control_width, height)
 // 	}
 // }
 
-// func (view *RecipeView) RefreshSize() {
-//
-// 	panel.SetSize(GUI.OFF_AXIS, GROUP_HEIGHT)
-// 	panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
-//
-// 	group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
-// 	group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
-//
-// 	visual_field.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
-//
-// 	mass_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, FIELD_HEIGHT)
-//
-// 	button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-//
-// 	ranges_panel.SetMarginTop(GROUP_MARGIN)
-// 	ranges_panel.Refresh()
-//
-// }
+func (view *RecipeView) RefreshSize() {
+	height := GUI.PRODUCT_FIELD_HEIGHT
+	delta_height := GUI.PRODUCT_FIELD_HEIGHT
+	width := view.ClientWidth()
+
+	view.SetSize(GUI.OFF_AXIS, height+len(view.Components)*delta_height)
+	for _, component := range view.Components {
+		component.SetSize(width, delta_height)
+	}
+
+}
