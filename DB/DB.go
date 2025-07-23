@@ -95,6 +95,7 @@ func DBinit(db *sql.DB) {
 		join bs.component_types
 		using (component_type_id)
 		where recipe_list_id = ?
+		order by component_add_order
 	`)
 
 	DB_Insert_recipe_component = PrepareOrElse(db, `
