@@ -20,7 +20,6 @@ type RecipeView struct {
 	Recipe               *ProductRecipe
 	Components           []*RecipeComponentView
 	component_types_list []string
-	component_types_data *map[string]int
 	// Product_id int64
 	// Recipe_id  int64
 }
@@ -74,9 +73,8 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 
 }
 
-func (view *RecipeView) Update_component_types(component_types_list []string, component_types_data *map[string]int) {
+func (view *RecipeView) Update_component_types(component_types_list []string) {
 	view.component_types_list = component_types_list
-	view.component_types_data = component_types_data
 	if view.Recipe == nil {
 		return
 	}
