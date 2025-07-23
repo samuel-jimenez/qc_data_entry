@@ -593,8 +593,9 @@ type RecipeView struct {
 	Components []*RecipeComponentView
 	// Product_id int64
 	// Recipe_id  int64
-	Get    func() *ProductRecipe
-	Update func(*ProductRecipe)
+	Get                    func() *ProductRecipe
+	Update                 func(*ProductRecipe)
+	Update_component_types func(component_types_list []string)
 }
 
 func (object *RecipeView) AddComponent( /*Product_id int64*/ ) {
@@ -606,6 +607,17 @@ func (object *RecipeView) AddComponent( /*Product_id int64*/ ) {
 		object.Components = append(object.Components, component_data)
 	}
 }
+
+/*
+func (object *RecipeView) Update_component_types( /*Product_id int64* ) {
+	if object.Recipe != nil {
+		// object.Recipe.AddComponent
+		//TODO
+		// (object.Recipe_id,)
+		component_data := NewRecipeComponentView(object)
+		object.Components = append(object.Components, component_data)
+	}
+}*/
 
 func NewRecipeView(parent windigo.Controller) *RecipeView {
 	view := new(RecipeView)
@@ -634,6 +646,22 @@ func NewRecipeView(parent windigo.Controller) *RecipeView {
 
 	}
 	view.Update = update
+
+	update_component_types := func(component_types_list []string) {
+		if view.Recipe == nil {
+			return
+		}
+
+		for _, component := range view.Components {
+			log.Println("DEBUG: RecipeView update_component_types", component)
+			component.Update_component_types(component_types_list)
+
+			// c_view := windigo.NewLabel(component_panel)
+			// c_view.SetText(component.Component_name)
+		}
+	}
+
+	view.Update_component_types = update_component_types
 	return view
 }
 
@@ -644,8 +672,9 @@ type RecipeComponentView struct {
 	// Component_amount float64
 	// Component_id int64
 	// Add_order    int64
-	Get    func() *RecipeComponent
-	Update func(*ProductRecipe)
+	Get                    func() *RecipeComponent
+	Update                 func(*ProductRecipe)
+	Update_component_types func(component_types_list []string)
 }
 
 func NewRecipeComponentView(parent windigo.Controller) *RecipeComponentView {
@@ -670,6 +699,17 @@ func NewRecipeComponentView(parent windigo.Controller) *RecipeComponentView {
 
 	}
 	view.Get = get
+
+	update_component_types := func(component_types_list []string) {
+		text := component_field.Text()
+		log.Println("DEBUG: RecipeComponentView update_component_types", text)
+		component_field.Update(component_types_list)
+		component_field.SetText(text)
+		// c_view := windigo.NewLabel(component_panel)
+		// c_view.SetText(component.Component_name)
+	}
+
+	view.Update_component_types = update_component_types
 
 	return view
 }
