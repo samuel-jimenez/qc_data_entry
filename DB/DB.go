@@ -721,11 +721,10 @@ func Insel_product_name_customer(product_name_customer string, product_id int64)
 	return Insel(db_insert_product_customer, db_select_product_customer, "Debug: Insel_product_name_customer", product_name_customer, product_id)
 }
 
-// TODO func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows) err, select_statement *sql.Stmt, args ...any) {
-func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows), select_statement *sql.Stmt, args ...any) {
+func Forall(proc_name string, start_fn func(), row_fn func(*sql.Rows), select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, calling_fn_name)
+		log.Printf("error: %q: %s\n", err, proc_name)
 		return
 	}
 	start_fn()
@@ -733,3 +732,20 @@ func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows), sel
 		row_fn(rows)
 	}
 }
+
+/*
+// TODO func Forall(calling_fn_name string, start_fn func(), row_fn func(*sql.Rows) err, select_statement *sql.Stmt, args ...any) {
+func Forall(proc_name string, start_fn func(), row_fn func(*sql.Rows) error, select_statement *sql.Stmt, args ...any) {
+	rows, err := select_statement.Query(args...)
+	if err != nil {
+		log.Printf("error: %q: %s\n", err, proc_name)
+		return
+	}
+	start_fn()
+	for rows.Next() {
+		if err = row_fn(rows); err != nil {
+			log.Printf("error: %q: %s\n", err, proc_name)
+			return
+		}
+	}
+}*/

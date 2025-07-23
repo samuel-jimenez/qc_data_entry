@@ -7,6 +7,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 )
 
+// TODO []*
 type ProductRecipe struct {
 	Components []*RecipeComponent
 	// Product_name string `json:"product_name"`
@@ -35,6 +36,9 @@ func (object *ProductRecipe) GetComponents() {
 		},
 		DB.DB_Select_recipe_components, object.Recipe_id)
 }
+func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
+	object.Components = append(object.Components, component_data)
+}
 
 // TODO give our id to children when writing
 // recipe_list_id integer not null,
@@ -42,11 +46,9 @@ func (object *ProductRecipe) GetComponents() {
 // component_type_amount real,
 // component_add_order not null,
 // TODO
-// func (object *ProductRecipe) AddComponent() *RecipeComponent {
+// func (object *ProductRecipe) SetComponents(component_data []*RecipeComponent) {
 // 	proc_name := "ProductRecipe.AddComponent"
-// 	var (
-// 		component_data *RecipeComponent
-// 	)
+//
 // 	result, err := DB.DB_Insert_recipe_component.Exec(object.Product_id)
 // 	if err != nil {
 // 		log.Printf("%q: %s\n", err, proc_name)

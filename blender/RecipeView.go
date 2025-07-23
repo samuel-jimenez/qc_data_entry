@@ -43,9 +43,11 @@ func (view *RecipeView) Get() *ProductRecipe {
 	//TODO
 	view.Recipe.Components = nil
 	for _, component := range view.Components {
-		log.Println("DEBUG: RecipeView Get", component.Get())
-		//TODO
-		// view.Recipe.AddComponent(component.Get())
+		recipeComponent := component.Get()
+		log.Println("DEBUG: RecipeView Get", recipeComponent)
+		if recipeComponent != nil {
+			view.Recipe.AddComponent(component.Get())
+		}
 	}
 	return view.Recipe
 
