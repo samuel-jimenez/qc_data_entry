@@ -36,6 +36,7 @@ func (object *ProductRecipe) GetComponents() {
 		DB.DB_Select_recipe_components, object.Recipe_id)
 }
 
+// TODO give our id to children when writing
 // recipe_list_id integer not null,
 // component_type_id not null,
 // component_type_amount real,

@@ -9,18 +9,6 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-type RecipeComponentView struct {
-	*windigo.AutoPanel
-	RecipeComponent *RecipeComponent
-	// Component_name   string
-	// Component_amount float64
-	// Component_id int64
-	// Add_order    int64
-	Get                    func() *RecipeComponent
-	Update                 func(*RecipeComponent)
-	Update_component_types func(component_types_list []string)
-}
-
 /*
 * NumbEditView
 * 	// cf NumberEditView
@@ -45,11 +33,28 @@ func (control *NumbEditView) Get() float64 {
 	return val
 }
 
+/*
+ * RecipeComponentView
+ *
+ */
+type RecipeComponentView struct {
+	*windigo.AutoPanel
+	RecipeComponent *RecipeComponent
+	// Component_name   string
+	// Component_amount float64
+	// Component_id int64
+	// Add_order    int64
+	Get                    func() *RecipeComponent
+	Update                 func(*RecipeComponent)
+	Update_component_types func(component_types_list []string)
+}
+
 func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	DEL_BUTTON_WIDTH := 20
 
 	view := new(RecipeComponentView)
 	view.RecipeComponent = NewRecipeComponent()
+	view.RecipeComponent.Add_order = len(parent.Components)
 	// view.RecipeComponent.
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -86,14 +91,12 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	view.Update = func(RecipeComponent *RecipeComponent) {
 		log.Println("DEBUG: RecipeComponentView Update", RecipeComponent)
 
-		if view.RecipeComponent == RecipeComponent {
+		if view.RecipeComponent == RecipeComponent || RecipeComponent == nil {
+			log.Println("DEBUG: RecipeComponentView Update return", RecipeComponent, view.RecipeComponent)
 			return
 		}
 
 		view.RecipeComponent = RecipeComponent
-		if view.RecipeComponent == nil {
-			return
-		}
 
 		component_field.SetText(RecipeComponent.Component_name)
 	}
@@ -108,6 +111,14 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	}
 
 	return view
+}
+
+//??TODO
+
+func (view *RecipeComponentView) MoveUp() {
+}
+
+func (view *RecipeComponentView) MoveDown() {
 }
 
 /*

@@ -54,6 +54,11 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 		return
 	}
 
+	height := FIELD_HEIGHT
+	delta_height := FIELD_HEIGHT
+		height := FIELD_HEIGHT
+	delta_height := FIELD_HEIGHT
+
 	for _, component := range view.Components {
 		component.Close()
 	}
@@ -108,6 +113,8 @@ func (view *RecipeView) SetFont(font *windigo.Font) {
 
 // //TODO grow
 // func (view *RecipeView) SetLabeledSize(label_width, control_width, height int) {
+	height := height
+	delta_height := height
 // 	view.SetSize(label_width+control_width, height)
 // 	for _, component := range view.Components {
 // 		component.SetSize(label_width+control_width, height)
