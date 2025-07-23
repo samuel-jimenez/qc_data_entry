@@ -251,7 +251,7 @@ func show_window() {
 	// component_text := "Component"
 
 	product_data := make(map[string]int64)
-	component_types_data := make(map[string]int)
+	component_types_data := make(map[string]int64)
 
 	add_button_width := 20
 	accept_button_width := 50
@@ -439,7 +439,7 @@ func show_window() {
 			func() { component_types_list = nil },
 			func(rows *sql.Rows) {
 				var (
-					id   int
+					id   int64
 					name string
 				)
 

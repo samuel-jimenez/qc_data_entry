@@ -11,7 +11,7 @@ type RecipeViewer interface {
 	windigo.Pane
 	Get() *ProductRecipe
 	Update(recipe *ProductRecipe)
-	Update_component_types(component_types_list []string, component_types_data map[string]int)
+	Update_component_types(component_types_list []string, component_types_data map[string]int64)
 	AddComponent()
 	SetFont(font *windigo.Font)
 }
@@ -21,7 +21,7 @@ type RecipeView struct {
 	Recipe               *ProductRecipe
 	Components           []*RecipeComponentView
 	component_types_list []string
-	component_types_data map[string]int
+	component_types_data map[string]int64
 	// Product_id int64
 	// Recipe_id  int64
 }
@@ -82,7 +82,7 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 
 }
 
-func (view *RecipeView) Update_component_types(component_types_list []string, component_types_data map[string]int) {
+func (view *RecipeView) Update_component_types(component_types_list []string, component_types_data map[string]int64) {
 	view.component_types_list = component_types_list
 	view.component_types_data = component_types_data
 	if view.Recipe == nil {

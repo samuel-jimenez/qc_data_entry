@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -40,7 +41,7 @@ func (control *NumbEditView) Get() float64 {
 type RecipeComponentView struct {
 	*windigo.AutoPanel
 	RecipeComponent      *RecipeComponent
-	component_types_data map[string]int
+	component_types_data map[string]int64
 	// Component_name   string
 	// Component_amount float64
 	// Component_id int64
@@ -83,6 +84,9 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	view.Get = func() *RecipeComponent {
 		view.RecipeComponent.Component_name = component_field.Text()
 		view.RecipeComponent.Component_id = view.component_types_data[view.RecipeComponent.Component_name]
+		if view.RecipeComponent.Component_id == DB.INVALID_ID {
+			return nil
+		}
 		view.RecipeComponent.Component_amount = amount_field.Get()
 		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, component_field.GetSelectedItem(), component_field.SelectedItem(), view.component_types_data[component_field.Text()])
 
