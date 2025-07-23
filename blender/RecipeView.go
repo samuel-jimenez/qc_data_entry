@@ -38,10 +38,12 @@ func (view *RecipeView) Get() *ProductRecipe {
 		return nil
 	}
 	//TODO
-	// view.Recipe.Components = nil
-	// for _, component := range view.Components {
-	// 	view.Recipe.AddComponent(component.Get())
-	// }
+	view.Recipe.Components = nil
+	for _, component := range view.Components {
+		log.Println("DEBUG: RecipeView Get", component.Get())
+
+		// view.Recipe.AddComponent(component.Get())
+	}
 	return view.Recipe
 
 }
@@ -63,10 +65,10 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 
 	for _, component := range view.Recipe.Components {
 		log.Println("DEBUG: RecipeView update_components", component)
-		view.AddComponent()
+		// view.AddComponent()
 		//TODO
-		// component_view := view.AddComponent()
-		// component_view.Update(component)
+		component_view := view.AddComponent()
+		component_view.Update(component)
 	}
 
 }

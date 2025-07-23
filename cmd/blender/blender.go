@@ -289,6 +289,10 @@ func show_window() {
 	recipe_add_button.SetText("+")
 	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
+	recipe_accept_button := windigo.NewPushButton(recipe_panel)
+	recipe_accept_button.SetText("OK")
+	recipe_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
+
 	Recipe_View := blender.NewRecipeView(mainWindow)
 
 	// component_field := GUI.NewComboBox(component_panel, component_text)
@@ -315,6 +319,8 @@ func show_window() {
 	product_panel.Dock(product_add_button, windigo.Left)
 	recipe_panel.Dock(recipe_sel_field, windigo.Left)
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
+	recipe_panel.Dock(recipe_accept_button, windigo.Left)
+
 	component_panel.Dock(component_new_button, windigo.Top)
 	component_panel.Dock(component_field, windigo.Left)
 	component_panel.Dock(component_add_button, windigo.Left)
@@ -489,6 +495,11 @@ func show_window() {
 			// log.Println("product_field", product_field.SelectedItem())
 
 		}
+	})
+	recipe_accept_button.OnClick().Bind(func(e *windigo.Event) {
+
+		log.Println("ERR: DEBUG: Recipe_View Get:", Recipe_View.Get())
+
 	})
 
 	recipe_sel_field.OnSelectedChange().Bind(func(e *windigo.Event) {
