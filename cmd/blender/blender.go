@@ -455,6 +455,10 @@ func (object *ProductRecipe) GetComponents() {
 		DB_Select_recipe_components, object.Recipe_id)
 }
 
+// recipe_list_id integer not null,
+// component_type_id not null,
+// component_type_amount real,
+// component_add_order not null,
 // TODO
 // func (object *ProductRecipe) AddComponent() *RecipeComponent {
 // 	proc_name := "ProductRecipe.AddComponent"
@@ -593,6 +597,14 @@ type RecipeView struct {
 	Update func(*ProductRecipe)
 }
 
+func (object *RecipeView) AddComponent( /*Product_id int64*/ ) {
+	if object.Recipe != nil {
+		// object.Recipe.AddComponent
+		//TODO
+		// (object.Recipe_id,)
+	}
+}
+
 func NewRecipeView(parent windigo.Controller) *RecipeView {
 	view := new(RecipeView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
@@ -607,6 +619,17 @@ func NewRecipeView(parent windigo.Controller) *RecipeView {
 	update := func(recipe *ProductRecipe) {
 		view.Recipe = recipe
 		log.Println("RecipeView Update", view.Recipe)
+		if view.Recipe == nil {
+			return
+		}
+
+		for _, component := range view.Recipe.Components {
+			log.Println("DEBUG: RecipeView update_components", component)
+
+			// c_view := windigo.NewLabel(component_panel)
+			// c_view.SetText(component.Component_name)
+		}
+
 	}
 	view.Update = update
 	return view
@@ -807,6 +830,7 @@ func show_window() {
 
 	}
 
+	//TODO
 	update_components := func(object *ProductRecipe) {
 		for _, component := range object.Components {
 			log.Println("DEBUG: update_components", component)
@@ -947,6 +971,7 @@ func show_window() {
 		i, err := strconv.Atoi(recipe_field.GetSelectedItem())
 		if err != nil {
 			log.Println("ERR: recipe_field strconv", err)
+			Recipe_View.Update(currentRecipe)
 			return
 		}
 		currentRecipe = Recipe_product.Recipes[i]
@@ -963,6 +988,7 @@ func show_window() {
 	component_add_button.OnClick().Bind(func(e *windigo.Event) {
 		if currentRecipe != nil {
 			//?TODO
+			// Recipe_View.AddComponent()
 			// currentRecipe.AddComponent
 
 			// component_field.AddItem(strconv.Itoa(len(Recipe_product.Recipes)))
