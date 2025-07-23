@@ -622,15 +622,14 @@ func (object *RecipeView) Update_component_types( /*Product_id int64* ) {
 func NewRecipeView(parent windigo.Controller) *RecipeView {
 	view := new(RecipeView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
-	get := func() *ProductRecipe {
+	view.Get = func() *ProductRecipe {
 		// Recipe =SQLFilterDiscrete{key,
 		// 	selection_options.Get()}
 		return view.Recipe
 
 	}
 
-	view.Get = get
-	update := func(recipe *ProductRecipe) {
+	view.Update = func(recipe *ProductRecipe) {
 		view.Recipe = recipe
 		log.Println("RecipeView Update", view.Recipe)
 		if view.Recipe == nil {
@@ -645,9 +644,8 @@ func NewRecipeView(parent windigo.Controller) *RecipeView {
 		}
 
 	}
-	view.Update = update
 
-	update_component_types := func(component_types_list []string) {
+	view.Update_component_types = func(component_types_list []string) {
 		if view.Recipe == nil {
 			return
 		}
@@ -661,7 +659,6 @@ func NewRecipeView(parent windigo.Controller) *RecipeView {
 		}
 	}
 
-	view.Update_component_types = update_component_types
 	return view
 }
 
@@ -692,15 +689,14 @@ func NewRecipeComponentView(parent windigo.Controller) *RecipeComponentView {
 	view.AutoPanel.Dock(component_field, windigo.Left)
 	view.AutoPanel.Dock(component_del_button, windigo.Left)
 
-	get := func() *RecipeComponent {
+	view.Get = func() *RecipeComponent {
 		// Recipe =SQLFilterDiscrete{key,
 		// 	selection_options.Get()}
 		return view.RecipeComponent
 
 	}
-	view.Get = get
 
-	update_component_types := func(component_types_list []string) {
+	view.Update_component_types = func(component_types_list []string) {
 		text := component_field.Text()
 		log.Println("DEBUG: RecipeComponentView update_component_types", text)
 		component_field.Update(component_types_list)
@@ -708,8 +704,6 @@ func NewRecipeComponentView(parent windigo.Controller) *RecipeComponentView {
 		// c_view := windigo.NewLabel(component_panel)
 		// c_view.SetText(component.Component_name)
 	}
-
-	view.Update_component_types = update_component_types
 
 	return view
 }
