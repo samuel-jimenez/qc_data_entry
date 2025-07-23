@@ -399,6 +399,7 @@ func show_window() {
 		mainWindow.SetFont(windigo.DefaultFont)
 		product_field.SetFont(windigo.DefaultFont)
 		product_add_button.SetFont(windigo.DefaultFont)
+		Recipe_View.SetFont(windigo.DefaultFont)
 		recipe_sel_field.SetFont(windigo.DefaultFont)
 		recipe_add_button.SetFont(windigo.DefaultFont)
 		component_field.SetFont(windigo.DefaultFont)

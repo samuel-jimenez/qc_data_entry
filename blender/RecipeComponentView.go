@@ -23,6 +23,8 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	DEL_BUTTON_WIDTH := 20
 
 	view := new(RecipeComponentView)
+	view.RecipeComponent = NewRecipeComponent()
+	// view.RecipeComponent.
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
 	component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
@@ -35,10 +37,22 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	view.AutoPanel.Dock(component_del_button, windigo.Left)
 
 	view.Get = func() *RecipeComponent {
-		// Recipe =SQLFilterDiscrete{key,
-		// 	selection_options.Get()}
+		view.RecipeComponent.Component_name = component_field.Text()
 		return view.RecipeComponent
 
+	}
+
+	view.Update = func(RecipeComponent *RecipeComponent) {
+		if view.RecipeComponent == RecipeComponent {
+			return
+		}
+
+		view.RecipeComponent = RecipeComponent
+		if view.RecipeComponent == nil {
+			return
+		}
+
+		component_field.SetText(RecipeComponent.Component_name)
 	}
 
 	view.Update_component_types = func(component_types_list []string) {

@@ -7,10 +7,12 @@ import (
 )
 
 type RecipeViewer interface {
+	windigo.Pane
 	Get() *ProductRecipe
 	Update(recipe *ProductRecipe)
 	Update_component_types(component_types_list []string)
 	AddComponent()
+	SetFont(font *windigo.Font)
 }
 
 type RecipeView struct {
@@ -26,10 +28,11 @@ func (view *RecipeView) Get() *ProductRecipe {
 	if view.Recipe == nil {
 		return nil
 	}
-	// object.Recipe.AddComponent
-
-	// Recipe =SQLFilterDiscrete{key,
-	// 	selection_options.Get()}
+	//TODO
+	// view.Recipe.Components = nil
+	// for _, component := range view.Components {
+	// 	view.Recipe.AddComponent(component.Get())
+	// }
 	return view.Recipe
 
 }
@@ -78,6 +81,12 @@ func (view *RecipeView) AddComponent() {
 		// (object.Recipe_id,)
 		component_data := NewRecipeComponentView(view)
 		view.Components = append(view.Components, component_data)
+	}
+}
+
+func (view *RecipeView) SetFont(font *windigo.Font) {
+	for _, component := range view.Components {
+		component.SetFont(font)
 	}
 }
 

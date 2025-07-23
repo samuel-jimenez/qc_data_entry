@@ -9,3 +9,7 @@ type RecipeComponent struct {
 	// Product_name_customer_id nullable.NullInt64
 	// Product_name_customer    string `json:"customer_product_name"`
 }
+
+func NewRecipeComponent() *RecipeComponent {
+	return new(RecipeComponent)
+}
