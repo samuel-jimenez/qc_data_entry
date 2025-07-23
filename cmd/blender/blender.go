@@ -604,7 +604,7 @@ func (object *RecipeView) AddComponent( /*Product_id int64*/ ) {
 		// object.Recipe.AddComponent
 		//TODO
 		// (object.Recipe_id,)
-		component_data := NewRecipeComponentView(object, object.component_types_list)
+		component_data := NewRecipeComponentView(object)
 		object.Components = append(object.Components, component_data)
 	}
 }
@@ -676,13 +676,13 @@ type RecipeComponentView struct {
 	Update_component_types func(component_types_list []string)
 }
 
-func NewRecipeComponentView(parent windigo.Controller, component_types_list []string) *RecipeComponentView {
+func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	DEL_BUTTON_WIDTH := 20
 
 	view := new(RecipeComponentView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, component_types_list)
+	component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("+")
