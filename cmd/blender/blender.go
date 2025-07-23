@@ -253,7 +253,7 @@ func show_window() {
 	// component_text := "Component"
 
 	product_data := make(map[string]int64)
-	component_types_data := make(map[string]int)
+	// component_types_data := make(map[string]int)
 
 	add_button_width := 20
 	accept_button_width := 50
@@ -445,7 +445,7 @@ func show_window() {
 				)
 
 				if err := rows.Scan(&id, &name); err == nil {
-					component_types_data[name] = id
+					// component_types_data[name] = id
 					log.Println("DEBUG: update_component_types nsme", id, name)
 
 					component_types_list = append(component_types_list, name)
