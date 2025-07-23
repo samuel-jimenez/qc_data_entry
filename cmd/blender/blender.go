@@ -253,7 +253,7 @@ func show_window() {
 	// component_text := "Component"
 
 	product_data := make(map[string]int64)
-	component_types_data := make(map[string]int64)
+	component_types_data := make(map[string]int)
 
 	add_button_width := 20
 	accept_button_width := 50
@@ -440,7 +440,7 @@ func show_window() {
 			func() { component_types_list = nil },
 			func(rows *sql.Rows) {
 				var (
-					id   int64
+					id   int
 					name string
 				)
 
@@ -460,6 +460,7 @@ func show_window() {
 		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list)
 		Recipe_View.Update_component_types(component_types_list, &component_types_data)
+		// Recipe_View.Update_component_types(component_types_list)
 	}
 	update_component_types()
 
