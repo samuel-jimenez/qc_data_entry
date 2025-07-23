@@ -11,6 +11,15 @@ import (
 )
 
 /*
+ * NumbEditViewer
+ *
+ */
+type NumbEditViewer interface {
+	Get() float64
+	Set(float64)
+}
+
+/*
 * NumbEditView
 * 	// cf NumberEditView
 
@@ -30,6 +39,10 @@ func NewNumbEditView(parent windigo.Controller) *NumbEditView {
 func (control *NumbEditView) Get() float64 {
 	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
 	return val
+}
+
+func (control *NumbEditView) Set(val float64) {
+	control.SetText(strconv.FormatFloat(val, 'f', 2, 64))
 }
 
 /*
@@ -112,14 +125,14 @@ func (view *RecipeComponentView) Update(RecipeComponent *RecipeComponent) {
 	log.Println("DEBUG: RecipeComponentView Update", RecipeComponent)
 
 	if view.RecipeComponent == RecipeComponent || RecipeComponent == nil {
-		log.Println("DEBUG: RecipeComponentView Update return", RecipeComponent, view.RecipeComponent)
+		log.Println("Warn: RecipeComponentView Update return", RecipeComponent, view.RecipeComponent)
 		return
 	}
 
 	view.RecipeComponent = RecipeComponent
 
 	view.component_field.SetText(RecipeComponent.Component_name)
-	// view.amount_field.SetText(RecipeComponent.Component_amount) strconv.FormatFloat(mass, 'f', 2, 64)
+	view.amount_field.Set(RecipeComponent.Component_amount)
 
 }
 
