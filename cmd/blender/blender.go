@@ -459,7 +459,7 @@ func show_window() {
 			DB.DB_Select_all_component_types)
 		log.Println("DEBUG: update_component_types", component_types_list)
 		component_field.Update(component_types_list)
-		Recipe_View.Update_component_types(component_types_list, component_types_data)
+		Recipe_View.Update_component_types(component_types_list, &component_types_data)
 	}
 	update_component_types()
 
