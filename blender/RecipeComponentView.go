@@ -117,6 +117,12 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	return view
 }
 
+func (view *RecipeComponentView) SetFont(font *windigo.Font) {
+	// for _, component := range view.Components {
+	// 	component.SetFont(font)
+	// }
+}
+
 // func (view *RecipeComponentView) SetLabeledSize(label_width, control_width, height int) {
 // 	view.SetSize(label_width+control_width, height)
 // }

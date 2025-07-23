@@ -43,7 +43,7 @@ func (view *RecipeView) Get() *ProductRecipe {
 	view.Recipe.Components = nil
 	for _, component := range view.Components {
 		log.Println("DEBUG: RecipeView Get", component.Get())
-
+		//TODO
 		// view.Recipe.AddComponent(component.Get())
 	}
 	return view.Recipe
@@ -99,12 +99,15 @@ func (view *RecipeView) AddComponent() *RecipeComponentView {
 	if view.Recipe == nil {
 		return nil
 	}
-	// object.Recipe.AddComponent
-	//TODO
-	// (object.Recipe_id,)
+
+	height := view.ClientHeight()
+
 	component_view := NewRecipeComponentView(view)
 	view.Components = append(view.Components, component_view)
 	view.AutoPanel.Dock(component_view, windigo.Top)
+
+	view.SetSize(view.ClientWidth(), height+component_view.ClientHeight())
+
 	return component_view
 }
 
