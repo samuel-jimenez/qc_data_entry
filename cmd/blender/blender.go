@@ -589,8 +589,9 @@ type BlendProduct struct {
 
 type RecipeView struct {
 	*windigo.AutoPanel
-	Recipe     *ProductRecipe
-	Components []*RecipeComponentView
+	Recipe               *ProductRecipe
+	Components           []*RecipeComponentView
+	component_types_list []string
 	// Product_id int64
 	// Recipe_id  int64
 	Get                    func() *ProductRecipe
@@ -603,7 +604,7 @@ func (object *RecipeView) AddComponent( /*Product_id int64*/ ) {
 		// object.Recipe.AddComponent
 		//TODO
 		// (object.Recipe_id,)
-		component_data := NewRecipeComponentView(object)
+		component_data := NewRecipeComponentView(object, object.component_types_list)
 		object.Components = append(object.Components, component_data)
 	}
 }
@@ -649,6 +650,7 @@ func NewRecipeView(parent windigo.Controller) *RecipeView {
 		if view.Recipe == nil {
 			return
 		}
+		view.component_types_list = component_types_list
 
 		for _, component := range view.Components {
 			log.Println("DEBUG: RecipeView update_component_types", component)
@@ -674,13 +676,13 @@ type RecipeComponentView struct {
 	Update_component_types func(component_types_list []string)
 }
 
-func NewRecipeComponentView(parent windigo.Controller) *RecipeComponentView {
+func NewRecipeComponentView(parent windigo.Controller, component_types_list []string) *RecipeComponentView {
 	DEL_BUTTON_WIDTH := 20
 
 	view := new(RecipeComponentView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	component_field := GUI.NewSearchBox(view.AutoPanel)
+	component_field := GUI.NewSearchBoxWithLabels(view.AutoPanel, component_types_list)
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("+")
