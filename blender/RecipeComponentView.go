@@ -37,6 +37,9 @@ func (control *NumbEditView) Get() float64 {
  *
  */
 type RecipeComponentViewer interface {
+	Get() *RecipeComponent
+	Update(*RecipeComponent)
+	Update_component_types(component_types_list []string)
 	SetFont(font *windigo.Font)
 	MoveUp()
 	MoveDown()
@@ -57,9 +60,6 @@ type RecipeComponentView struct {
 	// Component_amount float64
 	// Component_id int64
 	// Add_order    int64
-	Get                    func() *RecipeComponent
-	Update                 func(*RecipeComponent)
-	Update_component_types func(component_types_list []string)
 }
 
 func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
@@ -92,43 +92,44 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	// view.AutoPanel.Dock(order_field, windigo.Left)
 	view.AutoPanel.Dock(component_del_button, windigo.Left)
 
-	view.Get = func() *RecipeComponent {
-		view.RecipeComponent.Component_name = view.component_field.Text()
-		view.RecipeComponent.Component_id = view.component_types_data[view.RecipeComponent.Component_name]
-		if view.RecipeComponent.Component_id == DB.INVALID_ID {
-			//TODO make error
-			return nil
-		}
-		view.RecipeComponent.Component_amount = view.amount_field.Get()
-		log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, view.component_field.GetSelectedItem(), view.component_field.SelectedItem(), view.component_types_data[view.component_field.Text()])
-
-		return view.RecipeComponent
-
-	}
-
-	view.Update = func(RecipeComponent *RecipeComponent) {
-		log.Println("DEBUG: RecipeComponentView Update", RecipeComponent)
-
-		if view.RecipeComponent == RecipeComponent || RecipeComponent == nil {
-			log.Println("DEBUG: RecipeComponentView Update return", RecipeComponent, view.RecipeComponent)
-			return
-		}
-
-		view.RecipeComponent = RecipeComponent
-
-		view.component_field.SetText(RecipeComponent.Component_name)
-	}
-
-	view.Update_component_types = func(component_types_list []string) {
-		text := view.component_field.Text()
-		log.Println("DEBUG: RecipeComponentView update_component_types", text)
-		view.component_field.Update(component_types_list)
-		view.component_field.SetText(text)
-		// c_view := windigo.NewLabel(component_panel)
-		// c_view.SetText(component.Component_name)
-	}
-
 	return view
+}
+
+func (view *RecipeComponentView) Get() *RecipeComponent {
+	view.RecipeComponent.Component_name = view.component_field.Text()
+	view.RecipeComponent.Component_id = view.component_types_data[view.RecipeComponent.Component_name]
+	if view.RecipeComponent.Component_id == DB.INVALID_ID {
+		//TODO make error
+		return nil
+	}
+	view.RecipeComponent.Component_amount = view.amount_field.Get()
+	log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, view.component_field.GetSelectedItem(), view.component_field.SelectedItem(), view.component_types_data[view.component_field.Text()])
+
+	return view.RecipeComponent
+}
+
+func (view *RecipeComponentView) Update(RecipeComponent *RecipeComponent) {
+	log.Println("DEBUG: RecipeComponentView Update", RecipeComponent)
+
+	if view.RecipeComponent == RecipeComponent || RecipeComponent == nil {
+		log.Println("DEBUG: RecipeComponentView Update return", RecipeComponent, view.RecipeComponent)
+		return
+	}
+
+	view.RecipeComponent = RecipeComponent
+
+	view.component_field.SetText(RecipeComponent.Component_name)
+	// view.amount_field.SetText(RecipeComponent.Component_amount) strconv.FormatFloat(mass, 'f', 2, 64)
+
+}
+
+func (view *RecipeComponentView) Update_component_types(component_types_list []string) {
+	text := view.component_field.Text()
+	log.Println("DEBUG: RecipeComponentView update_component_types", text)
+	view.component_field.Update(component_types_list)
+	view.component_field.SetText(text)
+	// c_view := windigo.NewLabel(component_panel)
+	// c_view.SetText(component.Component_name)
 }
 
 func (view *RecipeComponentView) SetFont(font *windigo.Font) {
