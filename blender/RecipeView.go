@@ -54,10 +54,9 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 
 	for _, component := range view.Recipe.Components {
 		log.Println("DEBUG: RecipeView update_components", component)
-		component_view := NewRecipeComponentView(view)
-		view.Components = append(view.Components, component_view)
-		view.AutoPanel.Dock(component_view, windigo.Top)
+		view.AddComponent()
 		//TODO
+		// component_view := view.AddComponent()
 		// component_view.Update(component)
 	}
 
@@ -75,15 +74,17 @@ func (view *RecipeView) Update_component_types(component_types_list []string) {
 	}
 }
 
-func (view *RecipeView) AddComponent() {
-	if view.Recipe != nil {
-		// object.Recipe.AddComponent
-		//TODO
-		// (object.Recipe_id,)
-		component_view := NewRecipeComponentView(view)
-		view.Components = append(view.Components, component_view)
-		view.AutoPanel.Dock(component_view, windigo.Top)
+func (view *RecipeView) AddComponent() *RecipeComponentView {
+	if view.Recipe == nil {
+		return nil
 	}
+	// object.Recipe.AddComponent
+	//TODO
+	// (object.Recipe_id,)
+	component_view := NewRecipeComponentView(view)
+	view.Components = append(view.Components, component_view)
+	view.AutoPanel.Dock(component_view, windigo.Top)
+	return component_view
 }
 
 func (view *RecipeView) SetFont(font *windigo.Font) {
