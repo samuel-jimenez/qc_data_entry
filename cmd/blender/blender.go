@@ -264,6 +264,9 @@ func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
 		combo_field.AddItem(strconv.Itoa(i))
 		i++
 	})
+	if i != 0 {
+		combo_field.SetSelectedItem(0)
+	}
 }
 
 func (object *RecipeProduct) NewRecipe() *ProductRecipe {
@@ -581,17 +584,57 @@ type BlendProduct struct {
 }
 
 type RecipeView struct {
+	*windigo.AutoPanel
 	Recipe *ProductRecipe
 	// Components []*RecipeComponent
 	// Product_id int64
 	// Recipe_id  int64
+	Get    func() *ProductRecipe
+	Update func(*ProductRecipe)
 }
+
+func NewRecipeView(parent windigo.Controller) *RecipeView {
+	view := new(RecipeView)
+	view.AutoPanel = windigo.NewAutoPanel(parent)
+	get := func() *ProductRecipe {
+		// Recipe =SQLFilterDiscrete{key,
+		// 	selection_options.Get()}
+		return view.Recipe
+
+	}
+
+	view.Get = get
+	update := func(recipe *ProductRecipe) {
+		view.Recipe = recipe
+		log.Println("RecipeView Update", view.Recipe)
+	}
+	view.Update = update
+	return view
+}
+
 type RecipeComponentView struct {
+	*windigo.AutoPanel
 	RecipeComponent *RecipeComponent
 	// Component_name   string
 	// Component_amount float64
 	// Component_id int64
 	// Add_order    int64
+	Get    func() *RecipeComponent
+	Update func(*ProductRecipe)
+}
+
+func NewRecipeComponentView(parent windigo.Controller) *RecipeComponentView {
+	view := new(RecipeComponentView)
+	view.AutoPanel = windigo.NewAutoPanel(parent)
+	get := func() *RecipeComponent {
+		// Recipe =SQLFilterDiscrete{key,
+		// 	selection_options.Get()}
+		return view.RecipeComponent
+
+	}
+	view.Get = get
+
+	return view
 }
 
 func show_window() {
@@ -641,6 +684,8 @@ func show_window() {
 	recipe_add_button.SetText("+")
 	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
 
+	Recipe_View := NewRecipeView(mainWindow)
+
 	// component_field := GUI.NewComboBox(component_panel, component_text)
 	component_field := GUI.NewSearchBox(component_panel)
 	component_add_button := windigo.NewPushButton(component_panel)
@@ -674,6 +719,7 @@ func show_window() {
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
+	dock.Dock(Recipe_View, windigo.Top)
 	dock.Dock(component_panel, windigo.Top)
 	dock.Dock(component_add_panel, windigo.Top)
 
@@ -873,7 +919,7 @@ func show_window() {
 		// Recipe_product.GetRecipes()
 		Recipe_product.LoadRecipeCombo(recipe_field)
 		Recipe_product.GetComponents()
-		currentRecipe = nil
+		recipe_field.OnSelectedChange().Fire(nil)
 	})
 
 	product_add_button.OnClick().Bind(func(e *windigo.Event) {
@@ -884,10 +930,9 @@ func show_window() {
 	})
 	recipe_add_button.OnClick().Bind(func(e *windigo.Event) {
 		if Recipe_product.Product_id != DB.INVALID_ID {
-			//?TODO add  recip button
-			//recip := Recipe_product.NewRecipe()
+
+			numRecipes := len(Recipe_product.Recipes)
 			currentRecipe = Recipe_product.NewRecipe()
-			numRecipes := len(Recipe_product.Recipes) - 1
 
 			recipe_field.AddItem(strconv.Itoa(numRecipes))
 			recipe_field.SetSelectedItem(numRecipes)
@@ -898,13 +943,15 @@ func show_window() {
 	})
 
 	recipe_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-
+		currentRecipe = nil
 		i, err := strconv.Atoi(recipe_field.GetSelectedItem())
 		if err != nil {
 			log.Println("ERR: recipe_field strconv", err)
+			return
 		}
 		currentRecipe = Recipe_product.Recipes[i]
 		update_components(currentRecipe)
+		Recipe_View.Update(currentRecipe)
 
 		// Recipe_product = NewRecipeProduct()
 		// name := product_field.GetSelectedItem()
