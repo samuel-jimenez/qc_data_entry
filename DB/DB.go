@@ -14,7 +14,7 @@ var (
 	DB_VERSION = "0.0.2"
 
 	DB_Select_product_recipe, DB_Insert_product_recipe,
-	DB_Select_recipe_components, DB_Insert_recipe_component,
+	DB_Select_recipe_components, DB_Insert_recipe_component, DB_Update_recipe_component, DB_Delete_recipe_component,
 	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	db_select_product_id, db_insert_product,
 	DB_Select_product_info,
@@ -103,6 +103,19 @@ func DBinit(db *sql.DB) {
 		(recipe_list_id,component_type_id,component_type_amount,component_add_order)
 		values (?,?,?,?)
 	returning recipe_components_id
+	`)
+	DB_Update_recipe_component = PrepareOrElse(db, `
+	update  bs.recipe_components
+	set
+		component_type_id=?,
+		component_type_amount=?,
+		component_add_order=?
+	where recipe_components_id = ?
+	`)
+
+	DB_Delete_recipe_component = PrepareOrElse(db, `
+	delete from bs.recipe_components
+	where recipe_components_id = ?
 	`)
 
 	DB_Select_name_component_types = PrepareOrElse(db, `

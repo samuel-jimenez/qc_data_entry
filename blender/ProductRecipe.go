@@ -106,6 +106,16 @@ func (object *ProductRecipe) SaveComponents() {
 	add_set = slices.Collect(maps.Values(add_map))
 	log.Println("DEBUG: ProductRecipe del_set, add_set, up_set", del_set, add_set, up_set)
 
+	for _, val := range up_set {
+		val.Update()
+	}
+	for _, val := range add_set {
+		val.Insert(object.Recipe_id)
+	}
+	for _, val := range del_set {
+		val.Delete()
+	}
+
 	// 	for i := old_min; i< old_max
 	//
 	// 	}
