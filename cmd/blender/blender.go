@@ -249,7 +249,7 @@ func show_window() {
 	recipe_accept_button.SetText("OK")
 	recipe_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
 
-	Recipe_View := blender.NewRecipeView(mainWindow)
+	Blend_View := blender.NewBlendView(mainWindow)
 	//TODO BlendView
 
 	// Dock
@@ -261,7 +261,7 @@ func show_window() {
 
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
-	dock.Dock(Recipe_View, windigo.Top)
+	dock.Dock(Blend_View, windigo.Top)
 
 	// combobox
 
@@ -302,7 +302,7 @@ func show_window() {
 
 		product_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		recipe_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		Recipe_View.RefreshSize()
+		Blend_View.RefreshSize()
 
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		recipe_sel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
@@ -323,7 +323,7 @@ func show_window() {
 		mainWindow.SetFont(windigo.DefaultFont)
 		product_field.SetFont(windigo.DefaultFont)
 		product_add_button.SetFont(windigo.DefaultFont)
-		Recipe_View.SetFont(windigo.DefaultFont)
+		Blend_View.SetFont(windigo.DefaultFont)
 		recipe_sel_field.SetFont(windigo.DefaultFont)
 		recipe_add_button.SetFont(windigo.DefaultFont)
 		recipe_accept_button.SetFont(windigo.DefaultFont)
@@ -357,7 +357,7 @@ func show_window() {
 			},
 			DB.DB_Select_all_component_types)
 		log.Println("DEBUG: update_component_types", component_types_list)
-		Recipe_View.Update_component_types(component_types_list, component_types_data)
+		Blend_View.Update_component_types(component_types_list, component_types_data)
 		// Recipe_View.Update_component_types(component_types_list)
 	}
 	update_component_types()
@@ -389,7 +389,7 @@ func show_window() {
 
 			recipe_sel_field.AddItem(strconv.Itoa(numRecipes))
 			recipe_sel_field.SetSelectedItem(numRecipes)
-			Recipe_View.Update(Recipe_product.NewRecipe())
+			Blend_View.Update(Recipe_product.NewRecipe())
 
 			// log.Println("product_field", product_field.SelectedItem())
 
@@ -397,7 +397,7 @@ func show_window() {
 	})
 	recipe_accept_button.OnClick().Bind(func(e *windigo.Event) {
 
-		log.Println("ERR: DEBUG: Recipe_View Get:", Recipe_View.Get())
+		log.Println("ERR: DEBUG: Recipe_View Get:", Blend_View.Get())
 
 	})
 
@@ -405,10 +405,10 @@ func show_window() {
 		i, err := strconv.Atoi(recipe_sel_field.GetSelectedItem())
 		if err != nil {
 			log.Println("ERR: recipe_field strconv", err)
-			Recipe_View.Update(nil)
+			Blend_View.Update(nil)
 			return
 		}
-		Recipe_View.Update(Recipe_product.Recipes[i])
+		Blend_View.Update(Recipe_product.Recipes[i])
 
 		// Recipe_product = NewRecipeProduct()
 		// name := product_field.GetSelectedItem()

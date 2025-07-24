@@ -11,7 +11,7 @@ type BlendViewer interface {
 	windigo.Pane
 	// Get() *ProductBlend
 	// Update(blend *ProductBlend)
-	// Update_component_types(component_types_list []string, component_types_data map[string]int64)
+	Update_component_types(component_types_list []string, component_types_data map[string]int64)
 	// AddComponent()
 	SetFont(font *windigo.Font)
 	RefreshSize()
@@ -37,7 +37,6 @@ func NewBlendView(parent windigo.Controller) *BlendView {
 	return view
 }
 
-/*
 func (view *BlendView) Get() *ProductBlend {
 	if view.Blend == nil {
 		return nil
@@ -117,7 +116,7 @@ func (view *BlendView) AddComponent() *BlendComponentView {
 	view.SetSize(view.ClientWidth(), height+component_view.ClientHeight())
 
 	return component_view
-}*/
+}
 
 func (view *BlendView) SetFont(font *windigo.Font) {
 	for _, component := range view.Components {
