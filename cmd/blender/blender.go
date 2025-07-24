@@ -565,9 +565,326 @@ func show_window() {
 	mainWindow.RunMainLoop() // Must call to start event loop.
 }
 
-/*
 func show_Formulator() {
 
 	log.Println("Info: Process started")
 
-	window_title := "QC Data Formulator"*/
+	window_title := "QC Data Formulator"
+
+	product_text := "Product"
+	recipe_text := ""
+	// component_text := "Component"
+
+	product_data := make(map[string]int64)
+	component_types_data := make(map[string]int64)
+
+	add_button_width := 20
+	accept_button_width := 50
+	cancel_button_width := 50
+
+	// Blend_product := new(BlendProduct)
+	Recipe_product := blender.NewRecipeProduct()
+	var (
+		product_list,
+		component_types_list []string
+	)
+
+	// build window
+	mainWindow := windigo.NewForm(nil)
+	mainWindow.SetText(window_title)
+	dock := windigo.NewSimpleDock(mainWindow)
+
+	product_panel := windigo.NewAutoPanel(mainWindow)
+	recipe_panel := windigo.NewAutoPanel(mainWindow)
+	component_panel := windigo.NewAutoPanel(mainWindow)
+	component_add_panel := windigo.NewAutoPanel(mainWindow)
+
+	product_field := GUI.NewComboBox(product_panel, product_text)
+
+	// product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
+	//
+	product_add_button := windigo.NewPushButton(product_panel)
+	product_add_button.SetText("+")
+	product_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
+
+	recipe_sel_field := GUI.NewComboBox(recipe_panel, recipe_text)
+	recipe_add_button := windigo.NewPushButton(recipe_panel)
+	recipe_add_button.SetText("+")
+	recipe_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
+
+	recipe_accept_button := windigo.NewPushButton(recipe_panel)
+	recipe_accept_button.SetText("OK")
+	recipe_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
+
+	Recipe_View := blender.NewRecipeView(mainWindow)
+
+	// component_field := GUI.NewComboBox(component_panel, component_text)
+	component_field := GUI.NewSearchBox(component_panel)
+	component_add_button := windigo.NewPushButton(component_panel)
+	component_add_button.SetText("+")
+	component_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
+
+	component_new_button := windigo.NewPushButton(component_panel)
+	component_new_button.SetText("+")
+	component_new_button.SetSize(add_button_width, add_button_width)
+
+	component_add_field := GUI.NewSearchBox(component_add_panel)
+	component_accept_button := windigo.NewPushButton(component_add_panel)
+	component_accept_button.SetText("OK")
+	component_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
+	component_cancel_button := windigo.NewPushButton(component_add_panel)
+	component_cancel_button.SetText("Cancel")
+	component_cancel_button.SetSize(cancel_button_width, GUI.OFF_AXIS)
+	// component_add_panel.Hide()
+
+	// Dock
+	product_panel.Dock(product_field, windigo.Left)
+	product_panel.Dock(product_add_button, windigo.Left)
+	recipe_panel.Dock(recipe_sel_field, windigo.Left)
+	recipe_panel.Dock(recipe_add_button, windigo.Left)
+	recipe_panel.Dock(recipe_accept_button, windigo.Left)
+
+	component_panel.Dock(component_new_button, windigo.Top)
+	component_panel.Dock(component_field, windigo.Left)
+	component_panel.Dock(component_add_button, windigo.Left)
+	component_add_panel.Dock(component_add_field, windigo.Left)
+	component_add_panel.Dock(component_accept_button, windigo.Left)
+	component_add_panel.Dock(component_cancel_button, windigo.Left)
+
+	dock.Dock(product_panel, windigo.Top)
+	dock.Dock(recipe_panel, windigo.Top)
+	dock.Dock(Recipe_View, windigo.Top)
+	dock.Dock(component_panel, windigo.Top)
+	dock.Dock(component_add_panel, windigo.Top)
+
+	// combobox
+
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			product_field.DeleteAllItems()
+		},
+		func(row *sql.Rows) {
+			var (
+				id                   int64
+				internal_name        string
+				product_moniker_name string
+			)
+			if err := row.Scan(&id, &internal_name, &product_moniker_name); err == nil {
+				name := product_moniker_name + " " + internal_name
+				product_data[name] = id
+
+				product_list = append(product_list, name)
+
+				product_field.AddItem(name)
+			} else {
+				log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
+				// return -1
+			}
+		},
+
+		DB.DB_Select_product_info)
+
+	//TODO fixme
+	component_field.Update(product_list)
+	component_add_field.Update(product_list)
+
+	// functionality
+
+	// sizing
+	refresh_vars := func(font_size int) {
+		refresh_globals(font_size)
+
+	}
+	refresh := func(font_size int) {
+		refresh_vars(font_size)
+
+		product_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		recipe_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		//TODO grow
+		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
+		component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+add_button_width)
+
+		//TODO grow
+		// Recipe_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// Recipe_View.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		Recipe_View.RefreshSize()
+
+		component_add_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+
+		product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		recipe_sel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		component_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		component_add_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+
+	}
+
+	//size
+	set_font := func(font_size int) {
+		GUI.BASE_FONT_SIZE = font_size
+
+		config.Main_config.Set("font_size", GUI.BASE_FONT_SIZE)
+		config.Write_config(config.Main_config)
+
+		old_font := windigo.DefaultFont
+		windigo.DefaultFont = windigo.NewFont(old_font.Family(), GUI.BASE_FONT_SIZE, 0)
+		old_font.Dispose()
+
+		mainWindow.SetFont(windigo.DefaultFont)
+		product_field.SetFont(windigo.DefaultFont)
+		product_add_button.SetFont(windigo.DefaultFont)
+		Recipe_View.SetFont(windigo.DefaultFont)
+		recipe_sel_field.SetFont(windigo.DefaultFont)
+		recipe_add_button.SetFont(windigo.DefaultFont)
+		component_field.SetFont(windigo.DefaultFont)
+		component_add_button.SetFont(windigo.DefaultFont)
+		component_new_button.SetFont(windigo.DefaultFont)
+		component_add_field.SetFont(windigo.DefaultFont)
+		component_accept_button.SetFont(windigo.DefaultFont)
+		component_cancel_button.SetFont(windigo.DefaultFont)
+		// threads.Status_bar.SetFont(windigo.DefaultFont)
+		refresh(font_size)
+
+	}
+
+	//TODO move
+	update_component_types := func() {
+
+		DB.Forall("update_component_types",
+			func() { component_types_list = nil },
+			func(row *sql.Rows) {
+				var (
+					id   int64
+					name string
+				)
+
+				if err := row.Scan(&id, &name); err == nil {
+					component_types_data[name] = id
+					log.Println("DEBUG: update_component_types nsme", id, name)
+
+					component_types_list = append(component_types_list, name)
+
+					// component_field.AddItem(name)
+				} else {
+					log.Printf("error: [%s]: %q\n", "fgjifjofdgkjfokgf", err)
+					// return -1
+				}
+			},
+			DB.DB_Select_all_component_types)
+		log.Println("DEBUG: update_component_types", component_types_list)
+		component_field.Update(component_types_list)
+		Recipe_View.Update_component_types(component_types_list, component_types_data)
+		// Recipe_View.Update_component_types(component_types_list)
+	}
+	update_component_types()
+
+	set_font(GUI.BASE_FONT_SIZE)
+
+	//event handling
+	product_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		//TODO move to view
+		Recipe_product = blender.NewRecipeProduct()
+		name := product_field.GetSelectedItem()
+		Recipe_product.Set(name, product_data[name])
+		// Recipe_product.GetRecipes()
+		Recipe_product.LoadRecipeCombo(recipe_sel_field)
+		Recipe_product.GetComponents()
+		recipe_sel_field.OnSelectedChange().Fire(nil)
+	})
+
+	product_add_button.OnClick().Bind(func(e *windigo.Event) {
+		log.Println("TODO product_add_button")
+
+		// clear()
+		// clear_product()
+	})
+	recipe_add_button.OnClick().Bind(func(e *windigo.Event) {
+		if Recipe_product.Product_id != DB.INVALID_ID {
+
+			numRecipes := len(Recipe_product.Recipes)
+
+			recipe_sel_field.AddItem(strconv.Itoa(numRecipes))
+			recipe_sel_field.SetSelectedItem(numRecipes)
+			Recipe_View.Update(Recipe_product.NewRecipe())
+
+			// log.Println("product_field", product_field.SelectedItem())
+
+		}
+	})
+	recipe_accept_button.OnClick().Bind(func(e *windigo.Event) {
+
+		log.Println("ERR: DEBUG: Recipe_View Get:", Recipe_View.Get())
+
+	})
+
+	recipe_sel_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		i, err := strconv.Atoi(recipe_sel_field.GetSelectedItem())
+		if err != nil {
+			log.Println("ERR: recipe_field strconv", err)
+			Recipe_View.Update(nil)
+			return
+		}
+		Recipe_View.Update(Recipe_product.Recipes[i])
+
+		// Recipe_product = NewRecipeProduct()
+		// name := product_field.GetSelectedItem()
+		// Recipe_product.Set(name, product_data[name])
+		// // Recipe_product.GetRecipes()
+		// Recipe_product.LoadRecipeCombo(recipe_field)
+	})
+
+	component_add_button.OnClick().Bind(func(e *windigo.Event) {
+		if Recipe_View.Recipe != nil {
+			Recipe_View.AddComponent()
+		}
+	})
+
+	component_new_button.OnClick().Bind(func(e *windigo.Event) {
+		component_add_panel.Show()
+	})
+
+	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
+		component := NewComponentType(component_add_field.Text())
+		Product_id := product_data[component.Component_name]
+		if Product_id != DB.INVALID_ID {
+			component.AddProduct(Product_id)
+		}
+		component_add_panel.Hide()
+		update_component_types()
+	})
+	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {
+		component_add_panel.Hide()
+	})
+
+	// component_add_field.OnChange().Bind(func(e *windigo.Event) {
+	// 	log.Println("CRIT: DEBUG: component_add_field OnChange", component_add_field.Text(), component_add_field.SelectedItem())
+	// 	component_add_field.ShowDropdown(true)
+	//
+	// 	// component_add_field.SetText(text)
+	//
+	// 	// data_view.SelectText(start, end)
+	// 	// component_add_field.SelectText(start, -1)
+	// })
+
+	// component_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+	//
+	// 	i, err := strconv.Atoi(component_field.GetSelectedItem())
+	// 	if err != nil {
+	// 		log.Println("ERR: component_field strconv", err)
+	// 	}
+	// 	update_components(Recipe_product.Recipes[i])
+	//
+	// 	// Recipe_product = NewRecipeProduct()
+	// 	// name := product_field.GetSelectedItem()
+	// 	// Recipe_product.Set(name, product_data[name])
+	// 	// // Recipe_product.GetRecipes()
+	// 	// Recipe_product.LoadRecipeCombo(component_field)
+	// })
+
+	mainWindow.Center()
+	mainWindow.Show()
+	mainWindow.OnClose().Bind(func(*windigo.Event) {
+		windigo.Exit()
+	})
+	mainWindow.RunMainLoop() // Must call to start event loop.
+}
