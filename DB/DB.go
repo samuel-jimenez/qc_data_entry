@@ -90,7 +90,7 @@ func DBinit(db *sql.DB) {
 	`)
 
 	DB_Select_recipe_components = PrepareOrElse(db, `
-	select component_type_id, component_type_name, component_type_amount, component_add_order
+	select recipe_components_id, component_type_id, component_type_name, component_type_amount, component_add_order
 		from bs.recipe_components
 		join bs.component_types
 		using (component_type_id)

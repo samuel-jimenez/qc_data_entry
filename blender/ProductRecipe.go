@@ -30,7 +30,7 @@ func (object *ProductRecipe) GetComponents() {
 		func(rows *sql.Rows) {
 			Recipe_component := NewRecipeComponent()
 
-			if err := rows.Scan(&Recipe_component.Component_name, &Recipe_component.Component_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
+			if err := rows.Scan(&Recipe_component.Component_id, &Recipe_component.Component_name, &Recipe_component.Component_type_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
 				log.Fatal(err)
 			}
 			log.Println("DEBUG: GetComponents qc_data", Recipe_component)
@@ -60,29 +60,50 @@ func (object *ProductRecipe) SaveComponents() {
 	// new_max := len(object.Components)
 	var del_set, add_set, up_set []*RecipeComponent
 
-	lookup := make(map[int64]*RecipeComponent)
+	lookup_map := make(map[int64]*RecipeComponent)
+	add_map := make(map[int64]*RecipeComponent)
 	// Component_id
 	// map[T]struct{}
 	for _, db := range object.db_components {
-		lookup[db.Component_id] = db
+		lookup_map[db.Component_id] = db
 		log.Println("DEBUG: ProductRecipe db_components", db)
 
 	}
 	for _, val := range object.Components {
 		log.Println("DEBUG: ProductRecipe Components", val)
 
-		oldVal := lookup[val.Component_id]
+		oldVal := lookup_map[val.Component_id]
+		// new Component_id
 		if oldVal == nil {
-			add_set = append(add_set, val)
+			// add_set = append(add_set, val)
+			add_map[val.Component_type_id] = val
 			continue
 		}
+		// no change (intersection)
 		if oldVal == val {
-			delete(lookup, val.Component_id)
+			delete(lookup_map, val.Component_id)
 			continue
 		}
+		// value change
 		up_set = append(up_set, val)
 	}
-	del_set = slices.Collect(maps.Values(lookup))
+	// check if any product was deleted and re-added
+	for _, val := range lookup_map {
+		newVal := add_map[val.Component_type_id]
+		if newVal == nil {
+			del_set = append(del_set, val)
+			continue
+		}
+		log.Println("DEBUG: ProductRecipe add_set match", newVal, val)
+		newVal.Component_id = val.Component_id
+		up_set = append(up_set, newVal)
+
+		delete(add_map, val.Component_type_id)
+
+		log.Println("DEBUG: ProductRecipe add_set matched", newVal, val)
+	}
+
+	add_set = slices.Collect(maps.Values(add_map))
 	log.Println("DEBUG: ProductRecipe del_set, add_set, up_set", del_set, add_set, up_set)
 
 	// 	for i := old_min; i< old_max

@@ -110,11 +110,11 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 func (view *RecipeComponentView) Get() *RecipeComponent {
 	view.RecipeComponent.Component_name = view.component_field.Text()
-	view.RecipeComponent.Component_id = view.component_types_data[view.RecipeComponent.Component_name]
-	if view.RecipeComponent.Component_id == DB.INVALID_ID {
+	view.RecipeComponent.Component_type_id = view.component_types_data[view.RecipeComponent.Component_name]
+	if view.RecipeComponent.Component_type_id == DB.INVALID_ID {
 		//TODO make error
 		return nil
-	}
+	} //TODO check for zero amount?
 	view.RecipeComponent.Component_amount = view.amount_field.Get()
 	log.Println("DEBUG: RecipeComponentView update_component_types", view.RecipeComponent, view.component_field.GetSelectedItem(), view.component_field.SelectedItem(), view.component_types_data[view.component_field.Text()])
 
