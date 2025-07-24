@@ -32,7 +32,7 @@ func (object *ProductRecipe) GetComponents() {
 			object.Components = append(object.Components, Recipe_component)
 		},
 		DB.DB_Select_recipe_components, object.Recipe_id)
-	object.db_components = object.Components
+	object.db_components = slices.Clone(object.Components)
 }
 func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
 	object.Components = append(object.Components, component_data)
@@ -57,6 +57,8 @@ func (object *ProductRecipe) SaveComponents() {
 		log.Println("DEBUG: ProductRecipe Components", val)
 
 		oldVal := lookup_map[val.Component_id]
+		log.Println("DEBUG: ProductRecipe oldVal", oldVal)
+
 		// new Component_id
 		if oldVal == nil {
 			// add_set = append(add_set, val)
@@ -65,16 +67,20 @@ func (object *ProductRecipe) SaveComponents() {
 		}
 		// no change (intersection)
 		if oldVal == val {
+			log.Println("DEBUG: ProductRecipe intersection")
+
 			delete(lookup_map, val.Component_id)
 			continue
 		}
 		// value change
+		log.Println("DEBUG: ProductRecipe up_set")
 		up_set = append(up_set, val)
 	}
 	// check if any product was deleted and re-added
 	//TODO test this
 	for _, val := range lookup_map {
 		newVal := add_map[val.Component_type_id]
+		log.Println("DEBUG: ProductRecipe val,newVal", val, newVal)
 		if newVal == nil {
 			del_set = append(del_set, val)
 			continue

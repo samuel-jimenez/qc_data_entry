@@ -94,6 +94,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("-")
+	// TODO delete
 
 	view.AutoPanel.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.component_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
