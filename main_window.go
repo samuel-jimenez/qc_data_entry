@@ -144,20 +144,48 @@ func show_window() {
 	mainWindow.SetStatusBar(threads.Status_bar)
 
 	// combobox
-	rows, err := DB.DB_Select_product_info.Query()
-	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
+
+	//TODO GUI.Fill_combobox_from_query_rows
+	GUI.Fill_combobox_from_query_rows_0(product_field, func(row *sql.Rows)error {
 		var (
 			id                   int
 			internal_name        string
 			product_moniker_name string
 		)
-		if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
+		if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
+			return err
+		}
 			name := product_moniker_name + " " + internal_name
 			product_data[name] = id
 
 			product_field.AddItem(name)
-		}
-	})
+		return nil
+	},
+	DB.DB_Select_product_info)
+/*
+	//TODO test equiv
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			product_field.DeleteAllItems()
+		},
+		func(row *sql.Rows) {
+			var (
+				id                   int
+				internal_name        string
+				product_moniker_name string
+			)
+			if err := row.Scan(&id, &internal_name, &product_moniker_name); err == nil {
+				name := product_moniker_name + " " + internal_name
+				product_data[name] = id
+
+				product_field.AddItem(name)
+			} else {
+				log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
+				// return -1
+			}
+		},*/
+
+		DB.DB_Select_product_info)
 
 	new_product_cb := func() product.BaseProduct {
 		log.Println("Debug: product_field new_product_cb", qc_product.Base())
@@ -444,7 +472,7 @@ func show_window() {
 			if err == nil {
 				qr_pop_data(product)
 			} else {
-				log.Printf("error: [%s]: %q\n",  "qr_json_keygrab",  err)
+				log.Printf("error: [%s]: %q\n", "qr_json_keygrab", err)
 			}
 			keygrab.SetText("")
 			mainWindow.SetFocus()

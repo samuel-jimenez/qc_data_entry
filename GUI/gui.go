@@ -121,6 +121,25 @@ func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *
 		control.SetSelectedItem(0)
 	}
 }
+
+func Fill_combobox_from_query_rows_0(control windigo.ComboBoxable, fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {
+	i := 0
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			control.DeleteAllItems()
+		},
+		func(row *sql.Rows) {
+			if err := fn(row); err != nil {
+				log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
+			}
+			i++
+		},
+		select_statement, args...)
+	if i == 1 {
+		control.SetSelectedItem(0)
+	}
+}
+
 func Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
 	i := 0
 	DB.Forall("fill_combobox_from_query",
