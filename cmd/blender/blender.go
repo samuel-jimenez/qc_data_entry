@@ -87,6 +87,7 @@ func main() {
 
 	//show main window
 	show_window()
+	// show_Formulator()
 
 }
 
@@ -423,16 +424,7 @@ func show_window() {
 
 	}
 
-	//TODO
-	update_components := func(object *blender.ProductRecipe) {
-		for _, component := range object.Components {
-			log.Println("DEBUG: update_components", component)
-
-			c_view := windigo.NewLabel(component_panel)
-			c_view.SetText(component.Component_name)
-		}
-
-	}
+	//TODO move
 	update_component_types := func() {
 
 		DB.Forall("update_component_types",
@@ -513,7 +505,6 @@ func show_window() {
 			return
 		}
 		currentRecipe = Recipe_product.Recipes[i]
-		update_components(currentRecipe)
 		Recipe_View.Update(currentRecipe)
 
 		// Recipe_product = NewRecipeProduct()
@@ -584,3 +575,10 @@ func show_window() {
 	})
 	mainWindow.RunMainLoop() // Must call to start event loop.
 }
+
+/*
+func show_Formulator() {
+
+	log.Println("Info: Process started")
+
+	window_title := "QC Data Formulator"*/
