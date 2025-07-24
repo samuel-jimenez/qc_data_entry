@@ -339,13 +339,13 @@ func show_window() {
 		func() {
 			product_field.DeleteAllItems()
 		},
-		func(rows *sql.Rows) {
+		func(row *sql.Rows) {
 			var (
 				id                   int64
 				internal_name        string
 				product_moniker_name string
 			)
-			if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
+			if err := row.Scan(&id, &internal_name, &product_moniker_name); err == nil {
 				name := product_moniker_name + " " + internal_name
 				product_data[name] = id
 
@@ -353,7 +353,7 @@ func show_window() {
 
 				product_field.AddItem(name)
 			} else {
-				log.Printf("error: [%s]: %q\n",  "fill_combobox_from_query",  err)
+				log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
 				// return -1
 			}
 		},
@@ -437,13 +437,13 @@ func show_window() {
 
 		DB.Forall("update_component_types",
 			func() { component_types_list = nil },
-			func(rows *sql.Rows) {
+			func(row *sql.Rows) {
 				var (
 					id   int64
 					name string
 				)
 
-				if err := rows.Scan(&id, &name); err == nil {
+				if err := row.Scan(&id, &name); err == nil {
 					component_types_data[name] = id
 					log.Println("DEBUG: update_component_types nsme", id, name)
 
@@ -451,7 +451,7 @@ func show_window() {
 
 					// component_field.AddItem(name)
 				} else {
-					log.Printf("error: [%s]: %q\n",  "fgjifjofdgkjfokgf",  err)
+					log.Printf("error: [%s]: %q\n", "fgjifjofdgkjfokgf", err)
 					// return -1
 				}
 			},

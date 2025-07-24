@@ -37,12 +37,12 @@ func (object *RecipeProduct) Set(name string, i int64) {
 func (object *RecipeProduct) GetRecipes() {
 	DB.Forall("GetRecipes",
 		func() { object.Recipes = nil },
-		func(rows *sql.Rows) {
+		func(row *sql.Rows) {
 			var (
 				recipe_data ProductRecipe
 			)
 
-			if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
+			if err := row.Scan(&recipe_data.Recipe_id); err != nil {
 				log.Fatal("Crit: [RecipeProduct GetRecipes]: ", err)
 			}
 			recipe_data.Product_id = object.Product_id
