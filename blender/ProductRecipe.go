@@ -11,7 +11,7 @@ import (
 
 // TODO []*
 type ProductRecipe struct {
-	Components, db_components []*RecipeComponent
+	Components, db_components []RecipeComponent
 	// Product_name string `json:"product_name"`
 	// Lot_number               string `json:"lot_number"`
 	// Sample_point             string
@@ -34,7 +34,7 @@ func (object *ProductRecipe) GetComponents() {
 		DB.DB_Select_recipe_components, object.Recipe_id)
 	object.db_components = slices.Clone(object.Components)
 }
-func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
+func (object *ProductRecipe) AddComponent(component_data RecipeComponent) {
 	object.Components = append(object.Components, component_data)
 }
 
@@ -49,7 +49,7 @@ func (object *ProductRecipe) SaveComponents() {
 	// Component_id
 	// map[T]struct{}
 	for _, db := range object.db_components {
-		lookup_map[db.Component_id] = db
+		lookup_map[db.Component_id] = &db
 		log.Println("DEBUG: ProductRecipe db_components", db)
 
 	}
@@ -61,20 +61,19 @@ func (object *ProductRecipe) SaveComponents() {
 
 		// new Component_id
 		if oldVal == nil {
+			log.Println("DEBUG: ProductRecipe tryadd")
 			// add_set = append(add_set, val)
-			add_map[val.Component_type_id] = val
+			add_map[val.Component_type_id] = &val
 			continue
+		}
+		if *oldVal != val {
+			// value change
+			log.Println("DEBUG: ProductRecipe up_set")
+			up_set = append(up_set, &val)
 		}
 		// no change (intersection)
-		if oldVal == val {
-			log.Println("DEBUG: ProductRecipe intersection")
-
-			delete(lookup_map, val.Component_id)
-			continue
-		}
-		// value change
-		log.Println("DEBUG: ProductRecipe up_set")
-		up_set = append(up_set, val)
+		log.Println("DEBUG: ProductRecipe intersection")
+		delete(lookup_map, val.Component_id)
 	}
 	// check if any product was deleted and re-added
 	//TODO test this
@@ -82,6 +81,7 @@ func (object *ProductRecipe) SaveComponents() {
 		newVal := add_map[val.Component_type_id]
 		log.Println("DEBUG: ProductRecipe val,newVal", val, newVal)
 		if newVal == nil {
+			log.Println("DEBUG: ProductRecipe del")
 			del_set = append(del_set, val)
 			continue
 		}
@@ -98,13 +98,17 @@ func (object *ProductRecipe) SaveComponents() {
 	log.Println("DEBUG: ProductRecipe del_set, add_set, up_set", del_set, add_set, up_set)
 
 	for _, val := range del_set {
+		log.Println("DEBUG: ProductRecipe Delete", *val)
 		val.Delete()
 	}
 	for _, val := range up_set {
+		log.Println("DEBUG: ProductRecipe Update", *val)
 		val.Update()
 	}
 	for _, val := range add_set {
+		log.Println("DEBUG: ProductRecipe Insert", *val)
 		val.Insert(object.Recipe_id)
 	}
+	object.db_components = slices.Clone(object.Components)
 
 }

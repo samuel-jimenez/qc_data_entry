@@ -48,7 +48,7 @@ func (view *RecipeView) Get() *ProductRecipe {
 		if recipeComponent != nil {
 			recipeComponent.Add_order = i
 			log.Println("DEBUG: RecipeView Get", recipeComponent)
-			view.Recipe.AddComponent(recipeComponent)
+			view.Recipe.AddComponent(*recipeComponent)
 		}
 	}
 	view.Recipe.SaveComponents()
@@ -83,7 +83,7 @@ func (view *RecipeView) Update(recipe *ProductRecipe) {
 		// view.AddComponent()
 		//TODO
 		component_view := view.AddComponent()
-		component_view.Update(component)
+		component_view.Update(&component)
 	}
 
 }

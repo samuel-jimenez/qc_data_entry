@@ -21,9 +21,10 @@ type RecipeComponent struct {
 func NewRecipeComponent() *RecipeComponent {
 	return new(RecipeComponent)
 }
-func NewRecipeComponentfromSQL(row *sql.Rows) *RecipeComponent {
+func NewRecipeComponentfromSQL(row *sql.Rows) RecipeComponent {
 
-	Recipe_component := NewRecipeComponent()
+	// Recipe_component := NewRecipeComponent()
+	Recipe_component := RecipeComponent{}
 
 	if err := row.Scan(
 		&Recipe_component.Component_id,
