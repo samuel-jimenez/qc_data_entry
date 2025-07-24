@@ -3,6 +3,8 @@ package blender
 import (
 	"database/sql"
 	"log"
+	"maps"
+	"slices"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 )
@@ -49,8 +51,43 @@ func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
 // TODO
 // func (object *ProductRecipe) SaveComponents(component_data []*RecipeComponent) {
 func (object *ProductRecipe) SaveComponents() {
-	log.Println("DEBUG: SetComponents", object.db_components, object.Components)
-	// for db :=
+	log.Println("DEBUG: ProductRecipe SaveComponents", object.db_components, object.Components)
+	//TODO set diff
+	// map[T]struct{}
+	// old_min := 0
+	// old_max := len(object.db_components)
+	// new_min := 0
+	// new_max := len(object.Components)
+	var del_set, add_set, up_set []*RecipeComponent
+
+	lookup := make(map[int64]*RecipeComponent)
+	// Component_id
+	// map[T]struct{}
+	for _, db := range object.db_components {
+		lookup[db.Component_id] = db
+		log.Println("DEBUG: ProductRecipe db_components", db)
+
+	}
+	for _, val := range object.Components {
+		log.Println("DEBUG: ProductRecipe Components", val)
+
+		oldVal := lookup[val.Component_id]
+		if oldVal == nil {
+			add_set = append(add_set, val)
+			continue
+		}
+		if oldVal == val {
+			delete(lookup, val.Component_id)
+			continue
+		}
+		up_set = append(up_set, val)
+	}
+	del_set = slices.Collect(maps.Values(lookup))
+	log.Println("DEBUG: ProductRecipe del_set, add_set, up_set", del_set, add_set, up_set)
+
+	// 	for i := old_min; i< old_max
+	//
+	// 	}
 	//
 	// 	proc_name := "ProductRecipe.AddComponent"
 	//
