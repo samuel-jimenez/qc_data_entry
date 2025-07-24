@@ -27,13 +27,8 @@ func (object *ProductRecipe) GetComponents() {
 		func() {
 			object.Components = nil
 		},
-		func(rows *sql.Rows) {
-			Recipe_component := NewRecipeComponent()
-
-			if err := rows.Scan(&Recipe_component.Component_id, &Recipe_component.Component_type_id, &Recipe_component.Component_name, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
-				log.Fatal("Crit: [ProductRecipe GetComponents]: ", err)
-			}
-			log.Println("DEBUG: GetComponents qc_data", Recipe_component)
+		func(row *sql.Rows) {
+			Recipe_component := NewRecipeComponentfromSQL(row)
 			object.Components = append(object.Components, Recipe_component)
 		},
 		DB.DB_Select_recipe_components, object.Recipe_id)

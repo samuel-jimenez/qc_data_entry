@@ -1,6 +1,7 @@
 package blender
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
@@ -19,6 +20,20 @@ type RecipeComponent struct {
 
 func NewRecipeComponent() *RecipeComponent {
 	return new(RecipeComponent)
+}
+func NewRecipeComponentfromSQL(row *sql.Rows) *RecipeComponent {
+
+	Recipe_component := NewRecipeComponent()
+
+	if err := row.Scan(
+		&Recipe_component.Component_id,
+		&Recipe_component.Component_type_id,
+		&Recipe_component.Component_name,
+		&Recipe_component.Component_amount,
+		&Recipe_component.Add_order); err != nil {
+		log.Fatal("Crit: [RecipeComponent NewRecipeComponentfromSQL]: ", err)
+	}
+	return Recipe_component
 }
 
 func (object *RecipeComponent) Insert(Recipe_id int64) {
