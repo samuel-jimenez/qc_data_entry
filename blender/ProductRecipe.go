@@ -38,21 +38,10 @@ func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
 	object.Components = append(object.Components, component_data)
 }
 
-// TODO give our id to children when writing
-// recipe_list_id integer not null,
-// component_type_id not null,
-// component_type_amount real,
-// component_add_order not null,
-// TODO
-// func (object *ProductRecipe) SaveComponents(component_data []*RecipeComponent) {
 func (object *ProductRecipe) SaveComponents() {
 	log.Println("DEBUG: [ProductRecipe SaveComponents]: ", object.db_components, object.Components)
 	//TODO set diff
 	// map[T]struct{}
-	// old_min := 0
-	// old_max := len(object.db_components)
-	// new_min := 0
-	// new_max := len(object.Components)
 	var del_set, add_set, up_set []*RecipeComponent
 
 	lookup_map := make(map[int64]*RecipeComponent)
@@ -83,6 +72,7 @@ func (object *ProductRecipe) SaveComponents() {
 		up_set = append(up_set, val)
 	}
 	// check if any product was deleted and re-added
+	//TODO test this
 	for _, val := range lookup_map {
 		newVal := add_map[val.Component_type_id]
 		if newVal == nil {
@@ -110,29 +100,5 @@ func (object *ProductRecipe) SaveComponents() {
 	for _, val := range add_set {
 		val.Insert(object.Recipe_id)
 	}
-
-	// 	for i := old_min; i< old_max
-	//
-	// 	}
-	//
-	// 	proc_name := "ProductRecipe.AddComponent"
-	//
-	// 	result, err := DB.DB_Insert_recipe_component.Exec(object.Product_id)
-	// 	if err != nil {
-	// 		log.Printf("Err: [%s]: %q\n", proc_name, err)
-	// 		return component_data
-	// 	}
-	// 	insert_id, err := result.LastInsertId()
-	// 	if err != nil {
-	// 		log.Printf("Err: [%s]: %q\n", proc_name, err)
-	// 		return component_data
-	// 	}
-	// 	component_data = new(RecipeComponent)
-	//
-	// 	component_data.Component_id = insert_id
-	// 	component_data.Product_id = object.Product_id
-	// 	object.Components = append(object.Components, component_data)
-	// 	return component_data
-	// }
 
 }
