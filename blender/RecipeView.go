@@ -42,10 +42,12 @@ func (view *RecipeView) Get() *ProductRecipe {
 	}
 	//TODO
 	view.Recipe.Components = nil
-	for _, component := range view.Components {
+	for i, component := range view.Components {
 		recipeComponent := component.Get()
 		log.Println("DEBUG: RecipeView Get", recipeComponent)
 		if recipeComponent != nil {
+			recipeComponent.Add_order = i
+			log.Println("DEBUG: RecipeView Get", recipeComponent)
 			view.Recipe.AddComponent(recipeComponent)
 		}
 	}
