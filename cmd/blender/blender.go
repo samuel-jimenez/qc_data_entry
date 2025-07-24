@@ -256,7 +256,7 @@ func show_window() {
 
 	add_button_width := 20
 	accept_button_width := 50
-	cancel_button_width := 50
+	// cancel_button_width := 50
 
 	// Blend_product := new(BlendProduct)
 	Recipe_product := blender.NewRecipeProduct()
@@ -272,8 +272,6 @@ func show_window() {
 
 	product_panel := windigo.NewAutoPanel(mainWindow)
 	recipe_panel := windigo.NewAutoPanel(mainWindow)
-	component_panel := windigo.NewAutoPanel(mainWindow)
-	component_add_panel := windigo.NewAutoPanel(mainWindow)
 
 	product_field := GUI.NewComboBox(product_panel, product_text)
 
@@ -293,25 +291,7 @@ func show_window() {
 	recipe_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
 
 	Recipe_View := blender.NewRecipeView(mainWindow)
-
-	// component_field := GUI.NewComboBox(component_panel, component_text)
-	component_field := GUI.NewSearchBox(component_panel)
-	component_add_button := windigo.NewPushButton(component_panel)
-	component_add_button.SetText("+")
-	component_add_button.SetSize(add_button_width, GUI.OFF_AXIS)
-
-	component_new_button := windigo.NewPushButton(component_panel)
-	component_new_button.SetText("+")
-	component_new_button.SetSize(add_button_width, add_button_width)
-
-	component_add_field := GUI.NewSearchBox(component_add_panel)
-	component_accept_button := windigo.NewPushButton(component_add_panel)
-	component_accept_button.SetText("OK")
-	component_accept_button.SetSize(accept_button_width, GUI.OFF_AXIS)
-	component_cancel_button := windigo.NewPushButton(component_add_panel)
-	component_cancel_button.SetText("Cancel")
-	component_cancel_button.SetSize(cancel_button_width, GUI.OFF_AXIS)
-	// component_add_panel.Hide()
+	//TODO BlendView
 
 	// Dock
 	product_panel.Dock(product_field, windigo.Left)
@@ -320,18 +300,9 @@ func show_window() {
 	recipe_panel.Dock(recipe_add_button, windigo.Left)
 	recipe_panel.Dock(recipe_accept_button, windigo.Left)
 
-	component_panel.Dock(component_new_button, windigo.Top)
-	component_panel.Dock(component_field, windigo.Left)
-	component_panel.Dock(component_add_button, windigo.Left)
-	component_add_panel.Dock(component_add_field, windigo.Left)
-	component_add_panel.Dock(component_accept_button, windigo.Left)
-	component_add_panel.Dock(component_cancel_button, windigo.Left)
-
 	dock.Dock(product_panel, windigo.Top)
 	dock.Dock(recipe_panel, windigo.Top)
 	dock.Dock(Recipe_View, windigo.Top)
-	dock.Dock(component_panel, windigo.Top)
-	dock.Dock(component_add_panel, windigo.Top)
 
 	// combobox
 
@@ -360,10 +331,6 @@ func show_window() {
 
 		DB.DB_Select_product_info)
 
-	//TODO fixme
-	component_field.Update(product_list)
-	component_add_field.Update(product_list)
-
 	// functionality
 
 	// sizing
@@ -376,22 +343,10 @@ func show_window() {
 
 		product_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		recipe_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		//TODO grow
-		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
-		component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+add_button_width)
-
-		//TODO grow
-		// Recipe_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		// Recipe_View.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		Recipe_View.RefreshSize()
-
-		component_add_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 		product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		recipe_sel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		component_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		component_add_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	}
 
@@ -412,12 +367,7 @@ func show_window() {
 		Recipe_View.SetFont(windigo.DefaultFont)
 		recipe_sel_field.SetFont(windigo.DefaultFont)
 		recipe_add_button.SetFont(windigo.DefaultFont)
-		component_field.SetFont(windigo.DefaultFont)
-		component_add_button.SetFont(windigo.DefaultFont)
-		component_new_button.SetFont(windigo.DefaultFont)
-		component_add_field.SetFont(windigo.DefaultFont)
-		component_accept_button.SetFont(windigo.DefaultFont)
-		component_cancel_button.SetFont(windigo.DefaultFont)
+		recipe_accept_button.SetFont(windigo.DefaultFont)
 		// threads.Status_bar.SetFont(windigo.DefaultFont)
 		refresh(font_size)
 
@@ -448,7 +398,6 @@ func show_window() {
 			},
 			DB.DB_Select_all_component_types)
 		log.Println("DEBUG: update_component_types", component_types_list)
-		component_field.Update(component_types_list)
 		Recipe_View.Update_component_types(component_types_list, component_types_data)
 		// Recipe_View.Update_component_types(component_types_list)
 	}
@@ -507,29 +456,6 @@ func show_window() {
 		// Recipe_product.Set(name, product_data[name])
 		// // Recipe_product.GetRecipes()
 		// Recipe_product.LoadRecipeCombo(recipe_field)
-	})
-
-	component_add_button.OnClick().Bind(func(e *windigo.Event) {
-		if Recipe_View.Recipe != nil {
-			Recipe_View.AddComponent()
-		}
-	})
-
-	component_new_button.OnClick().Bind(func(e *windigo.Event) {
-		component_add_panel.Show()
-	})
-
-	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
-		component := NewComponentType(component_add_field.Text())
-		Product_id := product_data[component.Component_name]
-		if Product_id != DB.INVALID_ID {
-			component.AddProduct(Product_id)
-		}
-		component_add_panel.Hide()
-		update_component_types()
-	})
-	component_cancel_button.OnClick().Bind(func(e *windigo.Event) {
-		component_add_panel.Hide()
 	})
 
 	// component_add_field.OnChange().Bind(func(e *windigo.Event) {
@@ -635,7 +561,7 @@ func show_Formulator() {
 	component_cancel_button := windigo.NewPushButton(component_add_panel)
 	component_cancel_button.SetText("Cancel")
 	component_cancel_button.SetSize(cancel_button_width, GUI.OFF_AXIS)
-	// component_add_panel.Hide()
+	component_add_panel.Hide()
 
 	// Dock
 	product_panel.Dock(product_field, windigo.Left)
@@ -736,6 +662,7 @@ func show_Formulator() {
 		Recipe_View.SetFont(windigo.DefaultFont)
 		recipe_sel_field.SetFont(windigo.DefaultFont)
 		recipe_add_button.SetFont(windigo.DefaultFont)
+		recipe_accept_button.SetFont(windigo.DefaultFont)
 		component_field.SetFont(windigo.DefaultFont)
 		component_add_button.SetFont(windigo.DefaultFont)
 		component_new_button.SetFont(windigo.DefaultFont)
