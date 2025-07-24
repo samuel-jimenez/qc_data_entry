@@ -183,12 +183,12 @@ func (object *ComponentType) AddInbound(Product_id int64) {
 // 	)
 // 	result, err := DB_Insert_product_recipe.Exec(object.Product_id)
 // 	if err != nil {
-// 		log.Printf("%q: %s\n", err, proc_name)
+// 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 // 		return recipe_data
 // 	}
 // 	insert_id, err := result.LastInsertId()
 // 	if err != nil {
-// 		log.Printf("%q: %s\n", err, proc_name)
+// 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 // 		return recipe_data
 // 	}
 // 	recipe_data = new(ProductComponent)
@@ -353,7 +353,7 @@ func show_window() {
 
 				product_field.AddItem(name)
 			} else {
-				log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+				log.Printf("error: [%s]: %q\n",  "fill_combobox_from_query",  err)
 				// return -1
 			}
 		},
@@ -451,7 +451,7 @@ func show_window() {
 
 					// component_field.AddItem(name)
 				} else {
-					log.Printf("error: %q: %s\n", err, "fgjifjofdgkjfokgf")
+					log.Printf("error: [%s]: %q\n",  "fgjifjofdgkjfokgf",  err)
 					// return -1
 				}
 			},

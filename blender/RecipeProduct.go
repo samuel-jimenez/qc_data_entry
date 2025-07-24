@@ -43,7 +43,7 @@ func (object *RecipeProduct) GetRecipes() {
 			)
 
 			if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
-				log.Fatal("Crit: RecipeProduct GetRecipes ", err)
+				log.Fatal("Crit: [RecipeProduct GetRecipes]: ", err)
 			}
 			recipe_data.Product_id = object.Product_id
 			log.Println("DEBUG: GetRecipes qc_data", recipe_data)
@@ -64,7 +64,7 @@ func (object *RecipeProduct) LoadRecipeCombo(combo_field *GUI.ComboBox) {
 		)
 
 		if err := rows.Scan(&recipe_data.Recipe_id); err != nil {
-			log.Fatal("Crit: RecipeProduct LoadRecipeCombo ", err)
+			log.Fatal("Crit: [RecipeProduct LoadRecipeCombo]: ", err)
 
 		}
 		recipe_data.Product_id = object.Product_id
@@ -86,12 +86,12 @@ func (object *RecipeProduct) NewRecipe() *ProductRecipe {
 	)
 	result, err := DB.DB_Insert_product_recipe.Exec(object.Product_id)
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return recipe_data
 	}
 	insert_id, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return recipe_data
 	}
 	recipe_data = new(ProductRecipe)

@@ -215,7 +215,7 @@ func check_dual_data(top_product, bottom_product product.Product) {
 			top_product.Save()
 			err := top_product.Printout()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "top_product.Printout")
+				log.Printf("Error: [%s]: %q\n", "top_product.Printout", err)
 			}
 
 		}
@@ -224,16 +224,16 @@ func check_dual_data(top_product, bottom_product product.Product) {
 			bottom_product.Save()
 			err := bottom_product.Printout()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.Printout")
+				log.Printf("Error: [%s]: %q\n", "bottom_product.Printout", err)
 			}
 			//TODO find closest: RMS?
 			err = bottom_product.Output_sample()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.Output_sample")
+				log.Printf("Error: [%s]: %q\n", "bottom_product.Output_sample", err)
 			}
 			err = bottom_product.Save_xl()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.Save_xl")
+				log.Printf("Error: [%s]: %q\n", "bottom_product.Save_xl", err)
 			}
 		}
 	} else { // TODO show confirm box
@@ -287,7 +287,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 			top_product.Save()
 			err := top_product.Output()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "top_product.Output")
+				log.Printf("Error: [%s]: %q\n", "top_product.Output", err)
 			}
 
 		}

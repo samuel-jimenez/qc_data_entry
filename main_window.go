@@ -444,7 +444,7 @@ func show_window() {
 			if err == nil {
 				qr_pop_data(product)
 			} else {
-				log.Printf("error: %q: %s\n", err, "qr_json_keygrab")
+				log.Printf("error: [%s]: %q\n",  "qr_json_keygrab",  err)
 			}
 			keygrab.SetText("")
 			mainWindow.SetFocus()

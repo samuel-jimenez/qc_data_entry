@@ -57,7 +57,7 @@ func (product *QCProduct) Select_product_details() {
 		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
 	)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "Select_product_details")
+		log.Printf("Error: [%s]: %q\n",  "Select_product_details",  err)
 	}
 }
 
@@ -72,7 +72,7 @@ func (product *QCProduct) Select_product_coa_details() {
 		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
 	)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "select_product_coa_details")
+		log.Printf("Error: [%s]: %q\n",  "select_product_coa_details",  err)
 	}
 }
 
@@ -89,7 +89,7 @@ func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 		product.Viscosity.Min, product.Viscosity.Target, product.Viscosity.Max,
 	)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "upsert")
+		log.Printf("Error: [%s]: %q\n",  "upsert",  err)
 	}
 	//TODO?
 	// id, err := result.LastInsertId()

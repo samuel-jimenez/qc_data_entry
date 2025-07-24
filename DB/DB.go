@@ -700,12 +700,12 @@ func insert(insert_statement *sql.Stmt, proc_name string, args ...any) int64 {
 	var insert_id int64
 	result, err := insert_statement.Exec(args...)
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return INVALID_ID
 	}
 	insert_id, err = result.LastInsertId()
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return -2
 	}
 	return insert_id
@@ -738,7 +738,7 @@ func Insel_product_name_customer(product_name_customer string, product_id int64)
 func Forall(proc_name string, start_fn func(), row_fn func(*sql.Rows), select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, proc_name)
+		log.Printf("error: [%s]: %q\n", proc_name, err)
 		return
 	}
 	start_fn()
@@ -752,13 +752,13 @@ func Forall(proc_name string, start_fn func(), row_fn func(*sql.Rows), select_st
 func Forall(proc_name string, start_fn func(), row_fn func(*sql.Rows) error, select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, proc_name)
+		log.Printf("error: [%s]: %q\n",  proc_name,  err)
 		return
 	}
 	start_fn()
 	for rows.Next() {
 		if err = row_fn(rows); err != nil {
-			log.Printf("error: %q: %s\n", err, proc_name)
+			log.Printf("error: [%s]: %q\n",  proc_name,  err)
 			return
 		}
 	}

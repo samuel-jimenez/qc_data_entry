@@ -108,7 +108,7 @@ var (
 func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+		log.Printf("error: [%s]: %q\n",  "fill_combobox_from_query",  err)
 		// return -1
 	}
 	control.DeleteAllItems()
@@ -136,7 +136,7 @@ func Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, stri
 			if err := rows.Scan(&id, &name); err == nil {
 				fn(id, name)
 			} else {
-				log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+				log.Printf("error: [%s]: %q\n",  "fill_combobox_from_query",  err)
 				// return -1
 			}
 			i++

@@ -186,7 +186,7 @@ func (product Product) Printout() error {
 
 func (product Product) Output() error {
 	if err := product.Printout(); err != nil {
-		log.Printf("Error: %q: %s\n", err, "Output")
+		log.Printf("Error: [%s]: %q\n",  "Output",  err)
 		log.Printf("Debug: %q: %v\n", err, product)
 		return err
 	}
@@ -207,7 +207,7 @@ func (product Product) Output_sample() error {
 	product.format_sample()
 	log.Println("DEBUG: Output_sample formatted", product)
 	if err := product.export_CoA(); err != nil {
-		log.Printf("Error: %q: %s\n", err, "Output_sample")
+		log.Printf("Error: [%s]: %q\n",  "Output_sample",  err)
 		log.Printf("Debug: %q: %v\n", err, product)
 		return err
 	}
@@ -221,13 +221,13 @@ func (product Product) Output_sample() error {
 func withOpenFile(file_name string, FN func(*excelize.File) error) error {
 	xl_file, err := excelize.OpenFile(file_name)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "withOpenFile")
+		log.Printf("Error: [%s]: %q\n",  "withOpenFile",  err)
 		return err
 	}
 	defer func() {
 		// Close the spreadsheet.
 		if err := xl_file.Close(); err != nil {
-			log.Printf("Error: %q: %s\n", err, "withOpenFile")
+			log.Printf("Error: [%s]: %q\n",  "withOpenFile",  err)
 		}
 	}()
 	return FN(xl_file)
@@ -239,14 +239,14 @@ func updateExcel(file_name, worksheet_name string, row ...string) error {
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)
 		if err != nil {
-			log.Printf("Error: %q: %s\n", err, "updateExcel")
+			log.Printf("Error: [%s]: %q\n",  "updateExcel",  err)
 			return err
 		}
 		startCell := fmt.Sprintf("A%v", len(rows)+1)
 
 		err = xl_file.SetSheetRow(worksheet_name, startCell, &row)
 		if err != nil {
-			log.Printf("Error: %q: %s\n", err, "updateExcel")
+			log.Printf("Error: [%s]: %q\n",  "updateExcel",  err)
 			return err
 		}
 		return xl_file.Save()

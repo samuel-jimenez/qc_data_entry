@@ -329,7 +329,7 @@ insert into bs.container_types
 	db.Exec(sqlStmt)
 	// _, err = db.Exec(sqlStmt)
 	// if err != nil {
-	// 	log.Printf("%q: %s\n", err, sqlStmt)
+	// 	log.Printf("[%s]: %q\n",  sqlStmt,  err)
 	// 	// return
 	// }
 

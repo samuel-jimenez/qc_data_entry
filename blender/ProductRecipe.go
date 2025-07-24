@@ -31,7 +31,7 @@ func (object *ProductRecipe) GetComponents() {
 			Recipe_component := NewRecipeComponent()
 
 			if err := rows.Scan(&Recipe_component.Component_id, &Recipe_component.Component_name, &Recipe_component.Component_type_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
-				log.Fatal("Crit: ProductRecipe GetComponents ", err)
+				log.Fatal("Crit: [ProductRecipe GetComponents]: ", err)
 			}
 			log.Println("DEBUG: GetComponents qc_data", Recipe_component)
 			object.Components = append(object.Components, Recipe_component)
@@ -51,7 +51,7 @@ func (object *ProductRecipe) AddComponent(component_data *RecipeComponent) {
 // TODO
 // func (object *ProductRecipe) SaveComponents(component_data []*RecipeComponent) {
 func (object *ProductRecipe) SaveComponents() {
-	log.Println("DEBUG: ProductRecipe SaveComponents", object.db_components, object.Components)
+	log.Println("DEBUG: [ProductRecipe SaveComponents]: ", object.db_components, object.Components)
 	//TODO set diff
 	// map[T]struct{}
 	// old_min := 0
@@ -124,12 +124,12 @@ func (object *ProductRecipe) SaveComponents() {
 	//
 	// 	result, err := DB.DB_Insert_recipe_component.Exec(object.Product_id)
 	// 	if err != nil {
-	// 		log.Printf("%q: %s\n", err, proc_name)
+	// 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 	// 		return component_data
 	// 	}
 	// 	insert_id, err := result.LastInsertId()
 	// 	if err != nil {
-	// 		log.Printf("%q: %s\n", err, proc_name)
+	// 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 	// 		return component_data
 	// 	}
 	// 	component_data = new(RecipeComponent)

@@ -25,12 +25,12 @@ func (object *RecipeComponent) Insert(Recipe_id int64) {
 	proc_name := "RecipeComponent.Insert"
 	result, err := DB.DB_Insert_recipe_component.Exec(Recipe_id, object.Component_type_id, object.Component_amount, object.Add_order)
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return
 	}
 	object.Component_id, err = result.LastInsertId()
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return
 	}
 }
@@ -39,7 +39,7 @@ func (object *RecipeComponent) Update() {
 	proc_name := "RecipeComponent.Update"
 	_, err := DB.DB_Update_recipe_component.Exec(object.Component_type_id, object.Component_amount, object.Add_order, object.Component_id)
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return
 	}
 }
@@ -48,6 +48,6 @@ func (object *RecipeComponent) Delete() {
 	proc_name := "RecipeComponent.Delete"
 	_, err := DB.DB_Delete_recipe_component.Exec(object.Component_id)
 	if err != nil {
-		log.Printf("%q: %s\n", err, proc_name)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 	}
 }

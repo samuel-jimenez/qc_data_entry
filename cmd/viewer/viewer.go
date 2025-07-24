@@ -63,7 +63,7 @@ func main() {
 
 func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, fn)
+		log.Printf("error: [%s]: %q\n",  fn,  err)
 		// return -1
 	}
 
@@ -433,7 +433,7 @@ func show_window() {
 	regen_sample_button.OnClick().Bind(func(e *windigo.Event) {
 		for _, data := range table.SelectedItems() {
 			if err := data.(viewer.QCData).Product().Output_sample(); err != nil {
-				log.Printf("Error: %q: %s\n", err, "regen_sample_button")
+				log.Printf("Error: [%s]: %q\n",  "regen_sample_button",  err)
 				log.Printf("Debug: %q: %v\n", err, data)
 				threads.Show_status("Error Creating Label")
 			}
