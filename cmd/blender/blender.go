@@ -200,47 +200,6 @@ func (object *ComponentType) AddInbound(Product_id int64) {
 // 	return recipe_data
 // }
 
-type BlendComponent struct {
-	blender.RecipeComponent
-	// Component_name string `json:"product_name"`
-	// Component_amount float64
-	// Lot_number               string `json:"lot_number"`
-	// Sample_point             string
-	// Visual                   bool
-	// Product_id int64
-	Lot_id int64
-	// Product_name_customer_id nullable.NullInt64
-	// Product_name_customer    string `json:"customer_product_name"`
-}
-
-/*
-lot_provider
-lot_isomeric*/
-
-type ProductBlend struct {
-	Components []BlendComponent
-	// Product_name string `json:"product_name"`
-	// Lot_number               string `json:"lot_number"`
-	// Sample_point             string
-	// Visual                   bool
-	Product_id int64
-	Recipe_id  int64
-	// Product_name_customer_id nullable.NullInt64
-	// Product_name_customer    string `json:"customer_product_name"`
-}
-
-type BlendProduct struct {
-	Product_name string `json:"product_name"`
-	// Lot_number               string `json:"lot_number"`
-	// Sample_point             string
-	// Visual                   bool
-	Product_id int64
-	Lot_id     int64
-	Recipe     ProductBlend
-	// Product_name_customer_id nullable.NullInt64
-	// Product_name_customer    string `json:"customer_product_name"`
-}
-
 func show_window() {
 
 	log.Println("Info: Process started")
