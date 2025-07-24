@@ -31,7 +31,7 @@ func (object *ProductRecipe) GetComponents() {
 			Recipe_component := NewRecipeComponent()
 
 			if err := rows.Scan(&Recipe_component.Component_id, &Recipe_component.Component_name, &Recipe_component.Component_type_id, &Recipe_component.Component_amount, &Recipe_component.Add_order); err != nil {
-				log.Fatal(err)
+				log.Fatal("Crit: ProductRecipe GetComponents ", err)
 			}
 			log.Println("DEBUG: GetComponents qc_data", Recipe_component)
 			object.Components = append(object.Components, Recipe_component)

@@ -28,7 +28,7 @@ func main() {
 	// log to file
 	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("error opening file: %v", err)
+		log.Fatalf("Crit: error opening file: %v", err)
 	}
 	defer log_file.Close()
 
@@ -40,7 +40,7 @@ func main() {
 	qc_db, err = sql.Open("sqlite3", ":memory:")
 	qc_db.Exec("attach ? as 'bs'", config.DB_FILE)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Crit: error opening database: ", err)
 	}
 	defer qc_db.Close()
 
@@ -85,7 +85,7 @@ func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 			&qc_data.Specific_gravity,
 			&qc_data.String_test,
 			&qc_data.Viscosity); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Crit: [%s]: %v", fn, err)
 		}
 		qc_data.Product_name = product_moniker_name + " " + internal_name
 

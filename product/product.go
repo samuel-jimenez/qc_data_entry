@@ -55,7 +55,7 @@ func (product Product) Export_json() {
 
 	for _, output_file := range output_files {
 		if err := os.WriteFile(output_file, bytestring, 0666); err != nil {
-			log.Fatal(err)
+			log.Fatal("Crit: Product Export_json: ", err)
 		}
 	}
 }
