@@ -261,7 +261,6 @@ func show_window() {
 	// Blend_product := new(BlendProduct)
 	Recipe_product := blender.NewRecipeProduct()
 	var (
-		currentRecipe *blender.ProductRecipe
 		product_list,
 		component_types_list []string
 	)
@@ -479,11 +478,10 @@ func show_window() {
 		if Recipe_product.Product_id != DB.INVALID_ID {
 
 			numRecipes := len(Recipe_product.Recipes)
-			currentRecipe = Recipe_product.NewRecipe()
 
 			recipe_sel_field.AddItem(strconv.Itoa(numRecipes))
 			recipe_sel_field.SetSelectedItem(numRecipes)
-			Recipe_View.Update(currentRecipe)
+			Recipe_View.Update(Recipe_product.NewRecipe())
 
 			// log.Println("product_field", product_field.SelectedItem())
 
@@ -496,16 +494,13 @@ func show_window() {
 	})
 
 	recipe_sel_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		// TODO currentRecipe
-		currentRecipe = nil
 		i, err := strconv.Atoi(recipe_sel_field.GetSelectedItem())
 		if err != nil {
 			log.Println("ERR: recipe_field strconv", err)
-			Recipe_View.Update(currentRecipe)
+			Recipe_View.Update(nil)
 			return
 		}
-		currentRecipe = Recipe_product.Recipes[i]
-		Recipe_View.Update(currentRecipe)
+		Recipe_View.Update(Recipe_product.Recipes[i])
 
 		// Recipe_product = NewRecipeProduct()
 		// name := product_field.GetSelectedItem()
@@ -515,14 +510,8 @@ func show_window() {
 	})
 
 	component_add_button.OnClick().Bind(func(e *windigo.Event) {
-		if currentRecipe != nil {
-			//?TODO
+		if Recipe_View.Recipe != nil {
 			Recipe_View.AddComponent()
-			// currentRecipe.AddComponent
-
-			// component_field.AddItem(strconv.Itoa(len(Recipe_product.Recipes)))
-			// log.Println("product_field", product_field.SelectedItem())
-
 		}
 	})
 
