@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/windigo"
 	"github.com/samuel-jimenez/windigo/w32"
 )
@@ -46,7 +47,7 @@ var (
 	DATA_SUBFIELD_WIDTH,
 	DATA_UNIT_WIDTH,
 	DATA_MARGIN,
-	FIELD_HEIGHT,
+	EDIT_FIELD_HEIGHT,
 	NUM_FIELDS,
 
 	DISCRETE_FIELD_WIDTH,
@@ -76,10 +77,38 @@ var (
 	GROUP_MARGIN int
 )
 
+// TODO combine func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
+//
+//	func Fill_combobox_from_query_rows(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
+//		i := 0
+//		DB.Forall("fill_combobox_from_query",
+//			func() {
+//				control.DeleteAllItems()
+//			},
+//			func(rows *sql.Rows) {
+//
+// fn(rows)
+//
+//				i++
+//			},
+//			select_statement, args...)
+//		if i == 1 {
+//			control.SetSelectedItem(0)
+//		}
+//	}
+
+// TODO
+//
+//	if err := rows.Scan(&id, &name); err != nil {
+//		return err
+//	}
+//
+//		fn(id, name)
+//	i++
 func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *sql.Rows, err error, fn func(*sql.Rows)) {
 
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
+		log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
 		// return -1
 	}
 	control.DeleteAllItems()
@@ -92,66 +121,78 @@ func Fill_combobox_from_query_rows(control windigo.ComboBoxable, selected_rows *
 		control.SetSelectedItem(0)
 	}
 }
-func Fill_combobox_from_query_0_fn(control windigo.ComboBoxable, select_statement *sql.Stmt, fn func(*sql.Rows)) {
-	rows, err := select_statement.Query()
-	Fill_combobox_from_query_rows(control, rows, err, fn)
+
+func Fill_combobox_from_query_rows_0(control windigo.ComboBoxable, fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {
+	i := 0
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			control.DeleteAllItems()
+		},
+		func(row *sql.Rows) {
+			if err := fn(row); err != nil {
+				log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
+			}
+			i++
+		},
+		select_statement, args...)
+	if i == 1 {
+		control.SetSelectedItem(0)
+	}
 }
 
-func Fill_combobox_from_query_1_fn(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64, fn func(*sql.Rows)) {
-	rows, err := select_statement.Query(select_id)
-	Fill_combobox_from_query_rows(control, rows, err, fn)
+func Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
+	i := 0
+	DB.Forall("fill_combobox_from_query",
+		func() {
+			control.DeleteAllItems()
+		},
+		func(row *sql.Rows) {
+			var (
+				id   int
+				name string
+			)
+
+			if err := row.Scan(
+				&id, &name,
+			); err == nil {
+				fn(id, name)
+			} else {
+				log.Printf("error: [%s]: %q\n", "fill_combobox_from_query", err)
+				// return -1
+			}
+			i++
+		},
+		select_statement, args...)
+	if i == 1 {
+		control.SetSelectedItem(0)
+	}
 }
 
+// TODO combine
 func Fill_combobox_from_query_0_2(control windigo.ComboBoxable, select_statement *sql.Stmt, fn func(int, string)) {
-	Fill_combobox_from_query_0_fn(control, select_statement, func(rows *sql.Rows) {
-		var (
-			id   int
-			name string
-		)
-
-		if err := rows.Scan(&id, &name); err == nil {
-			fn(id, name)
-		} else {
-			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
-			// return -1
-		}
-	})
+	Fill_combobox_from_query_fn(control, fn, select_statement)
 }
 
 func Fill_combobox_from_query_1_2(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64, fn func(int, string)) {
-	Fill_combobox_from_query_1_fn(control, select_statement, select_id, func(rows *sql.Rows) {
-		var (
-			id   int
-			name string
-		)
-
-		if err := rows.Scan(&id, &name); err == nil {
-			fn(id, name)
-		} else {
-			log.Printf("error: %q: %s\n", err, "fill_combobox_from_query")
-			// return -1
-		}
-	})
+	Fill_combobox_from_query_fn(control, fn, select_statement, select_id)
 }
 
 func Fill_combobox_from_query(control windigo.ComboBoxable, select_statement *sql.Stmt, select_id int64) {
-	Fill_combobox_from_query_1_2(control, select_statement, select_id, func(id int, name string) {
+	Fill_combobox_from_query_fn(control, func(id int, name string) {
 		control.AddItem(name)
-	})
+	},
+		select_statement, select_id)
+}
+
+/* ComboBoxable
+ *
+ */
+type ComboBoxable interface {
+	windigo.ComboBoxable
 }
 
 type ComboBox struct {
 	*windigo.LabeledComboBox
-}
-
-func (control *ComboBox) SetFont(font *windigo.Font) {
-	control.ComboBox.SetFont(font)
-	control.Label().SetFont(font)
-}
-
-func (control *ComboBox) SetLabeledSize(label_width, control_width, height int) {
-	control.SetSize(label_width+control_width, height)
-	control.Label().SetSize(label_width, height)
 }
 
 func NewComboBox(parent windigo.Controller, field_text string) *ComboBox {
@@ -179,4 +220,120 @@ func NewSizedListComboBox(parent windigo.Controller, label_width, control_width,
 	})
 
 	return combobox_field
+}
+
+/*
+* SearchBox
+*
+* TODO reconcile with DiscreteSearchView
+
+* ComboBoxable ?
+ */
+type SearchBox struct {
+	*ComboBox
+	entries  []string
+	onChange windigo.EventManager
+}
+
+func (data_view *SearchBox) Update(set []string) {
+	data_view.entries = set
+	data_view.DeleteAllItems()
+	for _, name := range set {
+		data_view.AddItem(name)
+	}
+}
+
+func (data_view *SearchBox) FromQuery(select_statement *sql.Stmt, args ...any) {
+	data_view.entries = nil
+	Fill_combobox_from_query_fn(data_view, func(id int, name string) { data_view.entries = append(data_view.entries, name) }, select_statement, args...)
+}
+
+func (data_view SearchBox) Search(terms []string) {
+	data_view.DeleteAllItems()
+
+	for _, entry := range data_view.entries {
+		matched := true
+		upcased := strings.ToUpper(entry)
+
+		for _, term := range terms {
+			if !strings.Contains(upcased, term) {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			data_view.AddItem(entry)
+		}
+	}
+}
+
+func (control *SearchBox) OnChange() *windigo.EventManager {
+	return &control.onChange
+}
+
+func NewSearchBox(parent windigo.Controller) *SearchBox {
+	data_view := new(SearchBox)
+
+	data_view.ComboBox = NewComboBox(parent, "")
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+
+		start, _ := data_view.Selected()
+
+		text := strings.ToUpper(data_view.Text())
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+
+		data_view.SetText(text)
+
+		data_view.SelectText(start, -1)
+		data_view.onChange.Fire(e)
+	})
+
+	return data_view
+}
+
+func NewSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
+	data_view := NewSearchBox(parent)
+	data_view.Update(labels)
+	return data_view
+}
+
+func NewSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.Stmt, args ...any) *SearchBox {
+	data_view := NewSearchBox(parent)
+	data_view.FromQuery(select_statement, args...)
+	return data_view
+}
+
+func NewListSearchBox(parent windigo.Controller) *SearchBox {
+	data_view := NewSearchBox(parent)
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+
+		start, _ := data_view.Selected()
+
+		text := strings.ToUpper(data_view.Text())
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+
+		//TODO split
+		data_view.ShowDropdown(false)
+		data_view.SetText(text)
+		data_view.ShowDropdown(true)
+
+		data_view.SelectText(start, -1)
+		data_view.onChange.Fire(e)
+	})
+	return data_view
+
+}
+
+func NewListSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
+	data_view := NewListSearchBox(parent)
+	data_view.Update(labels)
+	return data_view
+}
+
+func NewListSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.Stmt, args ...any) *SearchBox {
+	data_view := NewListSearchBox(parent)
+	data_view.FromQuery(select_statement, args...)
+	return data_view
 }

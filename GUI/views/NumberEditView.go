@@ -1,11 +1,12 @@
-package main
+package views
+
+// TODO todo
 
 import (
 	"strconv"
 	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -19,6 +20,7 @@ type NumberEditViewable interface {
 	windigo.DiffLabelable
 	Get() float64
 	GetFixed() float64
+	Set(val float64)
 	Clear()
 	Check(bool)
 }
@@ -47,6 +49,11 @@ func (control *NumberEditView) GetFixed() float64 {
 	// mass_field.SelectText(-1, 0)
 
 	return control.Get()
+}
+func (control *NumberEditView) Set(val float64) {
+	start, end := control.Selected()
+	control.SetText(strconv.FormatFloat(val, 'f', 2, 64))
+	control.SelectText(start, end)
 }
 
 func (control *NumberEditView) Clear() {
@@ -84,7 +91,7 @@ func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEdit
 	return edit_field
 }
 
-func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *view.RangeROView) *NumberEditView {
+func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
 
 	edit_field := NewNumberEditView(parent, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
@@ -124,7 +131,6 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 	panel.Dock(text_label, windigo.Left)
 	panel.Dock(text_field, windigo.Left)
 	panel.Dock(text_units, windigo.Left)
-	parent.Dock(panel, windigo.Bottom)
 
 	setFont := func(font *windigo.Font) {
 		text_label.SetFont(font)
@@ -140,7 +146,7 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 		text_label.SetMarginTop(GUI.ERROR_MARGIN)
 
 		text_field.SetSize(control_width, height)
-		text_field.SetMarginRight(DATA_MARGIN)
+		text_field.SetMarginRight(GUI.DATA_MARGIN)
 
 		text_units.SetSize(unit_width, height)
 		text_units.SetMarginTop(GUI.ERROR_MARGIN)

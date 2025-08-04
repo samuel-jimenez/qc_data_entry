@@ -28,7 +28,7 @@ func main() {
 	// log to file
 	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("error opening file: %v", err)
+		log.Fatalf("Crit: error opening file: %v", err)
 	}
 	defer log_file.Close()
 
@@ -40,10 +40,9 @@ func main() {
 	qc_db, err = sql.Open("sqlite3", ":memory:")
 	qc_db.Exec("attach ? as 'bs'", config.DB_FILE)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Crit: error opening database: ", err)
 	}
 	defer qc_db.Close()
-
 	dbinit(qc_db)
 
 	//setup print goroutine
@@ -63,7 +62,7 @@ func main() {
 
 func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 	if err != nil {
-		log.Printf("error: %q: %s\n", err, fn)
+		log.Printf("error: [%s]: %q\n", fn, err)
 		// return -1
 	}
 
@@ -85,7 +84,7 @@ func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 			&qc_data.Specific_gravity,
 			&qc_data.String_test,
 			&qc_data.Viscosity); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Crit: [%s]: %v", fn, err)
 		}
 		qc_data.Product_name = product_moniker_name + " " + internal_name
 
@@ -129,7 +128,7 @@ func dbinit(db *sql.DB) {
 		string_test ,
 		viscosity
 	from bs.qc_samples
-		join bs.product_lot using (lot_id)
+		join bs.product_lot using (product_lot_id)
 		join bs.product_line using (product_id)
 		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_sample_points using (sample_point_id)
@@ -149,6 +148,10 @@ func dbinit(db *sql.DB) {
 func show_window() {
 
 	log.Println("Info: Process started")
+
+	window_title := "QC Data Viewer"
+
+	GUI.EDIT_FIELD_HEIGHT = 24
 
 	product_data := make(map[string]int)
 	// lot_data := make(map[string]int)
@@ -188,7 +191,7 @@ func show_window() {
 
 	mainWindow := windigo.NewForm(nil)
 	mainWindow.SetSize(viewer.WINDOW_WIDTH, viewer.WINDOW_HEIGHT)
-	mainWindow.SetText("QC Data Viewer")
+	mainWindow.SetText(window_title)
 
 	dock := windigo.NewSimpleDock(mainWindow)
 
@@ -216,6 +219,8 @@ func show_window() {
 	lot_panel := windigo.NewAutoPanel(product_panel)
 	lot_panel.SetSize(hpanel_width, field_height)
 
+	//TODO fix ListComboBox sizes so it works like for size 10
+	//TODO change this to search like the filter
 	lot_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, lot_text)
 	lot_clear_button := windigo.NewPushButton(lot_panel)
 	lot_clear_button.SetText("-")
@@ -342,7 +347,7 @@ func show_window() {
 		}
 	})
 
-	GUI.Fill_combobox_from_query_0_2(lot_field, DB.DB_Select_lot_all, func(id int, name string) {
+	GUI.Fill_combobox_from_query_0_2(lot_field, DB.DB_Select_product_lot_all, func(id int, name string) {
 		// lot_data[name] = id
 		lot_data = append(lot_data, name)
 		update_lot(id, name)
@@ -370,7 +375,7 @@ func show_window() {
 		table.Update()
 
 		viewer.COL_ITEMS_LOT = nil
-		GUI.Fill_combobox_from_query_1_2(lot_field, DB.DB_Select_lot_info, int64(product_id), update_lot)
+		GUI.Fill_combobox_from_query_1_2(lot_field, DB.DB_Select_product_lot_product, int64(product_id), update_lot)
 
 		viewer.COL_ITEMS_SAMPLE = nil
 		GUI.Fill_combobox_from_query_1_2(sample_field, DB.DB_Select_product_sample_points, int64(product_id), update_sample)
@@ -429,7 +434,7 @@ func show_window() {
 	regen_sample_button.OnClick().Bind(func(e *windigo.Event) {
 		for _, data := range table.SelectedItems() {
 			if err := data.(viewer.QCData).Product().Output_sample(); err != nil {
-				log.Printf("Error: %q: %s\n", err, "regen_sample_button")
+				log.Printf("Error: [%s]: %q\n", "regen_sample_button", err)
 				log.Printf("Debug: %q: %v\n", err, data)
 				threads.Show_status("Error Creating Label")
 			}

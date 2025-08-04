@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -18,6 +17,8 @@ var (
 	COA_FILEPATH,
 	RETAIN_FILE_NAME,
 	RETAIN_WORKSHEET_NAME,
+	PRODUCTION_SCHEDULE_FILE_NAME,
+	PRODUCTION_SCHEDULE_WORKSHEET_NAME,
 	LOG_FILE string
 
 	JSON_PATHS []string
@@ -58,15 +59,24 @@ func set_config_defaults_entry(appname string, viper_config *viper.Viper) {
 	viper_config.SetDefault("retain_worksheet_name", "Sheet1")
 }
 
+func set_config_defaults_inbound(appname string, viper_config *viper.Viper) {
+	// Set defaults
+	set_config_defaults(appname, viper_config)
+	viper_config.SetDefault("production_schedule_file_name", "PRODUCTION-SCHEDULE.xlsx")
+	viper_config.SetDefault("production_schedule_worksheet_name", "Sheet1")
+}
+
 func read_or_create_config(viper_config *viper.Viper, config_path, config_file string) {
 	err := viper_config.ReadInConfig() // Find and read the config file
 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 		// Config file not found; ignore error if desired
-
 		os.MkdirAll(config_path, 660)
-		log.Println("viper_config.WriteConfigAs", viper_config.WriteConfigAs(config_file))
+		err = viper_config.WriteConfigAs(config_file)
+		if err != nil { // Handle errors writing the config file
+			panic(fmt.Errorf("fatal: error writing config file [config.read_or_create_config]: %w", err))
+		}
 	} else if err != nil { // Handle errors reading the config file
-		panic(fmt.Errorf("fatal error config file: %w", err))
+		panic(fmt.Errorf("fatal: error reading config file [config.read_or_create_config]: %w", err))
 	}
 }
 
@@ -86,6 +96,12 @@ func set_config_globals_entry(viper_config *viper.Viper) {
 	RETAIN_WORKSHEET_NAME = viper_config.GetString("retain_worksheet_name")
 }
 
+func set_config_globals_inbound(viper_config *viper.Viper) {
+	set_config_globals(viper_config)
+	PRODUCTION_SCHEDULE_FILE_NAME = viper_config.GetString("production_schedule_file_name")
+	PRODUCTION_SCHEDULE_WORKSHEET_NAME = viper_config.GetString("production_schedule_worksheet_name")
+}
+
 func Load_config_viewer(appname string) *viper.Viper {
 	viper_config, config_path, config_file := load_config_base(appname)
 	set_config_defaults(appname, viper_config)
@@ -99,6 +115,14 @@ func Load_config_entry(appname string) *viper.Viper {
 	set_config_defaults_entry(appname, viper_config)
 	read_or_create_config(viper_config, config_path, config_file)
 	set_config_globals_entry(viper_config)
+	return viper_config
+}
+
+func Load_config_inbound(appname string) *viper.Viper {
+	viper_config, config_path, config_file := load_config_base(appname)
+	set_config_defaults_inbound(appname, viper_config)
+	read_or_create_config(viper_config, config_path, config_file)
+	set_config_globals_inbound(viper_config)
 	return viper_config
 }
 

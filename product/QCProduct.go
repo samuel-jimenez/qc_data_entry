@@ -33,7 +33,10 @@ type QCProduct struct {
 }
 
 func NewQCProduct() *QCProduct {
-	return new(QCProduct)
+	qc_product := new(QCProduct)
+	qc_product.Product_id = DB.INVALID_ID
+	qc_product.Product_Lot_id = DB.DEFAULT_LOT_ID
+	return qc_product
 }
 
 func (product *QCProduct) Reset() {
@@ -54,7 +57,7 @@ func (product *QCProduct) Select_product_details() {
 		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
 	)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "Select_product_details")
+		log.Printf("Error: [%s]: %q\n", "Select_product_details", err)
 	}
 }
 
@@ -69,8 +72,9 @@ func (product *QCProduct) Select_product_coa_details() {
 		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
 	)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "select_product_coa_details")
+		log.Printf("Error: [%s]: %q\n", "select_product_coa_details", err)
 	}
+	// TODO 2025/07/31 14:50:45 Error: [select_product_coa_details]: "sql: no rows in result set"
 }
 
 func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
@@ -86,7 +90,7 @@ func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 		product.Viscosity.Min, product.Viscosity.Target, product.Viscosity.Max,
 	)
 	if err != nil {
-		log.Printf("Error: %q: %s\n", err, "upsert")
+		log.Printf("Error: [%s]: %q\n", "upsert", err)
 	}
 	//TODO?
 	// id, err := result.LastInsertId()

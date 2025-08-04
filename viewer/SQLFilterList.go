@@ -100,7 +100,7 @@ func NewSQLFilterListView(parent windigo.Controller) *SQLFilterListView {
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 	view.Filters = make(map[string]SQLFilterView)
 	// view.FilterList = NewSQLFilterList()
-	view.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	view.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
 	return view
 }

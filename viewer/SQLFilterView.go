@@ -23,7 +23,7 @@ func NewSQLFilterViewHeaderOptionLabel(parent *SQLFilterViewHeader, entry string
 	// panel := windigo.NewLabeledLabel(parent)
 
 	panel := windigo.NewAutoPanel(parent)
-	panel.SetSize(GUI.LABEL_WIDTH+SMOL_BUTTON_EDGE, FIELD_HEIGHT)
+	panel.SetSize(GUI.LABEL_WIDTH+SMOL_BUTTON_EDGE, GUI.EDIT_FIELD_HEIGHT)
 
 	close_button := windigo.NewPushButton(panel)
 	close_button.SetText("X")
@@ -83,6 +83,8 @@ func (header *SQLFilterViewHeader) SetShowPanel(panel *windigo.AutoPanel) {
 func (header *SQLFilterViewHeader) AddItem(entry string) {
 	// panel_label := windigo.NewLabel(header)
 	panel_label := NewSQLFilterViewHeaderOptionLabel(header, entry)
+	//TODO resize,wrap
+	// ala BuildNewDiscreteMultiView
 
 	header.Dock(panel_label, windigo.Left)
 }
@@ -168,7 +170,7 @@ func NewSQLFilterViewContinuous(parent windigo.Controller, key, label string) *S
 	field_panel := windigo.NewAutoPanel(panel)
 	panel_label.SetHidePanel(field_panel)
 
-	field_panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	field_panel.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 	min_field := NewNullStringView(field_panel)
 	max_field := NewNullStringView(field_panel)
 	field_panel.Dock(min_field, windigo.Left)
@@ -235,7 +237,7 @@ func NewSQLFilterViewDiscreteSearch(parent windigo.Controller, key, label string
 
 	selection_options := BuildNewDiscreteSearchView(view, set)
 	panel_label.SetHidePanel(selection_options.AutoPanel)
-	selection_options.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	selection_options.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
 	panel.Dock(panel_label, windigo.Top)
 	panel.Dock(selection_options, windigo.Top)
@@ -254,7 +256,18 @@ func NewSQLFilterViewDiscreteSearch(parent windigo.Controller, key, label string
 }
 
 /*
+ *
  * DiscreteSearchView
+
+*
+* TODO reconcile with SearchBox
+
+GUI.SearchBox
+
+* ComboBoxable ?
+*/
+
+/*
  *
  */
 type DiscreteSearchView struct {
@@ -322,7 +335,7 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 	// panel := windigo.NewAutoPanel(overpanel)
 
 	data_view.box = GUI.NewComboBox(panel, "")
-	data_view.box.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, FIELD_HEIGHT)
+	data_view.box.SetLabeledSize(GUI.OFF_AXIS, PRODUCT_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 	data_view.box.OnChange().Bind(func(e *windigo.Event) {
 
 		start, end := data_view.box.Selected()
@@ -342,8 +355,8 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 		parent.AddItem(entry)
 	})
 
-	// view.box.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
-	panel.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
+	// view.box.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
+	panel.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
 	panel.Dock(data_view.box, windigo.Left)
 
@@ -355,3 +368,32 @@ func BuildNewDiscreteSearchView(parent *SQLFilterView, labels []string) *Discret
 
 	return data_view
 }
+
+//TODO reconcile
+// func NewSearchBox(parent windigo.Controller) *SearchBox {
+// 	data_view := new(SearchBox)
+//
+// 	data_view.ComboBox = NewComboBox(parent, "")
+// 	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+// 		log.Println("CRIT: DEBUG: NewSearchBox OnChange", data_view.Text(), data_view.SelectedItem())
+//
+// 		start, _ := data_view.Selected()
+//
+// 		text := strings.ToUpper(data_view.Text())
+//
+// 		terms := strings.Split(text, " ")
+// 		data_view.Search(terms)
+//
+// 		data_view.ShowDropdown(true)
+//
+// 		data_view.SetText(text)
+//
+// 		// data_view.SelectText(start, end)
+// 		data_view.SelectText(start, -1)
+// 		data_view.onChange.Fire(e)
+// 		// data_view.OnChange().Fire(e)
+//
+// 	})
+//
+// 	return data_view
+// }

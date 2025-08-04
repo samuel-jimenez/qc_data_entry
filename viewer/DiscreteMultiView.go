@@ -26,8 +26,8 @@ func (data_view DiscreteMultiView) Get() []string {
 
 func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *DiscreteMultiView {
 	view := new(DiscreteMultiView)
-	height := FIELD_HEIGHT
-	delta_height := FIELD_HEIGHT
+	height := GUI.EDIT_FIELD_HEIGHT
+	delta_height := GUI.EDIT_FIELD_HEIGHT
 	// 	log.Println("ClientWidth",parent.Width())
 	// width = parent.Width()
 	width := WINDOW_WIDTH
@@ -62,7 +62,7 @@ func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *Disc
 		label := windigo.NewCheckBox(panel)
 		label.SetMarginLeft(margin)
 		label.SetText(label_text)
-		label.SetSize(text_width, FIELD_HEIGHT)
+		label.SetSize(text_width, GUI.EDIT_FIELD_HEIGHT)
 
 		// label.OnClick().Bind(func(e *windigo.Event) {
 		// 	view.Set(i)

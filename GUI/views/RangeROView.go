@@ -1,4 +1,4 @@
-package view
+package views
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"

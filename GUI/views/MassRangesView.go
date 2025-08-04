@@ -1,7 +1,6 @@
-package main
+package views
 
 import (
-	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -19,27 +18,27 @@ type MassRangesViewable interface {
  *
  */
 type MassRangesView struct {
-	mass_field,
-	sg_field,
-	density_field *view.RangeROView
+	Mass_field,
+	SG_field,
+	Density_field *RangeROView
 }
 
 func (view MassRangesView) CheckMass(data float64) bool {
-	return view.mass_field.Check(data)
+	return view.Mass_field.Check(data)
 }
 
 func (view MassRangesView) CheckSG(data float64) bool {
-	return view.sg_field.Check(data)
+	return view.SG_field.Check(data)
 }
 
 func (view MassRangesView) CheckDensity(data float64) bool {
-	return view.density_field.Check(data)
+	return view.Density_field.Check(data)
 }
 
 func (data_view MassRangesView) Clear() {
-	data_view.mass_field.Clear()
-	data_view.sg_field.Clear()
-	data_view.density_field.Clear()
+	data_view.Mass_field.Clear()
+	data_view.SG_field.Clear()
+	data_view.Density_field.Clear()
 }
 
 /* MassDataViewable
@@ -77,17 +76,18 @@ func (data_view MassDataView) SetLabeledSize(label_width, field_width, subfield_
 	data_view.density_field.SetLabeledSize(label_width, subfield_width, unit_width, height)
 }
 
-func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable) *MassDataView {
+func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable, mass_field *NumberEditView) *MassDataView {
 
-	mass_text := "Mass"
 	sg_text := "Specific Gravity"
 	density_text := "Density"
 
-	mass_field := NewNumberEditView(parent, mass_text)
+	//TAB ORDER
+	sg_field := NewNumberEditViewWithUnits(parent, sg_text, formats.SG_UNITS)
+	density_field := NewNumberEditViewWithUnits(parent, density_text, formats.DENSITY_UNITS)
 
 	//PUSH TO BOTTOM
-	density_field := NewNumberEditViewWithUnits(parent, density_text, formats.DENSITY_UNITS)
-	sg_field := NewNumberEditViewWithUnits(parent, sg_text, formats.SG_UNITS)
+	parent.Dock(density_field, windigo.Bottom)
+	parent.Dock(sg_field, windigo.Bottom)
 
 	check_or_error_mass := func(mass, sg, density float64) {
 		mass_field.Check(ranges_panel.CheckMass(mass))

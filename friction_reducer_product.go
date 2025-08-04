@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/view"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/product"
@@ -55,21 +55,24 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 	visual_text := "Visual Inspection"
 	viscosity_text := "Viscosity"
 	string_text := "String"
+	mass_text := "Mass"
 
 	group_panel := windigo.NewGroupAutoPanel(parent)
 	group_panel.SetText(sample_point)
 
 	visual_field := NewBoolCheckboxView(group_panel, visual_text)
 
-	viscosity_field := NewNumberEditViewWithChange(group_panel, viscosity_text, ranges_panel.viscosity_field)
+	viscosity_field := views.NewNumberEditViewWithChange(group_panel, viscosity_text, ranges_panel.viscosity_field)
 
-	mass_field := NewMassDataView(group_panel, ranges_panel)
+	mass_field := views.NewNumberEditView(group_panel, mass_text)
 
-	string_field := NewNumberEditViewWithChange(group_panel, string_text, ranges_panel.string_field)
+	string_field := views.NewNumberEditViewWithChange(group_panel, string_text, ranges_panel.string_field)
+
+	density_field := views.NewMassDataView(group_panel, ranges_panel, mass_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)
-	group_panel.Dock(mass_field, windigo.Top)
+	group_panel.Dock(density_field, windigo.Top)
 	group_panel.Dock(string_field, windigo.Top)
 
 	get := func(base_product product.BaseProduct, replace_sample_point bool) product.Product {
@@ -77,14 +80,14 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 		if replace_sample_point {
 			base_product.Sample_point = sample_point
 		}
-		return newFrictionReducerProduct(base_product, viscosity_field.Get(), mass_field.Get(), string_field.Get())
+		return newFrictionReducerProduct(base_product, viscosity_field.Get(), density_field.Get(), string_field.Get())
 
 	}
 	clear := func() {
 		visual_field.SetChecked(false)
 		viscosity_field.Clear()
 
-		mass_field.Clear()
+		density_field.Clear()
 
 		string_field.Clear()
 
@@ -96,17 +99,17 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 		group_panel.SetFont(font)
 		visual_field.SetFont(font)
 		viscosity_field.SetFont(font)
-		mass_field.SetFont(font) //?TODO
+		density_field.SetFont(font) //?TODO
 		string_field.SetFont(font)
 	}
 	refresh := func() {
 		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-		visual_field.SetSize(GUI.OFF_AXIS, FIELD_HEIGHT)
-		viscosity_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
-		mass_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, FIELD_HEIGHT)
-		string_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, FIELD_HEIGHT)
+		visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
+		viscosity_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		density_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		string_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
 	}
 
@@ -116,13 +119,13 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 type FrictionReducerProductRangesView struct {
 	*windigo.AutoPanel
-	*MassRangesView
+	*views.MassRangesView
 
 	viscosity_field,
 	// mass_field,
 	// sg_field,
 	// density_field,
-	string_field *view.RangeROView
+	string_field *views.RangeROView
 
 	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
@@ -148,14 +151,14 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 
 	visual_field := product.BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	viscosity_field := view.BuildNewRangeROView(group_panel, viscosity_text, qc_product.Viscosity, formats.Format_ranges_viscosity)
+	viscosity_field := views.BuildNewRangeROView(group_panel, viscosity_text, qc_product.Viscosity, formats.Format_ranges_viscosity)
 
-	string_field := view.BuildNewRangeROView(group_panel, string_text, qc_product.SG, formats.Format_ranges_string_test)
+	string_field := views.BuildNewRangeROView(group_panel, string_text, qc_product.SG, formats.Format_ranges_string_test)
 
-	mass_field := view.BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	mass_field := views.BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
 
-	sg_field := view.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
-	density_field := view.BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
+	sg_field := views.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
+	density_field := views.BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(viscosity_field, windigo.Top)
@@ -195,9 +198,9 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 	}
 
 	return FrictionReducerProductRangesView{group_panel,
-		&MassRangesView{&mass_field,
-			&sg_field,
-			&density_field},
+		&views.MassRangesView{Mass_field: &mass_field,
+			SG_field:      &sg_field,
+			Density_field: &density_field},
 		&viscosity_field,
 		&string_field,
 		update, setFont, refresh}
@@ -215,7 +218,7 @@ func check_dual_data(top_product, bottom_product product.Product) {
 			top_product.Save()
 			err := top_product.Printout()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "top_product.Printout")
+				log.Printf("Error: [%s]: %q\n", "top_product.Printout", err)
 			}
 
 		}
@@ -224,16 +227,16 @@ func check_dual_data(top_product, bottom_product product.Product) {
 			bottom_product.Save()
 			err := bottom_product.Printout()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.Printout")
+				log.Printf("Error: [%s]: %q\n", "bottom_product.Printout", err)
 			}
 			//TODO find closest: RMS?
 			err = bottom_product.Output_sample()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.Output_sample")
+				log.Printf("Error: [%s]: %q\n", "bottom_product.Output_sample", err)
 			}
 			err = bottom_product.Save_xl()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "bottom_product.Save_xl")
+				log.Printf("Error: [%s]: %q\n", "bottom_product.Save_xl", err)
 			}
 		}
 	} else { // TODO show confirm box
@@ -287,7 +290,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 			top_product.Save()
 			err := top_product.Output()
 			if err != nil {
-				log.Printf("Error: %q: %s\n", err, "top_product.Output")
+				log.Printf("Error: [%s]: %q\n", "top_product.Output", err)
 			}
 
 		}
@@ -308,14 +311,14 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 	parent.Dock(button_dock_cars, windigo.Top)
 
 	changeContainer := func(qc_product *product.QCProduct) {
-		if qc_product.Container_type.Int32 == int32(CONTAINER_TOTE) {
-			bottom_group.Hide()
-			button_dock_cars.Hide()
-			button_dock_totes.Show()
-		} else {
+		if int(qc_product.Container_type.Int32) == CONTAINER_RAILCAR {
 			bottom_group.Show()
 			button_dock_cars.Show()
 			button_dock_totes.Hide()
+		} else {
+			bottom_group.Hide()
+			button_dock_cars.Hide()
+			button_dock_totes.Show()
 		}
 	}
 

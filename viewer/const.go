@@ -19,7 +19,7 @@ var (
 
 	PRODUCT_FIELD_WIDTH = 150
 	DATA_FIELD_WIDTH    = 60
-	FIELD_HEIGHT        = 24
+	// GUI.EDIT_FIELD_HEIGHT        = 24
 
 	BUTTON_WIDTH  = 100
 	BUTTON_HEIGHT = 40
@@ -38,7 +38,7 @@ var (
 	COL_KEY_TIME   = "time_stamp"
 	COL_LABEL_TIME = "Time Stamp"
 
-	// COL_KEY_LOT = "lot_id" //TODO
+	// COL_KEY_LOT = "product_lot_id" //TODO
 	COL_KEY_LOT   = "lot_name"
 	COL_LABEL_LOT = "Lot Number"
 	COL_ITEMS_LOT []string
