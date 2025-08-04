@@ -38,8 +38,9 @@ func Do_print_queue(print_queue chan string) {
 				log.Println("Info: Printing: ", new_file)
 				err := pdf_print(new_file)
 				if err != nil {
-					log.Printf("Error: [%s]: %q\n",  "Do_print_queue",  err)
+					log.Printf("Error: [%s]: %q\n", "Do_print_queue", err)
 				}
+				log.Println("Info: Printed: ", new_file)
 			} else {
 				return
 			}
