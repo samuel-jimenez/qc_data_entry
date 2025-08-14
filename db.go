@@ -440,7 +440,7 @@ values
 	// 	// return
 	// }
 
-	DB.Check_db(db)
+	DB.Check_db(db, true)
 	DB.DBinit(db)
 
 }

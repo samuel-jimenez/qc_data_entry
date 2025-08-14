@@ -21,7 +21,7 @@ var (
 
 func dbinit(db *sql.DB) {
 
-	DB.Check_db(db)
+	DB.Check_db(db, false)
 	DB.DBinit(db)
 
 }

@@ -116,7 +116,13 @@ var (
 
 func dbinit(db *sql.DB) {
 
-	DB.Check_db(db)
+	/*
+		dbError := windigo.NewDialog(nil)
+		dbError.Center()
+		dbError.Show()
+		dbError.OnClose().Bind(func(e *windigo.Event) { windigo.Exit() })
+		dbError.RunMainLoop() // Must call to start event loop.*/
+	DB.Check_db(db, true)
 	DB.DBinit(db)
 
 	SAMPLE_SELECT_STRING = `

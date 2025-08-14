@@ -680,6 +680,12 @@ func show_window() {
 
 	AddShortcuts(mainWindow, keygrab, set_font, qr_pop_data)
 
+	dbError := windigo.NewDialog(nil)
+	dbError.Center()
+	dbError.Show()
+	dbError.OnClose().Bind(func(e *windigo.Event) { windigo.Exit() })
+	dbError.RunMainLoop() // Must call to start event loop.
+
 	mainWindow.Center()
 	mainWindow.Show()
 	mainWindow.OnClose().Bind(wndOnClose)

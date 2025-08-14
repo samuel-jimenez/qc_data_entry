@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/samuel-jimenez/windigo"
 )
 
 var (
@@ -81,7 +83,7 @@ func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
 	return preparedStatement
 }
 
-func Check_db(db *sql.DB) {
+func Check_db(db *sql.DB, showWindowp bool) {
 
 	var found_database_version_major,
 		found_database_version_minor,
@@ -104,7 +106,11 @@ func Check_db(db *sql.DB) {
 		found_database_version_revision)
 
 	if DB_VERSION != found_db_version {
-		err = errors.New(fmt.Sprintf("Database version mismatch: Required: %s, found: %s", DB_VERSION, found_db_version))
+		message := fmt.Sprintf("Database version mismatch: Required: %s, found: %s", DB_VERSION, found_db_version)
+		err = errors.New(message)
+		if showWindowp {
+			windigo.Errorf(nil, message)
+		}
 		log.Printf("%q\n", err)
 		panic(err)
 	}
