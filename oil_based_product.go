@@ -22,8 +22,8 @@ func (ob_product OilBasedProduct) toProduct() product.Product {
 		PH:          nullable.NewNullFloat64(0, false),
 		SG:          nullable.NewNullFloat64(ob_product.sg, true),
 		Density:     nullable.NewNullFloat64(0, false),
-		String_test: nullable.NewNullFloat64(0, false),
-		Viscosity:   nullable.NewNullFloat64(0, false),
+		String_test: nullable.NullInt64Default(),
+		Viscosity:   nullable.NullInt64Default(),
 	}
 
 	//TODO Option?
@@ -121,7 +121,7 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 
 		density_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
-		button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+		button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
 		ranges_panel.SetMarginTop(GROUP_MARGIN)
 		ranges_panel.Refresh()

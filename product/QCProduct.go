@@ -36,10 +36,11 @@ func NewQCProduct() *QCProduct {
 	qc_product := new(QCProduct)
 	qc_product.Product_id = DB.INVALID_ID
 	qc_product.Product_Lot_id = DB.DEFAULT_LOT_ID
+	qc_product.Lot_id = DB.DEFAULT_LOT_ID
 	return qc_product
 }
 
-func (product *QCProduct) Reset() {
+func (product *QCProduct) ResetQC() {
 	var empty_product QCProduct
 	empty_product.Product = product.Product
 	empty_product.Update = product.Update
@@ -122,6 +123,12 @@ func write_CoA_row_fmt(table *docx.Table, title, units string, spec datatypes.Ra
 	}
 }
 
+func write_CoA_row_fmt_int64(table *docx.Table, title, units string, spec datatypes.Range, result nullable.NullInt64, format_fn func(float64) string) {
+	if result.Valid {
+		write_CoA_row(table, title, units, spec.CoA(format_fn), formats.FormatInt(result.Int64))
+	}
+}
+
 func (product QCProduct) write_CoA_rows(table *docx.Table) {
 	var (
 		Appearance_units = "Pass/fail"
@@ -154,8 +161,11 @@ func (product QCProduct) write_CoA_rows(table *docx.Table) {
 	write_CoA_row_fmt(table, ph_title, "", product.PH, product.Product.PH, formats.Format_ph)
 	write_CoA_row_fmt(table, sg_title, formats.SG_UNITS, product.SG, product.Product.SG, Format_sg)
 	write_CoA_row_fmt(table, Density_title, formats.DENSITY_UNITS, product.Density, product.Product.Density, formats.Format_density)
-	write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
-	write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
+	// write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
+	write_CoA_row_fmt_int64(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
+	// write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
+	write_CoA_row_fmt_int64(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
+
 }
 
 func (product *QCProduct) Edit(

@@ -19,8 +19,8 @@ func (object *ProductBlend) AddComponent(component_data BlendComponent) {
 	object.Components = append(object.Components, component_data)
 }
 
-func (object *ProductBlend) Save(Lot_id int64) {
+func (object *ProductBlend) Save(Product_Lot_id int64) {
 	for _, val := range object.Components {
-		val.Save(Lot_id, object.Recipe_id)
+		val.Save(Product_Lot_id, object.Recipe_id)
 	}
 }

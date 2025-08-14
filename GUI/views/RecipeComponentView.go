@@ -1,12 +1,11 @@
-package blender
+package views
 
 import (
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -15,49 +14,12 @@ var (
 )
 
 /*
- * NumbEditViewer
- *
- */
-type NumbEditViewer interface {
-	Get() float64
-	Set(float64)
-}
-
-/*
-* NumbEditView
-* 	// cf NumberEditView
-
-*
- */
-type NumbEditView struct {
-	// GUI.ErrableView
-	*windigo.Edit
-}
-
-func NewNumbEditView(parent windigo.Controller) *NumbEditView {
-	edit_field := new(NumbEditView)
-	edit_field.Edit = windigo.NewEdit(parent)
-	return edit_field
-}
-
-func (control *NumbEditView) Get() float64 {
-	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
-	return val
-}
-
-func (control *NumbEditView) Set(val float64) {
-	start, end := control.Selected()
-	control.SetText(strconv.FormatFloat(val, 'f', 2, 64))
-	control.SelectText(start, end)
-}
-
-/*
  * RecipeComponentViewer
  *
  */
 type RecipeComponentViewer interface {
-	Get() *RecipeComponent
-	Update(*RecipeComponent)
+	Get() *blender.RecipeComponent
+	Update(*blender.RecipeComponent)
 	Update_component_types(component_types_list []string)
 	SetFont(font *windigo.Font)
 	MoveUp()
@@ -70,7 +32,7 @@ type RecipeComponentViewer interface {
  */
 type RecipeComponentView struct {
 	*windigo.AutoPanel
-	RecipeComponent      *RecipeComponent
+	RecipeComponent      *blender.RecipeComponent
 	component_field      *GUI.SearchBox
 	amount_field         *NumbEditView
 	component_types_data map[string]int64
@@ -85,7 +47,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	DEL_BUTTON_WIDTH := 20
 
 	view := new(RecipeComponentView)
-	view.RecipeComponent = NewRecipeComponent()
+	view.RecipeComponent = blender.NewRecipeComponent()
 	view.RecipeComponent.Add_order = len(parent.Components)
 	// view.RecipeComponent.
 	view.component_types_data = parent.component_types_data
@@ -115,7 +77,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 	return view
 }
 
-func (view *RecipeComponentView) Get() *RecipeComponent {
+func (view *RecipeComponentView) Get() *blender.RecipeComponent {
 	view.RecipeComponent.Component_name = view.component_field.Text()
 	view.RecipeComponent.Component_type_id = view.component_types_data[view.RecipeComponent.Component_name]
 	if view.RecipeComponent.Component_type_id == DB.INVALID_ID {
@@ -128,7 +90,7 @@ func (view *RecipeComponentView) Get() *RecipeComponent {
 	return view.RecipeComponent
 }
 
-func (view *RecipeComponentView) Update(RecipeComponent *RecipeComponent) {
+func (view *RecipeComponentView) Update(RecipeComponent *blender.RecipeComponent) {
 	log.Println("DEBUG: RecipeComponentView Update", RecipeComponent)
 
 	if view.RecipeComponent == RecipeComponent || RecipeComponent == nil {

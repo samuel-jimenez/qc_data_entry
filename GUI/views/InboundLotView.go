@@ -1,4 +1,4 @@
-package blender
+package views
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -25,34 +26,32 @@ type InboundLotView struct {
 	component_types_data map[string]int64
 }
 
-func NewInboundLotView(parent *BlendComponentView, RecipeComponent *RecipeComponent) *InboundLotView {
+func NewInboundLotView(parent windigo.Controller, RecipeComponent *blender.RecipeComponent) *InboundLotView {
 
 	inbound_lot_label := "Lot #"
 	container_label := "Container"
 
 	view := new(InboundLotView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
-
-	DB.Forall("NewInboundLotView",
+	DB.Forall_err("NewInboundLotView",
 		func() {
 			view.component_types_list = nil
 			view.component_types_data = make(map[string]int64)
 		},
-		func(row *sql.Rows) {
+		func(row *sql.Rows) error {
 			var (
 				id   int64
 				name string
 			)
-
 			if err := row.Scan(
 				&id, &name,
-			); err == nil {
-				view.component_types_data[name] = id
-				log.Println("DEBUG: NewInboundLotView nsme", id, name)
-				view.component_types_list = append(view.component_types_list, name)
-			} else {
-				log.Printf("error: [%s]: %q\n", "NewInboundLotView", err)
+			); err != nil {
+				return err
 			}
+			view.component_types_data[name] = id
+			log.Println("DEBUG: NewInboundLotView nsme", id, name)
+			view.component_types_list = append(view.component_types_list, name)
+			return nil
 		},
 		DB.DB_Select_inbound_product_component_type_id, RecipeComponent.Component_type_id)
 
@@ -66,10 +65,10 @@ func NewInboundLotView(parent *BlendComponentView, RecipeComponent *RecipeCompon
 
 	accept_button := windigo.NewPushButton(view.AutoPanel)
 	accept_button.SetText("OK")
-	accept_button.SetSize(ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	cancel_button := windigo.NewPushButton(view.AutoPanel)
 	cancel_button.SetText("Cancel")
-	cancel_button.SetSize(CANCEL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	cancel_button.SetSize(GUI.CANCEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.product_field.Label().SetText(RecipeComponent.Component_name)
 	container_field.Label().SetText(container_label)
@@ -138,7 +137,7 @@ func (view *InboundLotView) SetFont(font *windigo.Font) {
 }
 
 func (view *InboundLotView) RefreshSize() {
-	view.SetSize((GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH)*len(view.labeled)+ACCEPT_BUTTON_WIDTH+CANCEL_BUTTON_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.SetSize((GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH)*len(view.labeled)+GUI.ACCEPT_BUTTON_WIDTH+GUI.CANCEL_BUTTON_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	for _, control := range view.labeled {
 		control.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 

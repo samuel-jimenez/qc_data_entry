@@ -23,8 +23,8 @@ func (wb_product WaterBasedProduct) toProduct() product.Product {
 		PH:          nullable.NewNullFloat64(wb_product.ph, true),
 		SG:          nullable.NewNullFloat64(wb_product.sg, true),
 		Density:     nullable.NewNullFloat64(0, false),
-		String_test: nullable.NewNullFloat64(0, false),
-		Viscosity:   nullable.NewNullFloat64(0, false),
+		String_test: nullable.NullInt64Default(),
+		Viscosity:   nullable.NullInt64Default(),
 	}
 
 	//TODO Option?
@@ -128,7 +128,7 @@ func show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 		sg_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 		ph_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
-		button_dock.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+		button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
 		ranges_panel.Refresh()
 	}

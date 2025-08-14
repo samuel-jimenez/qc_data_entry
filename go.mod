@@ -13,6 +13,7 @@ require (
 	github.com/ncruces/go-sqlite3 v0.25.1
 	github.com/spf13/viper v1.20.1
 	github.com/xuri/excelize/v2 v2.9.1
+	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a
 )
 
 require (

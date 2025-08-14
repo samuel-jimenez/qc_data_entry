@@ -10,44 +10,40 @@ import (
 )
 
 type RecipeProduct struct {
-	Product_name string
-	Product_id   int64
-	Recipes      []*ProductRecipe
+	Product_id int64
+	Recipes    []*ProductRecipe
 }
 
 func NewRecipeProduct() *RecipeProduct {
 	return new(RecipeProduct)
 }
 
-func (object *RecipeProduct) Set(name string, Product_id int64) {
-	object.Product_name = name
+func (object *RecipeProduct) Set(Product_id int64) {
 	object.Product_id = Product_id
 }
 
 func (object *RecipeProduct) GetRecipes(combo_field *GUI.ComboBox) {
 	proc_name := "RecipeProduct.GetRecipes"
 	i := 0
-
-	DB.Forall(proc_name,
+	DB.Forall_exit(proc_name,
 		func() {
 			object.Recipes = nil
 			combo_field.DeleteAllItems()
 		},
-		func(row *sql.Rows) {
+		func(row *sql.Rows) error {
 			var (
 				recipe_data ProductRecipe
 			)
-
 			if err := row.Scan(
 				&recipe_data.Recipe_id,
 			); err != nil {
-				log.Fatal("Crit: [RecipeProduct GetRecipes]: ", proc_name, err)
+				return err
 			}
 			log.Println("DEBUG: GetRecipes qc_data", proc_name, recipe_data)
 			object.Recipes = append(object.Recipes, &recipe_data)
 			combo_field.AddItem(strconv.Itoa(i))
 			i++
-
+			return nil
 		},
 		DB.DB_Select_product_recipe, object.Product_id)
 	if i != 0 {

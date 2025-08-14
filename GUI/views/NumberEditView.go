@@ -1,6 +1,6 @@
 package views
 
-// TODO todo
+// TODO todo NumberEditView
 
 import (
 	"strconv"
@@ -24,6 +24,8 @@ type NumberEditViewable interface {
 	Clear()
 	Check(bool)
 }
+
+// TODO combine NumbEditView nmaybe?
 
 /*
  * NumberEditView

@@ -1,4 +1,4 @@
-package blender
+package views
 
 import (
 	"log"
@@ -6,13 +6,14 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
 
 type BlendProductViewer interface {
 	windigo.Pane
-	Get() *BlendProduct
-	// Update(blend *BlendProduct)
+	Get() *blender.BlendProduct
+	// Update(blend *blender.BlendProduct)
 	Update_products(product_data map[string]int64)
 	AddComponent()
 	SetFont(font *windigo.Font)
@@ -22,8 +23,8 @@ type BlendProductViewer interface {
 type BlendProductView struct {
 	*windigo.AutoPanel
 
-	RecipeProduct *RecipeProduct
-	// BlendProduct                   *BlendProduct
+	RecipeProduct *blender.RecipeProduct
+	// BlendProduct                   *blender.BlendProduct
 	Blend                          *BlendView
 	Product_data                   map[string]int64
 	Product_Field, Blend_sel_field *GUI.ComboBox
@@ -37,7 +38,7 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	recipe_text := ""
 
 	view := new(BlendProductView)
-	view.RecipeProduct = NewRecipeProduct()
+	view.RecipeProduct = blender.NewRecipeProduct()
 	// view.BlendProduct = NewBlendProduct()
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
@@ -53,7 +54,7 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
 	recipe_accept_button.SetText("OK")
-	recipe_accept_button.SetSize(ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	recipe_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.Blend = NewBlendView(view.AutoPanel)
 
@@ -70,10 +71,10 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 
 	//event handling
 	view.Product_Field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		view.RecipeProduct = NewRecipeProduct()
+		view.RecipeProduct = blender.NewRecipeProduct()
 		// view.BlendProduct = NewBlendProduct()
 		name := view.Product_Field.GetSelectedItem()
-		view.RecipeProduct.Set(name, view.Product_data[name])
+		view.RecipeProduct.Set(view.Product_data[name])
 		// view.Product.GetBlends()
 		view.RecipeProduct.GetRecipes(view.Blend_sel_field)
 		view.RecipeProduct.GetComponents()
@@ -105,14 +106,14 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	return view
 }
 
-func (view *BlendProductView) Get() *BlendProduct {
+func (view *BlendProductView) Get() *blender.BlendProduct {
 
 	ProductBlend := view.Blend.Get()
 	log.Println("ERR: DEBUG: view.Blend Get:", ProductBlend)
 	if ProductBlend == nil {
 		return nil
 	}
-	BlendProduct := NewBlendProductFromRecipe(view.RecipeProduct)
+	BlendProduct := blender.NewBlendProductFromRecipe(view.RecipeProduct)
 
 	if BlendProduct.Product_id == DB.INVALID_ID {
 		//TODO make error

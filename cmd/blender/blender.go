@@ -7,7 +7,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/blender"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
@@ -157,8 +157,6 @@ func show_window() {
 	product_data := make(map[string]int64)
 
 	ADD_BUTTON_WIDTH := 20
-	ACCEPT_BUTTON_WIDTH := 50
-	cancel_button_width := 50
 
 	// Blend_product := new(BlendProduct)
 	var (
@@ -176,7 +174,7 @@ func show_window() {
 	// product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
 	//
 
-	Blend_product_view := blender.NewBlendProductView(mainWindow)
+	Blend_product_view := views.NewBlendProductView(mainWindow)
 
 	// Blend_View := blender.NewBlendView(mainWindow)
 
@@ -188,10 +186,10 @@ func show_window() {
 	component_add_field := GUI.NewSearchBox(component_add_panel)
 	component_accept_button := windigo.NewPushButton(component_add_panel)
 	component_accept_button.SetText("OK")
-	component_accept_button.SetSize(ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	component_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	component_cancel_button := windigo.NewPushButton(component_add_panel)
 	component_cancel_button.SetText("Cancel")
-	component_cancel_button.SetSize(cancel_button_width, GUI.OFF_AXIS)
+	component_cancel_button.SetSize(GUI.CANCEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 	component_add_panel.Hide()
 
 	// Dock
@@ -208,7 +206,7 @@ func show_window() {
 
 	// combobox
 
-	GUI.Fill_combobox_from_query_rows_0(Blend_product_view.Product_Field, func(row *sql.Rows) error {
+	GUI.Fill_combobox_from_query_rows(Blend_product_view.Product_Field, func(row *sql.Rows) error {
 		var (
 			id                   int64
 			internal_name        string
@@ -338,13 +336,13 @@ func show_Formulator() {
 	mainWindow.SetText(window_title)
 	dock := windigo.NewSimpleDock(mainWindow)
 
-	Recipe_product_view := blender.NewRecipeProductView(mainWindow)
+	Recipe_product_view := views.NewRecipeProductView(mainWindow)
 
 	dock.Dock(Recipe_product_view, windigo.Fill)
 
 	// combobox
 
-	GUI.Fill_combobox_from_query_rows_0(Recipe_product_view.Product_Field, func(row *sql.Rows) error {
+	GUI.Fill_combobox_from_query_rows(Recipe_product_view.Product_Field, func(row *sql.Rows) error {
 		var (
 			id                   int64
 			internal_name        string

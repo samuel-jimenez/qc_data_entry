@@ -1,4 +1,4 @@
-package blender
+package views
 
 import (
 	"log"
@@ -6,20 +6,19 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
 
 var (
-	ADD_BUTTON_WIDTH    = 20
-	ACCEPT_BUTTON_WIDTH = 50
-	CANCEL_BUTTON_WIDTH = 50
-	NEW_BUTTON_WIDTH    = 50
+	ADD_BUTTON_WIDTH = 20
+	NEW_BUTTON_WIDTH = 50
 )
 
 type RecipeProductViewer interface {
 	windigo.Pane
 	// Get() *RecipeProduct
-	Update(recipe *RecipeProduct)
+	Update(recipe *blender.RecipeProduct)
 	Update_component_types(component_types_list []string, component_types_data map[string]int64)
 	Update_products(product_list []string, product_data map[string]int64)
 	AddComponent()
@@ -29,7 +28,7 @@ type RecipeProductViewer interface {
 
 type RecipeProductView struct {
 	*windigo.AutoPanel
-	Product                         *RecipeProduct
+	Product                         *blender.RecipeProduct
 	Recipe                          *RecipeView
 	Product_data                    map[string]int64
 	Product_Field, Recipe_sel_field *GUI.ComboBox
@@ -43,7 +42,7 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 	recipe_text := ""
 
 	view := new(RecipeProductView)
-	view.Product = NewRecipeProduct()
+	view.Product = blender.NewRecipeProduct()
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -64,7 +63,7 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
 	recipe_accept_button.SetText("OK")
-	recipe_accept_button.SetSize(ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	recipe_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.Recipe = NewRecipeView(view)
 
@@ -85,9 +84,9 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 
 	//event handling
 	view.Product_Field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		view.Product = NewRecipeProduct()
+		view.Product = blender.NewRecipeProduct()
 		name := view.Product_Field.GetSelectedItem()
-		view.Product.Set(name, view.Product_data[name])
+		view.Product.Set(view.Product_data[name])
 		// view.Product.GetRecipes()
 		view.Product.GetRecipes(view.Recipe_sel_field)
 		view.Product.GetComponents()

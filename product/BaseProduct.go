@@ -1,12 +1,14 @@
 package product
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 )
@@ -15,15 +17,33 @@ type BaseProduct struct {
 	Product_name             string `json:"product_name"`
 	Lot_number               string `json:"lot_number"`
 	Sample_point             string
+	Tester                   nullable.NullString `json:"Tester"`
 	Visual                   bool
 	Product_id               int64
+	Lot_id                   int64
 	Product_Lot_id           int64
 	Product_name_customer_id nullable.NullInt64
 	Product_name_customer    string `json:"customer_product_name"`
+	Blend                    *blender.ProductBlend
+	Valid                    bool
 }
 
 func (product BaseProduct) Base() BaseProduct {
 	return product
+}
+
+func (product *BaseProduct) ResetLot() {
+	proc_name := "BaseProduct.ResetLot"
+
+	product.Lot_number = ""
+	product.Product_Lot_id = DB.DEFAULT_LOT_ID
+	product.Lot_id = DB.DEFAULT_LOT_ID
+	product.Product_name_customer = ""
+	product.Product_name_customer_id = nullable.NullInt64Default()
+	product.Blend = nil
+
+	log.Println("Debug:", proc_name, product.Product_id, product.Product_name_customer, product.Product_name_customer_id)
+	log.Println("Debug:", proc_name, product)
 }
 
 //TODO product.get_coa_name()
@@ -63,11 +83,7 @@ func (product *BaseProduct) Insel_product_self() *BaseProduct {
 }
 
 func (product *BaseProduct) Update_lot(lot_number, product_name_customer string) *BaseProduct {
-
-	product.Lot_number = ""
-	product.Product_Lot_id = DB.DEFAULT_LOT_ID
-	product.Product_name_customer = ""
-	product.Product_name_customer_id = nullable.NullInt64Default()
+	product.ResetLot()
 	log.Println("Debug: Update_lot Product_id", product.Product_id, lot_number, product_name_customer)
 	if product.Product_id == DB.INVALID_ID {
 		return product
@@ -80,13 +96,102 @@ func (product *BaseProduct) Update_lot(lot_number, product_name_customer string)
 
 	if lot_number != "" {
 		product.Lot_number = lot_number
-		// join bs.lot_list using (lot_id)
-		product.Product_Lot_id = DB.Insel_product_lot_id(product.Lot_number, product.Product_id)
-		log.Println("Debug: Update_lot Lot_id", product.Lot_number, product.Product_Lot_id)
+		product.Lot_id = DB.Insel_lot_id(product.Lot_number)
+
+		product.Product_Lot_id = DB.Insel_product_lot_id(product.Lot_id, product.Product_id)
+		log.Println("Debug: Update_lot Lot_id", product.Lot_number, product.Product_Lot_id, product.Lot_id)
 
 		DB.DB_Update_lot_customer.Exec(product.Product_name_customer_id, product.Product_Lot_id)
 	}
 	return product
+}
+
+//nned to export:
+// 			Product_name             string `json:"product_name"`
+// 	Lot_number               string `json:"lot_number"`
+// 		Product_name_customer    string `json:"customer_product_name"`
+//
+// *	Sample_point             string
+// *	Tester                   nullable.NullString `json:"Tester"`
+// *		PH          nullable.NullFloat64
+// *	SG          nullable.NullFloat64
+//* 	String_test nullable.NullInt64
+// *	Viscosity   nullable.NullInt64
+// 	Visual                   bool
+//
+// 	Blend                    *blender.ProductBlend
+// ??TODO
+// 	glut
+// 	quat
+//
+
+// need to save:
+// Lot_id
+// func (product *BaseProduct) Update_inbound_lot(lot_number, product_name_customer string) *BaseProduct {
+func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
+	base_product.ResetLot()
+	proc_name := "BaseProduct.Update_testing_lot"
+
+	var Product_name_customer nullable.NullString
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Select_product_lot_list_name.QueryRow(lot_number),
+		&base_product.Lot_id,
+		&base_product.Product_name, &base_product.Lot_number, &Product_name_customer,
+	); err != nil {
+		log.Println("Crit: ", proc_name, base_product, err)
+		base_product.ResetLot()
+		return
+	}
+	base_product.Product_name_customer = Product_name_customer.String
+	// TODO recip00 extract to fn, move componenet panel?
+	Blend := blender.NewProductBlend()
+	base_product.Blend = Blend
+
+	// TODO blend012 ensure doens't break show_fr()
+
+	// base_product.Insel_product_self()
+
+	DB.Forall_exit(proc_name,
+		func() {
+		},
+		func(row *sql.Rows) error {
+
+			blendComponent := blender.NewBlendComponent()
+
+			if err := row.Scan(
+				&blendComponent.Component_name, &blendComponent.Lot_name, &blendComponent.Container_name,
+			); err != nil {
+				return err
+			}
+			Blend.AddComponent(*blendComponent)
+			return nil
+		},
+		DB.DB_Select_product_lot_list_sources, base_product.Lot_number)
+}
+
+func (product *BaseProduct) SetTester(Tester string) {
+	product.Tester = nullable.NewNullString(Tester)
+
+}
+
+func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
+	product.Blend = Blend
+	log.Println("Debug: BaseProduct.SetBlend", product.Blend, Blend, product)
+	if Blend == nil {
+		return
+	}
+	DB.Update("BaseProduct.SetBlend",
+		DB.DB_Update_lot_recipe,
+		Blend.Recipe_id,
+		product.Product_Lot_id,
+	)
+}
+
+func (product BaseProduct) SaveBlend() {
+	//TODO make sure this is the only time it is saved
+	if product.Blend != nil {
+		product.Blend.Save(product.Product_Lot_id)
+	}
 }
 
 func (product *BaseProduct) Insel_lot_self() *BaseProduct {

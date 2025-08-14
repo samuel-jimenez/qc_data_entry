@@ -126,7 +126,7 @@ func ShowNewQCProductRangesView(qc_product *product.QCProduct) {
 	}
 
 	load_coa := func() {
-		qc_product.Reset()
+		qc_product.ResetQC()
 		qc_product.Select_product_coa_details()
 		appearance_dock.Set(qc_product.Appearance)
 		ph_dock.Set(qc_product.PH)

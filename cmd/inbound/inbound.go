@@ -86,6 +86,7 @@ func get_sheets(file_name string) {
 }
 
 func get_sched(file_name, worksheet_name string) {
+	proc_name := "InboundSync.DB_Select_inbound_lot_status"
 	InboundLotMap0 := blendbound.NewInboundLotMapFromQuery()
 	InboundLotMap1 := make(map[string]*blendbound.InboundLot)
 
@@ -136,32 +137,56 @@ func get_sched(file_name, worksheet_name string) {
 				}
 			}
 		}
-
 		// items not found as "available"
 		for key, val := range InboundLotMap0 {
 			val.Update_status(blendbound.Status_UNAVAILABLE)
 			delete(InboundLotMap0, key)
 		}
 
-		// get all available
-		proc_name := "InboundSync DB_Select_inbound_lot_status"
-		DB.Forall(proc_name,
+		// get all SAMPLED
+		proc_name = "InboundSync.DB_Select_inbound_lot_status.SAMPLED"
+		DB.Forall_err(proc_name,
 			func() {},
-			func(row *sql.Rows) {
+			func(row *sql.Rows) error {
 				var lot_name string
-				if err := row.Scan(&lot_name); err != nil {
-					log.Printf("error: [%s]: %q\n", proc_name, err)
-					return
-				} else {
-					// queries cannot be nested, so just dump the results into the map
-					InboundLotMap0[lot_name] = InboundLotMap1[lot_name]
+				if err := row.Scan(
+					&lot_name,
+				); err != nil {
+					return err
 				}
+				// queries cannot be nested, so just dump the results into the map
+				InboundLotMap0[lot_name] = InboundLotMap1[lot_name]
+				return nil
 			},
-			DB.DB_Select_inbound_lot_status, blendbound.Status_AVAILABLE)
+			DB.DB_Select_name_inbound_lot_status, blendbound.Status_SAMPLED)
+		// process new entries
+		for key, val := range InboundLotMap0 {
+			val.Quality_test()
+			delete(InboundLotMap0, key)
+		}
+
+		// get all available
+		proc_name = "InboundSync.DB_Select_inbound_lot_status.AVAILABLE"
+		DB.Forall_err(proc_name,
+			func() {},
+			func(row *sql.Rows) error {
+				var lot_name string
+				if err := row.Scan(
+					&lot_name,
+				); err != nil {
+					return err
+				}
+				// queries cannot be nested, so just dump the results into the map
+				InboundLotMap0[lot_name] = InboundLotMap1[lot_name]
+				return nil
+			},
+			DB.DB_Select_name_inbound_lot_status, blendbound.Status_AVAILABLE)
 		// process new entries
 		for _, val := range InboundLotMap0 {
-			val.Quality_test()
+			// TODO ...? idk print maybe?
+			log.Printf("Info: [%s]: %q, %q\n", proc_name, val.Lot_number, val.Container_name)
 		}
+
 		return nil
 	})
 }

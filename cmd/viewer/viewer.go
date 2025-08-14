@@ -17,6 +17,10 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
+// TODO
+// Dynamic-column pivot table
+// pivot_vtab
+
 var (
 	qc_db *sql.DB
 )
@@ -128,7 +132,8 @@ func dbinit(db *sql.DB) {
 		string_test ,
 		viscosity
 	from bs.qc_samples
-		join bs.product_lot using (product_lot_id)
+		join bs.product_lot using (lot_id)
+		join bs.lot_list using (lot_id)
 		join bs.product_line using (product_id)
 		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_sample_points using (sample_point_id)
@@ -157,6 +162,14 @@ func show_window() {
 	// lot_data := make(map[string]int)
 	var lot_data []string
 
+	// LotFilter := &viewer.SQLFilterDiscrete{viewer.COL_KEY_LOT,nil}
+	SQLFilters := viewer.NewSQLFilterList()
+
+	LotFilter := viewer.NewSQLFilterDiscrete(
+		viewer.COL_KEY_LOT,
+		nil,
+	)
+
 	top_panel_width := viewer.WINDOW_WIDTH
 	top_panel_height := 110
 
@@ -180,10 +193,14 @@ func show_window() {
 	reprint_sample_button_width := 100
 	regen_sample_button_width := 90
 
+	export_json_button_width := 90
+
 	product_text := "Product"
 	lot_text := "Lot Number"
 	sample_text := "Sample Point"
 	customer_text := "Customer Name"
+
+	export_json_label := "Export JSON"
 
 	// build window
 
@@ -220,8 +237,7 @@ func show_window() {
 	lot_panel.SetSize(hpanel_width, field_height)
 
 	//TODO fix ListComboBox sizes so it works like for size 10
-	//TODO change this to search like the filter
-	lot_field := GUI.NewSizedListComboBox(lot_panel, label_width, field_width, field_height, lot_text)
+	lot_field := GUI.NewSizedLabeledListSearchBox(lot_panel, label_width, field_width, field_height, lot_text)
 	lot_clear_button := windigo.NewPushButton(lot_panel)
 	lot_clear_button.SetText("-")
 	lot_clear_button.SetSize(clear_button_width, GUI.OFF_AXIS)
@@ -251,6 +267,10 @@ func show_window() {
 	regen_sample_button.SetText("Regen Sample")
 	regen_sample_button.SetSize(regen_sample_button_width, GUI.OFF_AXIS)
 
+	export_json_button := windigo.NewPushButton(product_panel)
+	export_json_button.SetText(export_json_label)
+	export_json_button.SetSize(export_json_button_width, GUI.OFF_AXIS)
+
 	// FilterListView := NewSQLFilterListView(product_panel)
 	FilterListView := viewer.NewSQLFilterListView(mainWindow)
 
@@ -260,6 +280,7 @@ func show_window() {
 	product_panel.Dock(search_button, windigo.Left)
 	product_panel.Dock(reprint_sample_button, windigo.Left)
 	product_panel.Dock(regen_sample_button, windigo.Left)
+	product_panel.Dock(export_json_button, windigo.Left)
 
 	// product_panel.Dock(FilterListView, windigo.Left)
 	// product_panel.Dock(FilterListView, windigo.Top)
@@ -286,7 +307,7 @@ func show_window() {
 
 	// functionality
 	update_lot := func(id int, name string) {
-		lot_field.AddItem(name)
+		lot_field.AddEntry(name)
 		viewer.COL_ITEMS_LOT = append(viewer.COL_ITEMS_LOT, name)
 	}
 
@@ -301,14 +322,15 @@ func show_window() {
 		product_field.SetSelectedItem(-1)
 
 		viewer.COL_ITEMS_LOT = nil
-		lot_field.DeleteAllItems()
+		lot_field.Update(nil)
+
 		// for name := range lot_data {
 		for id, name := range lot_data {
 			update_lot(id, name)
 		}
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_all_sample_points, update_sample)
+		GUI.Fill_combobox_from_query_fn(sample_field, update_sample, DB.DB_Select_all_sample_points)
 
 		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
 
@@ -317,10 +339,11 @@ func show_window() {
 	}
 
 	clear_lot := func() {
-		//TODO
 		product_id := product_data[product_field.GetSelectedItem()]
 		if product_id > 0 {
 			table.Set(select_product_samples(product_id))
+		} else {
+			table.Set(select_samples())
 		}
 		table.Update()
 		lot_field.SetSelectedItem(-1)
@@ -332,28 +355,30 @@ func show_window() {
 	// }
 
 	// combobox
-	rows, err := DB.DB_Select_product_info.Query()
-	GUI.Fill_combobox_from_query_rows(product_field, rows, err, func(rows *sql.Rows) {
+	GUI.Fill_combobox_from_query_rows(product_field, func(row *sql.Rows) error {
 		var (
 			id                   int
 			internal_name        string
 			product_moniker_name string
 		)
-		if err := rows.Scan(&id, &internal_name, &product_moniker_name); err == nil {
-			name := product_moniker_name + " " + internal_name
-			product_data[name] = id
-
-			product_field.AddItem(name)
+		if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
+			return err
 		}
-	})
+		name := product_moniker_name + " " + internal_name
+		product_data[name] = id
 
-	GUI.Fill_combobox_from_query_0_2(lot_field, DB.DB_Select_product_lot_all, func(id int, name string) {
+		product_field.AddItem(name)
+		return nil
+	},
+		DB.DB_Select_product_info)
+
+	lot_field.Fill_FromFnQuery(func(id int, name string) {
 		// lot_data[name] = id
 		lot_data = append(lot_data, name)
 		update_lot(id, name)
-	})
+	}, DB.DB_Select_product_lot_all)
 
-	GUI.Fill_combobox_from_query_0_2(sample_field, DB.DB_Select_all_sample_points, update_sample)
+	GUI.Fill_combobox_from_query_fn(sample_field, update_sample, DB.DB_Select_all_sample_points)
 
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
@@ -375,10 +400,10 @@ func show_window() {
 		table.Update()
 
 		viewer.COL_ITEMS_LOT = nil
-		GUI.Fill_combobox_from_query_1_2(lot_field, DB.DB_Select_product_lot_product, int64(product_id), update_lot)
+		lot_field.Fill_FromFnQuery(update_lot, DB.DB_Select_product_lot_product, product_id)
 
 		viewer.COL_ITEMS_SAMPLE = nil
-		GUI.Fill_combobox_from_query_1_2(sample_field, DB.DB_Select_product_sample_points, int64(product_id), update_sample)
+		GUI.Fill_combobox_from_query_fn(sample_field, update_sample, DB.DB_Select_product_sample_points, product_id)
 
 		// FilterListView[viewer.COL_KEY_LOT].Update(viewer.COL_ITEMS_LOT)
 		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
@@ -386,6 +411,14 @@ func show_window() {
 
 		// log.Println()
 
+	})
+
+	lot_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		LotFilter.Set([]string{lot_field.GetSelectedItem()})
+		SQLFilters.Filters = []viewer.SQLFilter{LotFilter}
+		rows, err := qc_db.Query(SAMPLE_SELECT_STRING + SQLFilters.Get())
+		table.Set(_select_samples(rows, err, "search samples"))
+		table.Update()
 	})
 
 	filter_button.OnClick().Bind(func(e *windigo.Event) {
@@ -438,6 +471,14 @@ func show_window() {
 				log.Printf("Debug: %q: %v\n", err, data)
 				threads.Show_status("Error Creating Label")
 			}
+		}
+
+	})
+
+	export_json_button.OnClick().Bind(func(e *windigo.Event) {
+		for _, data := range table.SelectedItems() {
+			data.(viewer.QCData).Product().Export_json()
+			log.Printf("Info: Exporting json: %v\n", data)
 		}
 
 	})

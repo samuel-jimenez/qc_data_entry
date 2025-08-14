@@ -64,6 +64,10 @@ func Format_viscosity(viscosity float64) string {
 	return strconv.FormatFloat(viscosity, 'f', 0, 64)
 }
 
+func FormatInt(_int int64) string {
+	return strconv.FormatInt(_int, 10)
+}
+
 func Format_ranges_sg(sg float64) string {
 	// return strconv.FormatFloat(sg, 'f', 2, 64)
 	//when not fr

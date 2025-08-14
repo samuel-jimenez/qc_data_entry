@@ -26,8 +26,6 @@ var (
 	DATA_UNIT_WIDTH,
 	NUM_FIELDS,
 
-	BUTTON_WIDTH,
-	BUTTON_HEIGHT,
 	BUTTON_MARGIN,
 
 	GROUP_WIDTH,
@@ -36,6 +34,9 @@ var (
 )
 
 func refresh_globals(font_size int) {
+
+	GUI.ACCEPT_BUTTON_WIDTH = 50
+	GUI.CANCEL_BUTTON_WIDTH = 50
 
 	GUI.GROUPBOX_CUSHION = font_size * 3 / 2
 	TOP_SPACER_WIDTH = 7
@@ -52,6 +53,9 @@ func refresh_globals(font_size int) {
 	DATA_SUBFIELD_WIDTH = 5 * font_size
 	DATA_UNIT_WIDTH = 4 * font_size
 	GUI.DATA_MARGIN = 10
+
+	GUI.SOURCES_LABEL_WIDTH = 20*font_size + GUI.DATA_MARGIN
+	GUI.SOURCES_FIELD_WIDTH = 30 * font_size
 
 	GUI.EDIT_FIELD_HEIGHT = 3*font_size - 2
 	NUM_FIELDS = 6
@@ -73,8 +77,10 @@ func refresh_globals(font_size int) {
 	GUI.RANGES_BUTTON_MARGIN = 10
 	GUI.RANGES_WINDOW_PADDING = 5
 
-	BUTTON_WIDTH = 10 * font_size
-	BUTTON_HEIGHT = 40
+	GUI.SMOL_BUTTON_WIDTH = 8 * font_size
+
+	GUI.BUTTON_WIDTH = 10 * font_size
+	GUI.BUTTON_HEIGHT = 40
 
 	REPRINT_BUTTON_WIDTH = 10 * font_size
 
@@ -95,6 +101,6 @@ func refresh_globals(font_size int) {
 
 	WINDOW_WIDTH = max(GROUP_MARGIN+2*GROUP_WIDTH+RANGE_WIDTH, TOP_PANEL_WIDTH) + WINDOW_FUDGE_MARGIN
 
-	WINDOW_HEIGHT = 20*font_size + 300
+	WINDOW_HEIGHT = 30*font_size + 300
 
 }

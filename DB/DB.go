@@ -11,12 +11,12 @@ import (
 var (
 	err error
 
-	DB_VERSION = "0.0.3"
+	DB_VERSION = "0.0.4"
 
 	// recipe_list
 	DB_Select_product_recipe, DB_Insert_product_recipe,
 	// recipe_components
-	DB_Select_recipe_components_id, DB_Insert_recipe_component, DB_Update_recipe_component, DB_Delete_recipe_component,
+	DB_Select_recipe_components_id, DB_Insert_recipe_component, DB_Update_recipe_component, DB_Delete_recipe_component, DB_Select_recipe_components_count,
 	// component_types
 	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	DB_Select_component_type_product, DB_Insert_internal_product_component_type, DB_Insert_inbound_product_component_type,
@@ -30,10 +30,10 @@ var (
 	// status_list
 	DB_Select_all_status_list, DB_Select_name_status_list,
 	// inbound_lot
-	DB_Select_inbound_lot_name, DB_Select_inbound_lot_all, DB_Insert_inbound_lot, DB_Update_inbound_lot_status,
-	DB_Select_inbound_lot_status, DB_Select_inbound_lot_recipe, DB_Select_inbound_lot_components,
+	DB_Select_inbound_lot_status, DB_Select_inbound_lot_all, DB_Insert_inbound_lot, DB_Update_inbound_lot_status,
+	DB_Select_name_inbound_lot_status, DB_Select_inbound_lot_recipe, DB_Select_inbound_lot_components,
 	// inbound_relabel
-	DB_Insert_inbound_relabel,
+	DB_Insert_inbound_relabel, DB_Select_inbound_relabel_all,
 	// component_list
 	DB_Select_inbound_blend_component, DB_Insert_inbound_blend_component,
 	DB_Select_internal_blend_component, DB_Insert_internal_blend_component,
@@ -41,20 +41,26 @@ var (
 	// blend_components
 	DB_Insert_Product_blend,
 	// lot_list
-	DB_Insert_lot, DB_Select_lot,
+	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all, DB_Select_lot_list_name, DB_Select_product_lot_list_name,
+	DB_Select_product_lot_list_sources,
 	// product_lot
 	db_select_id_lot, DB_Insert_product_lot,
 	DB_Select_product_lot_all, DB_Select_product_lot_product,
-	DB_Select_blend_lot, DB_Insert_blend_lot, DB_Update_lot_recipe,
+	DB_Insert_blend_lot, DB_Update_lot_recipe,
 	DB_Update_lot_customer,
+	DB_Select_product_lot_components,
 	// product_line
 	db_select_product_id, db_insert_product,
 	DB_Select_product_info,
 	// product_customer_line
 	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
+	// bs.product_sample_points
 	DB_Select_all_sample_points, DB_Select_product_sample_points,
 	DB_insert_sample_point,
+	// bs.qc_tester_list
+	DB_Select_all_qc_tester, DB_insert_qc_tester,
+	// bs.qc_samples
 	DB_insert_measurement,
 	DB_Insert_appearance,
 	DB_Select_product_details,
@@ -149,6 +155,12 @@ func DBinit(db *sql.DB) {
 	where recipe_components_id = ?
 	`)
 
+	DB_Select_recipe_components_count = PrepareOrElse(db, `
+	select max(component_add_order)
+		from bs.recipe_components
+		where recipe_id = ?
+	`)
+
 	// component_types
 	DB_Select_name_component_types = PrepareOrElse(db, `
 	select component_type_id
@@ -179,17 +191,38 @@ func DBinit(db *sql.DB) {
 	// `)
 
 	DB_Select_component_type_product = PrepareOrElse(db, `
-select false, product_lot_id, product_name_internal, lot_name from bs.component_type_product_internal
+select false, product_lot_id, product_name_internal, lot_name, '' from bs.component_type_product_internal
 	join bs.product_line using (product_id)
 	join bs.product_lot using (product_id)
 	join bs.lot_list using (lot_id)
 where component_type_id = ?1
 union
-select true, inbound_lot_id,inbound_product_name, inbound_lot_name from bs.component_type_product_inbound
+select true, inbound_lot_id,inbound_product_name, inbound_lot_name, container_name from bs.component_type_product_inbound
 	join bs.inbound_product using (inbound_product_id)
 	join bs.inbound_lot using (inbound_product_id)
+	join bs.container_list using (container_id)
 where component_type_id = ?1
 `)
+
+	// 	TODO get sources
+
+	// select inbound_product_name,inbound_lot_name,container_name from blend_components
+	// join bs.component_list using (component_id)
+	// join bs.inbound_lot using (inbound_lot_id)
+	// join bs.container_list using (container_id)
+	// join bs.inbound_product using (inbound_product_id)
+	// where blend_components.product_lot_id =?
+
+	// 	TODO get sources
+
+	// select inbound_product_name,inbound_lot_name,container_name from blend_components
+	// join bs.component_list using (component_id)
+	// join bs.inbound_lot using (inbound_lot_id)
+	// join bs.lot_list using (lot_id)
+	// join bs.product_lot using (product_lot_id)
+	// join bs.container_list using (container_id)
+	// join bs.inbound_product using (inbound_product_id)
+	// where lot_name =?
 
 	DB_Insert_internal_product_component_type = PrepareOrElse(db, `
 	insert into bs.component_type_product_internal
@@ -205,7 +238,8 @@ where component_type_id = ?1
 	returning component_type_product_inbound_id
 	`)
 	DB_Select_inbound_product_component_type_id = PrepareOrElse(db, `
-select inbound_product_id, inbound_product_name from bs.component_type_product_inbound
+select inbound_product_id, inbound_product_name
+from bs.component_type_product_inbound
 left join bs.inbound_product using (inbound_product_id)
 where component_type_id = ?1
 		`)
@@ -276,16 +310,18 @@ where status_name = ?
 	`)
 
 	// inbound_lot
-	DB_Select_inbound_lot_name = PrepareOrElse(db, `
+	DB_Select_inbound_lot_status = PrepareOrElse(db, `
 select
-	inbound_lot_id, inbound_lot_name,inbound_product_name, inbound_provider_name, container_name, status_name
+	inbound_lot_id, inbound_lot_name, inbound_product_id, inbound_product_name, inbound_provider_id, inbound_provider_name, container_id, container_name, status_id,status_name
 from bs.inbound_lot
-join bs.inbound_product using (inbound_product_id)
-join bs.inbound_provider_list using (inbound_provider_id)
-join bs.container_list using (container_id)
-join bs.status_list using (status_id)
-where inbound_lot_name = ?
+join bs.inbound_product 		using (inbound_product_id)
+join bs.inbound_provider_list 		using (inbound_provider_id)
+join bs.container_list 			using (container_id)
+join bs.status_list 			using (status_id)
+		where status_name = ?
+order by inbound_lot_name
 	`)
+
 	DB_Select_inbound_lot_all = PrepareOrElse(db, `
 select
 	inbound_lot_id, inbound_lot_name, inbound_product_id, inbound_product_name, inbound_provider_id, inbound_provider_name, container_id, container_name, status_id,status_name
@@ -296,6 +332,7 @@ join bs.container_list 			using (container_id)
 join bs.status_list 			using (status_id)
 order by inbound_lot_name
 	`)
+
 	DB_Insert_inbound_lot = PrepareOrElse(db, `
 insert into bs.inbound_lot
 (inbound_lot_name,inbound_product_id,inbound_provider_id,container_id)
@@ -309,7 +346,7 @@ set
 where inbound_lot_id=?1
 `)
 
-	DB_Select_inbound_lot_status = PrepareOrElse(db, `
+	DB_Select_name_inbound_lot_status = PrepareOrElse(db, `
 select
 	inbound_lot_name
 from bs.inbound_lot
@@ -348,6 +385,30 @@ order by component_add_order
 		values (?,?,?)
 	returning inbound_relabel_id
 	`)
+
+	DB_Select_inbound_relabel_all = PrepareOrElse(db, `
+	select
+	inbound_relabel_id, lot_name
+	from bs.inbound_relabel
+	join bs.lot_list using (lot_id)
+	`)
+	// 			// TODO
+	//
+	// 		DB_Select_inbound_relabel = PrepareOrElse(db, `
+	// 	select
+	// 	lot_name inbound_product_name, inbound_lot_name, container_name
+	// 	from bs.inbound_relabel
+	// 	join bs.lot_list using (lot_id)
+	//
+	// join bs.inbound_lot 		using (inbound_lot_id)
+	// join bs.inbound_lot 		using (inbound_lot_id)
+	// join bs.inbound_product 		using (inbound_product_id)
+	// join bs.inbound_provider_list 		using (inbound_provider_id)
+	// join bs.container_list 			using (container_id)
+	// 		(lot_id,inbound_lot_id,container_id)
+	// 		values (?,?,?)
+	// 	returning inbound_relabel_id
+	// 	`)
 
 	// component_list
 	DB_Select_inbound_blend_component = PrepareOrElse(db, `
@@ -400,6 +461,85 @@ select count(lot_name)
 	from bs.lot_list
 where lot_name like ?
 `)
+	DB_Select_lot_list_all = PrepareOrElse(db, `
+	select
+	lot_id, lot_name
+	from bs.lot_list
+	`)
+
+	//TODO track tested .. status?
+	DB_Select_lot_list_name = PrepareOrElse(db, `
+	select
+	lot_id, lot_name
+	from bs.lot_list
+	where lot_name like ?
+	`)
+
+	// TODO blend012 tests
+	// 	TODO get sources
+
+	// select inbound_product_name,inbound_lot_name,container_name from blend_components
+	// join bs.component_list using (component_id)
+	// join bs.inbound_lot using (inbound_lot_id)
+	// join bs.container_list using (container_id)
+	// join bs.inbound_product using (inbound_product_id)
+	// where blend_components.product_lot_id =?
+
+	// 	TODO get sources
+
+	// select inbound_product_name,inbound_lot_name,container_name from blend_components
+	// join bs.component_list using (component_id)
+	// join bs.inbound_lot using (inbound_lot_id)
+	// join bs.lot_list using (lot_id)
+	// join bs.product_lot using (product_lot_id)
+	// join bs.container_list using (container_id)
+	// join bs.inbound_product using (inbound_product_id)
+	// where lot_name =?
+
+	DB_Select_product_lot_list_name = PrepareOrElse(db, `
+select lot_id,  format('%s %s',  product_moniker_name, product_name_internal), lot_name, product_name_customer
+from bs.lot_list
+join bs.product_lot using (lot_id)
+join bs.product_line using (product_id)
+join bs.product_moniker using (product_moniker_id)
+left join bs.product_customer_line using (product_customer_id)
+where lot_name = ?1
+
+union
+
+select lot_id, inbound_product_name, lot_name, null
+from bs.lot_list
+	join bs.inbound_relabel using (lot_id)
+	join bs.inbound_lot using (inbound_lot_id)
+	join bs.inbound_product using (inbound_product_id)
+where lot_name = ?1
+`)
+
+	DB_Select_product_lot_list_sources = PrepareOrElse(db, `
+select inbound_product_name, inbound_lot_name, container_name
+
+from bs.lot_list
+join bs.product_lot using (lot_id)
+join bs.blend_components using (product_lot_id)
+join bs.component_list using (component_id)
+join bs.inbound_lot using (inbound_lot_id)
+join bs.container_list using (container_id)
+join bs.inbound_product using (inbound_product_id)
+
+where lot_name = ?1
+
+union
+
+select inbound_product_name, inbound_lot_name, container_name
+
+from bs.lot_list
+join bs.inbound_relabel using (lot_id)
+join bs.inbound_lot using (inbound_lot_id)
+join bs.container_list using (container_id)
+join bs.inbound_product using (inbound_product_id)
+
+where lot_name = ?1
+`)
 
 	// product_lot
 	db_select_id_lot = PrepareOrElse(db, `
@@ -449,6 +589,15 @@ order by lot_name
 	where product_lot_id=?
 		`)
 
+	DB_Select_product_lot_components = PrepareOrElse(db, `
+select inbound_product_name, inbound_lot_name, container_name from blend_components
+join bs.component_list using (component_id)
+join bs.inbound_lot using (inbound_lot_id)
+join bs.container_list using (container_id)
+join bs.inbound_product using (inbound_product_id)
+where blend_components.product_lot_id =?
+`)
+
 	// product_line
 	db_insert_product = PrepareOrElse(db, `
 	insert into bs.product_line
@@ -471,7 +620,7 @@ order by lot_name
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
-	order by product_moniker_name,product_name_internal
+	order by product_moniker_name, product_name_internal
 	`)
 
 	// product_customer_line
@@ -500,6 +649,7 @@ order by lot_name
 	returning product_customer_id
 	`)
 
+	// bs.product_sample_points
 	DB_insert_sample_point = PrepareOrElse(db, `
 	with val (sample_point) as (
 		values
@@ -524,25 +674,56 @@ order by lot_name
 	DB_Select_product_sample_points = PrepareOrElse(db, `
 	select distinct sample_point_id, sample_point
 		from bs.product_lot
-		join bs.qc_samples using (product_lot_id)
+		join bs.qc_samples using (lot_id)
 		join bs.product_sample_points using (sample_point_id)
 		where product_id = ?
 		order by sample_point_id
 	`)
 
-	DB_insert_measurement = PrepareOrElse(db, `
-	with
-		val (product_lot_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity) as (
-			values
-				(?, ?, ?, ?, ?, ?, ?)
+	// bs.qc_tester_list
+	DB_Select_all_qc_tester = PrepareOrElse(db, `
+	select qc_tester_id, qc_tester_name
+		from bs.qc_tester_list
+		order by qc_tester_name
+	`)
+
+	DB_insert_qc_tester = PrepareOrElse(db, `
+	with val (qc_tester_name) as (
+		values
+			(?)
 		),
 		sel as (
-			select product_lot_id, sample_point_id, sample_point, time_stamp, ph, specific_gravity, string_test, viscosity
+			select qc_tester_name, qc_tester_id
 			from val
+			left join bs.qc_tester_list using (qc_tester_name)
+		)
+	insert into bs.qc_tester_list (qc_tester_name)
+	select distinct qc_tester_name from sel where qc_tester_id is null
+	returning qc_tester_id, qc_tester_name
+	`)
+
+	// bs.qc_samples
+
+	//TODO use
+	// 	 bs.qc_sample_storage_list (
+	// qc_sample_storage_id integer not null,
+	// qc_sample_storage_name
+	//
+	// bs.product_moniker
+	DB_insert_measurement = PrepareOrElse(db, `
+	with
+		val (lot_id, sample_point, qc_tester_name, time_stamp,  ph, specific_gravity, string_test, viscosity) as (
+			values
+				(?, ?, ?, ?, ?, ?, ?, ?)
+		),
+		sel as (
+			select lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity
+			from val
+			left join bs.qc_tester_list using (qc_tester_name)
 			left join bs.product_sample_points using (sample_point)
 		)
-	insert into bs.qc_samples (product_lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity)
-	select product_lot_id, sample_point_id, time_stamp, ph, specific_gravity, string_test, viscosity
+	insert into bs.qc_samples (lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity)
+	select lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity
 		from   sel
 	returning qc_id;
 	`)
@@ -1036,13 +1217,15 @@ func Insel_lot_id(lot_name string) int64 {
 	return Insel("Insel_lot_id", DB_Insert_lot, DB_Select_lot, lot_name)
 }
 
-func Insel_product_lot_id(lot_name string, product_id int64) int64 {
-	return Insel("Insel_product_lot_id", DB_Insert_product_lot, db_select_id_lot, Insel_lot_id(lot_name), product_id)
+func Insel_product_lot_id(Lot_id, product_id int64) int64 {
+	return Insel("Insel_product_lot_id", DB_Insert_product_lot, db_select_id_lot, Lot_id, product_id)
 }
 
 func Insel_product_name_customer(product_name_customer string, product_id int64) int64 {
 	return Insel("Insel_product_name_customer", db_insert_product_customer, db_select_product_customer, product_name_customer, product_id)
 }
+
+//TODO add variant with if err != sql.ErrNoRow
 
 func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
@@ -1056,6 +1239,7 @@ func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), selec
 	}
 }
 
+// TODO count?
 func Forall_err(proc_name string, start_fn func(), row_fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
@@ -1079,8 +1263,8 @@ func Forall_exit(proc_name string, start_fn func(), row_fn func(row *sql.Rows) e
 	start_fn()
 	for rows.Next() {
 		if err = row_fn(rows); err != nil {
-			log.Printf("error: [%s]: %q\n", proc_name, err)
-			return
+			log.Fatalf("Crit: [%s]: %q\n", proc_name, err)
+			panic("Forall_exit")
 		}
 	}
 }

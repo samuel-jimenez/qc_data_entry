@@ -1,8 +1,9 @@
-package blender
+package views
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -27,10 +28,10 @@ func NewComponentTypeView(parent *RecipeView) *ComponentTypeView {
 	view.component_add_field = GUI.NewSearchBox(view.AutoPanel)
 	component_accept_button := windigo.NewPushButton(view.AutoPanel)
 	component_accept_button.SetText("OK")
-	component_accept_button.SetSize(ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	component_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	component_cancel_button := windigo.NewPushButton(view.AutoPanel)
 	component_cancel_button.SetText("Cancel")
-	component_cancel_button.SetSize(CANCEL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	component_cancel_button.SetSize(GUI.CANCEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 	view.controls = append(view.controls, view.component_add_field)
 	view.controls = append(view.controls, component_accept_button)
@@ -42,7 +43,7 @@ func NewComponentTypeView(parent *RecipeView) *ComponentTypeView {
 	view.AutoPanel.Dock(component_cancel_button, windigo.Left)
 
 	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
-		component := NewComponentType(view.component_add_field.Text())
+		component := blender.NewComponentType(view.component_add_field.Text())
 		Product_id := parent.Product_data[component.Component_name]
 		if Product_id != DB.INVALID_ID {
 			component.AddProduct(Product_id)

@@ -88,20 +88,41 @@ create table bs.product_sample_points (
 	unique (sample_point)
 );
 
+create table bs.qc_tester_list (
+	qc_tester_id integer not null,
+	qc_tester_name text not null,
+unique (qc_tester_name),
+primary key (qc_tester_id));
+
+
 create table bs.qc_samples (
 	qc_id integer not null,
-	product_lot_id integer not null,
+	lot_id integer not null,
 	sample_point_id integer,
+	qc_tester_id integer,
+	qc_sample_storage_id integer,
 	time_stamp integer,
 	ph real,
 	specific_gravity real,
 	string_test real,
 	viscosity real,
-foreign key (product_lot_id) references product_lot,
+foreign key (lot_id) references lot_list,
 foreign key (sample_point_id) references product_sample_points,
+foreign key (qc_sample_storage_id) references qc_sample_storage_list,
+foreign key (qc_tester_id) references qc_tester_list,
 primary key (qc_id)
 );
 
+
+
+create table bs.qc_sample_storage_list (
+	qc_sample_storage_id integer not null,
+	qc_sample_storage_name text not null,
+	product_moniker_id not null,
+foreign key (product_moniker_id) references product_moniker,
+unique (qc_sample_storage_name),
+primary key (qc_sample_storage_id)
+);
 
 
 create table bs.container_types (
@@ -348,6 +369,7 @@ insert into bs.status_list
 	(status_name)
 values
 	('AVAILABLE'),
+	('SAMPLED'),
 	('TESTED'),
 	('UNAVAILABLE');
 

@@ -1,4 +1,4 @@
-package blender
+package views
 
 import (
 	"database/sql"
@@ -6,13 +6,14 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
 
 type RecipeViewer interface {
 	windigo.Pane
-	Get() *ProductRecipe
-	Update(recipe *ProductRecipe)
+	Get() *blender.ProductRecipe
+	Update(recipe *blender.ProductRecipe)
 	Update_products(product_list []string, product_data map[string]int64)
 	Update_component_types(component_types_list []string, component_types_data map[string]int64)
 	AddComponent()
@@ -21,7 +22,7 @@ type RecipeViewer interface {
 }
 type RecipeView struct {
 	*windigo.AutoPanel
-	Recipe     *ProductRecipe
+	Recipe     *blender.ProductRecipe
 	panel      *windigo.AutoPanel
 	Components []*RecipeComponentView
 	product_list,
@@ -84,7 +85,7 @@ func NewRecipeView(parent *RecipeProductView) *RecipeView {
 	return view
 }
 
-func (view *RecipeView) Get() *ProductRecipe {
+func (view *RecipeView) Get() *blender.ProductRecipe {
 	if view.Recipe == nil {
 		return nil
 	}
@@ -109,7 +110,7 @@ func (view *RecipeView) Get() *ProductRecipe {
 
 }
 
-func (view *RecipeView) Update(recipe *ProductRecipe) {
+func (view *RecipeView) Update(recipe *blender.ProductRecipe) {
 	if view.Recipe == recipe {
 		return
 	}

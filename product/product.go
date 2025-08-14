@@ -1,6 +1,7 @@
 package product
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -30,15 +31,42 @@ type Product struct {
 	PH          nullable.NullFloat64
 	SG          nullable.NullFloat64
 	Density     nullable.NullFloat64
-	String_test nullable.NullFloat64
-	Viscosity   nullable.NullFloat64
+	String_test nullable.NullInt64
+	Viscosity   nullable.NullInt64
 }
 
 func (product Product) Save() {
-	DB.DB_insert_sample_point.Exec(product.Sample_point)
-	_, err := DB.DB_insert_measurement.Exec(product.Product_Lot_id, product.Sample_point, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
+
+	// DB.DB_insert_sample_point.Exec(product.Sample_point)
+	proc_name := "Product.Save.Sample_point"
+	log.Println("DEBUG: Product.Save.Sample_point:", DB.Insert(proc_name, DB.DB_insert_sample_point, product.Sample_point))
+
+	// DB.DB_insert_qc_tester.Exec(product.Tester)
+	proc_name = "Product.Save.Tester"
+	DB.Forall_err(proc_name,
+		func() {},
+		func(row *sql.Rows) error {
+			var (
+				id   int64
+				name string
+			)
+
+			if err := row.Scan(
+				&id, &name,
+			); err != nil {
+				return err
+			}
+
+			log.Println("DEBUG: ", proc_name, id, name)
+
+			return nil
+		},
+		DB.DB_insert_qc_tester, product.Tester)
+
+	proc_name = "Product.Save.All"
+	_, err := DB.DB_insert_measurement.Exec(product.Lot_id, product.Sample_point, product.Tester, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
 	if err != nil {
-		log.Println("error:", err)
+		log.Println("error[]%S]:", proc_name, err)
 		threads.Show_status("Sample Recording Failed")
 	} else {
 		threads.Show_status("Sample Recorded")
@@ -50,12 +78,12 @@ func (product Product) Export_json() {
 	bytestring, err := json.MarshalIndent(product, "", "\t")
 
 	if err != nil {
-		log.Println("error:", err)
+		log.Println("error [Product.Export_json]:", err)
 	}
 
 	for _, output_file := range output_files {
 		if err := os.WriteFile(output_file, bytestring, 0666); err != nil {
-			log.Fatal("Crit: Product Export_json: ", err)
+			log.Fatal("Crit: Product.Export_json: ", err)
 		}
 	}
 }
@@ -175,7 +203,7 @@ func (product Product) toProduct() Product {
 }
 
 func (product Product) Check_data() bool {
-	return true
+	return product.Valid
 }
 
 func (product Product) Printout() error {
@@ -186,7 +214,7 @@ func (product Product) Printout() error {
 
 func (product Product) Output() error {
 	if err := product.Printout(); err != nil {
-		log.Printf("Error: [%s]: %q\n",  "Output",  err)
+		log.Printf("Error: [%s]: %q\n", "Output", err)
 		log.Printf("Debug: %q: %v\n", err, product)
 		return err
 	}
@@ -207,7 +235,7 @@ func (product Product) Output_sample() error {
 	product.format_sample()
 	log.Println("DEBUG: Output_sample formatted", product)
 	if err := product.export_CoA(); err != nil {
-		log.Printf("Error: [%s]: %q\n",  "Output_sample",  err)
+		log.Printf("Error: [%s]: %q\n", "Output_sample", err)
 		log.Printf("Debug: %q: %v\n", err, product)
 		return err
 	}
@@ -221,13 +249,13 @@ func (product Product) Output_sample() error {
 func withOpenFile(file_name string, FN func(*excelize.File) error) error {
 	xl_file, err := excelize.OpenFile(file_name)
 	if err != nil {
-		log.Printf("Error: [%s]: %q\n",  "withOpenFile",  err)
+		log.Printf("Error: [%s]: %q\n", "withOpenFile", err)
 		return err
 	}
 	defer func() {
 		// Close the spreadsheet.
 		if err := xl_file.Close(); err != nil {
-			log.Printf("Error: [%s]: %q\n",  "withOpenFile",  err)
+			log.Printf("Error: [%s]: %q\n", "withOpenFile", err)
 		}
 	}()
 	return FN(xl_file)
@@ -239,14 +267,14 @@ func updateExcel(file_name, worksheet_name string, row ...string) error {
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)
 		if err != nil {
-			log.Printf("Error: [%s]: %q\n",  "updateExcel",  err)
+			log.Printf("Error: [%s]: %q\n", "updateExcel", err)
 			return err
 		}
 		startCell := fmt.Sprintf("A%v", len(rows)+1)
 
 		err = xl_file.SetSheetRow(worksheet_name, startCell, &row)
 		if err != nil {
-			log.Printf("Error: [%s]: %q\n",  "updateExcel",  err)
+			log.Printf("Error: [%s]: %q\n", "updateExcel", err)
 			return err
 		}
 		return xl_file.Save()
@@ -368,7 +396,8 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
-		pdf.Cell(field_width, field_height, formats.Format_string_test(product.String_test.Float64))
+		// pdf.Cell(field_width, field_height, formats.Format_string_test(product.String_test.Int64))
+		pdf.Cell(field_width, field_height, formats.FormatInt(product.String_test.Int64))
 		pdf.Cell(unit_width, unit_height, formats.STRING_UNITS)
 	}
 
@@ -376,7 +405,8 @@ func (product Product) export_label_pdf() (string, error) {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
-		pdf.Cell(field_width, field_height, formats.Format_viscosity(product.Viscosity.Float64))
+		// pdf.Cell(field_width, field_height, formats.Format_viscosity(product.Viscosity.Int64))
+		pdf.Cell(field_width, field_height, formats.FormatInt(product.Viscosity.Int64))
 		pdf.Cell(unit_width, unit_height, formats.VISCOSITY_UNITS)
 	}
 

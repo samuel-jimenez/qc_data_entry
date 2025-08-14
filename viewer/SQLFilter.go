@@ -33,6 +33,13 @@ type SQLFilterDiscrete struct {
 	set []string
 }
 
+func NewSQLFilterDiscrete(key string, set []string) *SQLFilterDiscrete {
+	return &SQLFilterDiscrete{
+		key,
+		set,
+	}
+}
+
 func (filter SQLFilterDiscrete) Key() string { return filter.key }
 func (filter SQLFilterDiscrete) Get() string {
 	if len(filter.set) == 0 {
@@ -40,6 +47,10 @@ func (filter SQLFilterDiscrete) Get() string {
 	}
 	return fmt.Sprintf("%s in ('%s')",
 		filter.key, strings.Join(filter.set, "','"))
+}
+
+func (filter *SQLFilterDiscrete) Set(set []string) {
+	filter.set = set
 }
 
 /* SQLFilterContinuous

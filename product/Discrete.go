@@ -28,6 +28,10 @@ func (product_type Discrete) Index() int {
 	return int(product_type.Int32 - 1)
 }
 
+func DiscreteFromInt(Int int) Discrete {
+	return Discrete{sql.NullInt32{Int32: int32(Int), Valid: true}}
+}
+
 /*
  * DiscreteView
  *

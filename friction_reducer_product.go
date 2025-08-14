@@ -1,22 +1,25 @@
 package main
 
 import (
+	"database/sql"
 	"log"
-	"math"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/product"
+	"github.com/samuel-jimenez/qc_data_entry/util/math"
 	"github.com/samuel-jimenez/windigo"
 )
 
 type FrictionReducerProduct struct {
 	product.BaseProduct
 	sg          float64
-	string_test float64
-	viscosity   float64
+	string_test int64
+	viscosity   int64
 }
 
 func (fr_product FrictionReducerProduct) toProduct() product.Product {
@@ -25,8 +28,8 @@ func (fr_product FrictionReducerProduct) toProduct() product.Product {
 		PH:          nullable.NewNullFloat64(0, false),
 		SG:          nullable.NewNullFloat64(fr_product.sg, true),
 		Density:     nullable.NewNullFloat64(formats.Density_from_sg(fr_product.sg), true),
-		String_test: nullable.NewNullFloat64(fr_product.string_test, true),
-		Viscosity:   nullable.NewNullFloat64(fr_product.viscosity, true),
+		String_test: nullable.NewNullInt64(fr_product.string_test),
+		Viscosity:   nullable.NewNullInt64(fr_product.viscosity),
 	}
 }
 
@@ -34,7 +37,7 @@ func newFrictionReducerProduct(base_product product.BaseProduct, viscosity, mass
 
 	sg := formats.SG_from_mass(mass)
 
-	return FrictionReducerProduct{base_product, sg, string_test, viscosity}.toProduct()
+	return FrictionReducerProduct{base_product, sg, int64(string_test), int64(viscosity)}.toProduct()
 
 }
 
@@ -209,7 +212,8 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 
 // TODO
 func check_dual_data(top_product, bottom_product product.Product) {
-	DELTA_DIFF_VISCO := 200.
+	// DELTA_DIFF_VISCO := 200
+	var DELTA_DIFF_VISCO int64 = 200 //go sucks
 
 	if math.Abs(top_product.Viscosity.Diff(bottom_product.Viscosity)) <= DELTA_DIFF_VISCO {
 
@@ -260,6 +264,8 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 	// bottom_text := "Bottom"
 	bottom_text := "Btm"
 
+	component_panel := views.NewQCBlendView(parent)
+
 	panel := windigo.NewAutoPanel(parent)
 
 	ranges_panel := BuildNewFrictionReducerProductRangesView(panel, qc_product)
@@ -269,11 +275,21 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 
 	submit_cb := func() {
 		base_product := create_new_product_cb()
+
+		// TODO blend012 ensurethis works with testing blends
+		//component_panel.saVE
+		log.Println("DEBUG: FrictionReducerPanelView.submit_cb base_product", base_product)
+		base_product.SetBlend(component_panel.Get())
+		log.Println("DEBUG: FrictionReducerPanelView.submit_cb base_product", base_product)
+		//TODO make sure this is the only time it is saved
+		base_product.SaveBlend()
+
 		top_product := top_group.Get(base_product, true)
 		bottom_product := bottom_group.Get(base_product, true)
-		log.Println("debug: submit_cb top", top_product)
-		log.Println("debug: submit_cb btm", bottom_product)
+		log.Println("debug: FrictionReducerPanelView.submit_cb.top", top_product)
+		log.Println("debug: FrictionReducerPanelView.submit_cb.btm", bottom_product)
 		check_dual_data(top_product, bottom_product)
+
 	}
 
 	clear_cb := func() {
@@ -283,15 +299,18 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 
 	tote_cb := func() {
 		base_product := create_new_product_cb()
+		base_product.SetBlend(component_panel.Get())
+		log.Println("DEBUG: FrictionReducerPanelView.submit_cb.tote base_product", base_product)
 
 		top_product := top_group.Get(base_product, false)
 		if top_product.Check_data() {
-			log.Println("debug: submit_cb tote", top_product)
+			log.Println("debug: FrictionReducerPanelView.submit_cb.tote", top_product)
 			top_product.Save()
 			err := top_product.Output()
 			if err != nil {
 				log.Printf("Error: [%s]: %q\n", "top_product.Output", err)
 			}
+			//TODO component_panel.saVE
 
 		}
 	}
@@ -305,10 +324,43 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 	// TODO
 	panel.Dock(ranges_panel, windigo.Right)
 	// panel.Dock(ranges_panel, windigo.Left)
+	//	parent.Dock(component_panel, windigo.Top)
+	// parent.Dock(component_panel, windigo.Top)
 
 	parent.Dock(panel, windigo.Top)
 	parent.Dock(button_dock_totes, windigo.Top)
 	parent.Dock(button_dock_cars, windigo.Top)
+
+	parent.Dock(component_panel, windigo.Top)
+
+	update := func(qc_product *product.QCProduct) {
+		ranges_panel.Update(qc_product)
+		var (
+			recipe_data blender.ProductRecipe
+		)
+
+		// TODO recip00 extract to fn, move componenet panel?
+		// proc_name := "RecipeProduct.GetRecipes"
+		proc_name := "FrictionReducerPanelView.GetRecipes"
+
+		DB.Forall(proc_name,
+			func() {},
+			func(row *sql.Rows) {
+
+				if err := row.Scan(
+					&recipe_data.Recipe_id,
+				); err != nil {
+					log.Fatal("Crit: [RecipeProduct GetRecipes]: ", proc_name, err)
+				}
+				log.Println("DEBUG: GetRecipes qc_data", proc_name, recipe_data)
+
+			},
+			DB.DB_Select_product_recipe, qc_product.Product_id)
+
+		recipe_data.GetComponents()
+		component_panel.Update(&recipe_data)
+
+	}
 
 	changeContainer := func(qc_product *product.QCProduct) {
 		if int(qc_product.Container_type.Int32) == CONTAINER_RAILCAR {
@@ -318,8 +370,14 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 		} else {
 			bottom_group.Hide()
 			button_dock_cars.Hide()
+			// // TODO
+			// if int(qc_product.Container_type.Int32) == CONTAINER_TOTE {
 			button_dock_totes.Show()
+			// } else { // CONTAINER_SAMPLE
+			// 					NO COA
+			// }
 		}
+
 	}
 
 	setFont := func(font *windigo.Font) {
@@ -328,20 +386,24 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 		bottom_group.SetFont(font)      //?TODO
 		button_dock_totes.SetFont(font) //?TODO
 		button_dock_cars.SetFont(font)  //?TODO
+		component_panel.SetFont(font)
 	}
 	refresh := func() {
 
 		panel.SetSize(GUI.OFF_AXIS, GROUP_HEIGHT)
 		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
 
-		button_dock_totes.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
-		button_dock_cars.SetDockSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+		button_dock_totes.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
+		button_dock_cars.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
 		top_group.Refresh()
 		bottom_group.Refresh()
 		ranges_panel.Refresh()
+		component_panel.RefreshSize()
 	}
 
-	return &FrictionReducerPanelView{ranges_panel.Update, changeContainer, setFont, refresh}
+	return &FrictionReducerPanelView{update, changeContainer, setFont, refresh}
 
 }
+
+// c.f. blender.BlendComponentView

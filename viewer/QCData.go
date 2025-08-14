@@ -25,9 +25,9 @@ type QCData struct {
 	Sample_point nullable.NullString
 	Time_stamp time.Time
 	PH,
-	Specific_gravity,
+	Specific_gravity nullable.NullFloat64
 	String_test,
-	Viscosity nullable.NullFloat64
+	Viscosity nullable.NullInt64
 }
 
 func compare_product_name(a, b QCData) int { return strings.Compare(a.Product_name, b.Product_name) }
@@ -76,8 +76,11 @@ func (data QCData) Text() []string {
 		data.Sample_point.String,
 		ToString(data.PH, formats.Format_ph),
 		ToString(data.Specific_gravity, func(sg float64) string { return formats.Format_sg(sg, !sg_derived) }),
-		ToString(data.String_test, formats.Format_string_test),
-		ToString(data.Viscosity, formats.Format_viscosity)}
+		// ToString(data.String_test, formats.Format_string_test),
+		data.String_test.String(),
+		// ToString(data.Viscosity, formats.Format_viscosity),
+		data.Viscosity.String(),
+	}
 }
 
 func (data QCData) ImageIndex() int { return 0 }

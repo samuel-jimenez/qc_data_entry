@@ -10,13 +10,15 @@ type BlendComponent struct {
 	RecipeComponent
 	Lot_id   int64
 	Inboundp bool
+	Lot_name,
+	Container_name string
 }
 
 func NewBlendComponent() *BlendComponent {
 	return new(BlendComponent)
 }
 
-func (object *BlendComponent) Save(Lot_id, Recipe_id int64) {
+func (object *BlendComponent) Save(Product_Lot_id, Recipe_id int64) {
 	proc_name := "BlendComponent.Save"
 
 	log.Println("DEBUG: BlendComponent Save", object)
@@ -26,6 +28,6 @@ func (object *BlendComponent) Save(Lot_id, Recipe_id int64) {
 		object.Component_id = DB.Insel(proc_name, DB.DB_Insert_internal_blend_component, DB.DB_Select_internal_blend_component, object.Component_type_id, object.Lot_id)
 	}
 
-	DB.Insert(proc_name, DB.DB_Insert_Product_blend, Lot_id, Recipe_id, object.Component_id, object.Component_amount)
+	DB.Insert(proc_name, DB.DB_Insert_Product_blend, Product_Lot_id, Recipe_id, object.Component_id, object.Component_amount)
 
 }
