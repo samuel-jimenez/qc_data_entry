@@ -448,6 +448,7 @@ func show_window() {
 		old_product_id := qc_product.Product_id
 		qc_product.Product_name = str
 		qc_product.Insel_product_self()
+
 		if qc_product.Product_id != old_product_id {
 			mainWindow.SetText(qc_product.Product_name)
 			qc_product.ResetQC()
@@ -679,12 +680,6 @@ func show_window() {
 	}()
 
 	AddShortcuts(mainWindow, keygrab, set_font, qr_pop_data)
-
-	dbError := windigo.NewDialog(nil)
-	dbError.Center()
-	dbError.Show()
-	dbError.OnClose().Bind(func(e *windigo.Event) { windigo.Exit() })
-	dbError.RunMainLoop() // Must call to start event loop.
 
 	mainWindow.Center()
 	mainWindow.Show()

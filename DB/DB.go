@@ -64,6 +64,13 @@ var (
 	DB_Select_all_qc_tester, DB_insert_qc_tester,
 	// bs.qc_samples
 	DB_insert_measurement,
+	DB_Update_qc_samples_storage,
+	// bs.product_sample_storage
+	DB_Select_product_sample_storage_capacity, DB_Select_gen_product_sample_storage,
+	DB_Update_product_sample_storage_qc_sample, DB_Update_product_sample_storage_capacity,
+	// bs.qc_sample_storage_list
+	DB_Insert_sample_storage,
+	// bs.product_appearance
 	DB_Insert_appearance,
 	DB_Select_product_details,
 	DB_Upsert_product_details, DB_Upsert_product_type,
@@ -709,13 +716,6 @@ where blend_components.product_lot_id =?
 	`)
 
 	// bs.qc_samples
-
-	//TODO use
-	// 	 bs.qc_sample_storage_list (
-	// qc_sample_storage_id integer not null,
-	// qc_sample_storage_name
-	//
-	// bs.product_moniker
 	DB_insert_measurement = PrepareOrElse(db, `
 	with
 		val (lot_id, sample_point, qc_tester_name, time_stamp,  ph, specific_gravity, string_test, viscosity) as (
@@ -734,6 +734,71 @@ where blend_components.product_lot_id =?
 	returning qc_id;
 	`)
 
+	DB_Update_qc_samples_storage = PrepareOrElse(db, `
+update bs.qc_samples
+	set
+qc_sample_storage_id = ?2
+
+where qc_id = ?1
+	`)
+
+	// bs.product_sample_storage
+	DB_Select_product_sample_storage_capacity = PrepareOrElse(db, `
+select
+
+qc_sample_storage_id, qc_storage_capacity
+
+from bs.product_sample_storage
+join bs.product_line using (product_moniker_id)
+where product_id = ?1
+	`)
+
+	DB_Select_gen_product_sample_storage = PrepareOrElse(db, `
+			select
+
+product_sample_storage_id, product_moniker_name, qc_sample_storage_offset, qc_sample_storage_name, min(time_stamp), max(time_stamp), retain_storage_duration
+
+from bs.product_sample_storage
+join bs.product_line using (product_moniker_id)
+join bs.qc_sample_storage_list using (qc_sample_storage_id)
+join bs.qc_samples using (qc_sample_storage_id)
+join bs.product_moniker using (product_moniker_id)
+where product_id = ?1
+	`)
+
+	DB_Update_product_sample_storage_qc_sample = PrepareOrElse(db, `
+update bs.product_sample_storage
+	set
+qc_sample_storage_id = ?2,
+qc_sample_storage_offset = ?3,
+qc_storage_capacity = max_storage_capacity
+
+where product_sample_storage_id = ?1
+	`)
+
+	DB_Update_product_sample_storage_capacity = PrepareOrElse(db, `
+update bs.product_sample_storage
+	set
+qc_storage_capacity = qc_storage_capacity - ?2
+
+where qc_sample_storage_id = ?1
+	`)
+
+	// bs.qc_sample_storage_list
+
+	// DB_Select_all_sample_storage = PrepareOrElse(db, `
+	// select qc_sample_storage_id, qc_sample_storage_name, product_moniker_id
+	// 	from bs.qc_sample_storage_list
+	// 	order by qc_sample_storage_name
+	// `)
+	DB_Insert_sample_storage = PrepareOrElse(db, `
+	insert into bs.qc_sample_storage_list
+		( qc_sample_storage_name, product_moniker_id )
+		values (?, ?)
+	returning qc_sample_storage_id
+	`)
+
+	// bs.product_appearance
 	DB_Insert_appearance = PrepareOrElse(db, `
 	with val (product_appearance_text) as (
 		values
@@ -1173,6 +1238,12 @@ func Select_Error(proc_name string, query *sql.Row, args ...any) error {
 	}
 	return err
 }
+
+// TODO permit empty
+// if err != sql.ErrNoRows { // no row? no problem!
+// 		log.Printf("Error: [%s]: %q\n", proc_name, err)
+// 	}
+// 	return nil
 
 func Insert(proc_name string, insert_statement *sql.Stmt, args ...any) int64 {
 	var insert_id int64

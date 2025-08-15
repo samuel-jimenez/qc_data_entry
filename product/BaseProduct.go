@@ -61,6 +61,10 @@ func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s", config.LABEL_PATH, product.get_base_filename("pdf"))
 }
 
+func (product Product) get_storage_pdf_name(qc_sample_storage_name string) string {
+	return fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, qc_sample_storage_name, "pdf")
+}
+
 func (product BaseProduct) get_json_filename(path string, base_name string) string {
 	return fmt.Sprintf("%s/%d-%s", path, time.Now().UTC().UnixNano(), base_name)
 }

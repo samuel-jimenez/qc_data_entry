@@ -68,11 +68,13 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 	group_panel.Dock(density_field, windigo.Top)
 
 	submit_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), density_field.Get())
-		if product.Check_data() {
-			log.Println("ob sub data", product)
-			product.Save()
-			err := product.Output()
+		measured_product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), density_field.Get())
+		if measured_product.Check_data() {
+			log.Println("ob sub data", measured_product)
+			// TODO blend013 ensurethis works with testing blends
+			// measured_product.Save()
+			product.Store(measured_product)
+			err := measured_product.Output()
 			if err != nil {
 				log.Printf("Error: [%s]: %q\n", "OilBasedProduct.Output", err)
 			}

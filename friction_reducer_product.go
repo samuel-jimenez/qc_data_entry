@@ -215,34 +215,38 @@ func check_dual_data(top_product, bottom_product product.Product) {
 	// DELTA_DIFF_VISCO := 200
 	var DELTA_DIFF_VISCO int64 = 200 //go sucks
 
-	if math.Abs(top_product.Viscosity.Diff(bottom_product.Viscosity)) <= DELTA_DIFF_VISCO {
+	if math.Abs(top_product.Viscosity.Diff(bottom_product.Viscosity)) <= DELTA_DIFF_VISCO &&
+		top_product.Check_data() && bottom_product.Check_data() {
 
-		if top_product.Check_data() {
-			log.Println("debug: Check_data", top_product)
-			top_product.Save()
-			err := top_product.Printout()
-			if err != nil {
-				log.Printf("Error: [%s]: %q\n", "top_product.Printout", err)
-			}
+		log.Println("debug: Check_data", top_product)
+		// top_product.Save()
+		// bottom_product.Save()
 
+		// TODO blend013 ensurethis works with testing blends
+		product.Store(top_product, bottom_product)
+
+		// qc_product.Store(9)
+
+		err := top_product.Printout()
+		if err != nil {
+			log.Printf("Error: [%s]: %q\n", "top_product.Printout", err)
 		}
-		if bottom_product.Check_data() {
-			log.Println("debug: Check_data", bottom_product)
-			bottom_product.Save()
-			err := bottom_product.Printout()
-			if err != nil {
-				log.Printf("Error: [%s]: %q\n", "bottom_product.Printout", err)
-			}
-			//TODO find closest: RMS?
-			err = bottom_product.Output_sample()
-			if err != nil {
-				log.Printf("Error: [%s]: %q\n", "bottom_product.Output_sample", err)
-			}
-			err = bottom_product.Save_xl()
-			if err != nil {
-				log.Printf("Error: [%s]: %q\n", "bottom_product.Save_xl", err)
-			}
+
+		log.Println("debug: Check_data", bottom_product)
+		err = bottom_product.Printout()
+		if err != nil {
+			log.Printf("Error: [%s]: %q\n", "bottom_product.Printout", err)
 		}
+		//TODO find closest: RMS?
+		err = bottom_product.Output_sample()
+		if err != nil {
+			log.Printf("Error: [%s]: %q\n", "bottom_product.Output_sample", err)
+		}
+		err = bottom_product.Save_xl()
+		if err != nil {
+			log.Printf("Error: [%s]: %q\n", "bottom_product.Save_xl", err)
+		}
+
 	} else { // TODO show confirm box
 		log.Println("ERROR: Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
 
@@ -375,6 +379,9 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 			button_dock_totes.Show()
 			// } else { // CONTAINER_SAMPLE
 			// 					NO COA
+			// no storage
+			// TODO blend013 ensurethis works with testing blends
+
 			// }
 		}
 

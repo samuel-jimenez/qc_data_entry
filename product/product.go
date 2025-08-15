@@ -9,12 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/config"
-	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/whatsupdocx"
@@ -35,7 +33,7 @@ type Product struct {
 	Viscosity   nullable.NullInt64
 }
 
-func (product Product) Save() {
+func (product Product) Save() int64 {
 
 	// DB.DB_insert_sample_point.Exec(product.Sample_point)
 	proc_name := "Product.Save.Sample_point"
@@ -63,14 +61,186 @@ func (product Product) Save() {
 		},
 		DB.DB_insert_qc_tester, product.Tester)
 
+	var qc_id int64
 	proc_name = "Product.Save.All"
-	_, err := DB.DB_insert_measurement.Exec(product.Lot_id, product.Sample_point, product.Tester, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity)
-	if err != nil {
+	if err := DB.Select_Error(proc_name,
+		DB.DB_insert_measurement.QueryRow(
+			product.Lot_id, product.Sample_point, product.Tester, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity,
+		),
+		&qc_id,
+	); err != nil {
 		log.Println("error[]%S]:", proc_name, err)
 		threads.Show_status("Sample Recording Failed")
-	} else {
-		threads.Show_status("Sample Recorded")
+		return DB.INVALID_ID
+
 	}
+	threads.Show_status("Sample Recorded")
+	return qc_id
+}
+
+// updateSstaorgr
+/*
+   create table bs.product_moniker (
+   	product_moniker_id integer not null,
+   	product_moniker_name text unique not null,
+   primary key (product_moniker_id)
+   );*/
+
+// 		create table bs.product_sample_storage (
+//
+// product_sample_storage_id integer not null,
+// product_moniker_id not null,
+// retain_storage_duration integer not null,
+// max_storage_capacity integer not null,
+//
+// qc_sample_storage_id not null,
+// qc_sample_storage_offset integer not null,
+// qc_storage_capacity integer not null,
+
+// create table bs.qc_sample_storage_list (
+// 	qc_sample_storage_id integer not null,
+// 	qc_sample_storage_name text not null,
+// 	product_moniker_id not null,
+//
+// foreign key (product_moniker_id) references product_moniker,
+// unique (qc_sample_storage_name),
+// primary key (qc_sample_storage_id)
+// );
+//
+// reate table bs.qc_samples (
+// 	qc_id integer not null,
+// 	lot_id integer not null,
+// 	sample_point_id integer,
+// 	qc_tester_id integer,
+// 	qc_sample_storage_id integer,
+// 	time_stamp integer,
+// 	ph real,
+// 	specific_gravity real,
+// 	string_test real,
+// 	viscosity real,
+// foreign key (lot_id) references lot_list,
+// foreign key (sample_point_id) references product_sample_points,
+// foreign key (qc_sample_storage_id) references qc_sample_storage_list,
+// foreign key (qc_tester_id) references qc_tester_list,
+// primary key (qc_id)
+// );
+
+/*
+ * GetStorage
+ *
+ * Check storage
+ *
+ * Returns next storage bin with capacity for product
+ * products come in sequentially
+ * keep entire batches together
+ *
+ */
+func (product Product) GetStorage(numSamples int) int {
+
+	proc_name := "Product.GetStorage"
+	log.Println("DFEBUG: ", proc_name, numSamples, product)
+
+	var (
+		qc_sample_storage_id int
+	)
+	storage_capacity := 0
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Select_product_sample_storage_capacity.QueryRow(product.Product_id),
+		&qc_sample_storage_id, &storage_capacity,
+	); err != nil {
+		log.Println("Crit: ", proc_name, product, err)
+		return int(DB.INVALID_ID)
+	}
+
+	log.Println("DFEBUG: ", proc_name, "strogaE", storage_capacity, numSamples, qc_sample_storage_id, product.Product_id)
+
+	// Check storage
+	if storage_capacity < numSamples {
+		// get data for printing bin label, new bin creation
+		proc_name = "Product.GetStorage.New"
+
+		var (
+			product_sample_storage_id, qc_sample_storage_offset, start_date_, end_date_ int64
+			retain_storage_duration                                                     int
+			qc_sample_storage_name, product_moniker_name                                string
+		)
+		if err := DB.Select_Error(proc_name,
+			DB.DB_Select_gen_product_sample_storage.QueryRow(product.Product_id),
+			&product_sample_storage_id, &product_moniker_name, &qc_sample_storage_offset, &qc_sample_storage_name,
+			&start_date_, &end_date_, &retain_storage_duration,
+		); err != nil {
+			log.Println("Crit: ", proc_name, product, err)
+			return int(DB.INVALID_ID)
+		}
+		start_date := time.Unix(0, start_date_)
+		end_date := time.Unix(0, end_date_)
+		retain_date := end_date.AddDate(0, retain_storage_duration, 0)
+		// + retain_storage_duration*time.Month
+
+		// print
+		product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date)
+
+		// gen new based on qc_sample_storage_offset,
+		// product_moniker_id or product_sample_storage_id
+		proc_name = "Product.GetStorage.Insert"
+		location := 0
+		// product_moniker_id == product_sample_storage_id. update if this is no longer true
+		product_moniker_id := product_sample_storage_id
+		qc_sample_storage_offset += 1
+		qc_sample_storage_name = fmt.Sprintf("%02d-%03d-%04d", location, product_moniker_id, qc_sample_storage_offset)
+
+		if err := DB.Select_Error(proc_name,
+			DB.DB_Insert_sample_storage.QueryRow(
+				qc_sample_storage_name, product_moniker_id,
+			),
+			&qc_sample_storage_id,
+		); err != nil {
+			log.Println("Crit: ", proc_name, product, err)
+			return int(DB.INVALID_ID)
+		}
+
+		//update qc_sample_storage_offset
+		proc_name = "Product.GetStorage.Update"
+		DB.Update(proc_name,
+			DB.DB_Update_product_sample_storage_qc_sample,
+			product_sample_storage_id,
+			qc_sample_storage_id, qc_sample_storage_offset)
+
+	}
+	return qc_sample_storage_id
+
+}
+
+func Store(products ...Product) {
+	numSamples := len(products)
+	if numSamples <= 0 {
+		return
+	}
+	product := products[0]
+	proc_name := "Product.Store"
+	log.Println("DFEBUG: ", proc_name)
+	qc_sample_storage_id := product.GetStorage(numSamples)
+	log.Println("DFEBUG: ", proc_name, numSamples, qc_sample_storage_id)
+
+	for _, product := range products {
+		qc_id := product.Save()
+		// assign storage to sample
+		log.Println("DFEBUG: ", proc_name, qc_id, qc_sample_storage_id)
+
+		DB.Update(proc_name,
+			DB.DB_Update_qc_samples_storage,
+			qc_id, qc_sample_storage_id)
+
+	}
+
+	// update capacity
+	DB.Update(proc_name,
+		DB.DB_Update_product_sample_storage_capacity,
+		qc_sample_storage_id, numSamples)
+
+	// * Check storage
+	product.GetStorage(0)
+
 }
 
 func (product Product) Export_json() {
@@ -287,16 +457,6 @@ func (product Product) Save_xl() error {
 	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, product.Lot_number, isomeric_product, valence_product)
 }
 
-func _print(pdf_path string) {
-	if threads.PRINT_QUEUE != nil {
-		threads.PRINT_QUEUE <- pdf_path
-		threads.Show_status("Label Printed")
-	} else {
-		log.Println("Warn: Print queue not configured. Call threads.Do_print_queue to set up.")
-
-	}
-}
-
 func (product Product) print() error {
 
 	pdf_path, err := product.export_label_pdf()
@@ -318,105 +478,4 @@ func (product Product) Reprint_sample() {
 	product.format_sample()
 	log.Println("DEBUG: Reprint_sample formatted", product)
 	product.Reprint()
-}
-
-func (product Product) export_label_pdf() (string, error) {
-	var label_width, label_height,
-		field_width, field_height,
-		unit_width, unit_height,
-		label_col,
-		// field_col,
-		product_row,
-		curr_row,
-		curr_row_delta,
-		lot_row float64
-
-	label_width = 40
-	label_height = 10
-
-	field_width = 20
-	field_height = 10
-
-	unit_width = 40
-	unit_height = 10
-
-	label_col = 10
-	// field_col = 120
-
-	product_row = 0
-	lot_row = 45
-
-	file_path := product.get_pdf_name()
-
-	pdf := fpdf.New("L", "mm", "A7", "")
-	pdf.SetAutoPageBreak(false, 0)
-	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
-	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.Product_name))
-
-	if product.Density.Valid {
-		curr_row = 5
-		curr_row_delta = 6
-
-	} else {
-		curr_row = 10
-		curr_row_delta = 10
-
-	}
-
-	var sg_derived bool
-	if product.PH.Valid {
-		curr_row += curr_row_delta
-		pdf.SetXY(label_col, curr_row)
-		pdf.Cell(label_width, label_height, "pH")
-		pdf.Cell(field_width, field_height, formats.Format_ph(product.PH.Float64))
-		sg_derived = false
-	} else {
-		sg_derived = true
-	}
-
-	if product.SG.Valid {
-		curr_row += curr_row_delta
-		pdf.SetXY(label_col, curr_row)
-		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, formats.Format_sg(product.SG.Float64, !sg_derived))
-		pdf.Cell(unit_width, unit_height, formats.SG_UNITS)
-	}
-
-	if product.Density.Valid {
-		curr_row += curr_row_delta
-		pdf.SetXY(label_col, curr_row)
-		pdf.Cell(label_width, label_height, "DENSITY")
-		pdf.Cell(field_width, field_height, formats.Format_density(product.Density.Float64))
-		pdf.Cell(unit_width, unit_height, formats.DENSITY_UNITS)
-	}
-
-	if product.String_test.Valid {
-		curr_row += curr_row_delta
-		pdf.SetXY(label_col, curr_row)
-		pdf.Cell(label_width, label_height, "STRING")
-		// pdf.Cell(field_width, field_height, formats.Format_string_test(product.String_test.Int64))
-		pdf.Cell(field_width, field_height, formats.FormatInt(product.String_test.Int64))
-		pdf.Cell(unit_width, unit_height, formats.STRING_UNITS)
-	}
-
-	if product.Viscosity.Valid {
-		curr_row += curr_row_delta
-		pdf.SetXY(label_col, curr_row)
-		pdf.Cell(label_width, label_height, "VISCOSITY")
-		// pdf.Cell(field_width, field_height, formats.Format_viscosity(product.Viscosity.Int64))
-		pdf.Cell(field_width, field_height, formats.FormatInt(product.Viscosity.Int64))
-		pdf.Cell(unit_width, unit_height, formats.VISCOSITY_UNITS)
-	}
-
-	// log.Println(curr_row)
-
-	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(label_width, field_height, strings.ToUpper(product.Lot_number))
-	pdf.CellFormat(unit_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
-
-	log.Println("Info: Saving to: ", file_path)
-	err := pdf.OutputFileAndClose(file_path)
-	return file_path, err
 }

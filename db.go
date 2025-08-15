@@ -40,7 +40,27 @@ create table bs.database_info (
 create table bs.product_moniker (
 	product_moniker_id integer not null,
 	product_moniker_name text unique not null,
-	primary key (product_moniker_id));
+primary key (product_moniker_id)
+);
+
+
+
+create table bs.product_sample_storage (
+
+product_sample_storage_id integer not null,
+product_moniker_id not null,
+retain_storage_duration integer not null,
+max_storage_capacity integer not null,
+
+qc_sample_storage_id not null,
+qc_sample_storage_offset integer not null,
+qc_storage_capacity integer not null,
+
+unique (qc_sample_storage_id),
+foreign key (product_moniker_id) references product_moniker,
+foreign key (qc_sample_storage_id) references qc_sample_storage_list,
+primary key (product_sample_storage_id)
+);
 
 create table bs.product_line (
 	product_id integer not null,
@@ -119,11 +139,11 @@ create table bs.qc_sample_storage_list (
 	qc_sample_storage_id integer not null,
 	qc_sample_storage_name text not null,
 	product_moniker_id not null,
+
 foreign key (product_moniker_id) references product_moniker,
 unique (qc_sample_storage_name),
 primary key (qc_sample_storage_id)
 );
-
 
 create table bs.container_types (
 	container_type_id integer not null,
