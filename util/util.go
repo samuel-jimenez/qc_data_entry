@@ -1,6 +1,9 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 func Assert(statement bool, message string) {
 	if !statement {
@@ -14,10 +17,8 @@ func AssertEqual(val0, val1 any) {
 	}
 }
 
-//TODO logerror
-// if err != nil {
-// 	log.Printf("Err: [%s]: %q\n", proc_name, err)
-
-// log.Printf("Error: [%s]: %q\n", proc_name, err)
-// }
-// (proc_name string, statement *sql.Stmt, args ...any) error {
+func LogError(proc_name string, err error) {
+	if err != nil {
+		log.Printf("Error: [%s]: %q\n", proc_name, err)
+	}
+}

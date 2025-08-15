@@ -10,6 +10,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 )
 
 func _print(pdf_path string) {
@@ -88,9 +89,7 @@ func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name 
 
 	log.Println("Info: Saving to: ", file_path)
 	err := pdf.OutputFileAndClose(file_path)
-	if err != nil {
-		log.Printf("Err: [%s]: %q\n", proc_name, err)
-	}
+	util.LogError(proc_name, err)
 	return err
 
 }
