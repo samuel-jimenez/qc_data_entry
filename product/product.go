@@ -25,7 +25,6 @@ var (
 
 type Product struct {
 	BaseProduct
-	QC_id       int64
 	PH          nullable.NullFloat64
 	SG          nullable.NullFloat64
 	Density     nullable.NullFloat64
@@ -35,7 +34,6 @@ type Product struct {
 
 func (measured_product Product) Save() int64 {
 
-	measured_product.QC_id = DB.INVALID_ID
 	proc_name := "Product.Save.Sample_point"
 	DB.Insert(proc_name, DB.DB_Insel_sample_point, measured_product.Sample_point)
 
@@ -85,14 +83,13 @@ func (measured_product Product) Save() int64 {
 
 	DB.Insert(proc_name, DB.DB_Insel_qc_tester, measured_product.Tester)
 
-	// var qc_id int64
+	var qc_id int64
 	proc_name = "Product.Save.All"
 	if err := DB.Select_Error(proc_name,
 		DB.DB_insert_measurement.QueryRow(
 			measured_product.Lot_id, measured_product.Sample_point, measured_product.Tester, time.Now().UTC().UnixNano(), measured_product.PH, measured_product.SG, measured_product.String_test, measured_product.Viscosity,
 		),
-		&measured_product.QC_id,
-		// &qc_id,
+		&qc_id,
 	); err != nil {
 		log.Println("error[]%S]:", proc_name, err)
 		threads.Show_status("Sample Recording Failed")
@@ -100,8 +97,7 @@ func (measured_product Product) Save() int64 {
 
 	}
 	threads.Show_status("Sample Recorded")
-	return measured_product.QC_id
-	// return qc_id
+	return qc_id
 }
 
 //TODO product.NewBin
