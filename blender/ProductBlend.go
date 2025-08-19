@@ -9,7 +9,7 @@ func NewProductBlend() *ProductBlend {
 	return new(ProductBlend)
 }
 
-func NewProductBlendFromRecipe(ProductRecipe *ProductRecipe) *ProductBlend {
+func NewProductBlend_from_Recipe(ProductRecipe *ProductRecipe) *ProductBlend {
 	ProductBlend := NewProductBlend()
 	ProductBlend.Recipe_id = ProductRecipe.Recipe_id
 	return ProductBlend

@@ -110,9 +110,9 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 		visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
-		viscosity_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
-		density_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
-		string_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		viscosity_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		density_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		string_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
 	}
 
@@ -189,7 +189,7 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 		density_field.SetFont(font)
 	}
 	refresh := func() {
-		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, GUI.RANGES_RO_PADDING, BTM_SPACER_HEIGHT)
 		visual_field.Refresh()
 		viscosity_field.Refresh()
@@ -339,11 +339,19 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 
 	update := func(qc_product *product.QCProduct) {
 		ranges_panel.Update(qc_product)
+
+		log.Println("TRACE: show_fr.update Blend", qc_product.Blend)
+		// TODO recip00
+		// extract to fn, move componenet panel?
+
+		if qc_product.Blend != nil {
+			component_panel.UpdateBlend(qc_product.Blend)
+			return
+		}
+
 		var (
 			recipe_data blender.ProductRecipe
 		)
-
-		// TODO recip00 extract to fn, move componenet panel?
 		// proc_name := "RecipeProduct.GetRecipes"
 		proc_name := "FrictionReducerPanelView.GetRecipes"
 
@@ -362,7 +370,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 			DB.DB_Select_product_recipe, qc_product.Product_id)
 
 		recipe_data.GetComponents()
-		component_panel.Update(&recipe_data)
+		component_panel.UpdateRecipe(&recipe_data)
 
 	}
 

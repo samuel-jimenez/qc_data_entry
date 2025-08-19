@@ -13,12 +13,13 @@ import (
  *
  */
 type BlendViewer interface {
-	windigo.Pane
-	Get() *blender.ProductBlend
-	Update(blend *blender.ProductBlend)
+	QCBlendViewer
+	// windigo.Pane
+	// Get() *blender.ProductBlend
+	// UpdateRecipe(blend *blender.ProductBlend)
 	SetAmount(float64)
-	SetFont(font *windigo.Font)
-	RefreshSize()
+	// SetFont(font *windigo.Font)
+	// RefreshSize()
 }
 
 /*
@@ -52,7 +53,7 @@ func NewBlendView(parent windigo.Controller) *BlendView {
 	return view
 }
 
-func (view *BlendView) Update(recipe *blender.ProductRecipe) {
+func (view *BlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 	if view.Recipe == recipe {
 		return
 	}

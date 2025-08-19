@@ -64,13 +64,61 @@ func main() {
 
 }
 
+/*
+ * ??TODO
+func _select_samples(proc_name string, select_statement *sql.Stmt, args ...any) []viewer.QCData {
+	data := make([]viewer.QCData, 0)
+	DB.Forall_exit(proc_name,
+		func() {},
+		func(row *sql.Rows) error {
+			var (
+				qc_data              viewer.QCData
+				_timestamp           int64
+				product_moniker_name string
+				internal_name        string
+			)
+
+			if err := row.Scan(
+				&product_moniker_name, &internal_name,
+				&qc_data.Product_name_customer,
+				&qc_data.Lot_name,
+				&qc_data.Sample_point,
+				&qc_data.Sample_bin,
+				&_timestamp,
+				&qc_data.PH,
+				&qc_data.Specific_gravity,
+				&qc_data.String_test,
+				&qc_data.Viscosity,
+			); err != nil {
+				return err
+			}
+			qc_data.Product_name = product_moniker_name + " " + internal_name
+
+			qc_data.Time_stamp = time.Unix(0, _timestamp)
+			data = append(data, qc_data)
+			return nil
+
+		},
+		select_statement, args...)
+	return data
+}
+
+func select_samples() []viewer.QCData {
+	return _select_samples("select_samples", DB_Select_samples)
+}
+
+func select_product_samples(product_id int) []viewer.QCData {
+	return _select_samples("select_product_samples", DB_Select_product_samples, product_id)
+}*/
+
 func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 	if err != nil {
 		log.Printf("error: [%s]: %q\n", fn, err)
 		// return -1
 	}
 
-	data := make([]viewer.QCData, 0)
+	data_0 := make([]viewer.QCData, 0)
+	data_1 := make([]viewer.QCData, 0)
 	for rows.Next() {
 		var (
 			qc_data              viewer.QCData
@@ -83,6 +131,7 @@ func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 			&qc_data.Product_name_customer,
 			&qc_data.Lot_name,
 			&qc_data.Sample_point,
+			&qc_data.Sample_bin,
 			&_timestamp,
 			&qc_data.PH,
 			&qc_data.Specific_gravity,
@@ -93,9 +142,16 @@ func _select_samples(rows *sql.Rows, err error, fn string) []viewer.QCData {
 		qc_data.Product_name = product_moniker_name + " " + internal_name
 
 		qc_data.Time_stamp = time.Unix(0, _timestamp)
-		data = append(data, qc_data)
+		data_0 = append(data_0, qc_data)
 	}
-	return data
+
+	// DB_Select_product_lot_list_sources
+	for _, val := range data_0 {
+		val.GetComponents()
+		data_1 = append(data_1, val)
+	}
+
+	return data_1
 }
 
 func select_samples() []viewer.QCData {
@@ -126,6 +182,7 @@ func dbinit(db *sql.DB) {
 		product_name_customer,
 		lot_name,
 		sample_point,
+		qc_sample_storage_name,
 		time_stamp,
 		ph ,
 		specific_gravity ,
@@ -137,7 +194,8 @@ func dbinit(db *sql.DB) {
 		join bs.product_line using (product_id)
 		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_sample_points using (sample_point_id)
-		left join bs.product_customer_line using (product_customer_id,product_id)
+		left join bs.qc_sample_storage_list using (qc_sample_storage_id)
+		left join bs.product_customer_line using (product_customer_id, product_id)
 	`
 
 	DB_Select_product_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
@@ -313,7 +371,7 @@ func show_window() {
 
 	update_sample := func(id int, name string) {
 		sample_field.AddItem(name)
-		viewer.COL_ITEMS_SAMPLE = append(viewer.COL_ITEMS_SAMPLE, name)
+		viewer.COL_ITEMS_SAMPLE_PT = append(viewer.COL_ITEMS_SAMPLE_PT, name)
 	}
 
 	clear_product := func() {
@@ -329,13 +387,13 @@ func show_window() {
 			update_lot(id, name)
 		}
 
-		viewer.COL_ITEMS_SAMPLE = nil
+		viewer.COL_ITEMS_SAMPLE_PT = nil
 		GUI.Fill_combobox_from_query_fn(sample_field, update_sample, DB.DB_Select_all_sample_points)
 
 		// FilterListView[viewer.COL_KEY_SAMPLE].Update(viewer.COL_ITEMS_SAMPLE)
 
 		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
-		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+		FilterListView.Update(viewer.COL_KEY_SAMPLE_PT, viewer.COL_ITEMS_SAMPLE_PT)
 	}
 
 	clear_lot := func() {
@@ -382,7 +440,7 @@ func show_window() {
 
 	FilterListView.AddContinuous(viewer.COL_KEY_TIME, viewer.COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(viewer.COL_KEY_LOT, viewer.COL_LABEL_LOT, viewer.COL_ITEMS_LOT)
-	FilterListView.AddDiscreteMulti(viewer.COL_KEY_SAMPLE, viewer.COL_LABEL_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+	FilterListView.AddDiscreteMulti(viewer.COL_KEY_SAMPLE_PT, viewer.COL_LABEL_SAMPLE_PT, viewer.COL_ITEMS_SAMPLE_PT)
 	FilterListView.AddContinuous(viewer.COL_KEY_PH, viewer.COL_LABEL_PH)
 	FilterListView.AddContinuous(viewer.COL_KEY_SG, viewer.COL_LABEL_SG)
 	//TODO FilterListView.AddContinuous(viewer.COL_KEY_DENSITY, viewer.COL_LABEL_DENSITY)
@@ -402,12 +460,12 @@ func show_window() {
 		viewer.COL_ITEMS_LOT = nil
 		lot_field.Fill_FromFnQuery(update_lot, DB.DB_Select_product_lot_product, product_id)
 
-		viewer.COL_ITEMS_SAMPLE = nil
+		viewer.COL_ITEMS_SAMPLE_PT = nil
 		GUI.Fill_combobox_from_query_fn(sample_field, update_sample, DB.DB_Select_product_sample_points, product_id)
 
 		// FilterListView[viewer.COL_KEY_LOT].Update(viewer.COL_ITEMS_LOT)
 		FilterListView.Update(viewer.COL_KEY_LOT, viewer.COL_ITEMS_LOT)
-		FilterListView.Update(viewer.COL_KEY_SAMPLE, viewer.COL_ITEMS_SAMPLE)
+		FilterListView.Update(viewer.COL_KEY_SAMPLE_PT, viewer.COL_ITEMS_SAMPLE_PT)
 
 		// log.Println()
 

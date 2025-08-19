@@ -90,10 +90,10 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 		i, err := strconv.Atoi(view.Blend_sel_field.GetSelectedItem())
 		if err != nil {
 			log.Println("ERR: recipe_field strconv", err)
-			view.Blend.Update(nil)
+			view.Blend.UpdateRecipe(nil)
 			return
 		}
-		view.Blend.Update(view.RecipeProduct.Recipes[i])
+		view.Blend.UpdateRecipe(view.RecipeProduct.Recipes[i])
 
 		// view.Product = NewBlendProduct()
 		// name := product_field.GetSelectedItem()

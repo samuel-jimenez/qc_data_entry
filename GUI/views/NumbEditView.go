@@ -45,3 +45,9 @@ func (control *NumbEditView) Set(val float64) {
 	control.SetText(strconv.FormatFloat(val, 'f', 2, 64))
 	control.SelectText(start, end)
 }
+
+func (control *NumbEditView) SetInt(val float64) {
+	start, end := control.Selected()
+	control.SetText(strconv.FormatFloat(val, 'f', 0, 64))
+	control.SelectText(start, end)
+}

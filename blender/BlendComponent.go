@@ -12,6 +12,9 @@ type BlendComponent struct {
 	Inboundp bool
 	Lot_name,
 	Container_name string
+	// TODO blendAmount00
+	// Component_actual_amount  float64
+
 }
 
 func NewBlendComponent() *BlendComponent {
@@ -30,4 +33,12 @@ func (object *BlendComponent) Save(Product_Lot_id, Recipe_id int64) {
 
 	DB.Insert(proc_name, DB.DB_Insert_Product_blend, Product_Lot_id, Recipe_id, object.Component_id, object.Component_amount)
 
+}
+
+func (object BlendComponent) Text() []string {
+	return []string{
+		object.Component_name,
+		object.Lot_name,
+		object.Container_name,
+	}
 }

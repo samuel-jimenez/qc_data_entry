@@ -36,6 +36,9 @@ type InboundLot struct {
 func NewInboundLot() *InboundLot { return new(InboundLot) }
 
 func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_name, status_name string) *InboundLot {
+	if Lot_number == "" {
+		return nil
+	}
 	proc_name := "NewInboundLotFromValues"
 
 	Inbound := NewInboundLot()

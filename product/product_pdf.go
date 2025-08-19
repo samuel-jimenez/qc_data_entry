@@ -24,15 +24,44 @@ func _print(pdf_path string) {
 }
 
 /*
+ * PrintOldStorage
+ *
+ * Create and print storage label with dates
+ *
+ */
+func (measured_product Product) PrintOldStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
+
+	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
+ * PrintNewStorage
+ *
+ * Create and print storage label
+ * name and id only
+ *
+ */
+func (measured_product Product) PrintNewStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
+	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, false); err != nil {
+		return err
+	}
+	return nil
+
+}
+
+/*
  * PrintStorage
  *
  * Create and print storage label
  *
  */
-func (product Product) PrintStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date time.Time) error {
-	file_path := product.get_storage_pdf_name(qc_sample_storage_name)
+func (measured_product Product) PrintStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
+	file_path := measured_product.get_storage_pdf_name(qc_sample_storage_name)
 
-	if err := Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date); err != nil {
+	if err := Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, printDates); err != nil {
 		return err
 	}
 	threads.Show_status("Label Created")
@@ -61,7 +90,7 @@ func increment_row_pdf(pdf *fpdf.Fpdf, x, y, delta_y float64, width, height floa
  * Create pdf with given data
  *
  */
-func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date time.Time) error {
+func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
 	proc_name := "Product.Export_Storage_pdf"
 
 	curr_col := 10.
@@ -80,12 +109,14 @@ func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name 
 
 	curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, product_moniker_name)
 
-	pdf.SetFontSize(24)
-	curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, start_date.Format(time.DateOnly))
+	if printDates {
+		pdf.SetFontSize(24)
+		curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, start_date.Format(time.DateOnly))
 
-	curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, end_date.Format(time.DateOnly))
+		curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, end_date.Format(time.DateOnly))
 
-	curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, retain_date.Format(time.DateOnly))
+		curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, retain_date.Format(time.DateOnly))
+	}
 
 	log.Println("Info: Saving to: ", file_path)
 	err := pdf.OutputFileAndClose(file_path)
@@ -94,7 +125,7 @@ func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name 
 
 }
 
-func (product Product) export_label_pdf() (string, error) {
+func (measured_product Product) export_label_pdf() (string, error) {
 	var label_width, label_height,
 		field_width, field_height,
 		unit_width, unit_height,
@@ -120,16 +151,16 @@ func (product Product) export_label_pdf() (string, error) {
 	product_row = 0
 	lot_row = 45
 
-	file_path := product.get_pdf_name()
+	file_path := measured_product.get_pdf_name()
 
 	pdf := fpdf.New("L", "mm", "A7", "")
 	pdf.SetAutoPageBreak(false, 0)
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
 	pdf.SetXY(label_col, product_row)
-	pdf.Cell(field_width, field_height, strings.ToUpper(product.Product_name))
+	pdf.Cell(field_width, field_height, strings.ToUpper(measured_product.Product_name))
 
-	if product.Density.Valid {
+	if measured_product.Density.Valid {
 		curr_row = 5
 		curr_row_delta = 6
 
@@ -140,55 +171,55 @@ func (product Product) export_label_pdf() (string, error) {
 	}
 
 	var sg_derived bool
-	if product.PH.Valid {
+	if measured_product.PH.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
-		pdf.Cell(field_width, field_height, formats.Format_ph(product.PH.Float64))
+		pdf.Cell(field_width, field_height, formats.Format_ph(measured_product.PH.Float64))
 		sg_derived = false
 	} else {
 		sg_derived = true
 	}
 
-	if product.SG.Valid {
+	if measured_product.SG.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "SG")
-		pdf.Cell(field_width, field_height, formats.Format_sg(product.SG.Float64, !sg_derived))
+		pdf.Cell(field_width, field_height, formats.Format_sg(measured_product.SG.Float64, !sg_derived))
 		pdf.Cell(unit_width, unit_height, formats.SG_UNITS)
 	}
 
-	if product.Density.Valid {
+	if measured_product.Density.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "DENSITY")
-		pdf.Cell(field_width, field_height, formats.Format_density(product.Density.Float64))
+		pdf.Cell(field_width, field_height, formats.Format_density(measured_product.Density.Float64))
 		pdf.Cell(unit_width, unit_height, formats.DENSITY_UNITS)
 	}
 
-	if product.String_test.Valid {
+	if measured_product.String_test.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "STRING")
 		// pdf.Cell(field_width, field_height, formats.Format_string_test(product.String_test.Int64))
-		pdf.Cell(field_width, field_height, formats.FormatInt(product.String_test.Int64))
+		pdf.Cell(field_width, field_height, formats.FormatInt(measured_product.String_test.Int64))
 		pdf.Cell(unit_width, unit_height, formats.STRING_UNITS)
 	}
 
-	if product.Viscosity.Valid {
+	if measured_product.Viscosity.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "VISCOSITY")
 		// pdf.Cell(field_width, field_height, formats.Format_viscosity(product.Viscosity.Int64))
-		pdf.Cell(field_width, field_height, formats.FormatInt(product.Viscosity.Int64))
+		pdf.Cell(field_width, field_height, formats.FormatInt(measured_product.Viscosity.Int64))
 		pdf.Cell(unit_width, unit_height, formats.VISCOSITY_UNITS)
 	}
 
 	// log.Println(curr_row)
 
 	pdf.SetXY(label_col, lot_row)
-	pdf.Cell(label_width, field_height, strings.ToUpper(product.Lot_number))
-	pdf.CellFormat(unit_width, field_height, strings.ToUpper(product.Sample_point), "", 0, "R", false, 0, "")
+	pdf.Cell(label_width, field_height, strings.ToUpper(measured_product.Lot_number))
+	pdf.CellFormat(unit_width, field_height, strings.ToUpper(measured_product.Sample_point), "", 0, "R", false, 0, "")
 
 	log.Println("Info: Saving to: ", file_path)
 	err := pdf.OutputFileAndClose(file_path)

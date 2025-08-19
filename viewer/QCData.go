@@ -1,16 +1,57 @@
 package viewer
 
 import (
+	"database/sql"
 	"log"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
+
+// prevents 'hash of unhashable type'
+type QCDataComponents struct {
+	Components []blender.BlendComponent
+}
+
+func (data *QCDataComponents) GetComponents(Lot_name string) {
+	proc_name := "QCDataComponenets.GetComponents"
+	DB.Forall_exit(proc_name,
+		func() {
+			data.Components = nil
+		},
+		func(row *sql.Rows) error {
+
+			blendComponent := blender.NewBlendComponent()
+
+			if err := row.Scan(
+				&blendComponent.Component_name, &blendComponent.Lot_name, &blendComponent.Container_name, &blendComponent.Component_amount,
+			); err != nil {
+				return err
+			}
+			data.Components = append(data.Components, *blendComponent)
+			return nil
+		},
+		DB.DB_Select_product_lot_list_sources, Lot_name)
+
+}
+
+func (data QCDataComponents) Text() []string {
+	Text := []string{}
+	for _, blendComponent := range data.Components {
+		Text = append(Text,
+			blendComponent.Text()...)
+	}
+
+	return Text
+
+}
 
 /*
  * QCData
@@ -22,17 +63,26 @@ type QCData struct {
 	Product_name,
 	Lot_name string
 	Product_name_customer,
-	Sample_point nullable.NullString
+	Sample_point,
+	Sample_bin nullable.NullString
 	Time_stamp time.Time
 	PH,
 	Specific_gravity nullable.NullFloat64
 	String_test,
 	Viscosity nullable.NullInt64
+	// prevents 'hash of unhashable type'
+	Components *QCDataComponents
+}
+
+func (data *QCData) GetComponents() {
+	data.Components = new(QCDataComponents)
+	data.Components.GetComponents(data.Lot_name)
 }
 
 func compare_product_name(a, b QCData) int { return strings.Compare(a.Product_name, b.Product_name) }
 func compare_lot_name(a, b QCData) int     { return strings.Compare(a.Lot_name, b.Lot_name) }
 func compare_sample_point(a, b QCData) int { return a.Sample_point.Compare(b.Sample_point) }
+func compare_sample_bin(a, b QCData) int   { return a.Sample_bin.Compare(b.Sample_bin) }
 func compare_time_stamp(a, b QCData) int   { return a.Time_stamp.Compare(b.Time_stamp) }
 
 func compare_ph(a, b QCData) int               { return a.PH.Compare(b.PH) }
@@ -69,18 +119,22 @@ func (data QCData) Text() []string {
 	} else {
 		sg_derived = true
 	}
-	return []string{
+
+	return append([]string{
 		data.Time_stamp.Format(time.DateTime),
 
 		data.Product_name, data.Lot_name,
 		data.Sample_point.String,
+		data.Sample_bin.String,
 		ToString(data.PH, formats.Format_ph),
 		ToString(data.Specific_gravity, func(sg float64) string { return formats.Format_sg(sg, !sg_derived) }),
 		// ToString(data.String_test, formats.Format_string_test),
 		data.String_test.String(),
 		// ToString(data.Viscosity, formats.Format_viscosity),
 		data.Viscosity.String(),
-	}
+	},
+		data.Components.Text()...)
+
 }
 
 func (data QCData) ImageIndex() int { return 0 }
@@ -149,7 +203,9 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.AddColumn(
 		COL_LABEL_LOT, COL_WIDTH_LOT)
 	table.AddColumn(
-		COL_LABEL_SAMPLE, COL_WIDTH_SAMPLE)
+		COL_LABEL_SAMPLE_PT, COL_WIDTH_SAMPLE_PT)
+	table.AddColumn(
+		COL_LABEL_SAMPLE_BIN, COL_WIDTH_SAMPLE_BIN)
 	table.AddColumn(
 		"pH", COL_WIDTH_DATA)
 	table.AddColumn(
@@ -158,6 +214,18 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 		"String Test", COL_WIDTH_DATA)
 	table.AddColumn(
 		"Viscosity", COL_WIDTH_DATA)
+	table.AddColumn(
+		"Component 0", COL_WIDTH_TIME)
+	table.AddColumn(
+		"Component 0 Lot", COL_WIDTH_LOT)
+	table.AddColumn(
+		"Component 0 Container", COL_WIDTH_LOT)
+	table.AddColumn(
+		"Component 1", COL_WIDTH_TIME)
+	table.AddColumn(
+		"Component 1 Lot", COL_WIDTH_LOT)
+	table.AddColumn(
+		"Component 1 Container", COL_WIDTH_LOT)
 	// table.AddColumn(
 	// 	"Density"
 	// 	, col_width)
@@ -174,6 +242,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 		compare_product_name,
 		compare_lot_name,
 		compare_sample_point,
+		compare_sample_bin,
 		compare_ph,
 		compare_specific_gravity,
 		compare_string_test,

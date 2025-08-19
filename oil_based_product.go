@@ -121,7 +121,7 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 
 		visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
-		density_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		density_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
 		button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
@@ -182,7 +182,7 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *pr
 	}
 
 	refresh := func() {
-		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 		visual_field.Refresh()
 		mass_field.Refresh()

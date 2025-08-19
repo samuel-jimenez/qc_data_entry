@@ -122,13 +122,13 @@ func show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
-		ranges_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		ranges_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
 		ranges_panel.SetMarginTop(GROUP_MARGIN)
 
 		visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
-		sg_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
-		ph_field.SetLabeledSize(GUI.LABEL_WIDTH, DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		sg_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		ph_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
 		button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
@@ -185,7 +185,7 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 		ph_field.SetFont(font)
 	}
 	refresh := func() {
-		group_panel.SetSize(RANGE_WIDTH, GROUP_HEIGHT)
+		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
 		visual_field.Refresh()

@@ -147,7 +147,7 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 		return
 	}
 	base_product.Product_name_customer = Product_name_customer.String
-	// TODO recip00 extract to fn, move componenet panel?
+
 	Blend := blender.NewProductBlend()
 	base_product.Blend = Blend
 
@@ -163,7 +163,7 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 			blendComponent := blender.NewBlendComponent()
 
 			if err := row.Scan(
-				&blendComponent.Component_name, &blendComponent.Lot_name, &blendComponent.Container_name,
+				&blendComponent.Component_name, &blendComponent.Lot_name, &blendComponent.Container_name, &blendComponent.Component_amount,
 			); err != nil {
 				return err
 			}

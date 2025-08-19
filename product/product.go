@@ -1,7 +1,6 @@
 package product
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -26,6 +25,7 @@ var (
 
 type Product struct {
 	BaseProduct
+	QC_id       int64
 	PH          nullable.NullFloat64
 	SG          nullable.NullFloat64
 	Density     nullable.NullFloat64
@@ -33,41 +33,66 @@ type Product struct {
 	Viscosity   nullable.NullInt64
 }
 
-func (product Product) Save() int64 {
+func (measured_product Product) Save() int64 {
 
-	// DB.DB_insert_sample_point.Exec(product.Sample_point)
+	measured_product.QC_id = DB.INVALID_ID
 	proc_name := "Product.Save.Sample_point"
-	log.Println("DEBUG: Product.Save.Sample_point:", DB.Insert(proc_name, DB.DB_insert_sample_point, product.Sample_point))
+	DB.Insert(proc_name, DB.DB_Insel_sample_point, measured_product.Sample_point)
+
+	// ??TODO compare
+	proc_name = "Product.Save.Tester"
+	log.Println("TRACE: ", proc_name)
 
 	// DB.DB_insert_qc_tester.Exec(product.Tester)
-	proc_name = "Product.Save.Tester"
-	DB.Forall_err(proc_name,
-		func() {},
-		func(row *sql.Rows) error {
-			var (
-				id   int64
-				name string
-			)
 
-			if err := row.Scan(
-				&id, &name,
-			); err != nil {
-				return err
-			}
+	// DB.Forall_err(proc_name,
+	// 	func() {},
+	// 	func(row *sql.Rows) error {
+	// 		var (
+	// 			id   int64
+	// 			name string
+	// 		)
+	//
+	// 		if err := row.Scan(
+	// 			&id, &name,
+	// 		); err != nil {
+	// 			return err
+	// 		}
+	//
+	// 		log.Println("DEBUG: ", proc_name, id, name)
+	//
+	// 		return nil
+	// 	},
+	// 	DB.DB_Insel_qc_tester, measured_product.Tester)
 
-			log.Println("DEBUG: ", proc_name, id, name)
+	// var (
+	// 	qc_tester_id   int64
+	// 	qc_tester_name string
+	// )
+	//
+	// if err := DB.Select_Error(proc_name,
+	// 	DB.DB_Insel_qc_tester.QueryRow(
+	// 		measured_product.Tester,
+	// 	),
+	// 	&qc_tester_id, &qc_tester_name,
+	// ); err != nil {
+	// 	log.Println("WARN: []%S]:", proc_name, err)
+	//
+	// }
+	// log.Println("TRACE: ", proc_name, "Select_Error", qc_tester_id, qc_tester_name)
 
-			return nil
-		},
-		DB.DB_insert_qc_tester, product.Tester)
+	//TODO DB.Select_Nullable_Error(
 
-	var qc_id int64
+	DB.Insert(proc_name, DB.DB_Insel_qc_tester, measured_product.Tester)
+
+	// var qc_id int64
 	proc_name = "Product.Save.All"
 	if err := DB.Select_Error(proc_name,
 		DB.DB_insert_measurement.QueryRow(
-			product.Lot_id, product.Sample_point, product.Tester, time.Now().UTC().UnixNano(), product.PH, product.SG, product.String_test, product.Viscosity,
+			measured_product.Lot_id, measured_product.Sample_point, measured_product.Tester, time.Now().UTC().UnixNano(), measured_product.PH, measured_product.SG, measured_product.String_test, measured_product.Viscosity,
 		),
-		&qc_id,
+		&measured_product.QC_id,
+		// &qc_id,
 	); err != nil {
 		log.Println("error[]%S]:", proc_name, err)
 		threads.Show_status("Sample Recording Failed")
@@ -75,55 +100,81 @@ func (product Product) Save() int64 {
 
 	}
 	threads.Show_status("Sample Recorded")
-	return qc_id
+	return measured_product.QC_id
+	// return qc_id
 }
 
-// updateSstaorgr
+//TODO product.NewBin
+// split into
+// add button to call to account for unlogged samples
+
 /*
-   create table bs.product_moniker (
-   	product_moniker_id integer not null,
-   	product_moniker_name text unique not null,
-   primary key (product_moniker_id)
-   );*/
+ * NewStorageBin
+ *
+ * Print label for storage bin
+ *
+ * Returns next storage bin
+ *
+ */
+func (measured_product Product) NewStorageBin() int {
+	var (
+		qc_sample_storage_id int
+	)
 
-// 		create table bs.product_sample_storage (
-//
-// product_sample_storage_id integer not null,
-// product_moniker_id not null,
-// retain_storage_duration integer not null,
-// max_storage_capacity integer not null,
-//
-// qc_sample_storage_id not null,
-// qc_sample_storage_offset integer not null,
-// qc_storage_capacity integer not null,
+	// get data for printing bin label, new bin creation
+	proc_name := "Product.NewStorageBin"
 
-// create table bs.qc_sample_storage_list (
-// 	qc_sample_storage_id integer not null,
-// 	qc_sample_storage_name text not null,
-// 	product_moniker_id not null,
-//
-// foreign key (product_moniker_id) references product_moniker,
-// unique (qc_sample_storage_name),
-// primary key (qc_sample_storage_id)
-// );
-//
-// reate table bs.qc_samples (
-// 	qc_id integer not null,
-// 	lot_id integer not null,
-// 	sample_point_id integer,
-// 	qc_tester_id integer,
-// 	qc_sample_storage_id integer,
-// 	time_stamp integer,
-// 	ph real,
-// 	specific_gravity real,
-// 	string_test real,
-// 	viscosity real,
-// foreign key (lot_id) references lot_list,
-// foreign key (sample_point_id) references product_sample_points,
-// foreign key (qc_sample_storage_id) references qc_sample_storage_list,
-// foreign key (qc_tester_id) references qc_tester_list,
-// primary key (qc_id)
-// );
+	var (
+		product_sample_storage_id, qc_sample_storage_offset, start_date_, end_date_ int64
+		retain_storage_duration                                                     int
+		qc_sample_storage_name, product_moniker_name                                string
+	)
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Select_gen_product_sample_storage.QueryRow(
+			measured_product.Product_id,
+		),
+		&product_sample_storage_id, &product_moniker_name, &qc_sample_storage_offset, &qc_sample_storage_name,
+		&start_date_, &end_date_, &retain_storage_duration,
+	); err != nil {
+		log.Println("Crit: ", proc_name, measured_product, err)
+		panic(err)
+	}
+	start_date := time.Unix(0, start_date_)
+	end_date := time.Unix(0, end_date_)
+	retain_date := end_date.AddDate(0, retain_storage_duration, 0)
+	// + retain_storage_duration*time.Month
+
+	// print
+	measured_product.PrintOldStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
+
+	// gen new based on qc_sample_storage_offset,
+	// product_moniker_id or product_sample_storage_id
+	proc_name = "Product.NewStorageBin.Insert"
+	location := 0
+	// product_moniker_id == product_sample_storage_id. update if this is no longer true
+	product_moniker_id := product_sample_storage_id
+	qc_sample_storage_offset += 1
+	qc_sample_storage_name = fmt.Sprintf("%02d-%03d-%04d", location, product_moniker_id, qc_sample_storage_offset)
+
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Insert_sample_storage.QueryRow(
+			qc_sample_storage_name, product_moniker_id,
+		),
+		&qc_sample_storage_id,
+	); err != nil {
+		log.Println("Crit: ", proc_name, measured_product, err)
+		panic(err)
+	}
+	measured_product.PrintNewStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
+
+	//update qc_sample_storage_offset
+	proc_name = "Product.NewStorageBin.Update"
+	DB.Update(proc_name,
+		DB.DB_Update_product_sample_storage_qc_sample,
+		product_sample_storage_id,
+		qc_sample_storage_id, qc_sample_storage_offset)
+	return qc_sample_storage_id
+}
 
 /*
  * GetStorage
@@ -135,77 +186,26 @@ func (product Product) Save() int64 {
  * keep entire batches together
  *
  */
-func (product Product) GetStorage(numSamples int) int {
+func (measured_product Product) GetStorage(numSamples int) int {
 
 	proc_name := "Product.GetStorage"
-	log.Println("DFEBUG: ", proc_name, numSamples, product)
 
 	var (
-		qc_sample_storage_id int
+		qc_sample_storage_id, storage_capacity int
 	)
-	storage_capacity := 0
 	if err := DB.Select_Error(proc_name,
-		DB.DB_Select_product_sample_storage_capacity.QueryRow(product.Product_id),
+		DB.DB_Select_product_sample_storage_capacity.QueryRow(
+			measured_product.Product_id,
+		),
 		&qc_sample_storage_id, &storage_capacity,
 	); err != nil {
-		log.Println("Crit: ", proc_name, product, err)
-		return int(DB.INVALID_ID)
+		log.Println("Crit: ", proc_name, measured_product, err)
+		panic(err)
 	}
-
-	log.Println("DFEBUG: ", proc_name, "strogaE", storage_capacity, numSamples, qc_sample_storage_id, product.Product_id)
 
 	// Check storage
 	if storage_capacity < numSamples {
-		// get data for printing bin label, new bin creation
-		proc_name = "Product.GetStorage.New"
-
-		var (
-			product_sample_storage_id, qc_sample_storage_offset, start_date_, end_date_ int64
-			retain_storage_duration                                                     int
-			qc_sample_storage_name, product_moniker_name                                string
-		)
-		if err := DB.Select_Error(proc_name,
-			DB.DB_Select_gen_product_sample_storage.QueryRow(product.Product_id),
-			&product_sample_storage_id, &product_moniker_name, &qc_sample_storage_offset, &qc_sample_storage_name,
-			&start_date_, &end_date_, &retain_storage_duration,
-		); err != nil {
-			log.Println("Crit: ", proc_name, product, err)
-			return int(DB.INVALID_ID)
-		}
-		start_date := time.Unix(0, start_date_)
-		end_date := time.Unix(0, end_date_)
-		retain_date := end_date.AddDate(0, retain_storage_duration, 0)
-		// + retain_storage_duration*time.Month
-
-		// print
-		product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date)
-
-		// gen new based on qc_sample_storage_offset,
-		// product_moniker_id or product_sample_storage_id
-		proc_name = "Product.GetStorage.Insert"
-		location := 0
-		// product_moniker_id == product_sample_storage_id. update if this is no longer true
-		product_moniker_id := product_sample_storage_id
-		qc_sample_storage_offset += 1
-		qc_sample_storage_name = fmt.Sprintf("%02d-%03d-%04d", location, product_moniker_id, qc_sample_storage_offset)
-
-		if err := DB.Select_Error(proc_name,
-			DB.DB_Insert_sample_storage.QueryRow(
-				qc_sample_storage_name, product_moniker_id,
-			),
-			&qc_sample_storage_id,
-		); err != nil {
-			log.Println("Crit: ", proc_name, product, err)
-			return int(DB.INVALID_ID)
-		}
-
-		//update qc_sample_storage_offset
-		proc_name = "Product.GetStorage.Update"
-		DB.Update(proc_name,
-			DB.DB_Update_product_sample_storage_qc_sample,
-			product_sample_storage_id,
-			qc_sample_storage_id, qc_sample_storage_offset)
-
+		qc_sample_storage_id = measured_product.NewStorageBin()
 	}
 	return qc_sample_storage_id
 
@@ -216,10 +216,10 @@ func Store(products ...Product) {
 	if numSamples <= 0 {
 		return
 	}
-	product := products[0]
+	measured_product := products[0]
 	proc_name := "Product.Store"
 	log.Println("DFEBUG: ", proc_name)
-	qc_sample_storage_id := product.GetStorage(numSamples)
+	qc_sample_storage_id := measured_product.GetStorage(numSamples)
 	log.Println("DFEBUG: ", proc_name, numSamples, qc_sample_storage_id)
 
 	for _, product := range products {
@@ -239,13 +239,13 @@ func Store(products ...Product) {
 		qc_sample_storage_id, numSamples)
 
 	// * Check storage
-	product.GetStorage(0)
+	measured_product.GetStorage(1)
 
 }
 
-func (product Product) Export_json() {
-	output_files := product.get_json_names()
-	bytestring, err := json.MarshalIndent(product, "", "\t")
+func (measured_product Product) Export_json() {
+	output_files := measured_product.get_json_names()
+	bytestring, err := json.MarshalIndent(measured_product, "", "\t")
 
 	if err != nil {
 		log.Println("error [Product.Export_json]:", err)
@@ -258,12 +258,12 @@ func (product Product) Export_json() {
 	}
 }
 
-func (product Product) get_coa_template() string {
+func (measured_product Product) get_coa_template() string {
 	//TODO db
 	// return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, product.COA_TEMPLATE)
 	// Product_type split
 	//TODO fix this
-	product_moniker := strings.Split(product.Product_name, " ")[0]
+	product_moniker := strings.Split(measured_product.Product_name, " ")[0]
 	if product_moniker == "PETROFLO" {
 		return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA-PETROFLO.docx")
 	}
@@ -274,7 +274,7 @@ func (product Product) get_coa_name() string {
 	return fmt.Sprintf("%s/%s", config.COA_FILEPATH, product.get_base_filename("docx"))
 }
 
-func (product Product) export_CoA() error {
+func (measured_product Product) export_CoA() error {
 	var (
 		p_title   = "[PRODUCT_NAME]"
 		Coa_title = "Parameter"
@@ -283,25 +283,25 @@ func (product Product) export_CoA() error {
 		COA_LOT_TITLE,
 	}
 
-	template_file := product.get_coa_template()
-	output_file := product.get_coa_name()
+	template_file := measured_product.get_coa_template()
+	output_file := measured_product.get_coa_name()
 
 	doc, err := whatsupdocx.OpenDocument(template_file)
 	if err != nil {
 		return err
 	}
 
-	product_name := product.Product_name_customer
+	product_name := measured_product.Product_name_customer
 	if product_name == "" {
-		product_name = product.Product_name
+		product_name = measured_product.Product_name
 	}
 	for _, item := range doc.Document.Body.Children {
 		if para := item.Paragraph; para != nil {
-			product.searchCOAPara(para, p_title, product_name)
+			measured_product.searchCOAPara(para, p_title, product_name)
 		}
 
 		if table := item.Table; table != nil {
-			product.searchCOATable(table, Coa_title, terms)
+			measured_product.searchCOATable(table, Coa_title, terms)
 		}
 	}
 
@@ -309,7 +309,7 @@ func (product Product) export_CoA() error {
 	return doc.SaveTo(output_file)
 }
 
-func (product Product) searchCOAPara(para *docx.Paragraph, p_title, product_name string) {
+func (measured_product Product) searchCOAPara(para *docx.Paragraph, p_title, product_name string) {
 	if strings.Contains(para.String(), p_title) {
 		for _, child := range para.Children {
 			if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
@@ -324,15 +324,15 @@ func (product Product) searchCOAPara(para *docx.Paragraph, p_title, product_name
 	}
 }
 
-func (product Product) searchCOATable(table *docx.Table, Coa_title string, terms []string) {
+func (measured_product Product) searchCOATable(table *docx.Table, Coa_title string, terms []string) {
 	for _, row := range table.RowContents {
-		if product.searchCOARow(table, row.Row, Coa_title, terms) {
+		if measured_product.searchCOARow(table, row.Row, Coa_title, terms) {
 			return
 		}
 	}
 }
 
-func (product Product) searchCOARow(table *docx.Table, row *docx.Row, Coa_title string, terms []string) (finished bool) {
+func (measured_product Product) searchCOARow(table *docx.Table, row *docx.Row, Coa_title string, terms []string) (finished bool) {
 	currentHeading := ""
 ROW:
 	for i, cell := range row.Contents {
@@ -346,7 +346,7 @@ ROW:
 				if currentHeading == "" {
 					field_string := field.String()
 					if strings.Contains(field_string, Coa_title) {
-						QCProduct{Product: product}.write_CoA_rows(table)
+						QCProduct{Product: measured_product}.write_CoA_rows(table)
 						return true
 					}
 					for _, term := range terms {
@@ -359,7 +359,7 @@ ROW:
 			case 1:
 				switch currentHeading {
 				case COA_LOT_TITLE:
-					field.AddText(product.Lot_number)
+					field.AddText(measured_product.Lot_number)
 					return false
 				}
 			}
@@ -368,48 +368,48 @@ ROW:
 	return false
 }
 
-func (product Product) toProduct() Product {
-	return product
+func (measured_product Product) toProduct() Product {
+	return measured_product
 }
 
-func (product Product) Check_data() bool {
-	return product.Valid
+func (measured_product Product) Check_data() bool {
+	return measured_product.Valid
 }
 
-func (product Product) Printout() error {
+func (measured_product Product) Printout() error {
 	//TODO test
-	product.Export_json()
-	return product.print()
+	measured_product.Export_json()
+	return measured_product.print()
 }
 
-func (product Product) Output() error {
-	if err := product.Printout(); err != nil {
+func (measured_product Product) Output() error {
+	if err := measured_product.Printout(); err != nil {
 		log.Printf("Error: [%s]: %q\n", "Output", err)
-		log.Printf("Debug: %q: %v\n", err, product)
+		log.Printf("Debug: %q: %v\n", err, measured_product)
 		return err
 	}
-	product.format_sample()
-	return product.export_CoA()
+	measured_product.format_sample()
+	return measured_product.export_CoA()
 
 }
 
-func (product *Product) format_sample() {
-	if product.Product_name_customer != "" {
-		product.Product_name = product.Product_name_customer
+func (measured_product *Product) format_sample() {
+	if measured_product.Product_name_customer != "" {
+		measured_product.Product_name = measured_product.Product_name_customer
 	}
-	product.Sample_point = ""
+	measured_product.Sample_point = ""
 }
 
-func (product Product) Output_sample() error {
-	log.Println("DEBUG: Output_sample ", product)
-	product.format_sample()
-	log.Println("DEBUG: Output_sample formatted", product)
-	if err := product.export_CoA(); err != nil {
+func (measured_product Product) Output_sample() error {
+	log.Println("DEBUG: Output_sample ", measured_product)
+	measured_product.format_sample()
+	log.Println("DEBUG: Output_sample formatted", measured_product)
+	if err := measured_product.export_CoA(); err != nil {
 		log.Printf("Error: [%s]: %q\n", "Output_sample", err)
-		log.Printf("Debug: %q: %v\n", err, product)
+		log.Printf("Debug: %q: %v\n", err, measured_product)
 		return err
 	}
-	return product.print()
+	return measured_product.print()
 	//TODO clean
 	// return nil
 
@@ -451,15 +451,15 @@ func updateExcel(file_name, worksheet_name string, row ...string) error {
 	})
 }
 
-func (product Product) Save_xl() error {
-	isomeric_product := strings.Split(product.Product_name, " ")[1]
-	valence_product := strings.Split(product.Product_name_customer, " ")[1]
-	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, product.Lot_number, isomeric_product, valence_product)
+func (measured_product Product) Save_xl() error {
+	isomeric_product := strings.Split(measured_product.Product_name, " ")[1]
+	valence_product := strings.Split(measured_product.Product_name_customer, " ")[1]
+	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, measured_product.Lot_number, isomeric_product, valence_product)
 }
 
-func (product Product) print() error {
+func (measured_product Product) print() error {
 
-	pdf_path, err := product.export_label_pdf()
+	pdf_path, err := measured_product.export_label_pdf()
 	if err != nil {
 		return err
 	}
@@ -470,12 +470,12 @@ func (product Product) print() error {
 	return err
 }
 
-func (product Product) Reprint() {
-	_print(product.get_pdf_name())
+func (measured_product Product) Reprint() {
+	_print(measured_product.get_pdf_name())
 }
 
-func (product Product) Reprint_sample() {
-	product.format_sample()
-	log.Println("DEBUG: Reprint_sample formatted", product)
-	product.Reprint()
+func (measured_product Product) Reprint_sample() {
+	measured_product.format_sample()
+	log.Println("DEBUG: Reprint_sample formatted", measured_product)
+	measured_product.Reprint()
 }

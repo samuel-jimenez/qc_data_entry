@@ -15,7 +15,7 @@ import (
 type QCBlendViewer interface {
 	windigo.Pane
 	Get() *blender.ProductBlend
-	Update(blend *blender.ProductRecipe)
+	UpdateRecipe(blend *blender.ProductRecipe)
 	SetFont(font *windigo.Font)
 	RefreshSize()
 }
@@ -27,6 +27,7 @@ type QCBlendViewer interface {
 type QCBlendView struct {
 	*windigo.AutoPanel
 	Recipe *blender.ProductRecipe
+	Blend  *blender.ProductBlend
 	panel  *windigo.AutoPanel
 
 	Components []QCBlendComponentViewer
@@ -45,12 +46,14 @@ func NewQCBlendView(parent windigo.Controller) *QCBlendView {
 }
 
 func (view *QCBlendView) Get() *blender.ProductBlend {
+	// TODO check Blend
 	if view.Recipe == nil {
 		return nil
 	}
-	Blend := blender.NewProductBlendFromRecipe(view.Recipe)
+	view.Blend = blender.NewProductBlend_from_Recipe(view.Recipe)
 	for _, component := range view.Components {
 		blendComponent := component.Get()
+
 		log.Println("DEBUG: QCBlendView-Get", blendComponent)
 		if blendComponent == nil {
 			// return nil
@@ -59,23 +62,54 @@ func (view *QCBlendView) Get() *blender.ProductBlend {
 		}
 		// blendComponent
 		log.Println("DEBUG: QCBlendView-Get-2", blendComponent)
-		Blend.AddComponent(*blendComponent)
+		view.Blend.AddComponent(*blendComponent)
 	}
-	return Blend
+	return view.Blend
 }
 
-func (view *QCBlendView) Update(recipe *blender.ProductRecipe) {
-	SAMPLE_SIZE := 500.
+func (view *QCBlendView) UpdateBlend(blend *blender.ProductBlend) {
+	if view.Blend == blend {
+		return
+	}
 
-	// TODO fix this. maybe not 500 always
+	for _, component := range view.Components {
+		component.Close()
+	}
+	view.Components = nil
+	view.Blend = blend
+	log.Println("QCBlendView-UpdateBlend", view.Blend)
+	if view.Blend == nil {
+		return
+	}
+
+	height := GUI.EDIT_FIELD_HEIGHT
+	delta_height := GUI.PRODUCT_FIELD_HEIGHT
+	width := view.ClientWidth()
+
+	for _, component := range view.Blend.Components {
+
+		component_view := NewQCBlendComponentView_from_BlendComponent(view, &component)
+		view.Components = append(view.Components, component_view)
+		view.AutoPanel.Dock(component_view, windigo.Top)
+		height += delta_height
+
+	}
+
+	view.SetSize(width, height)
+}
+
+func (view *QCBlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
+	SAMPLE_SIZE := 100.
+
+	// TODO blendAmount00
+	// we need to capture to desired amount somewhere
+	// and then enter actual amounts
 
 	// [compiler] (MismatchedTypes) invalid operation: component.Component_amount *= SAMPLE_SIZE (mismatched types float64 and int)
 	// go == shit
 
-	log.Println("TRACE: QCBlendView-Update", view.Recipe, recipe)
-
 	if view.Recipe == recipe {
-		log.Println("TRACE: QCBlendView-Update-return", view.Recipe, recipe)
+		log.Println("TRACE: QCBlendView-UpdateRecipe-return", view.Recipe, recipe)
 
 		return
 	}
@@ -92,7 +126,6 @@ func (view *QCBlendView) Update(recipe *blender.ProductRecipe) {
 	}
 	view.Components = nil
 	view.Recipe = recipe
-	log.Println("QCBlendView-Update", view.Recipe)
 	if view.Recipe == nil {
 		return
 	}
@@ -108,9 +141,7 @@ func (view *QCBlendView) Update(recipe *blender.ProductRecipe) {
 		// [compiler] (MismatchedTypes) invalid operation: component.Component_amount *= SAMPLE_SIZE (mismatched types float64 and int)
 		component.Component_amount *= SAMPLE_SIZE
 
-		log.Println("DEBUG: QCBlendView-Update-FrictionReducerPanelView-update_components", component)
-
-		component_view := NewQCBlendComponentView(view, &component)
+		component_view := NewQCBlendComponentView_from_RecipeComponent(view, &component)
 		view.Components = append(view.Components, component_view)
 		view.AutoPanel.Dock(component_view, windigo.Top)
 		height += delta_height
@@ -118,8 +149,6 @@ func (view *QCBlendView) Update(recipe *blender.ProductRecipe) {
 	}
 
 	view.SetSize(width, height)
-	log.Println("Crit: DEBUG: QCBlendView.Update", width, height)
-
 }
 
 func (view *QCBlendView) SetFont(font *windigo.Font) {

@@ -239,6 +239,7 @@ func show_window() {
 
 	GUI.Fill_combobox_from_query(testing_lot_field,
 		DB.DB_Select_lot_list_name, inbound_test)
+	testing_lot_field.SetSelectedItem(-1)
 
 	proc_name = "main.FillInbound"
 	DB.Forall_err(proc_name,
@@ -431,6 +432,29 @@ func show_window() {
 	//
 	// functionality
 
+	//TODO product.NewBin
+	// func (product Product) GetStorage(numSamples int) int {
+	// add button to product.NewBin to account for unlogged samples
+	// newbin := func() {
+	// 	TODO confirm
+	//
+	// 	proc_name := "product.NewBin"
+	// 	if qc_product.Product_id == DB.INVALID_ID {
+	// 		return
+	// 	}
+	//
+	// 	qc_sample_storage_id := qc_product.NewStorageBin()
+	//
+	// 	if qc_product.QC_id == DB.INVALID_ID {
+	// 		return
+	// 	}
+	//
+	// 	DB.Update(proc_name,
+	// 		DB.DB_Update_qc_samples_storage,
+	// 		qc_product.QC_id, qc_sample_storage_id)
+	//
+	// }
+
 	qc_product.Update = func() {
 		container_field.Update(qc_product.Container_type)
 		log.Println("Debug: update new_product_cb", qc_product)
@@ -571,11 +595,14 @@ func show_window() {
 		inbound_container_field.SetText(component.Container_name)
 		// inbound_product_field.SetText(component.Component_name)
 
-		// TODO update component list
+		// update component list
+		qc_product.ResetQC()
+		qc_product.Update()
 
 	})
 
 	inbound_lot_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		testing_lot_field.SetSelectedItem(-1)
 		Inbound_Lot = inbound_lot_data[inbound_lot_field.GetSelectedItem()]
 		if Inbound_Lot == nil {
 			return
@@ -585,6 +612,7 @@ func show_window() {
 		inbound_container_field.SetText(Inbound_Lot.Container_name)
 	})
 	inbound_container_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		testing_lot_field.SetSelectedItem(-1)
 		Inbound_Lot = inbound_container_data[inbound_container_field.GetSelectedItem()]
 		if Inbound_Lot == nil {
 			return
@@ -622,7 +650,7 @@ func show_window() {
 			DB.DB_Select_lot_list_name, inbound_test)
 		delete(inbound_container_data, Inbound_Lot_.Container_name)
 		delete(inbound_lot_data, Inbound_Lot_.Lot_number)
-
+		testing_lot_field.SetSelectedItem(-1)
 	})
 
 	reprint_button.OnClick().Bind(func(e *windigo.Event) {

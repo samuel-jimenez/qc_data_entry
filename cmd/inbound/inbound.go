@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/xuri/excelize/v2"
 
@@ -91,7 +92,8 @@ func get_sched(file_name, worksheet_name string) {
 	InboundLotMap1 := make(map[string]*blendbound.InboundLot)
 
 	withOpenFile(file_name, func(xl_file *excelize.File) error {
-		status_here := "ARRIVED"
+		// status_here := "ARRIVED"
+		status_here := []string{"ARRIVED", "OPEN"}
 
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)
@@ -117,7 +119,9 @@ func get_sched(file_name, worksheet_name string) {
 
 			// sync db to  schedule
 			//schedule is authorative source, so if an item does not exist in it, we should remove it
-			if status == status_here {
+
+			if slices.Contains(status_here, status) {
+				// log.Println("DEBUG: found:", lot, product, provider, container, status)
 				if len(row) > released_row && row[released_row] != "" && InboundLotMap0[lot] != nil {
 					continue
 				}

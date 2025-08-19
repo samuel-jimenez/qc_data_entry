@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/util"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -59,9 +60,9 @@ var (
 	db_select_product_customer, db_insert_product_customer,
 	// bs.product_sample_points
 	DB_Select_all_sample_points, DB_Select_product_sample_points,
-	DB_insert_sample_point,
+	DB_Insel_sample_point,
 	// bs.qc_tester_list
-	DB_Select_all_qc_tester, DB_insert_qc_tester,
+	DB_Select_all_qc_tester, DB_Insel_qc_tester,
 	// bs.qc_samples
 	DB_insert_measurement,
 	DB_Update_qc_samples_storage,
@@ -116,6 +117,8 @@ func Check_db(db *sql.DB, showWindowp bool) {
 		message := fmt.Sprintf("Database version mismatch: Required: %s, found: %s", DB_VERSION, found_db_version)
 		err = errors.New(message)
 		if showWindowp {
+			// 			TODO: make windigo.Error to avoid
+			// [printf] (default) non-constant format string in call to github.com/samuel-jimenez/windigo.Errorf
 			windigo.Errorf(nil, message)
 		}
 		log.Printf("%q\n", err)
@@ -528,8 +531,9 @@ from bs.lot_list
 where lot_name = ?1
 `)
 
+	// TODO sample_size := 500.
 	DB_Select_product_lot_list_sources = PrepareOrElse(db, `
-select inbound_product_name, inbound_lot_name, container_name
+select inbound_product_name, inbound_lot_name, container_name, component_type_amount
 
 from bs.lot_list
 join bs.product_lot using (lot_id)
@@ -543,7 +547,7 @@ where lot_name = ?1
 
 union
 
-select inbound_product_name, inbound_lot_name, container_name
+select inbound_product_name, inbound_lot_name, container_name, 500
 
 from bs.lot_list
 join bs.inbound_relabel using (lot_id)
@@ -663,7 +667,7 @@ where blend_components.product_lot_id =?
 	`)
 
 	// bs.product_sample_points
-	DB_insert_sample_point = PrepareOrElse(db, `
+	DB_Insel_sample_point = PrepareOrElse(db, `
 	with val (sample_point) as (
 		values
 			(?)
@@ -700,7 +704,7 @@ where blend_components.product_lot_id =?
 		order by qc_tester_name
 	`)
 
-	DB_insert_qc_tester = PrepareOrElse(db, `
+	DB_Insel_qc_tester = PrepareOrElse(db, `
 	with val (qc_tester_name) as (
 		values
 			(?)
@@ -760,7 +764,7 @@ product_sample_storage_id, product_moniker_name, qc_sample_storage_offset, qc_sa
 
 from bs.product_sample_storage
 join bs.product_line using (product_moniker_id)
-join bs.qc_sample_storage_list using (qc_sample_storage_id)
+join bs.qc_sample_storage_list using (qc_sample_storage_id, product_moniker_id)
 join bs.qc_samples using (qc_sample_storage_id)
 join bs.product_moniker using (product_moniker_id)
 where product_id = ?1
@@ -783,6 +787,21 @@ qc_storage_capacity = qc_storage_capacity - ?2
 
 where qc_sample_storage_id = ?1
 	`)
+	/*
+	    *
+	   			select
+
+	   product_sample_storage_id, product_moniker_name, qc_sample_storage_offset, qc_sample_storage_name, min(time_stamp), max(time_stamp), retain_storage_duration, qc_storage_capacity
+
+	   from product_sample_storage
+	   join product_line using (product_moniker_id)
+	   join qc_sample_storage_list using (qc_sample_storage_id, product_moniker_id)
+	   left join qc_samples using (qc_sample_storage_id)
+	   join product_moniker using (product_moniker_id)
+	   group by product_moniker_id
+
+	   *
+	*/
 
 	// bs.qc_sample_storage_list
 
@@ -1245,6 +1264,25 @@ func Select_Error(proc_name string, query *sql.Row, args ...any) error {
 // 	}
 // 	return nil
 
+func Select_Panic(proc_name string, query *sql.Row, args ...any) {
+	err := query.Scan(args...)
+	if err != nil {
+		log.Printf("Critical hit: [%s]: %q\n", proc_name, err)
+		panic(err)
+	}
+}
+
+func Select_Panic_ErrorBox(proc_name string, query *sql.Row, args ...any) {
+	err := query.Scan(args...)
+	if err != nil {
+		log.Printf("Critical hit: [%s]: %q\n", proc_name, err)
+		// 			TODO: make windigo.Error to avoid
+		// [printf] (default) non-constant format string in call to github.com/samuel-jimenez/windigo.Errorf
+		windigo.Errorf(nil, "Something's gone wrong.")
+		panic(err)
+	}
+}
+
 func Insert(proc_name string, insert_statement *sql.Stmt, args ...any) int64 {
 	var insert_id int64
 	result, err := insert_statement.Exec(args...)
@@ -1262,9 +1300,7 @@ func Insert(proc_name string, insert_statement *sql.Stmt, args ...any) int64 {
 
 func Exec_Error(proc_name string, statement *sql.Stmt, args ...any) error {
 	_, err := statement.Exec(args...)
-	if err != nil {
-		log.Printf("Err: [%s]: %q\n", proc_name, err)
-	}
+	util.LogError(proc_name, err)
 	return err
 }
 func Update(proc_name string, update_statement *sql.Stmt, args ...any) error {
