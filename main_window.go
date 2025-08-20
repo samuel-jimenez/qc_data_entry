@@ -68,6 +68,7 @@ func show_window() {
 	reprint_text := "Reprint"
 	inbound_text := "Inbound"
 	sample_button_text := "Sample"
+	release_button_text := "Release"
 
 	inbound_lot_text := "Inbound Lot"
 	internal_text := "Internal"
@@ -154,6 +155,10 @@ func show_window() {
 	sample_button.SetText(sample_button_text)
 	sample_button.Hide()
 
+	release_button := windigo.NewPushButton(product_panel)
+	release_button.SetText(release_button_text)
+	release_button.Hide()
+
 	container_field := product.BuildNewDiscreteView(product_panel, "Container Type", qc_product.Container_type, []string{"Sample", "Tote", "Railcar"}) // bs.container_types
 
 	reprint_button := windigo.NewPushButton(product_panel)
@@ -204,6 +209,7 @@ func show_window() {
 	product_panel.Dock(ranges_button, windigo.Left)
 	product_panel.Dock(sample_button, windigo.Left)
 	product_panel.Dock(container_field, windigo.Left)
+	product_panel.Dock(release_button, windigo.Left)
 	product_panel.Dock(reprint_button, windigo.Left)
 	product_panel.Dock(inbound_button, windigo.Left)
 	product_panel.Dock(internal_button, windigo.Left)
@@ -238,7 +244,7 @@ func show_window() {
 	}, DB.DB_Select_product_info)
 
 	GUI.Fill_combobox_from_query(testing_lot_field,
-		DB.DB_Select_lot_list_name, inbound_test)
+		DB.DB_Select_lot_list_for_name_status, inbound_test, product.Status_BLENDED)
 	testing_lot_field.SetSelectedItem(-1)
 
 	proc_name = "main.FillInbound"
@@ -374,6 +380,10 @@ func show_window() {
 		reprint_button.SetMarginLeft(reprint_button_margin_l)
 		reprint_button.SetSize(REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
+		release_button.SetMarginsAll(BUTTON_MARGIN)
+		release_button.SetMarginLeft(reprint_button_margin_l)
+		release_button.SetSize(REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
+
 		inbound_button.SetMarginsAll(BUTTON_MARGIN)
 		inbound_button.SetSize(REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
@@ -413,6 +423,7 @@ func show_window() {
 		sample_button.SetFont(windigo.DefaultFont)
 		container_field.SetFont(windigo.DefaultFont)
 		reprint_button.SetFont(windigo.DefaultFont)
+		release_button.SetFont(windigo.DefaultFont)
 		inbound_button.SetFont(windigo.DefaultFont)
 		internal_button.SetFont(windigo.DefaultFont)
 		tabs.SetFont(windigo.DefaultFont)
@@ -597,6 +608,7 @@ func show_window() {
 
 		// update component list
 		qc_product.ResetQC()
+		qc_product.Container_type = product.DiscreteFromInt(CONTAINER_SAMPLE)
 		qc_product.Update()
 
 	})
@@ -647,10 +659,54 @@ func show_window() {
 		Inbound_Lot_.Update_status(blendbound.Status_SAMPLED)
 		Inbound_Lot_.Quality_test()
 		GUI.Fill_combobox_from_query(testing_lot_field,
-			DB.DB_Select_lot_list_name, inbound_test)
+			DB.DB_Select_lot_list_for_name_status, inbound_test, product.Status_BLENDED)
 		delete(inbound_container_data, Inbound_Lot_.Container_name)
 		delete(inbound_lot_data, Inbound_Lot_.Lot_number)
 		testing_lot_field.SetSelectedItem(-1)
+		inbound_lot_field.SetSelectedItem(-1)
+		inbound_container_field.SetSelectedItem(-1)
+		inbound_product_field.SetText("")
+	})
+
+	release_button.OnClick().Bind(func(e *windigo.Event) {
+		// TODO make a method
+		if Inbound_Lot == nil {
+			if qc_product == nil {
+				return
+			}
+			blend := qc_product.Blend
+			if blend == nil || len(blend.Components) < 1 {
+				log.Println("Err: release_button.OnClick", qc_product, blend)
+				return
+			}
+
+			Inbound_Lot = blendbound.NewInboundLotFromBlendComponent(&blend.Components[0])
+			if Inbound_Lot == nil {
+				return
+			}
+		}
+
+		Inbound_Lot_ := Inbound_Lot
+		Inbound_Lot = nil
+		log.Printf("Info: Releasing %s: %s - %s\n", Inbound_Lot_.Container_name, Inbound_Lot_.Product_name, Inbound_Lot_.Lot_number)
+
+		Inbound_Lot_.Update_status(blendbound.Status_UNAVAILABLE)
+
+		log.Println("TRACE: DEBUG: UPdate componnent DB_Update_lot_list__component_status", proc_name, Inbound_Lot_.Lot_number, Inbound_Lot_)
+		if err := DB.Update(proc_name,
+			DB.DB_Update_lot_list__component_status, Inbound_Lot_.Lot_number, product.Status_SHIPPED,
+		); err != nil {
+			log.Println("error[]%S]:", proc_name, err)
+			return
+		}
+		GUI.Fill_combobox_from_query(testing_lot_field,
+			DB.DB_Select_lot_list_for_name_status, inbound_test, product.Status_BLENDED)
+		delete(inbound_container_data, Inbound_Lot_.Container_name)
+		delete(inbound_lot_data, Inbound_Lot_.Lot_number)
+		testing_lot_field.SetSelectedItem(-1)
+		inbound_lot_field.SetSelectedItem(-1)
+		inbound_container_field.SetSelectedItem(-1)
+		inbound_product_field.SetText("")
 	})
 
 	reprint_button.OnClick().Bind(func(e *windigo.Event) {
@@ -664,11 +720,13 @@ func show_window() {
 		product_panel_1_0.Show()
 		product_panel_1_1.Show()
 		sample_button.Show()
+		release_button.Show()
 		internal_button.Show()
 
 		product_panel_0_0.Hide()
 		product_panel_0_1.Hide()
 		ranges_button.Hide()
+		reprint_button.Hide()
 		inbound_button.Hide()
 
 		qc_product.Container_type = product.DiscreteFromInt(CONTAINER_SAMPLE)
@@ -680,11 +738,13 @@ func show_window() {
 		product_panel_1_0.Hide()
 		product_panel_1_1.Hide()
 		sample_button.Hide()
+		release_button.Hide()
 		internal_button.Hide()
 
 		product_panel_0_0.Show()
 		product_panel_0_1.Show()
 		ranges_button.Show()
+		reprint_button.Show()
 		inbound_button.Show()
 	})
 

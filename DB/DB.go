@@ -30,8 +30,10 @@ var (
 	DB_Select_container_id, DB_Select_container_all, DB_Insert_container,
 	// inbound_provider_list
 	DB_Select_inbound_provider_id, DB_Select_inbound_provider_all, DB_Insert_inbound_provider,
-	// status_list
-	DB_Select_all_status_list, DB_Select_name_status_list,
+	// inbound_status_list
+	DB_Select_all_inbound_status_list, DB_Select_name_inbound_status_list,
+	// internal_status_list
+	DB_Select_all_internal_status_list, DB_Select_name_internal_status_list,
 	// inbound_lot
 	DB_Select_inbound_lot_status, DB_Select_inbound_lot_all, DB_Insert_inbound_lot, DB_Update_inbound_lot_status,
 	DB_Select_name_inbound_lot_status, DB_Select_inbound_lot_recipe, DB_Select_inbound_lot_components,
@@ -44,7 +46,9 @@ var (
 	// blend_components
 	DB_Insert_Product_blend,
 	// lot_list
-	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all, DB_Select_lot_list_name, DB_Select_product_lot_list_name,
+	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all,
+	DB_Select_lot_list_name, DB_Select_lot_list_for_name_status, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
+	DB_Select_product_lot_list_name,
 	DB_Select_product_lot_list_sources,
 	// product_lot
 	db_select_id_lot, DB_Insert_product_lot,
@@ -311,41 +315,55 @@ where inbound_provider_name = ?
 		values (?)
 		returning inbound_provider_id
 		`)
-	// status_list
-	DB_Select_all_status_list = PrepareOrElse(db, `
+	// inbound_status_list
+	DB_Select_all_inbound_status_list = PrepareOrElse(db, `
 select
-	status_id, status_name
-from bs.status_list
-order by status_id
+	inbound_status_id, inbound_status_name
+from bs.inbound_status_list
+order by inbound_status_id
 	`)
-	DB_Select_name_status_list = PrepareOrElse(db, `
+	DB_Select_name_inbound_status_list = PrepareOrElse(db, `
 select
-	status_id
-from bs.status_list
-where status_name = ?
+	inbound_status_id
+from bs.inbound_status_list
+where inbound_status_name = ?
+	`)
+
+	// internal_status_list
+	DB_Select_all_internal_status_list = PrepareOrElse(db, `
+select
+	internal_status_id, internal_status_name
+from bs.internal_status_list
+order by internal_status_id
+	`)
+	DB_Select_name_internal_status_list = PrepareOrElse(db, `
+select
+	internal_status_id
+from bs.internal_status_list
+where internal_status_name = ?
 	`)
 
 	// inbound_lot
 	DB_Select_inbound_lot_status = PrepareOrElse(db, `
 select
-	inbound_lot_id, inbound_lot_name, inbound_product_id, inbound_product_name, inbound_provider_id, inbound_provider_name, container_id, container_name, status_id,status_name
+	inbound_lot_id, inbound_lot_name, inbound_product_id, inbound_product_name, inbound_provider_id, inbound_provider_name, container_id, container_name, inbound_status_id, inbound_status_name
 from bs.inbound_lot
 join bs.inbound_product 		using (inbound_product_id)
 join bs.inbound_provider_list 		using (inbound_provider_id)
 join bs.container_list 			using (container_id)
-join bs.status_list 			using (status_id)
-		where status_name = ?
+join bs.inbound_status_list 			using (inbound_status_id)
+		where inbound_status_name = ?
 order by inbound_lot_name
 	`)
 
 	DB_Select_inbound_lot_all = PrepareOrElse(db, `
 select
-	inbound_lot_id, inbound_lot_name, inbound_product_id, inbound_product_name, inbound_provider_id, inbound_provider_name, container_id, container_name, status_id,status_name
+	inbound_lot_id, inbound_lot_name, inbound_product_id, inbound_product_name, inbound_provider_id, inbound_provider_name, container_id, container_name, inbound_status_id, inbound_status_name
 from bs.inbound_lot
 join bs.inbound_product 		using (inbound_product_id)
 join bs.inbound_provider_list 		using (inbound_provider_id)
 join bs.container_list 			using (container_id)
-join bs.status_list 			using (status_id)
+join bs.inbound_status_list 			using (inbound_status_id)
 order by inbound_lot_name
 	`)
 
@@ -358,7 +376,7 @@ returning inbound_lot_id
 	DB_Update_inbound_lot_status = PrepareOrElse(db, `
 update bs.inbound_lot
 set
-	status_id=?2
+	inbound_status_id=?2
 where inbound_lot_id=?1
 `)
 
@@ -366,13 +384,13 @@ where inbound_lot_id=?1
 select
 	inbound_lot_name
 from bs.inbound_lot
-join bs.status_list 			using (status_id)
-where status_name = ?
+join bs.inbound_status_list 			using (inbound_status_id)
+where inbound_status_name = ?
 	`)
 
 	DB_Select_inbound_lot_recipe = PrepareOrElse(db, `
 select
-	recipe_id, product_id, component_type_id, component_type_amount, component_add_order
+	recipe_id, product_id, recipe_components_id, component_type_id, component_type_amount, component_add_order
 from bs.inbound_lot
 join bs.component_type_product_inbound 	using (inbound_product_id)
 join bs.recipe_components 		using (component_type_id)
@@ -383,14 +401,14 @@ order by recipe_id
 
 	DB_Select_inbound_lot_components = PrepareOrElse(db, `
 select
-	inbound_lot_id,  component_type_id, component_type_amount, component_add_order
+	inbound_lot_id, recipe_components_id, component_type_id, component_type_amount, component_add_order
 from bs.inbound_lot
-join bs.status_list 			using (status_id)
+join bs.inbound_status_list 			using (inbound_status_id)
 join bs.component_type_product_inbound 	using (inbound_product_id)
 join bs.recipe_components 		using (component_type_id)
 where recipe_id = ?1
 	and component_type_id != ?2
-	and status_name = ?3
+	and inbound_status_name = ?3
 order by component_add_order
 	`)
 
@@ -455,7 +473,7 @@ returning component_id
 	// blend_components
 	DB_Insert_Product_blend = PrepareOrElse(db, `
 	insert into bs.blend_components
-		(product_lot_id,recipe_id,component_id,component_type_amount)
+		(product_lot_id, recipe_components_id, component_id, component_required_amount)
 		values (?,?,?,?)
 	returning blend_components_id
 	`)
@@ -483,13 +501,68 @@ where lot_name like ?
 	from bs.lot_list
 	`)
 
-	//TODO track tested .. status?
 	DB_Select_lot_list_name = PrepareOrElse(db, `
 	select
 	lot_id, lot_name
 	from bs.lot_list
 	where lot_name like ?
 	`)
+
+	DB_Select_lot_list_for_name_status = PrepareOrElse(db, `
+	select
+	lot_id, lot_name
+	from bs.lot_list
+	join bs.internal_status_list using (internal_status_id)
+	where lot_name like ?
+	and internal_status_name = ?
+	`)
+
+	DB_Update_lot_list__status = PrepareOrElse(db, `
+update bs.lot_list
+set
+	internal_status_id=bs.internal_status_list.internal_status_id
+from
+bs.internal_status_list
+
+where lot_id = ?
+and internal_status_name = ?
+
+		`)
+
+	DB_Update_lot_list__component_status = PrepareOrElse(db, `
+with upd_table as (
+select
+
+lot_id, internal_status_list.internal_status_id
+from bs.lot_list
+join bs.product_lot using (lot_id)
+join bs.blend_components using (product_lot_id)
+join bs.component_list using (component_id)
+join bs.inbound_lot using (inbound_lot_id)
+full join bs.internal_status_list
+where inbound_lot_name = ?1
+and internal_status_name = ?2
+
+union
+
+select
+
+lot_id, internal_status_list.internal_status_id
+from bs.lot_list
+	join bs.inbound_relabel using (lot_id)
+	join bs.inbound_lot using (inbound_lot_id)
+full join bs.internal_status_list
+where inbound_lot_name = ?1
+and internal_status_name = ?2
+	)
+
+update bs.lot_list
+set
+internal_status_id = upd_table.internal_status_id
+from
+upd_table
+where lot_list.lot_id = upd_table.lot_id
+		`)
 
 	// TODO blend012 tests
 	// 	TODO get sources
@@ -531,14 +604,30 @@ from bs.lot_list
 where lot_name = ?1
 `)
 
+	///TODO decide between:
+	// 	create recipe
+	//
+	// 	create blend, assigning components, amounts
+	//
+	// 	capture actual amounts
+	//
+	// 	and:
+	//
+	// 		create recipe
+	//
+	// 	create blend, assigning amounts
+	//
+	// 		capture components, actual amounts
+
 	// TODO sample_size := 500.
 	DB_Select_product_lot_list_sources = PrepareOrElse(db, `
-select inbound_product_name, inbound_lot_name, container_name, component_type_amount
+select inbound_product_name, inbound_lot_id, inbound_lot_name, container_name, component_required_amount, component_add_order, true
 
 from bs.lot_list
 join bs.product_lot using (lot_id)
 join bs.blend_components using (product_lot_id)
 join bs.component_list using (component_id)
+join bs.recipe_components		using (recipe_components_id)
 join bs.inbound_lot using (inbound_lot_id)
 join bs.container_list using (container_id)
 join bs.inbound_product using (inbound_product_id)
@@ -547,7 +636,7 @@ where lot_name = ?1
 
 union
 
-select inbound_product_name, inbound_lot_name, container_name, 500
+select inbound_product_name, inbound_lot_id, inbound_lot_name, container_name, 500, 0 component_add_order, true
 
 from bs.lot_list
 join bs.inbound_relabel using (lot_id)
@@ -556,6 +645,8 @@ join bs.container_list using (container_id)
 join bs.inbound_product using (inbound_product_id)
 
 where lot_name = ?1
+
+		order by component_add_order
 `)
 
 	// product_lot
@@ -606,6 +697,7 @@ order by lot_name
 	where product_lot_id=?
 		`)
 
+	/// FIXME not actually used
 	DB_Select_product_lot_components = PrepareOrElse(db, `
 select inbound_product_name, inbound_lot_name, container_name from blend_components
 join bs.component_list using (component_id)

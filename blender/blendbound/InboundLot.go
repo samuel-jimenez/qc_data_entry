@@ -9,6 +9,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/blender"
 )
 
+// TODO type00 create type
 var (
 	Status_AVAILABLE   = "AVAILABLE"
 	Status_SAMPLED     = "SAMPLED"
@@ -30,7 +31,7 @@ type InboundLot struct {
 	Container_id   int64
 	Container_name string
 	Status_id      int64
-	status_name    string
+	Status_name    string
 }
 
 func NewInboundLot() *InboundLot { return new(InboundLot) }
@@ -59,8 +60,8 @@ func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_
 	Inbound.Container_name = container_name
 	Inbound.Container_id = DB.Insel("NewInboundLotFromValues container", DB.DB_Insert_container, DB.DB_Select_container_id, Inbound.Container_name)
 
-	Inbound.status_name = status_name
-	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_status_list.QueryRow(Inbound.status_name), &Inbound.Status_id); err != nil {
+	Inbound.Status_name = status_name
+	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_inbound_status_list.QueryRow(Inbound.Status_name), &Inbound.Status_id); err != nil {
 		return nil
 	}
 
@@ -74,9 +75,21 @@ func NewInboundLotFromRow(row *sql.Rows) (*InboundLot, error) {
 		&Inbound.Product_id, &Inbound.Product_name,
 		&Inbound.Provider_id, &Inbound.provider_name,
 		&Inbound.Container_id, &Inbound.Container_name,
-		&Inbound.Status_id, &Inbound.status_name,
+		&Inbound.Status_id, &Inbound.Status_name,
 	)
 	return Inbound, err
+}
+
+func NewInboundLotFromBlendComponent(blendComponent *blender.BlendComponent) *InboundLot {
+	if !blendComponent.Inboundp {
+		return nil
+	}
+	Inbound := NewInboundLot()
+	Inbound.Lot_id = blendComponent.Lot_id
+	Inbound.Lot_number = blendComponent.Lot_name
+	Inbound.Container_name = blendComponent.Container_name
+	Inbound.Product_name = blendComponent.Component_name
+	return Inbound
 }
 
 func NewInboundLotMapFromQuery() map[string]*InboundLot {
@@ -105,10 +118,10 @@ func (object *InboundLot) Insert() {
 
 func (object *InboundLot) Update_status(status string) {
 	proc_name := "InboundLot.Update_status"
-	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_status_list.QueryRow(status), &object.Status_id); err != nil {
+	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_inbound_status_list.QueryRow(status), &object.Status_id); err != nil {
 		return
 	}
-	object.status_name = status
+	object.Status_name = status
 	DB.Update(proc_name, DB.DB_Update_inbound_lot_status, object.Lot_id, object.Status_id)
 }
 
@@ -157,7 +170,7 @@ func (object *InboundLot) Quality_test() {
 			BlendProduct.Blend = ProductBlend
 
 			if err := row.Scan(
-				&ProductBlend.Recipe_id, &BlendProduct.Product_id, &BlendComponent.Component_type_id, &BlendComponent.Component_amount, &BlendComponent.Add_order,
+				&ProductBlend.Recipe_id, &BlendProduct.Product_id, &BlendComponent.Component_id, &BlendComponent.Component_type_id, &BlendComponent.Component_amount, &BlendComponent.Add_order,
 			); err != nil {
 				return err
 			}
@@ -194,7 +207,7 @@ recipes:
 				OtherBlendComponent.Inboundp = true
 
 				if err := row.Scan(
-					&OtherBlendComponent.Lot_id, &OtherBlendComponent.Component_type_id, &OtherBlendComponent.Component_amount, &OtherBlendComponent.Add_order,
+					&OtherBlendComponent.Lot_id, &OtherBlendComponent.Component_id, &OtherBlendComponent.Component_type_id, &OtherBlendComponent.Component_amount, &OtherBlendComponent.Add_order,
 				); err != nil {
 					return err
 				}

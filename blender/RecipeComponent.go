@@ -8,6 +8,7 @@ import (
 )
 
 type RecipeComponent struct {
+	//recipe_components_id
 	Component_id      int64
 	Component_type_id int64
 	Component_name    string

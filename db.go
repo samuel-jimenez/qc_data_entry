@@ -94,10 +94,23 @@ unique (lot_id,product_id)
 
 
 create table bs.lot_list (
-	lot_id integer not null,
-	lot_name text not null,
+
+lot_id integer not null,
+lot_name text not null,
+internal_status_id not null default 3,
+
+foreign key (internal_status_id) references internal_status_list,
 unique (lot_name),
-primary key (lot_id));
+primary key (lot_id)
+);
+
+
+create table bs.internal_status_list (
+	internal_status_id integer not null,
+	internal_status_name text not null,
+primary key (internal_status_id),
+unique (internal_status_name)
+);
 
 
 
@@ -112,7 +125,8 @@ create table bs.qc_tester_list (
 	qc_tester_id integer not null,
 	qc_tester_name text not null,
 unique (qc_tester_name),
-primary key (qc_tester_id));
+primary key (qc_tester_id)
+);
 
 
 create table bs.qc_samples (
@@ -257,21 +271,26 @@ create table bs.inbound_lot (
 	inbound_product_id,
 	inbound_provider_id,
 	container_id not null,
-	status_id not null default 1,
+	inbound_status_id not null default 1,
 unique (inbound_lot_name),
 foreign key (inbound_product_id) references inbound_product,
 foreign key (inbound_provider_id) references inbound_provider_list,
 foreign key (container_id) references container_list,
-foreign key (status_id) references status_list,
-primary key (inbound_lot_id));
+foreign key (inbound_status_id) references inbound_status_list,
+primary key (inbound_lot_id)
+);
 
 
 
-create table bs.status_list (
-	status_id integer not null,
-	status_name text not null,
-	primary key (status_id),
-	unique (status_name));
+create table bs.inbound_status_list (
+	inbound_status_id integer not null,
+	inbound_status_name text not null,
+primary key (inbound_status_id),
+unique (inbound_status_name)
+);
+
+
+
 
 
 create table bs.inbound_relabel (
@@ -358,19 +377,18 @@ create table bs.recipe_components (
 	foreign key (component_type_id) references component_types,
 	primary key (recipe_components_id));
 
-
-
-
 create table bs.blend_components (
 	blend_components_id integer not null,
 	product_lot_id not null,
-	recipe_id not null,
+	recipe_components_id not null,
 	component_id not null,
-	component_type_amount real,
-	foreign key (product_lot_id) references product_lot,
-	foreign key (component_id) references component_list,
-	foreign key (recipe_id) references recipe_list,
-	primary key (blend_components_id));
+	component_required_amount real,
+	component_blended_amount real,
+foreign key (product_lot_id) references product_lot,
+foreign key (component_id) references component_list,
+foreign key (recipe_components_id) references recipe_components,
+primary key (blend_components_id)
+);
 
 
 
@@ -385,13 +403,25 @@ insert into bs.container_list
 	(container_name, container_type_id)
 	values ('SAMPLE',1), ('TOTE',2);
 
-insert into bs.status_list
-	(status_name)
+insert into bs.inbound_status_list
+	(inbound_status_name)
 values
 	('AVAILABLE'),
 	('SAMPLED'),
 	('TESTED'),
 	('UNAVAILABLE');
+
+
+insert into bs.internal_status_list
+	(internal_status_name)
+values
+	('REQUESTED'),
+	('PRINTED'),
+	('BLENDED'),
+	('TESTED'),
+	('SHIPPED');
+
+
 
 insert into bs.lot_list
 	(lot_name)

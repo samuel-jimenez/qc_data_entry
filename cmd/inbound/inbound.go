@@ -2,9 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/xuri/excelize/v2"
 
@@ -60,7 +63,10 @@ func main() {
 }
 
 func withOpenFile(file_name string, FN func(*excelize.File) error) error {
-	xl_file, err := excelize.OpenFile(file_name)
+
+	// xl_file, err := excelize.OpenFile(file_name, excelize.Options{LongDatePattern: "yyyymmdd"})
+	xl_file, err := excelize.OpenFile(file_name, excelize.Options{ShortDatePattern: "yyyymmdd"})
+
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", "withOpenFile", err)
 		return err
@@ -94,6 +100,7 @@ func get_sched(file_name, worksheet_name string) {
 	withOpenFile(file_name, func(xl_file *excelize.File) error {
 		// status_here := "ARRIVED"
 		status_here := []string{"ARRIVED", "OPEN"}
+		re := regexp.MustCompile(`.*-`)
 
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)
@@ -101,6 +108,7 @@ func get_sched(file_name, worksheet_name string) {
 			log.Println(err)
 			return err
 		}
+		log.Printf("Info: [%s]:  New railcars:  \n", proc_name)
 		for _, row := range rows {
 			// // info
 			// 		for i, col := range row {
@@ -111,9 +119,13 @@ func get_sched(file_name, worksheet_name string) {
 			// release_date := row[16]
 			released_row := 16
 
-			container := row[2]
+			asn := row[1]
+			// container := row[2]
+			// "Isomeric-TCIX 258634"
+			container := re.ReplaceAllString(row[2], "")
 			product := row[5]
 			lot := row[7]
+			arrival := row[10]
 			status := row[11]
 			provider := "SNF" // TODO inbound_provider_list
 
@@ -121,6 +133,12 @@ func get_sched(file_name, worksheet_name string) {
 			//schedule is authorative source, so if an item does not exist in it, we should remove it
 
 			if slices.Contains(status_here, status) {
+
+				if lot == "" && arrival != "" && asn != "" {
+					lot = fmt.Sprintf("%s/%s", asn, strings.ReplaceAll(arrival, "-", ""))
+					// TODO maybe regen asn as BSRC
+					provider = "Unknown" // TODO inbound_provider_list
+				}
 				// log.Println("DEBUG: found:", lot, product, provider, container, status)
 				if len(row) > released_row && row[released_row] != "" && InboundLotMap0[lot] != nil {
 					continue
@@ -129,10 +147,12 @@ func get_sched(file_name, worksheet_name string) {
 				if InboundLotMap0[lot] == nil {
 					inby := blendbound.NewInboundLotFromValues(lot, product, provider, container, blendbound.Status_AVAILABLE)
 					if inby == nil {
-						log.Printf("error: [%s invalid product]: %q\n", "NewInboundLotFromValues", product)
+						log.Printf("error: [%s invalid product]: %q - %q : %q\\n", proc_name, container, product, lot)
 						// invalid product
 						continue
 					}
+					log.Printf("Info: [%s]:  New railcar:  %q - %q : %q\n", proc_name, container, product, lot)
+
 					inby.Insert()
 					InboundLotMap1[lot] = inby
 				} else {
@@ -141,9 +161,14 @@ func get_sched(file_name, worksheet_name string) {
 				}
 			}
 		}
+
+		log.Printf("Info: [%s]:  Departed railcars:  \n", proc_name)
 		// items not found as "available"
 		for key, val := range InboundLotMap0 {
-			val.Update_status(blendbound.Status_UNAVAILABLE)
+			if val.Status_name != blendbound.Status_UNAVAILABLE {
+				log.Printf("Info: [%s]: Railcar departed: %q : %q - %q\n", proc_name, val.Container_name, val.Product_name, val.Lot_number)
+				val.Update_status(blendbound.Status_UNAVAILABLE)
+			}
 			delete(InboundLotMap0, key)
 		}
 
@@ -186,6 +211,7 @@ func get_sched(file_name, worksheet_name string) {
 			},
 			DB.DB_Select_name_inbound_lot_status, blendbound.Status_AVAILABLE)
 		// process new entries
+		log.Printf("Info: [%s]:  Available railcars:  \n", proc_name)
 		for _, val := range InboundLotMap0 {
 			// TODO ...? idk print maybe?
 			log.Printf("Info: [%s]: %q, %q\n", proc_name, val.Lot_number, val.Container_name)

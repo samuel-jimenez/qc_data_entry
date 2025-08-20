@@ -21,18 +21,14 @@ type QCDataComponents struct {
 }
 
 func (data *QCDataComponents) GetComponents(Lot_name string) {
-	proc_name := "QCDataComponenets.GetComponents"
+	proc_name := "QCDataComponents.GetComponents"
 	DB.Forall_exit(proc_name,
 		func() {
 			data.Components = nil
 		},
 		func(row *sql.Rows) error {
-
-			blendComponent := blender.NewBlendComponent()
-
-			if err := row.Scan(
-				&blendComponent.Component_name, &blendComponent.Lot_name, &blendComponent.Container_name, &blendComponent.Component_amount,
-			); err != nil {
+			blendComponent, err := blender.NewBlendComponentfromSQL(row)
+			if err != nil {
 				return err
 			}
 			data.Components = append(data.Components, *blendComponent)

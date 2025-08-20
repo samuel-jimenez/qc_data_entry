@@ -96,12 +96,21 @@ func (measured_product Product) Save() int64 {
 		return DB.INVALID_ID
 
 	}
+	proc_name = "Product.Save.Lot-status"
+
+	if err := DB.Update(proc_name,
+		DB.DB_Update_lot_list__status, measured_product.Lot_id, Status_TESTED,
+	); err != nil {
+		log.Println("error[]%S]:", proc_name, err)
+		threads.Show_status("Sample Recording Failed")
+		return DB.INVALID_ID
+
+	}
 	threads.Show_status("Sample Recorded")
 	return qc_id
 }
 
 //TODO product.NewBin
-// split into
 // add button to call to account for unlogged samples
 
 /*

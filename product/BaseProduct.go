@@ -13,6 +13,15 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 )
 
+// TODO type01 create type
+var (
+	Status_REQUESTED = "REQUESTED"
+	Status_PRINTED   = "PRINTED"
+	Status_BLENDED   = "BLENDED"
+	Status_TESTED    = "TESTED"
+	Status_SHIPPED   = "SHIPPED"
+)
+
 type BaseProduct struct {
 	Product_name             string `json:"product_name"`
 	Lot_number               string `json:"lot_number"`
@@ -159,12 +168,8 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 		func() {
 		},
 		func(row *sql.Rows) error {
-
-			blendComponent := blender.NewBlendComponent()
-
-			if err := row.Scan(
-				&blendComponent.Component_name, &blendComponent.Lot_name, &blendComponent.Container_name, &blendComponent.Component_amount,
-			); err != nil {
+			blendComponent, err := blender.NewBlendComponentfromSQL(row)
+			if err != nil {
 				return err
 			}
 			Blend.AddComponent(*blendComponent)
