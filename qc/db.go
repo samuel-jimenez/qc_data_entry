@@ -1,4 +1,4 @@
-package main
+package qc
 
 import (
 	"database/sql"
@@ -17,7 +17,7 @@ var (
 // ON UPDATE CASCADE
 //        ON DELETE CASCADE
 
-func dbinit(db *sql.DB) {
+func DBinit(db *sql.DB) {
 
 	// 	sqlStmt := `
 	// PRAGMA foreign_keys = ON;

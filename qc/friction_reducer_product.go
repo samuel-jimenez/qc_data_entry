@@ -1,4 +1,4 @@
-package main
+package qc
 
 import (
 	"database/sql"
@@ -63,7 +63,7 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 	group_panel := windigo.NewGroupAutoPanel(parent)
 	group_panel.SetText(sample_point)
 
-	visual_field := NewBoolCheckboxView(group_panel, visual_text)
+	visual_field := views.NewBoolCheckboxView(group_panel, visual_text)
 
 	viscosity_field := views.NewNumberEditViewWithChange(group_panel, viscosity_text, ranges_panel.viscosity_field)
 

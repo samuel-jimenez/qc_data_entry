@@ -8,6 +8,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/qc"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 )
 
@@ -33,7 +34,7 @@ func main() {
 		log.Fatal("Crit: error opening database: ", err)
 	}
 	defer qc_db.Close()
-	dbinit(qc_db)
+	qc.DBinit(qc_db)
 
 	//setup print goroutine
 	threads.PRINT_QUEUE = make(chan string, 4)
@@ -46,6 +47,6 @@ func main() {
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
-	show_window()
+	qc.Show_window()
 
 }

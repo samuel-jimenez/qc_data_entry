@@ -1,4 +1,4 @@
-package main
+package qc
 
 import (
 	"log"
@@ -11,16 +11,17 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-type OilBasedProduct struct {
+type WaterBasedProduct struct {
 	product.BaseProduct
 	sg float64
+	ph float64
 }
 
-func (ob_product OilBasedProduct) toProduct() product.Product {
+func (wb_product WaterBasedProduct) toProduct() product.Product {
 	return product.Product{
-		BaseProduct: ob_product.Base(),
-		PH:          nullable.NewNullFloat64(0, false),
-		SG:          nullable.NewNullFloat64(ob_product.sg, true),
+		BaseProduct: wb_product.Base(),
+		PH:          nullable.NewNullFloat64(wb_product.ph, true),
+		SG:          nullable.NewNullFloat64(wb_product.sg, true),
 		Density:     nullable.NewNullFloat64(0, false),
 		String_test: nullable.NullInt64Default(),
 		Viscosity:   nullable.NullInt64Default(),
@@ -29,69 +30,70 @@ func (ob_product OilBasedProduct) toProduct() product.Product {
 	//TODO Option?
 }
 
-func newOilBasedProduct(base_product product.BaseProduct,
-	have_visual bool, mass float64) product.Product {
-	base_product.Visual = have_visual
-	sg := formats.SG_from_mass(mass)
+func newWaterBasedProduct(base_product product.BaseProduct, have_visual bool, sg, ph float64) product.Product {
 
-	return OilBasedProduct{base_product, sg}.toProduct()
+	base_product.Visual = have_visual
+
+	return WaterBasedProduct{base_product, sg, ph}.toProduct()
 
 }
 
-func (product OilBasedProduct) Check_data() bool {
+func (product WaterBasedProduct) Check_data() bool {
 	return true
 }
 
-type OilBasedPanelView struct {
+type WaterBasedPanelView struct {
 	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
 	Refresh func()
 }
 
-func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *OilBasedPanelView {
+func show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *WaterBasedPanelView {
 
 	visual_text := "Visual Inspection"
-	mass_text := "Mass"
+	sg_text := "SG"
+	ph_text := "pH"
 
 	panel := windigo.NewAutoPanel(parent)
 
 	group_panel := windigo.NewAutoPanel(panel)
 
-	ranges_panel := BuildNewOilBasedProductRangesView(panel, qc_product)
+	ranges_panel := BuildNewWaterBasedProductRangesView(panel, qc_product)
 
-	visual_field := NewBoolCheckboxView(group_panel, visual_text)
-	mass_field := views.NewNumberEditView(group_panel, mass_text)
+	visual_field := views.NewBoolCheckboxView(group_panel, visual_text)
 
-	density_field := views.NewMassDataView(group_panel, ranges_panel, mass_field)
+	sg_field := views.NewNumberEditViewWithChange(group_panel, sg_text, ranges_panel.sg_field)
+	ph_field := views.NewNumberEditViewWithChange(group_panel, ph_text, ranges_panel.ph_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
-	group_panel.Dock(density_field, windigo.Top)
+	group_panel.Dock(sg_field, windigo.Top)
+	group_panel.Dock(ph_field, windigo.Top)
 
 	submit_cb := func() {
-		measured_product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), density_field.Get())
+		measured_product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
 		if measured_product.Check_data() {
-			log.Println("ob sub data", measured_product)
+			log.Println("data", measured_product)
 			// TODO blend013 ensurethis works with testing blends
 			// measured_product.Save()
 			product.Store(measured_product)
 			err := measured_product.Output()
 			if err != nil {
-				log.Printf("Error: [%s]: %q\n", "OilBasedProduct.Output", err)
+				log.Printf("Error: [%s]: %q\n", "WaterBasedProduct.Output", err)
 			}
 		}
 	}
 
 	clear_cb := func() {
-		visual_field.Clear()
-		density_field.Clear()
+		visual_field.SetChecked(false)
+		sg_field.Clear()
+		ph_field.Clear()
 		ranges_panel.Clear()
-
 	}
 
 	log_cb := func() {
-		product := newOilBasedProduct(create_new_product_cb(), visual_field.Get(), density_field.Get())
+		product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
 		if product.Check_data() {
-			log.Println("ob log data", product)
+			log.Println("data", product)
 			product.Save()
 			product.Export_json()
 		}
@@ -108,7 +110,8 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 	setFont := func(font *windigo.Font) {
 		ranges_panel.SetFont(font)
 		visual_field.SetFont(font)
-		density_field.SetFont(font)
+		sg_field.SetFont(font)
+		ph_field.SetFont(font)
 		button_dock.SetFont(font)
 	}
 	refresh := func() {
@@ -119,81 +122,77 @@ func show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
 
+		ranges_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
+		ranges_panel.SetMarginTop(GROUP_MARGIN)
+
 		visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
-		density_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.DATA_SUBFIELD_WIDTH, DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		sg_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+		ph_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
 		button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
-		ranges_panel.SetMarginTop(GROUP_MARGIN)
 		ranges_panel.Refresh()
-
 	}
 
-	return &OilBasedPanelView{ranges_panel.Update, setFont, refresh}
+	return &WaterBasedPanelView{ranges_panel.Update, setFont, refresh}
 
 }
 
-type OilBasedProductRangesView struct {
+type WaterBasedProductRangesView struct {
 	*windigo.AutoPanel
-	*views.MassRangesView
+	ph_field,
+	sg_field *views.RangeROView
 
 	Update  func(qc_product *product.QCProduct)
 	SetFont func(font *windigo.Font)
 	Refresh func()
 }
 
-func (data_view OilBasedProductRangesView) Clear() {
-	data_view.MassRangesView.Clear()
+func (data_view WaterBasedProductRangesView) Clear() {
+	data_view.ph_field.Clear()
+	data_view.sg_field.Clear()
 }
 
-func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) OilBasedProductRangesView {
+func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) WaterBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
-	mass_text := "Mass"
-
-	sg_text := "Specific Gravity"
-	density_text := "Density"
+	sg_text := "SG"
+	ph_text := "pH"
 
 	group_panel := windigo.NewAutoPanel(parent)
 
+	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	visual_field := product.BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	mass_field := views.BuildNewRangeROViewMap(group_panel, mass_text, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
 	sg_field := views.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
-	density_field := views.BuildNewRangeROView(group_panel, density_text, qc_product.Density, formats.Format_ranges_density)
+	ph_field := views.BuildNewRangeROView(group_panel, ph_text, qc_product.PH, formats.Format_ranges_ph)
 
 	group_panel.Dock(visual_field, windigo.Top)
-	group_panel.Dock(mass_field, windigo.Top)
-	group_panel.Dock(density_field, windigo.Bottom)
-	group_panel.Dock(sg_field, windigo.Bottom)
+	group_panel.Dock(sg_field, windigo.Top)
+	group_panel.Dock(ph_field, windigo.Top)
 
 	update := func(qc_product *product.QCProduct) {
+
+		log.Println("Debug:BuildNewWaterBasedProductRangesView  update", qc_product)
 		visual_field.Update(qc_product.Appearance)
-		mass_field.Update(qc_product.SG)
 		sg_field.Update(qc_product.SG)
-		density_field.Update(qc_product.Density)
+		ph_field.Update(qc_product.PH)
 	}
 	setFont := func(font *windigo.Font) {
-		visual_field.SetFont(font)
-		mass_field.SetFont(font)
+		visual_field.SetFont(font) //?TODO
 		sg_field.SetFont(font)
-		density_field.SetFont(font)
+		ph_field.SetFont(font)
 	}
-
 	refresh := func() {
 		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
 		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+
 		visual_field.Refresh()
-		mass_field.Refresh()
 		sg_field.Refresh()
-		density_field.Refresh()
+		ph_field.Refresh()
 	}
 
-	return OilBasedProductRangesView{group_panel,
-		&views.MassRangesView{Mass_field: &mass_field,
-			SG_field:      &sg_field,
-			Density_field: &density_field},
-		update, setFont, refresh}
+	return WaterBasedProductRangesView{group_panel, &ph_field, &sg_field, update, setFont, refresh}
 
 }

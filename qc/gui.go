@@ -1,4 +1,4 @@
-package main
+package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -30,6 +30,8 @@ var (
 )
 
 func refresh_globals(font_size int) {
+
+	GUI.CLOCK_WIDTH = 90
 
 	GUI.ACCEPT_BUTTON_WIDTH = 50
 	GUI.CANCEL_BUTTON_WIDTH = 50
