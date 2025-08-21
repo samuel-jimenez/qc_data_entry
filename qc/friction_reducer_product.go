@@ -303,6 +303,7 @@ func show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 
 	tote_cb := func() {
 		base_product := create_new_product_cb()
+		// TODO blend013 do only if base_product.Blend != nil?
 		base_product.SetBlend(component_panel.Get())
 		log.Println("DEBUG: FrictionReducerPanelView.submit_cb.tote base_product", base_product)
 

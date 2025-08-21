@@ -185,11 +185,13 @@ func (product *BaseProduct) SetTester(Tester string) {
 
 func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
 	product.Blend = Blend
-	log.Println("Debug: BaseProduct.SetBlend", product.Blend, Blend, product)
+	proc_name := "BaseProduct.SetBlend"
+
+	log.Println("Debug: ", proc_name, product.Blend, Blend, product)
 	if Blend == nil {
 		return
 	}
-	DB.Update("BaseProduct.SetBlend",
+	DB.Update(proc_name,
 		DB.DB_Update_lot_recipe,
 		Blend.Recipe_id,
 		product.Product_Lot_id,

@@ -46,7 +46,9 @@ func NewQCBlendView(parent windigo.Controller) *QCBlendView {
 }
 
 func (view *QCBlendView) Get() *blender.ProductBlend {
-	// TODO check Blend
+	if view.Blend != nil {
+		return view.Blend
+	}
 	if view.Recipe == nil {
 		return nil
 	}
@@ -125,6 +127,7 @@ func (view *QCBlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 		component.Close()
 	}
 	view.Components = nil
+	view.Blend = nil
 	view.Recipe = recipe
 	if view.Recipe == nil {
 		return
