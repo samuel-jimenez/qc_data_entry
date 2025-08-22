@@ -184,10 +184,16 @@ func (product *BaseProduct) SetTester(Tester string) {
 }
 
 func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
-	product.Blend = Blend
+
 	proc_name := "BaseProduct.SetBlend"
 
 	log.Println("Debug: ", proc_name, product.Blend, Blend, product)
+	if product.Blend == Blend {
+		log.Println("TRACE: Debug: retrurning ", proc_name, product.Blend, Blend, product)
+
+		return
+	}
+	product.Blend = Blend
 	if Blend == nil {
 		return
 	}
