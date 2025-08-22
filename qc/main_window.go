@@ -76,6 +76,7 @@ type TopPanelView struct {
 	ranges_button, reprint_button, inbound_button,
 	sample_button, release_button, internal_button *windigo.PushButton
 	container_field *product.DiscreteView
+	clock_panel     *views.ClockTimerView
 
 	controls []windigo.Controller
 
@@ -180,6 +181,7 @@ func NewTopPanelView(parent windigo.Controller) *TopPanelView {
 	view.product_panel_0_1 = product_panel_0_1
 	view.product_panel_1_1 = product_panel_1_1
 	view.product_panel_0_2 = product_panel_0_2
+	view.clock_panel = clock_panel
 
 	view.internal_product_field = internal_product_field
 	view.customer_field = customer_field
@@ -534,7 +536,6 @@ func (view *TopPanelView) SetFont(font *windigo.Font) {
 
 // func (view *TopPanelView) RefreshSize() {
 func (view *TopPanelView) RefreshSize(font_size int) {
-
 	var (
 		top_panel_height,
 
@@ -606,6 +607,8 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 	view.product_panel_0_2.SetMarginLeft(hpanel_margin)
 
 	view.tester_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+
+	view.clock_panel.RefreshSize()
 
 	view.ranges_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.ranges_button.SetMarginsAll(BUTTON_MARGIN)

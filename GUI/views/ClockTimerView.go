@@ -25,6 +25,11 @@ type ClockTimerView struct {
 	*windigo.AutoPanel
 }
 
+func (view *ClockTimerView) RefreshSize() {
+
+	view.SetSize(GUI.CLOCK_WIDTH, GUI.OFF_AXIS)
+}
+
 func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 	view := new(ClockTimerView)
 
