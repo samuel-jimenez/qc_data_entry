@@ -22,6 +22,17 @@ var (
 	Status_SHIPPED   = "SHIPPED"
 )
 
+func Release_testing_lot(lot_number string) error {
+	proc_name := "product.Release_testing_lot"
+	err := DB.Update(proc_name,
+		DB.DB_Update_lot_list__component_status, lot_number, Status_SHIPPED,
+	)
+	if err != nil {
+		log.Println("error[]%S]:", proc_name, err)
+	}
+	return err
+}
+
 type BaseProduct struct {
 	Product_name             string `json:"product_name"`
 	Lot_number               string `json:"lot_number"`

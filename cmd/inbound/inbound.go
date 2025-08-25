@@ -14,6 +14,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/blender/blendbound"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -134,7 +135,7 @@ func get_sched(file_name, worksheet_name string) {
 
 			if slices.Contains(status_here, status) {
 
-				if lot == "" && arrival != "" && asn != "" {
+				if (lot == "" || lot == "unknown") && arrival != "" && asn != "" {
 					lot = fmt.Sprintf("%s/%s", asn, strings.ReplaceAll(arrival, "-", ""))
 					// TODO maybe regen asn as BSRC
 					provider = "Unknown" // TODO inbound_provider_list
@@ -168,6 +169,10 @@ func get_sched(file_name, worksheet_name string) {
 			if val.Status_name != blendbound.Status_UNAVAILABLE {
 				log.Printf("Info: [%s]: Railcar departed: %q : %q - %q\n", proc_name, val.Container_name, val.Product_name, val.Lot_number)
 				val.Update_status(blendbound.Status_UNAVAILABLE)
+				if err := product.Release_testing_lot(val.Lot_number); err != nil {
+					log.Println("error[]%S]:", proc_name, err)
+					return err
+				}
 			}
 			delete(InboundLotMap0, key)
 		}

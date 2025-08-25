@@ -445,9 +445,8 @@ func NewTopPanelView(parent windigo.Controller) *TopPanelView {
 		Inbound__Lot_.Update_status(blendbound.Status_UNAVAILABLE)
 
 		log.Println("TRACE: DEBUG: UPdate componnent DB_Update_lot_list__component_status", proc_name, Inbound__Lot_.Lot_number, Inbound__Lot_)
-		if err := DB.Update(proc_name,
-			DB.DB_Update_lot_list__component_status, Inbound__Lot_.Lot_number, product.Status_SHIPPED,
-		); err != nil {
+
+		if err := product.Release_testing_lot(Inbound__Lot_.Lot_number); err != nil {
 			log.Println("error[]%S]:", proc_name, err)
 			return
 		}
