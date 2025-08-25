@@ -27,7 +27,6 @@ var (
 	BTM_SPACER_WIDTH,
 	BTM_SPACER_HEIGHT,
 
-	TOP_PANEL_WIDTH,
 	REPRINT_BUTTON_WIDTH,
 	TOP_PANEL_INTER_SPACER_WIDTH,
 
@@ -257,17 +256,17 @@ func show_window() {
 	refresh := func(font_size int) {
 		refresh_vars(font_size)
 		//TODO grow
-		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
-		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+ADD_BUTTON_WIDTH)
+		// component_panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(GUI.TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+ADD_BUTTON_WIDTH)
 
 		//TODO grow
-		// Blend_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// Blend_View.SetSize(GUI.LABEL_WIDTH+GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		// Blend_View.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		Blend_product_view.RefreshSize()
 		// Blend_View.RefreshSize()
 
-		component_add_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		component_add_panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 		component_add_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
@@ -390,12 +389,12 @@ func show_Formulator() {
 	refresh := func(font_size int) {
 		refresh_vars(font_size)
 		//TODO grow
-		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-		// component_panel.SetSize(TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
-		// component_panel.SetSize(TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+ADD_BUTTON_WIDTH)
+		// component_panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(GUI.TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
+		// component_panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT+ADD_BUTTON_WIDTH)
 
 		//TODO grow
-		// Recipe_View.SetSize(GUI.LABEL_WIDTH+TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+		// Recipe_View.SetSize(GUI.LABEL_WIDTH+GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		// Recipe_View.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 		Recipe_product_view.RefreshSize()
 		// Recipe_View.RefreshSize()

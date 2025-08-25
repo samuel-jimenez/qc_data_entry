@@ -43,19 +43,25 @@ func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 	clock_panel.SetSize(GUI.CLOCK_WIDTH, GUI.OFF_AXIS)
 	clock_display_now := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, GUI.OFF_AXIS, "")
 	clock_display_future := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, GUI.OFF_AXIS, "")
+	clock_display_past := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, GUI.OFF_AXIS, "")
 	clock_display_now.SetMarginTop(clock_timer_offset_v)
 	clock_display_future.SetMarginLeft(clock_timer_offset_h)
 	clock_display_future.SetMarginRight(clock_timer_offset_h)
+	clock_display_past.SetMarginTop(clock_timer_offset_v)
+	clock_display_past.SetMarginRight(clock_timer_offset_h)
+
 	clock_font := windigo.NewFont(clock_display_now.Font().Family(), clock_font_size, clock_font_style_flags)
 
 	clock_display_now.SetFont(clock_font)
 	clock_display_future.SetFont(clock_font)
+	clock_display_past.SetFont(clock_font)
 
 	Clock_ticker := time.Tick(time.Second)
 
 	// Dock
 	clock_panel.Dock(clock_display_now, windigo.Left)
 	clock_panel.Dock(clock_display_future, windigo.Left)
+	clock_panel.Dock(clock_display_past, windigo.Left)
 
 	// Clock
 	go func() {
@@ -63,6 +69,7 @@ func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 		for tock := range Clock_ticker {
 			clock_display_now.SetText(tock.Format("05"))
 			clock_display_future.SetText(tock.Add(mix_time).Format("05"))
+			clock_display_past.SetText(tock.Add(-mix_time).Format("05"))
 		}
 	}()
 

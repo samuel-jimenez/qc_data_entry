@@ -541,8 +541,6 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 
 		hpanel_width,
 
-		hpanel_margin,
-
 		top_spacer_height,
 		top_subpanel_height,
 
@@ -558,27 +556,26 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 
 	top_panel_height = top_subpanel_height + num_rows*GUI.GROUPBOX_CUSHION + GUI.PRODUCT_FIELD_HEIGHT
 
-	hpanel_margin = 10
-	hpanel_width = TOP_PANEL_WIDTH - GUI.CLOCK_WIDTH
+	hpanel_width = GUI.TOP_PANEL_WIDTH - GUI.CLOCK_WIDTH
 
 	container_item_width = 6 * font_size
 
 	reprint_button_margin_l = 2*GUI.LABEL_WIDTH + GUI.PRODUCT_FIELD_WIDTH + TOP_PANEL_INTER_SPACER_WIDTH - GUI.SMOL_BUTTON_WIDTH - GUI.DISCRETE_FIELD_WIDTH
 
-	view.SetSize(TOP_PANEL_WIDTH, top_panel_height)
+	view.SetSize(GUI.TOP_PANEL_WIDTH, top_panel_height)
 
-	view.product_panel_0.SetSize(TOP_PANEL_WIDTH, top_subpanel_height)
+	view.product_panel_0.SetSize(GUI.TOP_PANEL_WIDTH, top_subpanel_height)
 
 	view.product_panel_0_0.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 	view.product_panel_0_0.SetMarginTop(top_spacer_height)
-	view.product_panel_0_0.SetMarginLeft(hpanel_margin)
+	view.product_panel_0_0.SetMarginLeft(GUI.HPANEL_MARGIN)
 
 	view.customer_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
 	view.sample_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
 
 	view.product_panel_0_1.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 	view.product_panel_0_1.SetMarginTop(INTER_SPACER_HEIGHT)
-	view.product_panel_0_1.SetMarginLeft(hpanel_margin)
+	view.product_panel_0_1.SetMarginLeft(GUI.HPANEL_MARGIN)
 
 	view.internal_product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.customer_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
@@ -587,7 +584,7 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 
 	view.product_panel_1_0.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 	view.product_panel_1_0.SetMarginTop(top_spacer_height)
-	view.product_panel_1_0.SetMarginLeft(hpanel_margin)
+	view.product_panel_1_0.SetMarginLeft(GUI.HPANEL_MARGIN)
 
 	view.testing_lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
@@ -596,7 +593,7 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 
 	view.product_panel_1_1.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 	view.product_panel_1_1.SetMarginTop(INTER_SPACER_HEIGHT)
-	view.product_panel_1_1.SetMarginLeft(hpanel_margin)
+	view.product_panel_1_1.SetMarginLeft(GUI.HPANEL_MARGIN)
 
 	view.inbound_lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.inbound_container_field.SetMarginLeft(TOP_PANEL_INTER_SPACER_WIDTH)
@@ -604,7 +601,7 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 
 	view.product_panel_0_2.SetSize(hpanel_width, GUI.PRODUCT_FIELD_HEIGHT)
 	view.product_panel_0_2.SetMarginTop(INTER_SPACER_HEIGHT)
-	view.product_panel_0_2.SetMarginLeft(hpanel_margin)
+	view.product_panel_0_2.SetMarginLeft(GUI.HPANEL_MARGIN)
 
 	view.tester_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
