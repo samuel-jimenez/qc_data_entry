@@ -23,32 +23,21 @@ type ClockTimerViewer interface {
  */
 type ClockTimerView struct {
 	*windigo.AutoPanel
-}
-
-func (view *ClockTimerView) RefreshSize() {
-
-	view.SetSize(GUI.CLOCK_WIDTH, GUI.OFF_AXIS)
+	clock_display_now,
+	clock_display_future,
+	clock_display_past *windigo.LabeledLabel
 }
 
 func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 	view := new(ClockTimerView)
 
-	clock_timer_width := 35
-	clock_timer_offset_h := 10
-	clock_timer_offset_v := 30
 	clock_font_size := 25
 	clock_font_style_flags := windigo.FontNormal
 
 	clock_panel := windigo.NewAutoPanel(parent)
-	clock_panel.SetSize(GUI.CLOCK_WIDTH, GUI.OFF_AXIS)
-	clock_display_now := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, GUI.OFF_AXIS, "")
-	clock_display_future := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, GUI.OFF_AXIS, "")
-	clock_display_past := windigo.NewSizedLabeledLabel(clock_panel, clock_timer_width, GUI.OFF_AXIS, "")
-	clock_display_now.SetMarginTop(clock_timer_offset_v)
-	clock_display_future.SetMarginLeft(clock_timer_offset_h)
-	clock_display_future.SetMarginRight(clock_timer_offset_h)
-	clock_display_past.SetMarginTop(clock_timer_offset_v)
-	clock_display_past.SetMarginRight(clock_timer_offset_h)
+	clock_display_now := windigo.NewLabeledLabel(clock_panel, "")
+	clock_display_future := windigo.NewLabeledLabel(clock_panel, "")
+	clock_display_past := windigo.NewLabeledLabel(clock_panel, "")
 
 	clock_font := windigo.NewFont(clock_display_now.Font().Family(), clock_font_size, clock_font_style_flags)
 
@@ -75,5 +64,25 @@ func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 
 	// build object
 	view.AutoPanel = clock_panel
+	view.clock_display_now = clock_display_now
+	view.clock_display_future = clock_display_future
+	view.clock_display_past = clock_display_past
 	return view
+}
+
+func (view *ClockTimerView) RefreshSize() {
+
+	clock_timer_offset_v := 30
+
+	view.SetSize(GUI.CLOCK_WIDTH, GUI.OFF_AXIS)
+	view.clock_display_now.SetSize(GUI.CLOCK_TIMER_WIDTH, GUI.OFF_AXIS)
+	view.clock_display_future.SetSize(GUI.CLOCK_TIMER_WIDTH, GUI.OFF_AXIS)
+	view.clock_display_past.SetSize(GUI.CLOCK_TIMER_WIDTH, GUI.OFF_AXIS)
+
+	view.clock_display_now.SetMarginTop(clock_timer_offset_v)
+	view.clock_display_now.SetMarginLeft(GUI.CLOCK_TIMER_OFFSET_H)
+	view.clock_display_now.SetMarginRight(GUI.CLOCK_TIMER_OFFSET_H)
+	view.clock_display_future.SetMarginRight(GUI.CLOCK_TIMER_OFFSET_H)
+	view.clock_display_past.SetMarginTop(clock_timer_offset_v)
+	view.clock_display_past.SetMarginRight(GUI.CLOCK_TIMER_OFFSET_H)
 }
