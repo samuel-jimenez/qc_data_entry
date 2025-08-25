@@ -514,6 +514,9 @@ func (view *TopPanelView) GoInternal() {
 	view.ranges_button.Show()
 	view.reprint_button.Show()
 	view.inbound_button.Show()
+
+	view.QC_Product.Blend = nil
+
 }
 
 func (view *TopPanelView) SetFont(font *windigo.Font) {
@@ -684,6 +687,7 @@ func (view *TopPanelView) product_field_pop_data(str string) {
 	if view.QC_Product.Product_id != old_product_id {
 		view.SetTitle(view.QC_Product.Product_name)
 		view.QC_Product.ResetQC()
+		view.QC_Product.Blend = nil
 
 		view.QC_Product.Select_product_details()
 		view.QC_Product.Update()
