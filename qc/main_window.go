@@ -25,6 +25,8 @@ import (
  */
 type TopPanelViewer interface {
 	windigo.Controller
+	GoInbound()
+	GoInternal()
 	SetFont(font *windigo.Font)
 	RefreshSize()
 	SetMainWindow(mainWindow *windigo.Form)
@@ -468,35 +470,11 @@ func NewTopPanelView(parent windigo.Controller) *TopPanelView {
 	})
 
 	inbound_button.OnClick().Bind(func(e *windigo.Event) {
-		product_panel_1_0.Show()
-		product_panel_1_1.Show()
-		sample_button.Show()
-		release_button.Show()
-		internal_button.Show()
-
-		product_panel_0_0.Hide()
-		product_panel_0_1.Hide()
-		ranges_button.Hide()
-		reprint_button.Hide()
-		inbound_button.Hide()
-
-		view.QC_Product.Container_type = product.DiscreteFromInt(CONTAINER_SAMPLE)
-		view.ChangeContainer(view.QC_Product)
-
+		view.GoInbound()
 	})
 
 	internal_button.OnClick().Bind(func(e *windigo.Event) {
-		product_panel_1_0.Hide()
-		product_panel_1_1.Hide()
-		sample_button.Hide()
-		release_button.Hide()
-		internal_button.Hide()
-
-		product_panel_0_0.Show()
-		product_panel_0_1.Show()
-		ranges_button.Show()
-		reprint_button.Show()
-		inbound_button.Show()
+		view.GoInternal()
 	})
 
 	container_field.OnSelectedChange().Bind(func(e *windigo.Event) {
@@ -505,6 +483,37 @@ func NewTopPanelView(parent windigo.Controller) *TopPanelView {
 	})
 
 	return view
+}
+
+func (view *TopPanelView) GoInbound() {
+	view.product_panel_1_0.Show()
+	view.product_panel_1_1.Show()
+	view.sample_button.Show()
+	view.release_button.Show()
+	view.internal_button.Show()
+
+	view.product_panel_0_0.Hide()
+	view.product_panel_0_1.Hide()
+	view.ranges_button.Hide()
+	view.reprint_button.Hide()
+	view.inbound_button.Hide()
+
+	view.QC_Product.Container_type = product.DiscreteFromInt(CONTAINER_SAMPLE)
+	view.ChangeContainer(view.QC_Product)
+}
+
+func (view *TopPanelView) GoInternal() {
+	view.product_panel_1_0.Hide()
+	view.product_panel_1_1.Hide()
+	view.sample_button.Hide()
+	view.release_button.Hide()
+	view.internal_button.Hide()
+
+	view.product_panel_0_0.Show()
+	view.product_panel_0_1.Show()
+	view.ranges_button.Show()
+	view.reprint_button.Show()
+	view.inbound_button.Show()
 }
 
 func (view *TopPanelView) SetFont(font *windigo.Font) {
@@ -745,6 +754,7 @@ func (view *TopPanelView) tester_field_text_pop_data(str string) {
 	view.tester_field_pop_data(formatted_text)
 }
 func (view *TopPanelView) PopQRData(product QR.QRJson) {
+	view.GoInternal()
 	view.product_field_text_pop_data(product.Product_type)
 	view.lot_field_text_pop_data(product.Lot_number)
 }
