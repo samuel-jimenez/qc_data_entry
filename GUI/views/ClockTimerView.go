@@ -45,6 +45,10 @@ func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 	clock_display_now.SetFont(clock_font)
 	clock_display_past.SetFont(clock_font)
 
+	clock_display_future.SetFGColor(windigo.RGB(128, 0, 0))
+	clock_display_now.SetFGColor(windigo.RGB(0, 128, 0))
+	clock_display_past.SetFGColor(windigo.RGB(0, 0, 128))
+
 	Clock_ticker := time.Tick(time.Second)
 
 	// Dock
