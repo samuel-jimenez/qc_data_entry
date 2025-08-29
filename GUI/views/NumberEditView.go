@@ -3,6 +3,7 @@ package views
 // TODO todo NumberEditView
 
 import (
+	"math"
 	"strconv"
 	"strings"
 
@@ -23,6 +24,9 @@ type NumberEditViewable interface {
 	Set(val float64)
 	Clear()
 	Check(bool)
+	SetFont(font *windigo.Font)
+	SetLabeledSize(label_width, control_width, height int)
+	Entangle(other_field *NumberEditView, range_field *RangeROView, delta_max float64)
 }
 
 // TODO combine NumbEditView nmaybe?
@@ -35,6 +39,24 @@ type NumberEditView struct {
 	GUI.ErrableView
 	*windigo.Edit
 	*windigo.Labeled
+}
+
+func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
+	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, label.Edit, &windigo.Labeled{FieldLabel: label.Label()}}
+}
+
+func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEditView {
+	edit_field := NewNumberEditViewFromLabeledEdit(windigo.NewLabeledEdit(parent, field_text))
+	return edit_field
+}
+
+func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
+
+	edit_field := NewNumberEditView(parent, field_text)
+	edit_field.OnChange().Bind(func(e *windigo.Event) {
+		edit_field.Check(range_field.Check(edit_field.GetFixed()))
+	})
+	return edit_field
 }
 
 func (control *NumberEditView) Get() float64 {
@@ -84,22 +106,19 @@ func (control *NumberEditView) SetLabeledSize(label_width, control_width, height
 
 }
 
-func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
-	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, label.Edit, &windigo.Labeled{FieldLabel: label.Label()}}
-}
-
-func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEditView {
-	edit_field := NewNumberEditViewFromLabeledEdit(windigo.NewLabeledEdit(parent, field_text))
-	return edit_field
-}
-
-func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
-
-	edit_field := NewNumberEditView(parent, field_text)
-	edit_field.OnChange().Bind(func(e *windigo.Event) {
-		edit_field.Check(range_field.Check(edit_field.GetFixed()))
-	})
-	return edit_field
+// onchange for FR
+func (this_field *NumberEditView) Entangle(other_field *NumberEditView, range_field *RangeROView, delta_max float64) {
+	bind_fn := func(e *windigo.Event) {
+		this_val := this_field.GetFixed()
+		other_val := other_field.GetFixed()
+		diff_val := math.Abs(this_val-other_val) <= delta_max
+		checks := range_field.CheckAll(this_val, other_val)
+		this_check, other_check := checks[0], checks[1]
+		this_field.Check(this_check && diff_val)
+		other_field.Check(other_check && diff_val)
+	}
+	this_field.OnChange().Bind(bind_fn)
+	other_field.OnChange().Bind(bind_fn)
 }
 
 /*

@@ -11,6 +11,8 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
+// c.f. BlendComponentView
+
 /*
  * QCBlendComponentViewer
  *

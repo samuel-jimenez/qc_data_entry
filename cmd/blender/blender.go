@@ -16,29 +16,6 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
-var (
-	WINDOW_WIDTH,
-	WINDOW_HEIGHT,
-	WINDOW_FUDGE_MARGIN,
-
-	TOP_SPACER_WIDTH,
-	TOP_SPACER_HEIGHT,
-	INTER_SPACER_HEIGHT,
-	BTM_SPACER_WIDTH,
-	BTM_SPACER_HEIGHT,
-
-	REPRINT_BUTTON_WIDTH,
-	TOP_PANEL_INTER_SPACER_WIDTH,
-
-	BUTTON_WIDTH,
-	BUTTON_HEIGHT,
-	BUTTON_MARGIN,
-
-	GROUP_WIDTH,
-	GROUP_HEIGHT,
-	GROUP_MARGIN int
-)
-
 func main() {
 	//load config
 	config.Main_config = config.Load_config_viewer("qc_data_blender")
@@ -94,12 +71,7 @@ func dbinit(db *sql.DB) {
 func refresh_globals(font_size int) {
 
 	GUI.GROUPBOX_CUSHION = font_size * 3 / 2
-	TOP_SPACER_WIDTH = 7
-	TOP_SPACER_HEIGHT = GUI.GROUPBOX_CUSHION + 2
-	INTER_SPACER_HEIGHT = 2
-	BTM_SPACER_WIDTH = 2
-	BTM_SPACER_HEIGHT = 2
-	TOP_PANEL_INTER_SPACER_WIDTH = 30
+	GUI.TOP_SPACER_HEIGHT = GUI.GROUPBOX_CUSHION + 2
 
 	GUI.DATA_MARGIN = 10
 

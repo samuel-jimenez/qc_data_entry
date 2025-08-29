@@ -8,12 +8,6 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 )
 
-var (
-	CONTAINER_SAMPLE  = 1
-	CONTAINER_TOTE    = 2
-	CONTAINER_RAILCAR = 3
-)
-
 // ON UPDATE CASCADE
 //        ON DELETE CASCADE
 

@@ -83,6 +83,10 @@ var (
 
 	INVALID_ID     int64 = 0
 	DEFAULT_LOT_ID int64 = 1
+
+	CONTAINER_SAMPLE  = 1
+	CONTAINER_TOTE    = 2
+	CONTAINER_RAILCAR = 3
 )
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {

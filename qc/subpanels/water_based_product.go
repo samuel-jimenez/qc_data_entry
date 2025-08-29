@@ -1,4 +1,4 @@
-package qc
+package subpanels
 
 import (
 	"log"
@@ -48,7 +48,7 @@ type WaterBasedPanelView struct {
 	Refresh func()
 }
 
-func show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *WaterBasedPanelView {
+func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *WaterBasedPanelView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -116,14 +116,14 @@ func show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 	}
 	refresh := func() {
 
-		panel.SetSize(GUI.OFF_AXIS, GROUP_HEIGHT)
-		panel.SetMargins(GROUP_MARGIN, GROUP_MARGIN, 0, 0)
+		panel.SetSize(GUI.OFF_AXIS, GUI.GROUP_HEIGHT)
+		panel.SetMargins(GUI.GROUP_MARGIN, GUI.GROUP_MARGIN, 0, 0)
 
-		group_panel.SetSize(GROUP_WIDTH, GROUP_HEIGHT)
-		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+		group_panel.SetSize(GUI.GROUP_WIDTH, GUI.GROUP_HEIGHT)
+		group_panel.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
 
-		ranges_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
-		ranges_panel.SetMarginTop(GROUP_MARGIN)
+		ranges_panel.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
+		ranges_panel.SetMarginTop(GUI.GROUP_MARGIN)
 
 		visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 
@@ -185,8 +185,8 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 		ph_field.SetFont(font)
 	}
 	refresh := func() {
-		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GROUP_HEIGHT)
-		group_panel.SetPaddings(TOP_SPACER_WIDTH, TOP_SPACER_HEIGHT, BTM_SPACER_WIDTH, BTM_SPACER_HEIGHT)
+		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
+		group_panel.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
 
 		visual_field.Refresh()
 		sg_field.Refresh()
