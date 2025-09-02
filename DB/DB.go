@@ -125,9 +125,7 @@ func Check_db(db *sql.DB, showWindowp bool) {
 		message := fmt.Sprintf("Database version mismatch: Required: %s, found: %s", DB_VERSION, found_db_version)
 		err = errors.New(message)
 		if showWindowp {
-			// 			TODO: make windigo.Error to avoid
-			// [printf] (default) non-constant format string in call to github.com/samuel-jimenez/windigo.Errorf
-			windigo.Errorf(nil, message)
+			windigo.Error(nil, message)
 		}
 		log.Printf("%q\n", err)
 		panic(err)
