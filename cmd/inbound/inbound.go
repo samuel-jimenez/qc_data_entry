@@ -97,6 +97,7 @@ func get_sched(file_name, worksheet_name string) {
 	proc_name := "InboundSync.DB_Select_inbound_lot_status"
 	InboundLotMap0 := blendbound.NewInboundLotMapFromQuery()
 	InboundLotMap1 := make(map[string]*blendbound.InboundLot)
+	InboundContainerMap := make(map[string]*blendbound.InboundLot)
 
 	withOpenFile(file_name, func(xl_file *excelize.File) error {
 		// status_here := "ARRIVED"
@@ -156,6 +157,7 @@ func get_sched(file_name, worksheet_name string) {
 
 					inby.Insert()
 					InboundLotMap1[lot] = inby
+					InboundContainerMap[container] = inby
 				} else {
 					InboundLotMap1[lot] = InboundLotMap0[lot]
 					delete(InboundLotMap0, lot)
@@ -168,6 +170,10 @@ func get_sched(file_name, worksheet_name string) {
 		for key, val := range InboundLotMap0 {
 			if val.Status_name != blendbound.Status_UNAVAILABLE {
 				log.Printf("Info: [%s]: Railcar departed: %q : %q - %q\n", proc_name, val.Container_name, val.Product_name, val.Lot_number)
+				if cont := InboundContainerMap[val.Container_name]; cont != nil {
+					log.Printf("Warning: [%s]: Railcar departed and arrived: %q : %q - %q,  %q : %q - %q\n", proc_name, val.Container_name, val.Product_name, val.Lot_number, cont.Container_name, cont.Product_name, cont.Lot_number)
+					//TODO take input, possibly rename lot
+				}
 				val.Update_status(blendbound.Status_UNAVAILABLE)
 				if err := product.Release_testing_lot(val.Lot_number); err != nil {
 					log.Println("error[]%S]:", proc_name, err)
