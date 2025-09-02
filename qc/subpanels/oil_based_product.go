@@ -145,6 +145,8 @@ func Show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 			if err != nil {
 				log.Printf("Error: [%s]: %q\n", "OilBasedProduct.Output", err)
 			}
+			// * Check storage
+			measured_product.CheckStorage()
 		}
 	}
 

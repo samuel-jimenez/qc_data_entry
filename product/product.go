@@ -216,6 +216,16 @@ func (measured_product Product) GetStorage(numSamples int) int {
 
 }
 
+/*
+ * CheckStorage
+ *
+ * Check storage bin, print label if full
+ *
+ */
+func (measured_product Product) CheckStorage() {
+	measured_product.GetStorage(1)
+}
+
 func Store(products ...Product) {
 	numSamples := len(products)
 	if numSamples <= 0 {
@@ -242,9 +252,6 @@ func Store(products ...Product) {
 	DB.Update(proc_name,
 		DB.DB_Update_product_sample_storage_capacity,
 		qc_sample_storage_id, numSamples)
-
-	// * Check storage
-	measured_product.GetStorage(1)
 
 }
 

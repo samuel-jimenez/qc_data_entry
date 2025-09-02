@@ -80,6 +80,8 @@ func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 			if err != nil {
 				log.Printf("Error: [%s]: %q\n", "WaterBasedProduct.Output", err)
 			}
+			// * Check storage
+			measured_product.CheckStorage()
 		}
 	}
 

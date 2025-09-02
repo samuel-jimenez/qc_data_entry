@@ -221,6 +221,9 @@ func check_dual_data(top_product, bottom_product product.Product) {
 			log.Printf("Error: [%s]: %q\n", "bottom_product.Save_xl", err)
 		}
 
+		// * Check storage
+		bottom_product.CheckStorage()
+
 	} else { // TODO show confirm box
 		log.Println("ERROR: Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
 
