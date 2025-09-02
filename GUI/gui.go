@@ -139,6 +139,8 @@ func Fill_combobox_from_query(control windigo.ComboBoxable, select_statement *sq
  */
 type ComboBoxable interface {
 	windigo.ComboBoxable
+	ErrableView
+	Alert()
 }
 
 type ComboBox struct {
@@ -170,6 +172,24 @@ func NewSizedListComboBox(parent windigo.Controller, label_width, control_width,
 	})
 
 	return combobox_field
+}
+
+func (control *ComboBox) Ok() {
+	// control.SetBorder(nil)
+	control.ClearFGColor()
+	control.ClearBGColor()
+}
+
+func (control *ComboBox) Error() {
+	// control.SetBorder(ErroredPen)
+	control.SetFGColor(windigo.RGB(255, 255, 255))
+	control.SetBGColor(windigo.RGB(255, 0, 0))
+}
+
+func (control *ComboBox) Alert() {
+	control.Error()
+	control.ShowDropdown(true)
+	control.SetFocus()
 }
 
 /*

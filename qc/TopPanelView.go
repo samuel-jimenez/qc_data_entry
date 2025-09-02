@@ -662,13 +662,17 @@ func (view *TopPanelView) BaseProduct() product.BaseProduct {
 	// 	tester_field.ShowDropdown(true)
 	// 	return nil
 	// }
-	view.QC_Product.Valid = view.QC_Product.Tester.Valid
+	view.QC_Product.Valid = view.QC_Product.Tester.Valid && view.QC_Product.Product_id != DB.INVALID_ID
 
 	// only last test holds dropdown
 	if !view.QC_Product.Tester.Valid {
-		view.tester_field.ShowDropdown(true)
-		view.tester_field.SetFocus()
+		view.tester_field.Alert()
 	}
+
+	if view.QC_Product.Product_id == DB.INVALID_ID {
+		view.internal_product_field.Alert()
+	}
+
 	// return &(product_panel.QC_Product.Base())
 	return view.QC_Product.Base()
 }
@@ -676,6 +680,8 @@ func (view *TopPanelView) BaseProduct() product.BaseProduct {
 func (view *TopPanelView) product_field_pop_data(str string) {
 	log.Println("Warn: Debug: product_field_pop_data product_id", view.QC_Product.Product_id)
 	log.Println("Warn: Debug: product_field_pop_data product_lot_id", view.QC_Product.Product_Lot_id)
+
+	view.internal_product_field.Ok()
 
 	// if product_lot.product_id != product_lot.insel_product_id(str) {
 	old_product_id := view.QC_Product.Product_id
@@ -713,6 +719,8 @@ func (view *TopPanelView) product_field_text_pop_data(str string) {
 		log.Println("Debug: product_field_text_pop_data", view.QC_Product)
 	} else {
 		view.QC_Product.Product_id = DB.INVALID_ID
+		view.internal_product_field.Error()
+
 	}
 }
 
@@ -748,6 +756,11 @@ func (view *TopPanelView) sample_field_text_pop_data(str string) {
 
 func (view *TopPanelView) tester_field_pop_data(str string) {
 	view.QC_Product.SetTester(str)
+	if view.QC_Product.Tester.Valid {
+		view.tester_field.Ok()
+	} else {
+		view.tester_field.Error()
+	}
 }
 func (view *TopPanelView) tester_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
