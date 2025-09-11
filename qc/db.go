@@ -390,7 +390,7 @@ primary key (blend_components_id)
 
 insert into bs.container_types
 	(container_type_name)
-	values ('Sample'), ('Tote'), ('Railcar');
+	values ('Sample'), ('Tote'), ('Railcar'), ('ISO');
 
 
 insert into bs.container_list

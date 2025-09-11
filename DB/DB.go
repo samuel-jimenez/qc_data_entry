@@ -27,7 +27,7 @@ var (
 	// inbound_product
 	DB_Select_inbound_product_name, DB_Insert_inbound_product,
 	// container_list
-	DB_Select_container_id, DB_Select_container_all, DB_Insert_container,
+	DB_Select_container_id, DB_Select_container_all, DB_Insert_container, DB_Update_container_type,
 	// inbound_provider_list
 	DB_Select_inbound_provider_id, DB_Select_inbound_provider_all, DB_Insert_inbound_provider,
 	// inbound_status_list
@@ -83,10 +83,6 @@ var (
 
 	INVALID_ID     int64 = 0
 	DEFAULT_LOT_ID int64 = 1
-
-	CONTAINER_SAMPLE  = 1
-	CONTAINER_TOTE    = 2
-	CONTAINER_RAILCAR = 3
 )
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
@@ -213,17 +209,32 @@ func DBinit(db *sql.DB) {
 	// `)
 
 	DB_Select_component_type_product = PrepareOrElse(db, `
-select false, product_lot_id, product_name_internal, lot_name, '' from bs.component_type_product_internal
-	join bs.product_line using (product_id)
-	join bs.product_lot using (product_id)
-	join bs.lot_list using (lot_id)
+select
+false, product_lot_id, product_name_internal, lot_name, ''
+
+from bs.component_type_product_internal
+join bs.product_line using (product_id)
+join bs.product_lot using (product_id)
+join bs.lot_list using (lot_id)
+join bs.internal_status_list using (internal_status_id)
+
 where component_type_id = ?1
+and internal_status_name = ?2
+
 union
-select true, inbound_lot_id,inbound_product_name, inbound_lot_name, container_name from bs.component_type_product_inbound
-	join bs.inbound_product using (inbound_product_id)
-	join bs.inbound_lot using (inbound_product_id)
-	join bs.container_list using (container_id)
+
+select
+true, inbound_lot_id,inbound_product_name, inbound_lot_name, container_name
+
+from bs.component_type_product_inbound
+join bs.inbound_product using (inbound_product_id)
+join bs.inbound_lot using (inbound_product_id)
+join bs.container_list using (container_id)
+join bs.inbound_status_list using (inbound_status_id)
+
 where component_type_id = ?1
+and inbound_status_name != ?3
+
 `)
 
 	// 	TODO get sources
@@ -296,6 +307,17 @@ where inbound_product_name = ?
 		(container_name)
 		values (?)
 		returning container_id
+		`)
+
+	DB_Update_container_type = PrepareOrElse(db, `
+update
+bs.container_list
+
+set
+container_type_id=?2
+
+where
+container_id = ?1
 		`)
 
 	// inbound_provider_list

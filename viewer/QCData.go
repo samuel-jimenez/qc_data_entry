@@ -85,7 +85,29 @@ func compare_ph(a, b QCData) int               { return a.PH.Compare(b.PH) }
 func compare_specific_gravity(a, b QCData) int { return a.Specific_gravity.Compare(b.Specific_gravity) }
 func compare_string_test(a, b QCData) int      { return a.String_test.Compare(b.String_test) }
 func compare_viscosity(a, b QCData) int        { return a.Viscosity.Compare(b.Viscosity) }
-func uno_reverse(fn lessFunc) lessFunc         { return func(a, b QCData) int { return -fn(a, b) } }
+
+func ValueOrNothing(array []string, i int) string {
+	if len(array) > i {
+		return array[i]
+	}
+	return ""
+}
+
+func compare_component(a, b QCData, i int) int {
+	return strings.Compare(
+		ValueOrNothing(a.Components.Text(), i),
+		ValueOrNothing(b.Components.Text(), i),
+	)
+}
+
+func compare_component_0_name(a, b QCData) int      { return compare_component(a, b, 0) }
+func compare_component_0_lot(a, b QCData) int       { return compare_component(a, b, 1) }
+func compare_component_0_container(a, b QCData) int { return compare_component(a, b, 2) }
+func compare_component_1_name(a, b QCData) int      { return compare_component(a, b, 3) }
+func compare_component_1_lot(a, b QCData) int       { return compare_component(a, b, 4) }
+func compare_component_1_container(a, b QCData) int { return compare_component(a, b, 5) }
+
+func uno_reverse(fn lessFunc) lessFunc { return func(a, b QCData) int { return -fn(a, b) } }
 
 func ToString(data nullable.NullFloat64, format func(float64) string) string {
 	if data.Valid {
@@ -213,15 +235,15 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	table.AddColumn(
 		"Component 0", COL_WIDTH_TIME)
 	table.AddColumn(
-		"Component 0 Lot", COL_WIDTH_LOT)
+		"Lot 0 ", COL_WIDTH_LOT)
 	table.AddColumn(
-		"Component 0 Container", COL_WIDTH_LOT)
+		"Container 0 ", COL_WIDTH_TIME)
 	table.AddColumn(
 		"Component 1", COL_WIDTH_TIME)
 	table.AddColumn(
-		"Component 1 Lot", COL_WIDTH_LOT)
+		"Lot 1 ", COL_WIDTH_LOT)
 	table.AddColumn(
-		"Component 1 Container", COL_WIDTH_LOT)
+		"Container 1 ", COL_WIDTH_TIME)
 	// table.AddColumn(
 	// 	"Density"
 	// 	, col_width)
@@ -242,7 +264,14 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 		compare_ph,
 		compare_specific_gravity,
 		compare_string_test,
-		compare_viscosity}
+		compare_viscosity,
+		compare_component_0_name,
+		compare_component_0_lot,
+		compare_component_0_container,
+		compare_component_1_name,
+		compare_component_1_lot,
+		compare_component_1_container,
+	}
 
 	return table
 }

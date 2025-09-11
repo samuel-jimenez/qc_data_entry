@@ -1,4 +1,4 @@
-package qc
+package viewer
 
 import (
 	"log"
@@ -10,27 +10,26 @@ import (
 func Show_window() {
 
 	log.Println("Info: Process started")
-	// DEBUG
-	// log.Println(time.Now().UTC().UnixNano())
 
-	//
-	//
-	//
+	refresh_globals(GUI.BASE_FONT_SIZE)
+
 	// build window
-	//
 
 	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
-	mainWindow := NewQCWindow(nil)
+	mainWindow := NewViewerWindow(nil)
+	mainWindow.AddShortcuts()
 	mainWindow.set_font_size()
+	mainWindow.Center()
+	mainWindow.Show()
+	mainWindow.OnClose().Bind(func(*windigo.Event) {
+		windigo.Exit()
+	})
+	mainWindow.RunMainLoop() // Must call to start event loop.
+}
 
+/*
 	mainWindow.Center()
 	mainWindow.Show()
 	mainWindow.OnClose().Bind(wndOnClose)
 	mainWindow.RunMainLoop() // Must call to start event loop.
-}
-
-func wndOnClose(arg *windigo.Event) {
-	GUI.OKPen.Dispose()
-	GUI.ErroredPen.Dispose()
-	windigo.Exit()
-}
+}*/

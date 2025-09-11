@@ -78,7 +78,7 @@ func refresh_globals(font_size int) {
 	GUI.LABEL_WIDTH = 10 * font_size
 	GUI.PRODUCT_FIELD_WIDTH = 15 * font_size
 	GUI.PRODUCT_FIELD_HEIGHT = font_size*16/10 + 8
-	GUI.EDIT_FIELD_HEIGHT = 24
+	// GUI.EDIT_FIELD_HEIGHT = 24
 	GUI.EDIT_FIELD_HEIGHT = 3*font_size - 2
 
 }
@@ -133,9 +133,6 @@ func show_window() {
 
 	component_panel := windigo.NewAutoPanel(mainWindow)
 	component_add_panel := windigo.NewAutoPanel(mainWindow)
-
-	// product_field := GUI.NewSizedListComboBox(prod_panel, label_width, field_width, field_height, product_text)
-	//
 
 	Blend_product_view := views.NewBlendProductView(mainWindow)
 

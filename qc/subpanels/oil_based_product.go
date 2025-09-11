@@ -154,8 +154,11 @@ func Show_oil_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, cr
 		measured_product := group_panel.Get(create_new_product_cb())
 		if measured_product.Check_data() {
 			log.Println("ob log data", measured_product)
-			measured_product.Save()
+			// measured_product.Save()
+			product.Store(measured_product)
 			measured_product.Export_json()
+			// * Check storage
+			measured_product.CheckStorage()
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 )
 
 // TODO type00 create type
@@ -32,11 +33,14 @@ type InboundLot struct {
 	Container_name string
 	Status_id      int64
 	Status_name    string
+
+	// We don't use this yet.
+	// Container_type product.ProductContainerType
 }
 
 func NewInboundLot() *InboundLot { return new(InboundLot) }
 
-func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_name, status_name string) *InboundLot {
+func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_name string, Container_type product.ProductContainerType, status_name string) *InboundLot {
 	if Lot_number == "" {
 		return nil
 	}
@@ -59,6 +63,11 @@ func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_
 
 	Inbound.Container_name = container_name
 	Inbound.Container_id = DB.Insel("NewInboundLotFromValues container", DB.DB_Insert_container, DB.DB_Select_container_id, Inbound.Container_name)
+
+	// We don't use this yet.
+	// Inbound.Container_type = Container_type
+	// DB.Update("NewInboundLotFromValues Container_type", DB.DB_Update_container_type, Inbound.Container_id, Inbound.Container_type)
+	DB.Update("NewInboundLotFromValues Container_type", DB.DB_Update_container_type, Inbound.Container_id, Container_type)
 
 	Inbound.Status_name = status_name
 	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_inbound_status_list.QueryRow(Inbound.Status_name), &Inbound.Status_id); err != nil {

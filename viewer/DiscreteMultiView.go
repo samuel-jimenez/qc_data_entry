@@ -14,6 +14,23 @@ type DiscreteMultiView struct {
 	buttons []*windigo.CheckBox
 }
 
+func (view *DiscreteMultiView) RefreshSize() {
+	view.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
+	// for _, control := range view.buttons {
+	// 	//TODO
+	// 	control.RefreshSize()
+	// text_width := GUI.BASE_FONT_SIZE*len(label_text)*6/5 + checkbox_size
+
+	// }
+}
+
+func (view *DiscreteMultiView) SetFont(font *windigo.Font) {
+	view.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
+	for _, control := range view.buttons {
+		control.SetFont(font)
+	}
+}
+
 func (data_view DiscreteMultiView) Get() []string {
 	var selected []string
 	for _, button := range data_view.buttons {
@@ -22,6 +39,12 @@ func (data_view DiscreteMultiView) Get() []string {
 		}
 	}
 	return selected
+}
+
+func (view *DiscreteMultiView) Clear() {
+	for _, control := range view.buttons {
+		control.SetChecked(false)
+	}
 }
 
 func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *DiscreteMultiView {

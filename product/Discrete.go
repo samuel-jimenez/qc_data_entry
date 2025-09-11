@@ -82,6 +82,15 @@ func (control DiscreteView) SetItemSize(width int) {
 }
 
 func BuildNewDiscreteView(parent windigo.Controller, group_text string, field_data Discrete, labels []string) *DiscreteView {
+	view := BuildNewDiscreteView_NOUPDATE(parent, group_text, labels)
+
+	view.Update(field_data)
+	view.Ok()
+
+	return view
+}
+
+func BuildNewDiscreteView_NOUPDATE(parent windigo.Controller, group_text string, labels []string) *DiscreteView {
 	view := new(DiscreteView)
 
 	panel := windigo.NewGroupAutoPanel(parent)
@@ -103,9 +112,6 @@ func BuildNewDiscreteView(parent windigo.Controller, group_text string, field_da
 	}
 	// view.View.ComponentFrame = View{panel}
 	view.View.ComponentFrame = panel
-
-	view.Update(field_data)
-	view.Ok()
 
 	return view
 }

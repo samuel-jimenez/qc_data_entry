@@ -8,6 +8,8 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
+	"github.com/samuel-jimenez/qc_data_entry/blender/blendbound"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -188,7 +190,10 @@ func (view *QCBlendComponentView) Update_component_types() {
 			view.component_types_list = append(view.component_types_list, name)
 			return nil
 		},
-		DB.DB_Select_component_type_product, view.recipeComponent.Component_type_id)
+		DB.DB_Select_component_type_product, view.recipeComponent.Component_type_id,
+		product.Status_TESTED,
+		blendbound.Status_UNAVAILABLE,
+	)
 
 	text := view.component_field.Text()
 	view.component_field.Update(view.component_types_list)

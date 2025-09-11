@@ -138,7 +138,8 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 	}
 
 	changeContainer := func(qc_product *product.QCProduct) {
-		if int(qc_product.Container_type.Int32) == DB.CONTAINER_RAILCAR {
+		// if int(qc_product.Container_type.Int32) == product.CONTAINER_RAILCAR {
+		if qc_product.Container_type == product.CONTAINER_RAILCAR {
 			bottom_group.Show()
 			button_dock_cars.Show()
 			button_dock_totes.Hide()
@@ -146,9 +147,9 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 			bottom_group.Hide()
 			button_dock_cars.Hide()
 			// // TODO
-			// if int(qc_product.Container_type.Int32) == DB.CONTAINER_TOTE {
+			// if int(qc_product.Container_type.Int32) == product.CONTAINER_TOTE {
 			button_dock_totes.Show()
-			// } else { // DB.CONTAINER_SAMPLE
+			// } else { // product.CONTAINER_SAMPLE
 			// 					NO COA
 			// no storage
 			// TODO blend013 ensurethis works with testing blends

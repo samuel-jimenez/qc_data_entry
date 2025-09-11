@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/xuri/excelize/v2"
@@ -93,6 +94,29 @@ func get_sheets(file_name string) {
 	})
 }
 
+// format containers consistently
+func format_container(container_name string) (string, product.ProductContainerType) {
+	container_type := product.CONTAINER_RAILCAR
+	iso_detect_re := regexp.MustCompile(`^ISO `)
+	iso_replace_re := regexp.MustCompile(`\s`)
+	container_re := regexp.MustCompile(`(?:.*-|[\s])`)
+
+	if iso_detect_re.MatchString(container_name) {
+		container_name = iso_detect_re.ReplaceAllString(container_name, "")
+		container_name = iso_replace_re.ReplaceAllString(container_name, "")
+
+		container_type = product.CONTAINER_ISO
+
+	} else {
+		container_name = container_re.ReplaceAllString(container_name, "")
+	}
+
+	if len(container_name) > 4 {
+		container_name = fmt.Sprintf("%s %s", container_name[:4], container_name[4:])
+	}
+	return container_name, container_type
+}
+
 func get_sched(file_name, worksheet_name string) {
 	proc_name := "InboundSync.DB_Select_inbound_lot_status"
 	InboundLotMap0 := blendbound.NewInboundLotMapFromQuery()
@@ -102,7 +126,9 @@ func get_sched(file_name, worksheet_name string) {
 	withOpenFile(file_name, func(xl_file *excelize.File) error {
 		// status_here := "ARRIVED"
 		status_here := []string{"ARRIVED", "OPEN"}
-		re := regexp.MustCompile(`.*-`)
+		amount_re := regexp.MustCompile(`[,\s]`)
+
+		// ISO RLTU205426-8
 
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)
@@ -110,7 +136,7 @@ func get_sched(file_name, worksheet_name string) {
 			log.Println(err)
 			return err
 		}
-		log.Printf("Info: [%s]:  New railcars:  \n", proc_name)
+		// log.Printf("Info: [%s]:  New railcars:  \n", proc_name)
 		for _, row := range rows {
 			// // info
 			// 		for i, col := range row {
@@ -120,58 +146,63 @@ func get_sched(file_name, worksheet_name string) {
 
 			// release_date := row[16]
 			released_row := 16
+			comments_row := 16
+			amount_threshold := 18000
 
 			asn := row[1]
-			// container := row[2]
-			// "Isomeric-TCIX 258634"
-			container := re.ReplaceAllString(row[2], "")
+			// format containers consistently
+			container_name, container_type := format_container(row[2])
+
 			product := row[5]
 			lot := row[7]
 			arrival := row[10]
 			status := row[11]
+			amount, _ := strconv.Atoi(amount_re.ReplaceAllString(row[12], ""))
+
 			provider := "SNF" // TODO inbound_provider_list
 
 			// sync db to  schedule
 			//schedule is authorative source, so if an item does not exist in it, we should remove it
 
 			if slices.Contains(status_here, status) {
-
 				if (lot == "" || lot == "unknown") && arrival != "" && asn != "" {
 					lot = fmt.Sprintf("%s/%s", asn, strings.ReplaceAll(arrival, "-", ""))
 					// TODO maybe regen asn as BSRC
 					provider = "Unknown" // TODO inbound_provider_list
 				}
-				// log.Println("DEBUG: found:", lot, product, provider, container, status)
-				if len(row) > released_row && row[released_row] != "" && InboundLotMap0[lot] != nil {
+				if false || // just format it good the first time
+					amount < amount_threshold ||
+					len(row) > released_row && row[released_row] != "" ||
+					len(row) > comments_row && strings.Contains(row[comments_row], "release") {
 					continue
 				}
 
 				if InboundLotMap0[lot] == nil {
-					inby := blendbound.NewInboundLotFromValues(lot, product, provider, container, blendbound.Status_AVAILABLE)
+					inby := blendbound.NewInboundLotFromValues(lot, product, provider, container_name, container_type, blendbound.Status_AVAILABLE)
 					if inby == nil {
-						log.Printf("error: [%s invalid product]: %q - %q : %q\\n", proc_name, container, product, lot)
+						log.Printf("error: [%s invalid product]: %q - %q : %q\\n", proc_name, container_name, product, lot)
 						// invalid product
 						continue
 					}
-					log.Printf("Info: [%s]:  New railcar:  %q - %q : %q\n", proc_name, container, product, lot)
-
+					log.Printf("Info: [%s]:  New %s:  %q : %q - %q\n", proc_name, container_type, lot, container_name, product)
 					inby.Insert()
 					InboundLotMap1[lot] = inby
-					InboundContainerMap[container] = inby
+					InboundContainerMap[container_name] = inby
 				} else {
 					InboundLotMap1[lot] = InboundLotMap0[lot]
 					delete(InboundLotMap0, lot)
 				}
 			}
 		}
-
-		log.Printf("Info: [%s]:  Departed railcars:  \n", proc_name)
+		// log.Printf("Info: [%s]:  Departed railcars:  \n", proc_name)
 		// items not found as "available"
 		for key, val := range InboundLotMap0 {
 			if val.Status_name != blendbound.Status_UNAVAILABLE {
-				log.Printf("Info: [%s]: Railcar departed: %q : %q - %q\n", proc_name, val.Container_name, val.Product_name, val.Lot_number)
+				// log.Printf("Info: [%s]: %s departed: %q : %q - %q\n", proc_name, val.Container_type, val.Lot_number, val.Container_name, val.Product_name)
+				log.Printf("Info: [%s]: Railcar departed: %q : %q - %q\n", proc_name, val.Lot_number, val.Container_name, val.Product_name)
 				if cont := InboundContainerMap[val.Container_name]; cont != nil {
-					log.Printf("Warning: [%s]: Railcar departed and arrived: %q : %q - %q,  %q : %q - %q\n", proc_name, val.Container_name, val.Product_name, val.Lot_number, cont.Container_name, cont.Product_name, cont.Lot_number)
+					// log.Printf("Warning: [%s]: %s departed and arrived: %q : %q - %q,  %q : %q - %q\n", proc_name, val.Container_type, val.Lot_number, val.Container_name, val.Product_name, cont.Lot_number, cont.Container_name, cont.Product_name)
+					log.Printf("Warning: [%s]: Railcar departed and arrived: %q : %q - %q,  %q : %q - %q\n", proc_name, val.Lot_number, val.Container_name, val.Product_name, cont.Lot_number, cont.Container_name, cont.Product_name)
 					//TODO take input, possibly rename lot
 				}
 				val.Update_status(blendbound.Status_UNAVAILABLE)
@@ -205,6 +236,22 @@ func get_sched(file_name, worksheet_name string) {
 			delete(InboundLotMap0, key)
 		}
 
+		// get all tested
+		proc_name = "InboundSync.DB_Select_inbound_lot_status.Status_TESTED"
+		log.Printf("Info: [%s]:  Tested railcars:  \n", proc_name)
+		DB.Forall_err(proc_name,
+			func() {},
+			func(row *sql.Rows) error {
+				val, err := blendbound.NewInboundLotFromRow(row)
+				if err != nil {
+					return err
+				}
+
+				log.Printf("Info: [%s]:  %q : %q - %q\n", proc_name, val.Lot_number, val.Container_name, val.Product_name)
+				return nil
+			},
+			DB.DB_Select_inbound_lot_status, blendbound.Status_TESTED)
+
 		// get all available
 		proc_name = "InboundSync.DB_Select_inbound_lot_status.AVAILABLE"
 		DB.Forall_err(proc_name,
@@ -221,11 +268,12 @@ func get_sched(file_name, worksheet_name string) {
 				return nil
 			},
 			DB.DB_Select_name_inbound_lot_status, blendbound.Status_AVAILABLE)
+
 		// process new entries
 		log.Printf("Info: [%s]:  Available railcars:  \n", proc_name)
 		for _, val := range InboundLotMap0 {
 			// TODO ...? idk print maybe?
-			log.Printf("Info: [%s]: %q, %q\n", proc_name, val.Lot_number, val.Container_name)
+			log.Printf("Info: [%s]:  %q : %q - %q\n", proc_name, val.Lot_number, val.Container_name, val.Product_name)
 		}
 
 		return nil

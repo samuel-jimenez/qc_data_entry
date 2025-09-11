@@ -23,13 +23,13 @@ type QCProduct struct {
 	Product
 	Appearance     ProductAppearance
 	Product_type   Discrete
-	Container_type Discrete
+	Container_type ProductContainerType // bs.container_types
 	PH             datatypes.Range
 	SG             datatypes.Range
 	Density        datatypes.Range
 	String_test    datatypes.Range
 	Viscosity      datatypes.Range
-	Update         func()
+	UpdateFN       func(*QCProduct)
 }
 
 func NewQCProduct() *QCProduct {
@@ -40,37 +40,37 @@ func NewQCProduct() *QCProduct {
 	return qc_product
 }
 
-func (product *QCProduct) ResetQC() {
+func (qc_product *QCProduct) ResetQC() {
 	var empty_product QCProduct
-	empty_product.Product = product.Product
-	empty_product.Update = product.Update
-	*product = empty_product
+	empty_product.Product = qc_product.Product
+	empty_product.UpdateFN = qc_product.UpdateFN
+	*qc_product = empty_product
 }
 
-func (product *QCProduct) Select_product_details() {
+func (qc_product *QCProduct) Select_product_details() {
 
-	err := DB.DB_Select_product_details.QueryRow(product.Product_id).Scan(
-		&product.Product_type, &product.Container_type, &product.Appearance,
-		&product.PH.Min, &product.PH.Target, &product.PH.Max,
-		&product.SG.Min, &product.SG.Target, &product.SG.Max,
-		&product.Density.Min, &product.Density.Target, &product.Density.Max,
-		&product.String_test.Min, &product.String_test.Target, &product.String_test.Max,
-		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
+	err := DB.DB_Select_product_details.QueryRow(qc_product.Product_id).Scan(
+		&qc_product.Product_type, &qc_product.Container_type, &qc_product.Appearance,
+		&qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
+		&qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
+		&qc_product.Density.Min, &qc_product.Density.Target, &qc_product.Density.Max,
+		&qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
+		&qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
 	)
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", "Select_product_details", err)
 	}
 }
 
-func (product *QCProduct) Select_product_coa_details() {
+func (qc_product *QCProduct) Select_product_coa_details() {
 
-	err := DB.DB_Select_product_coa_details.QueryRow(product.Product_id).Scan(
-		&product.Appearance,
-		&product.PH.Min, &product.PH.Target, &product.PH.Max,
-		&product.SG.Min, &product.SG.Target, &product.SG.Max,
-		&product.Density.Min, &product.Density.Target, &product.Density.Max,
-		&product.String_test.Min, &product.String_test.Target, &product.String_test.Max,
-		&product.Viscosity.Min, &product.Viscosity.Target, &product.Viscosity.Max,
+	err := DB.DB_Select_product_coa_details.QueryRow(qc_product.Product_id).Scan(
+		&qc_product.Appearance,
+		&qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
+		&qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
+		&qc_product.Density.Min, &qc_product.Density.Target, &qc_product.Density.Max,
+		&qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
+		&qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
 	)
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", "select_product_coa_details", err)
@@ -78,17 +78,17 @@ func (product *QCProduct) Select_product_coa_details() {
 	// TODO 2025/07/31 14:50:45 Error: [select_product_coa_details]: "sql: no rows in result set"
 }
 
-func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
+func (qc_product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 
-	DB.DB_Insert_appearance.Exec(product.Appearance)
-	DB.DB_Upsert_product_type.Exec(product.Product_id, product.Product_type)
+	DB.DB_Insert_appearance.Exec(qc_product.Appearance)
+	DB.DB_Upsert_product_type.Exec(qc_product.Product_id, qc_product.Product_type)
 	_, err := db_upsert_statement.Exec(
-		product.Product_id, product.Product_type, product.Appearance,
-		product.PH.Min, product.PH.Target, product.PH.Max,
-		product.SG.Min, product.SG.Target, product.SG.Max,
-		product.Density.Min, product.Density.Target, product.Density.Max,
-		product.String_test.Min, product.String_test.Target, product.String_test.Max,
-		product.Viscosity.Min, product.Viscosity.Target, product.Viscosity.Max,
+		qc_product.Product_id, qc_product.Product_type, qc_product.Appearance,
+		qc_product.PH.Min, qc_product.PH.Target, qc_product.PH.Max,
+		qc_product.SG.Min, qc_product.SG.Target, qc_product.SG.Max,
+		qc_product.Density.Min, qc_product.Density.Target, qc_product.Density.Max,
+		qc_product.String_test.Min, qc_product.String_test.Target, qc_product.String_test.Max,
+		qc_product.Viscosity.Min, qc_product.Viscosity.Target, qc_product.Viscosity.Max,
 	)
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", "upsert", err)
@@ -101,8 +101,8 @@ func (product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 	// return product_type_id_default, product_name_customer_default
 
 }
-func (product QCProduct) Upsert()     { product._upsert(DB.DB_Upsert_product_details) }
-func (product QCProduct) Upsert_coa() { product._upsert(DB.DB_Upsert_product_coa_details) }
+func (qc_product QCProduct) Upsert()     { qc_product._upsert(DB.DB_Upsert_product_details) }
+func (qc_product QCProduct) Upsert_coa() { qc_product._upsert(DB.DB_Upsert_product_coa_details) }
 
 func write_CoA_cell(row *docx.Row, value string) {
 	cell := row.AddCell()
@@ -129,7 +129,7 @@ func write_CoA_row_fmt_int64(table *docx.Table, title, units string, spec dataty
 	}
 }
 
-func (product QCProduct) write_CoA_rows(table *docx.Table) {
+func (qc_product QCProduct) write_CoA_rows(table *docx.Table) {
 	var (
 		Appearance_units = "Pass/fail"
 
@@ -147,28 +147,28 @@ func (product QCProduct) write_CoA_rows(table *docx.Table) {
 		// visual        = "PASS"
 		visual = "FAIL"
 	)
-	if product.Visual {
+	if qc_product.Visual {
 		visual = "PASS"
 	}
 	Format_sg := func(sg float64) string {
-		return formats.Format_sg(sg, product.Product.PH.Valid)
+		return formats.Format_sg(sg, qc_product.Product.PH.Valid)
 	}
 
 	// TODO: use QCProduct so this is not required
-	product.Select_product_coa_details()
+	qc_product.Select_product_coa_details()
 
-	write_CoA_row(table, Appearance_title, Appearance_units, product.Appearance.String, visual)
-	write_CoA_row_fmt(table, ph_title, "", product.PH, product.Product.PH, formats.Format_ph)
-	write_CoA_row_fmt(table, sg_title, formats.SG_UNITS, product.SG, product.Product.SG, Format_sg)
-	write_CoA_row_fmt(table, Density_title, formats.DENSITY_UNITS, product.Density, product.Product.Density, formats.Format_density)
+	write_CoA_row(table, Appearance_title, Appearance_units, qc_product.Appearance.String, visual)
+	write_CoA_row_fmt(table, ph_title, "", qc_product.PH, qc_product.Product.PH, formats.Format_ph)
+	write_CoA_row_fmt(table, sg_title, formats.SG_UNITS, qc_product.SG, qc_product.Product.SG, Format_sg)
+	write_CoA_row_fmt(table, Density_title, formats.DENSITY_UNITS, qc_product.Density, qc_product.Product.Density, formats.Format_density)
 	// write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
-	write_CoA_row_fmt_int64(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
+	write_CoA_row_fmt_int64(table, string_title, formats.STRING_UNITS, qc_product.String_test, qc_product.Product.String_test, formats.Format_string_test)
 	// write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
-	write_CoA_row_fmt_int64(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
+	write_CoA_row_fmt_int64(table, viscosity_title, formats.VISCOSITY_UNITS, qc_product.Viscosity, qc_product.Product.Viscosity, formats.Format_viscosity)
 
 }
 
-func (product *QCProduct) Edit(
+func (qc_product *QCProduct) Edit(
 	product_type Discrete,
 	Appearance ProductAppearance,
 	PH,
@@ -177,15 +177,26 @@ func (product *QCProduct) Edit(
 	String_test,
 	Viscosity datatypes.Range,
 ) {
-	product.Product_type = product_type
-	product.Appearance = Appearance
-	product.PH = PH
-	product.SG = SG
-	product.Density = Density
-	product.String_test = String_test
-	product.Viscosity = Viscosity
+	qc_product.Product_type = product_type
+	qc_product.Appearance = Appearance
+	qc_product.PH = PH
+	qc_product.SG = SG
+	qc_product.Density = Density
+	qc_product.String_test = String_test
+	qc_product.Viscosity = Viscosity
 }
 
-func (product QCProduct) Check(data Product) bool {
-	return product.PH.Check(data.PH.Float64) && product.SG.Check(data.SG.Float64)
+func (qc_product QCProduct) Check(data Product) bool {
+	return qc_product.PH.Check(data.PH.Float64) && qc_product.SG.Check(data.SG.Float64)
+}
+
+func (qc_product *QCProduct) SetUpdate(UpdateFN func(*QCProduct)) {
+	qc_product.UpdateFN = UpdateFN
+}
+
+func (qc_product *QCProduct) Update() {
+	if qc_product.UpdateFN == nil {
+		return
+	}
+	qc_product.UpdateFN(qc_product)
 }

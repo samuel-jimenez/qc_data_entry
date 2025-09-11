@@ -34,7 +34,10 @@ var (
 	BTM_SPACER_HEIGHT,
 
 	TOP_PANEL_WIDTH,
+	HPANEL_WIDTH,
 	REPRINT_BUTTON_WIDTH,
+	REPRINT_BUTTON_MARGIN_L,
+
 	TOP_PANEL_INTER_SPACER_WIDTH,
 	HPANEL_MARGIN,
 
@@ -165,15 +168,6 @@ func NewListComboBox(parent windigo.Controller, field_text string) *ComboBox {
 	return combobox_field
 }
 
-func NewSizedListComboBox(parent windigo.Controller, label_width, control_width, height int, field_text string) *ComboBox {
-	combobox_field := &ComboBox{windigo.NewSizedLabeledListComboBox(parent, label_width, control_width, height, field_text)}
-	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
-		combobox_field.SetText(strings.ToUpper(strings.TrimSpace(combobox_field.Text())))
-	})
-
-	return combobox_field
-}
-
 func (control *ComboBox) Ok() {
 	// control.SetBorder(nil)
 	control.ClearFGColor()
@@ -205,6 +199,88 @@ type SearchBox struct {
 	onChange windigo.EventManager
 }
 
+func NewSearchBox(parent windigo.Controller) *SearchBox {
+	return NewLabeledSearchBox(parent, "")
+}
+
+func NewLabeledSearchBox(parent windigo.Controller, Label string) *SearchBox {
+	data_view := new(SearchBox)
+
+	data_view.ComboBox = NewComboBox(parent, Label)
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+
+		start, _ := data_view.Selected()
+
+		text := strings.ToUpper(data_view.Text())
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+
+		data_view.SetText(text)
+
+		data_view.SelectText(start, -1)
+		data_view.onChange.Fire(e)
+	})
+
+	return data_view
+}
+
+func NewSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
+	data_view := NewSearchBox(parent)
+	data_view.Update(labels)
+	return data_view
+}
+
+func NewSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.Stmt, args ...any) *SearchBox {
+	return NewLabeledSearchBoxFromQuery(parent, "", select_statement, args...)
+}
+
+func NewLabeledSearchBoxFromQuery(parent windigo.Controller, Label string, select_statement *sql.Stmt, args ...any) *SearchBox {
+	data_view := NewLabeledSearchBox(parent, Label)
+	data_view.FromQuery(select_statement, args...)
+	return data_view
+}
+
+func NewLabeledListSearchBox(parent windigo.Controller, Label string) *SearchBox {
+	// data_view := NewLabeledSearchBox(parent, Label)
+	data_view := new(SearchBox)
+
+	data_view.ComboBox = NewComboBox(parent, Label)
+	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
+
+		start, _ := data_view.Selected()
+
+		text := strings.ToUpper(data_view.Text())
+		terms := strings.Split(text, " ")
+		data_view.Search(terms)
+
+		//TODO split
+		data_view.ShowDropdown(false)
+		data_view.SetText(text)
+		data_view.ShowDropdown(true)
+
+		data_view.SelectText(start, -1)
+		data_view.onChange.Fire(e)
+	})
+	return data_view
+
+}
+
+func NewListSearchBox(parent windigo.Controller) *SearchBox {
+	return NewLabeledListSearchBox(parent, "")
+}
+
+func NewListSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
+	data_view := NewListSearchBox(parent)
+	data_view.Update(labels)
+	return data_view
+}
+
+func NewListSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.Stmt, args ...any) *SearchBox {
+	data_view := NewListSearchBox(parent)
+	data_view.FromQuery(select_statement, args...)
+	return data_view
+}
+
 func (data_view *SearchBox) Update(set []string) {
 	data_view.entries = set
 	data_view.DeleteAllItems()
@@ -226,35 +302,7 @@ func (data_view *SearchBox) FromQuery(select_statement *sql.Stmt, args ...any) {
 	}, select_statement, args...)
 }
 
-// TODO c.f Fill_combobox_from_query_fn, Fill_combobox_from_query_rows_0
-// TODO? maybe rmove
-func (data_view *SearchBox) _FromFn_Query_xx(fn func(int, string), select_statement *sql.Stmt, args ...any) {
-	DB.Forall_err("SearchBox.FromFnQuery",
-		func() {
-			data_view.entries = nil
-			data_view.DeleteAllItems()
-		},
-		func(row *sql.Rows) error {
-			var (
-				id   int
-				name string
-			)
-
-			if err := row.Scan(
-				&id, &name,
-			); err != nil {
-				return err
-			}
-			//??TODO do we needthis??
-			// data_view.AddItem(name)
-			data_view.entries = append(data_view.entries, name)
-			fn(id, name)
-			return nil
-		},
-		select_statement, args...)
-}
-
-// TODO c.f Fill_combobox_from_query_fn, Fill_combobox_from_query_rows_0
+// TODO c.f Fill_combobox_from_query_fn
 // data_view.entries = nil
 // Fill_combobox_from_query_fn(data_view, fn, select_statement, args...)
 func (data_view *SearchBox) Fill_FromFnQuery(fn func(int, string), select_statement *sql.Stmt, args ...any) {
@@ -329,92 +377,4 @@ func (data_view SearchBox) Search(terms []string) {
 
 func (control *SearchBox) OnChange() *windigo.EventManager {
 	return &control.onChange
-}
-
-func NewSearchBox(parent windigo.Controller) *SearchBox {
-	return NewLabeledSearchBox(parent, "")
-}
-
-func NewLabeledSearchBox(parent windigo.Controller, Label string) *SearchBox {
-	data_view := new(SearchBox)
-
-	data_view.ComboBox = NewComboBox(parent, Label)
-	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
-
-		start, _ := data_view.Selected()
-
-		text := strings.ToUpper(data_view.Text())
-		terms := strings.Split(text, " ")
-		data_view.Search(terms)
-
-		data_view.SetText(text)
-
-		data_view.SelectText(start, -1)
-		data_view.onChange.Fire(e)
-	})
-
-	return data_view
-}
-
-func NewSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
-	data_view := NewSearchBox(parent)
-	data_view.Update(labels)
-	return data_view
-}
-
-func NewSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.Stmt, args ...any) *SearchBox {
-	return NewLabeledSearchBoxFromQuery(parent, "", select_statement, args...)
-}
-
-func NewLabeledSearchBoxFromQuery(parent windigo.Controller, Label string, select_statement *sql.Stmt, args ...any) *SearchBox {
-	data_view := NewLabeledSearchBox(parent, Label)
-	data_view.FromQuery(select_statement, args...)
-	return data_view
-}
-
-func NewLabeledListSearchBox(parent windigo.Controller, Label string) *SearchBox {
-	// data_view := NewLabeledSearchBox(parent, Label)
-	data_view := new(SearchBox)
-
-	data_view.ComboBox = NewComboBox(parent, Label)
-	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
-
-		start, _ := data_view.Selected()
-
-		text := strings.ToUpper(data_view.Text())
-		terms := strings.Split(text, " ")
-		data_view.Search(terms)
-
-		//TODO split
-		data_view.ShowDropdown(false)
-		data_view.SetText(text)
-		data_view.ShowDropdown(true)
-
-		data_view.SelectText(start, -1)
-		data_view.onChange.Fire(e)
-	})
-	return data_view
-
-}
-
-func NewSizedLabeledListSearchBox(parent windigo.Controller, label_width, control_width, height int, field_text string) *SearchBox {
-	data_view := NewLabeledListSearchBox(parent, field_text)
-	data_view.SetLabeledSize(label_width, control_width, height)
-	return data_view
-}
-
-func NewListSearchBox(parent windigo.Controller) *SearchBox {
-	return NewLabeledListSearchBox(parent, "")
-}
-
-func NewListSearchBoxWithLabels(parent windigo.Controller, labels []string) *SearchBox {
-	data_view := NewListSearchBox(parent)
-	data_view.Update(labels)
-	return data_view
-}
-
-func NewListSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.Stmt, args ...any) *SearchBox {
-	data_view := NewListSearchBox(parent)
-	data_view.FromQuery(select_statement, args...)
-	return data_view
 }

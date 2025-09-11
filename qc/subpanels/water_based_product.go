@@ -72,7 +72,7 @@ func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 	submit_cb := func() {
 		measured_product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
 		if measured_product.Check_data() {
-			log.Println("data", measured_product)
+			log.Println("wb sub-data", measured_product)
 			// TODO blend013 ensurethis works with testing blends
 			// measured_product.Save()
 			product.Store(measured_product)
@@ -93,11 +93,14 @@ func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 	}
 
 	log_cb := func() {
-		product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
-		if product.Check_data() {
-			log.Println("data", product)
-			product.Save()
-			product.Export_json()
+		measured_product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
+		if measured_product.Check_data() {
+			log.Println("wb log-data", measured_product)
+			// measured_product.Save()
+			product.Store(measured_product)
+			measured_product.Export_json()
+			// * Check storage
+			measured_product.CheckStorage()
 		}
 	}
 
