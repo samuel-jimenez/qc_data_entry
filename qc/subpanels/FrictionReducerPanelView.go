@@ -138,7 +138,6 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 	}
 
 	changeContainer := func(qc_product *product.QCProduct) {
-		// if int(qc_product.Container_type.Int32) == product.CONTAINER_RAILCAR {
 		if qc_product.Container_type == product.CONTAINER_RAILCAR {
 			bottom_group.Show()
 			button_dock_cars.Show()
@@ -147,7 +146,7 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 			bottom_group.Hide()
 			button_dock_cars.Hide()
 			// // TODO
-			// if int(qc_product.Container_type.Int32) == product.CONTAINER_TOTE {
+			// if qc_product.Container_type == product.CONTAINER_TOTE {
 			button_dock_totes.Show()
 			// } else { // product.CONTAINER_SAMPLE
 			// 					NO COA
