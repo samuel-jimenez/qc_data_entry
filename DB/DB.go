@@ -47,7 +47,7 @@ var (
 	DB_Insert_Product_blend,
 	// lot_list
 	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all,
-	DB_Select_lot_list_name, DB_Select_lot_list_for_name_status, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
+	DB_Select_lot_list_name, DB_Select_lot_list_for_name_status, DB_Update_lot_list_name, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
 	DB_Select_product_lot_list_name,
 	DB_Select_product_lot_list_sources,
 	// product_lot
@@ -540,6 +540,16 @@ where lot_name like ?
 	where lot_name like ?
 	and internal_status_name = ?
 	`)
+
+	DB_Update_lot_list_name = PrepareOrElse(db, `
+update
+bs.lot_list
+
+set
+lot_name = ?2
+
+where lot_id = ?1
+`)
 
 	DB_Update_lot_list__status = PrepareOrElse(db, `
 update bs.lot_list

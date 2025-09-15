@@ -73,7 +73,9 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	reprint_text := "Reprint"
 	inbound_text := "Inbound"
 	sample_button_text := "Sample"
+
 	release_button_text := "Release"
+	today_button_text := "Today"
 
 	inbound_lot_text := "Inbound Lot"
 	internal_text := "Internal"
@@ -125,14 +127,18 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	sample_button.SetText(sample_button_text)
 	sample_button.Hide()
 
+	container_field := product.BuildNewDiscreteView_NOUPDATE(product_panel, "Container Type", []string{"Sample", "Tote", "Railcar", "ISO"}) // bs.container_types
+
 	release_button := windigo.NewPushButton(product_panel)
 	release_button.SetText(release_button_text)
 	release_button.Hide()
 
-	container_field := product.BuildNewDiscreteView_NOUPDATE(product_panel, "Container Type", []string{"Sample", "Tote", "Railcar", "ISO"}) // bs.container_types
-
 	reprint_button := windigo.NewPushButton(product_panel)
 	reprint_button.SetText(reprint_text)
+
+	today_button := windigo.NewPushButton(product_panel)
+	today_button.SetText(today_button_text)
+	today_button.Hide()
 
 	inbound_button := windigo.NewPushButton(product_panel)
 	inbound_button.SetText(inbound_text)
@@ -149,26 +155,25 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 		view.QC_Product,
 		product_panel_0_0, product_panel_0_1,
 		internal_product_field, customer_field, lot_field, sample_field,
+		container_field,
 		ranges_button, reprint_button, inbound_button)
 	view.TopPanelInboundView = NewTopPanelInboundView(
 		view.mainWindow.Form,
 		view.QC_Product,
 		product_panel_1_0, product_panel_1_1,
 		testing_lot_field, inbound_lot_field, inbound_container_field, inbound_product_field,
-		sample_button, release_button, internal_button)
+		sample_button, release_button, today_button, internal_button)
 
 	view.product_panel_0_2 = product_panel_0_2
 	view.clock_panel = clock_panel
 
-	view.tester_field = tester_field
 	view.container_field = container_field
+
+	view.tester_field = tester_field
 
 	//
 	//
 	// Dock
-	//
-	//
-
 	product_panel_0_2.Dock(tester_field, windigo.Left)
 
 	product_panel_0.Dock(clock_panel, windigo.Right)
@@ -179,15 +184,15 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	product_panel_0.Dock(product_panel_0_2, windigo.Top)
 
 	product_panel.Dock(product_panel_0, windigo.Top)
-	product_panel.Dock(ranges_button, windigo.Left)
 	product_panel.Dock(sample_button, windigo.Left)
-	product_panel.Dock(container_field, windigo.Left)
+	product_panel.Dock(ranges_button, windigo.Left)
 	product_panel.Dock(release_button, windigo.Left)
+	product_panel.Dock(container_field, windigo.Left)
+	product_panel.Dock(today_button, windigo.Left)
 	product_panel.Dock(reprint_button, windigo.Left)
 	product_panel.Dock(inbound_button, windigo.Left)
 	product_panel.Dock(internal_button, windigo.Left)
 
-	//
 	//
 	//
 	//
@@ -354,7 +359,7 @@ func (view *TopPanelView) tester_field_text_pop_data(str string) {
 }
 
 func (view *TopPanelView) UpdateProduct(QC_Product *product.QCProduct) {
-	view.container_field.Update(product.DiscreteFromInt(int(QC_Product.Container_type)))
+	view.container_field.Update(product.DiscreteFromContainer(QC_Product.Container_type))
 }
 
 func (view *TopPanelView) ChangeContainer(qc_product *product.QCProduct) {

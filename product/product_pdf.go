@@ -13,7 +13,8 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/util"
 )
 
-func _print(pdf_path string) {
+// TODO extract this stuff to package
+func Print_PDF(pdf_path string) {
 	if threads.PRINT_QUEUE != nil {
 		threads.PRINT_QUEUE <- pdf_path
 		threads.Show_status("Label Printed")
@@ -66,19 +67,19 @@ func (measured_product Product) PrintStorage(qc_sample_storage_name, product_mon
 	}
 	threads.Show_status("Label Created")
 
-	_print(file_path)
+	Print_PDF(file_path)
 
 	return nil
 
 }
 
 /*
- * increment_row_pdf
+ * Increment_row_pdf
  *
  * print a cell, move row by delta
  *
  */
-func increment_row_pdf(pdf *fpdf.Fpdf, x, y, delta_y float64, width, height float64, txtStr string) float64 {
+func Increment_row_pdf(pdf *fpdf.Fpdf, x, y, delta_y float64, width, height float64, txtStr string) float64 {
 	pdf.SetXY(x, y)
 	pdf.Cell(width, height, txtStr)
 	return y + delta_y
@@ -105,17 +106,17 @@ func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name 
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 32)
 
-	curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, qc_sample_storage_name)
+	curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, qc_sample_storage_name)
 
-	curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, product_moniker_name)
+	curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, product_moniker_name)
 
 	if printDates {
 		pdf.SetFontSize(24)
-		curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, start_date.Format(time.DateOnly))
+		curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, start_date.Format(time.DateOnly))
 
-		curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, end_date.Format(time.DateOnly))
+		curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, end_date.Format(time.DateOnly))
 
-		curr_row = increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, retain_date.Format(time.DateOnly))
+		curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, retain_date.Format(time.DateOnly))
 	}
 
 	log.Println("Info: Saving to: ", file_path)

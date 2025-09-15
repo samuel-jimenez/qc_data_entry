@@ -79,17 +79,28 @@ func BlendProductLOTS() string {
 }
 
 // TODO extract, rename
-func Next_Lot_Id(operations_group string) int64 {
-	proc_name := "Next_Lot_Id"
+func Next_Lot_Number(operations_group string) (string, error) {
+	proc_name := "Next_Lot_Number"
 	lot_date := BlendProductLOTS()
 	lot_count := 0
 	err := DB.DB_Select_blend_lot.QueryRow(operations_group + lot_date + "%").Scan(&lot_count)
 	if err != nil {
 		log.Printf("Err: [%s]: %q\n", proc_name, err)
-		return DB.INVALID_ID
+		return "", err
 	}
 	lot_suffix := Alpha(lot_count)
 	Lot_number := operations_group + lot_date + lot_suffix
-	log.Println("Info: Next_Lot_Id: ", Lot_number)
+	log.Println("Info: Next_Lot_Number: ", Lot_number)
+	return Lot_number, nil
+}
+
+func Next_Lot_Id(operations_group string) int64 {
+	// proc_name := "Next_Lot_Id"
+	Lot_number, err := Next_Lot_Number(operations_group)
+	if err != nil {
+		// log.Printf("Err: [%s]: %q\n", proc_name, err)
+		// logging in Next_Lot_Number
+		return DB.INVALID_ID
+	}
 	return DB.Insel_lot_id(Lot_number)
 }

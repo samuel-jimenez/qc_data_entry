@@ -46,7 +46,6 @@ type TopPanelInternalViewer interface {
  * TopPanelInternalView
  *
  */
-
 type TopPanelInternalView struct {
 	*windigo.AutoPanel
 	QC_Product   *product.QCProduct
@@ -59,6 +58,8 @@ type TopPanelInternalView struct {
 	internal_product_field, customer_field,
 	lot_field, sample_field *GUI.ComboBox
 
+	container_field *product.DiscreteView
+
 	ranges_button, reprint_button, inbound_button *windigo.PushButton
 }
 
@@ -67,6 +68,7 @@ func NewTopPanelInternalView(
 	QC_Product *product.QCProduct,
 	product_panel_0_0, product_panel_0_1 *windigo.AutoPanel,
 	internal_product_field, customer_field, lot_field, sample_field *GUI.ComboBox,
+	container_field *product.DiscreteView,
 	ranges_button, reprint_button, inbound_button *windigo.PushButton,
 ) *TopPanelInternalView {
 
@@ -87,25 +89,20 @@ func NewTopPanelInternalView(
 	view.lot_field = lot_field
 	view.sample_field = sample_field
 
+	view.container_field = container_field
+
 	view.ranges_button = ranges_button
 	view.reprint_button = reprint_button
 	view.inbound_button = inbound_button
 
 	//
-	//
 	// Dock
-	//
-	//
 	product_panel_0_0.Dock(internal_product_field, windigo.Left)
 	product_panel_0_0.Dock(customer_field, windigo.Left)
 
 	product_panel_0_1.Dock(lot_field, windigo.Left)
 	product_panel_0_1.Dock(sample_field, windigo.Left)
 
-	//
-	//
-	//
-	//
 	//
 	// combobox
 	GUI.Fill_combobox_from_query_rows(internal_product_field, func(row *sql.Rows) error {
@@ -125,11 +122,7 @@ func NewTopPanelInternalView(
 	}, DB.DB_Select_product_info)
 
 	//
-	//
-	//
-	//
 	// functionality
-
 	internal_product_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.product_field_pop_data(internal_product_field.GetSelectedItem()) })
 	internal_product_field.OnKillFocus().Bind(func(e *windigo.Event) { view.product_field_text_pop_data(internal_product_field.Text()) })
 
@@ -215,6 +208,7 @@ func (view *TopPanelInternalView) Show() {
 	view.product_panel_0_0.Show()
 	view.product_panel_0_1.Show()
 	view.ranges_button.Show()
+	view.container_field.Show()
 	view.reprint_button.Show()
 	view.inbound_button.Show()
 
@@ -225,6 +219,7 @@ func (view *TopPanelInternalView) Hide() {
 	view.product_panel_0_0.Hide()
 	view.product_panel_0_1.Hide()
 	view.ranges_button.Hide()
+	view.container_field.Hide()
 	view.reprint_button.Hide()
 	view.inbound_button.Hide()
 
@@ -241,8 +236,6 @@ func (view *TopPanelInternalView) AlertProduct() {
 }
 
 func (view *TopPanelInternalView) product_field_pop_data(str string) {
-	log.Println("Warn: Debug: product_field_pop_data product_id", view.QC_Product.Product_id)
-	log.Println("Warn: Debug: product_field_pop_data product_lot_id", view.QC_Product.Product_Lot_id)
 
 	view.internal_product_field.Ok()
 

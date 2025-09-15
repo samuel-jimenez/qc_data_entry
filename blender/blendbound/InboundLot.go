@@ -2,25 +2,29 @@ package blendbound
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"math"
+	"strings"
 
+	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/product"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 )
 
-// TODO type00 create type
-var (
-	Status_AVAILABLE   = "AVAILABLE"
-	Status_SAMPLED     = "SAMPLED"
-	Status_TESTED      = "TESTED"
-	Status_UNAVAILABLE = "UNAVAILABLE"
-)
+// TODO type00 export type
+// bs.inbound_status_list
+type Status string
 
-// ('AVAILABLE'),
-// 	('TESTED'),
-// 	('UNAVAILABLE');
+const (
+	Status_AVAILABLE   Status = "AVAILABLE"
+	Status_SAMPLED            = "SAMPLED"
+	Status_TESTED             = "TESTED"
+	Status_UNAVAILABLE        = "UNAVAILABLE"
+)
 
 type InboundLot struct {
 	Lot_id         int64
@@ -32,7 +36,7 @@ type InboundLot struct {
 	Container_id   int64
 	Container_name string
 	Status_id      int64
-	Status_name    string
+	Status_name    Status
 
 	// We don't use this yet.
 	// Container_type product.ProductContainerType
@@ -40,7 +44,7 @@ type InboundLot struct {
 
 func NewInboundLot() *InboundLot { return new(InboundLot) }
 
-func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_name string, Container_type product.ProductContainerType, status_name string) *InboundLot {
+func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_name string, Container_type product.ProductContainerType, status_name Status) *InboundLot {
 	if Lot_number == "" {
 		return nil
 	}
@@ -125,7 +129,7 @@ func (object *InboundLot) Insert() {
 
 }
 
-func (object *InboundLot) Update_status(status string) {
+func (object *InboundLot) Update_status(status Status) {
 	proc_name := "InboundLot.Update_status"
 	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_inbound_status_list.QueryRow(status), &object.Status_id); err != nil {
 		return
@@ -153,6 +157,51 @@ func (object *InboundLot) Update_status(status string) {
 func IntMax(a, b int) int {
 	return int(math.Max(float64(a), float64(b)))
 
+}
+
+func (object *InboundLot) Sample() {
+	proc_name := "InboundLot.Sample"
+
+	object.Update_status(Status_SAMPLED)
+	pdf_path, err := object.ExportSample_label()
+	if err != nil {
+		log.Printf("Error: [%s]: %q\n", proc_name, err)
+		return //err
+	}
+	product.Print_PDF(pdf_path)
+
+}
+
+func (object *InboundLot) ExportSample_label() (string, error) {
+
+	// func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
+	proc_name := "Product.Export_Storage_pdf"
+
+	curr_col := 5.
+	curr_row := 10.
+	curr_row_delta := 15.
+
+	cell_width := 50.
+	cell_height := 10.
+
+	file_path := fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, strings.ReplaceAll(object.Lot_number, "/", "-"), "pdf")
+
+	pdf := fpdf.New("L", "mm", "A7", "")
+	pdf.SetAutoPageBreak(false, 0)
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 32)
+
+	curr_row = product.Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Container_name)
+
+	curr_row = product.Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Lot_number)
+
+	pdf.SetFontSize(22)
+	curr_row = product.Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Product_name)
+
+	log.Println("Info: Saving to: ", file_path)
+	err := pdf.OutputFileAndClose(file_path)
+	util.LogError(proc_name, err)
+	return file_path, err
 }
 
 func (object *InboundLot) Quality_test() {

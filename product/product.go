@@ -232,15 +232,13 @@ func Store(products ...Product) {
 		return
 	}
 	measured_product := products[0]
-	proc_name := "Product.Store"
-	log.Println("DFEBUG: ", proc_name)
+	proc_name := "Product-Store"
 	qc_sample_storage_id := measured_product.GetStorage(numSamples)
-	log.Println("DFEBUG: ", proc_name, numSamples, qc_sample_storage_id)
 
 	for _, product := range products {
 		qc_id := product.Save()
 		// assign storage to sample
-		log.Println("DFEBUG: ", proc_name, qc_id, qc_sample_storage_id)
+		log.Println("DEBUG: ", proc_name, qc_id, qc_sample_storage_id)
 
 		DB.Update(proc_name,
 			DB.DB_Update_qc_samples_storage,
@@ -477,13 +475,13 @@ func (measured_product Product) print() error {
 	}
 	threads.Show_status("Label Created")
 
-	_print(pdf_path)
+	Print_PDF(pdf_path)
 
 	return err
 }
 
 func (measured_product Product) Reprint() {
-	_print(measured_product.get_pdf_name())
+	Print_PDF(measured_product.get_pdf_name())
 }
 
 func (measured_product Product) Reprint_sample() {

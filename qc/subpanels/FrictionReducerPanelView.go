@@ -103,7 +103,6 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 	update := func(qc_product *product.QCProduct) {
 		ranges_panel.Update(qc_product)
 
-		log.Println("TRACE: show_fr.update Blend", qc_product.Blend)
 		// TODO recip00
 		// extract to fn, move componenet panel?
 

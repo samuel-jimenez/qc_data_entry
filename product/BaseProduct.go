@@ -13,15 +13,6 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 )
 
-// TODO type01 create type
-var (
-	Status_REQUESTED = "REQUESTED"
-	Status_PRINTED   = "PRINTED"
-	Status_BLENDED   = "BLENDED"
-	Status_TESTED    = "TESTED"
-	Status_SHIPPED   = "SHIPPED"
-)
-
 func Release_testing_lot(lot_number string) error {
 	proc_name := "product.Release_testing_lot"
 	err := DB.Update(proc_name,
@@ -53,17 +44,12 @@ func (product BaseProduct) Base() BaseProduct {
 }
 
 func (product *BaseProduct) ResetLot() {
-	proc_name := "BaseProduct.ResetLot"
-
 	product.Lot_number = ""
 	product.Product_Lot_id = DB.DEFAULT_LOT_ID
 	product.Lot_id = DB.DEFAULT_LOT_ID
 	product.Product_name_customer = ""
 	product.Product_name_customer_id = nullable.NullInt64Default()
 	product.Blend = nil
-
-	log.Println("Debug:", proc_name, product.Product_id, product.Product_name_customer, product.Product_name_customer_id)
-	log.Println("Debug:", proc_name, product)
 }
 
 //TODO product.get_coa_name()
@@ -108,22 +94,18 @@ func (product *BaseProduct) Insel_product_self() *BaseProduct {
 
 func (product *BaseProduct) Update_lot(lot_number, product_name_customer string) *BaseProduct {
 	product.ResetLot()
-	log.Println("Debug: Update_lot Product_id", product.Product_id, lot_number, product_name_customer)
 	if product.Product_id == DB.INVALID_ID {
 		return product
 	}
 	if product_name_customer != "" {
 		product.Product_name_customer = product_name_customer
 		product.Product_name_customer_id = nullable.NewNullInt64(DB.Insel_product_name_customer(product.Product_name_customer, product.Product_id))
-		log.Println("Debug: Update_lot Product_name_customer_id", product.Product_name_customer, product.Product_name_customer_id)
 	}
 
 	if lot_number != "" {
 		product.Lot_number = lot_number
 		product.Lot_id = DB.Insel_lot_id(product.Lot_number)
-
 		product.Product_Lot_id = DB.Insel_product_lot_id(product.Lot_id, product.Product_id)
-		log.Println("Debug: Update_lot Lot_id", product.Lot_number, product.Product_Lot_id, product.Lot_id)
 
 		DB.DB_Update_lot_customer.Exec(product.Product_name_customer_id, product.Product_Lot_id)
 	}
@@ -187,6 +169,24 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 			return nil
 		},
 		DB.DB_Select_product_lot_list_sources, base_product.Lot_number)
+}
+
+func (base_product *BaseProduct) Update_testing_tttToday_Junior() {
+	proc_name := "BaseProduct.Update_testing_tttToday_Junior"
+
+	operations_group := "BSQL"
+	lot_number, err := blender.Next_Lot_Number(operations_group)
+	if err != nil {
+		return
+	}
+	if err = DB.Update(proc_name,
+		DB.DB_Update_lot_list_name,
+		base_product.Lot_id,
+		lot_number,
+	); err != nil {
+		return
+	}
+	base_product.Update_testing_lot(lot_number)
 }
 
 func (product *BaseProduct) SetTester(Tester string) {
