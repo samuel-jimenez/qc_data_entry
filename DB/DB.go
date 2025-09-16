@@ -62,6 +62,8 @@ var (
 	// product_customer_line
 	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
+	// bs.product_moniker
+	DB_Select_all_product_moniker,
 	// bs.product_sample_points
 	DB_Select_all_sample_points, DB_Select_product_sample_points,
 	DB_Insel_sample_point,
@@ -791,6 +793,18 @@ where blend_components.product_lot_id =?
 		values (?,?)
 	returning product_customer_id
 	`)
+
+	// bs.product_moniker
+	DB_Select_all_product_moniker = PrepareOrElse(db, `
+select
+product_moniker_id, product_moniker_name
+
+from
+bs.product_moniker
+
+order by
+product_moniker_name
+`)
 
 	// bs.product_sample_points
 	DB_Insel_sample_point = PrepareOrElse(db, `

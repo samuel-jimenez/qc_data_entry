@@ -180,8 +180,9 @@ func get_sched(file_name, worksheet_name string) {
 				if InboundLotMap0[lot] == nil {
 					inby := blendbound.NewInboundLotFromValues(lot, product, provider, container_name, container_type, blendbound.Status_AVAILABLE)
 					if inby == nil {
-						log.Printf("error: [%s invalid product]: %q - %q : %q\\n", proc_name, container_name, product, lot)
+						log.Printf("error: [%s invalid product]:  %q : %q - %q\n", proc_name, lot, container_name, product)
 						// invalid product
+						//TODO DB_Insert_inbound_product prompt?
 						continue
 					}
 					log.Printf("Info: [%s]:  New %s:  %q : %q - %q\n", proc_name, container_type, lot, container_name, product)

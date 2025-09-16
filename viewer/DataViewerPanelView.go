@@ -59,7 +59,7 @@ type DataViewerPanelView struct {
 
 	prod_panel, lot_panel *windigo.AutoPanel
 
-	product_field, customer_field,
+	product_field, moniker_field,
 	sample_field *GUI.ComboBox
 
 	product_clear_button, lot_clear_button,
@@ -88,7 +88,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	product_text := "Product"
 	lot_text := "Lot Number"
 	sample_text := "Sample Point"
-	customer_text := "Customer Name"
+	moniker_text := "Product Moniker"
 
 	clear_label := "Clear"
 	export_json_label := "Export JSON"
@@ -104,15 +104,14 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	product_clear_button := windigo.NewPushButton(prod_panel)
 	product_clear_button.SetText("-")
 
-	customer_field := GUI.NewListComboBox(prod_panel, customer_text)
+	moniker_field := GUI.NewListComboBox(prod_panel, moniker_text)
 
 	prod_panel.Dock(product_field, windigo.Left)
 	prod_panel.Dock(product_clear_button, windigo.Left)
-	prod_panel.Dock(customer_field, windigo.Left)
+	prod_panel.Dock(moniker_field, windigo.Left)
 
 	lot_panel := windigo.NewAutoPanel(product_panel)
 
-	//TODO fix ListComboBox sizes so it works like for size 10
 	lot_field := GUI.NewLabeledListSearchBox(lot_panel, lot_text)
 	lot_clear_button := windigo.NewPushButton(lot_panel)
 	lot_clear_button.SetText("-")
@@ -156,7 +155,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	view.product_field = product_field
 	view.lot_field = lot_field
-	view.customer_field = customer_field
+	view.moniker_field = moniker_field
 	view.sample_field = sample_field
 
 	view.product_clear_button = product_clear_button
@@ -202,11 +201,13 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 		view.update_lot(id, name)
 	}, DB.DB_Select_product_lot_all)
 
+	GUI.Fill_combobox_from_query(moniker_field, DB.DB_Select_all_product_moniker)
 	GUI.Fill_combobox_from_query_fn(sample_field, view.update_sample, DB.DB_Select_all_sample_points)
 
 	// listeners
 	product_field.OnSelectedChange().Bind(view.product_field_OnChange)
 	lot_field.OnSelectedChange().Bind(view.lot_field_OnChange)
+	moniker_field.OnSelectedChange().Bind(view.moniker_field_OnChange)
 
 	filter_button.OnClick().Bind(view.filter_button_OnClick)
 	search_button.OnClick().Bind(view.search_button_OnClick)
@@ -224,7 +225,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 
 	view.product_field.SetFont(font)
-	view.customer_field.SetFont(font)
+	view.moniker_field.SetFont(font)
 	view.lot_field.SetFont(font)
 	view.sample_field.SetFont(font)
 
@@ -257,7 +258,7 @@ func (view *DataViewerPanelView) RefreshSize() {
 
 	view.product_clear_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.customer_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.moniker_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	view.lot_clear_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
@@ -267,7 +268,7 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.lot_panel.SetMarginLeft(GUI.HPANEL_MARGIN)
 	view.sample_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 
-	view.customer_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
+	view.moniker_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 	view.prod_panel.SetMarginLeft(GUI.HPANEL_MARGIN)
 	view.prod_panel.SetMarginTop(GUI.TOP_SPACER_HEIGHT)
 
@@ -286,6 +287,9 @@ func (view *DataViewerPanelView) SetMainWindow(mainWindow *ViewerWindow) {
 	view.mainWindow = mainWindow
 }
 
+// TODO combine all this (CLEAR, OnChange) into filter
+// conditional serch, refine (browes)
+// TODO ADD BUTTON TO MOVE TO LOWER FILTERS
 func (view *DataViewerPanelView) clear_product(e *windigo.Event) {
 
 	view.mainWindow.SetTable(select_samples())
@@ -310,6 +314,11 @@ func (view *DataViewerPanelView) clear_lot(e *windigo.Event) {
 	product_id := view.product_data[view.product_field.GetSelectedItem()]
 	view.mainWindow.clear_lot(product_id)
 	view.lot_field.SetSelectedItem(-1)
+}
+
+func (view *DataViewerPanelView) clear_moniker(e *windigo.Event) {
+
+	view.moniker_field.SetSelectedItem(-1)
 }
 
 func (view *DataViewerPanelView) ClearFilters(e *windigo.Event) {
@@ -341,6 +350,8 @@ func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
 
 	view.mainWindow.UpdateFilterListView()
 
+	view.moniker_field.SetSelectedItem(-1)
+
 }
 
 func (view *DataViewerPanelView) lot_field_OnChange(e *windigo.Event) {
@@ -348,6 +359,21 @@ func (view *DataViewerPanelView) lot_field_OnChange(e *windigo.Event) {
 	view.SQLFilters.Filters = []SQLFilter{view.LotFilter}
 	rows, err := QC_DB.Query(SAMPLE_SELECT_STRING + view.SQLFilters.Get())
 	view.mainWindow.SetTable(_select_samples(rows, err, "search samples"))
+
+	view.moniker_field.SetSelectedItem(-1)
+}
+
+func (view *DataViewerPanelView) moniker_field_OnChange(e *windigo.Event) {
+
+	view.clear_product(nil)
+	// view.product_field.SetSelectedItem(-1)
+	// clear_lot
+	view.lot_field.SetSelectedItem(-1)
+
+	product_moniker := view.moniker_field.GetSelectedItem()
+
+	samples := select_product_moniker(product_moniker)
+	view.mainWindow.SetTable(samples)
 }
 
 func (view *DataViewerPanelView) filter_button_OnClick(e *windigo.Event) {
@@ -365,7 +391,6 @@ func (view *DataViewerPanelView) search_button_OnClick(e *windigo.Event) {
 }
 
 func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event) {
-
 	for _, data := range view.mainWindow.GetTable() {
 		data.(QCData).Product().Reprint_sample()
 	}

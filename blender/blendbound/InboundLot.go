@@ -58,6 +58,7 @@ func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_
 	); err != nil {
 		if err != sql.ErrNoRows { // no row? no problem!
 			log.Printf("Error: [%s]: %q\n", proc_name, err)
+			//TODO DB_Insert_inbound_product
 		}
 		return nil
 	}

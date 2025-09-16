@@ -112,9 +112,15 @@ func select_product_samples(product_id int) []QCData {
 	return _select_samples(rows, err, "select_product_samples")
 }
 
+func select_product_moniker(product_moniker string) []QCData {
+	rows, err := DB_Select_product_moniker.Query(product_moniker)
+	return _select_samples(rows, err, "select_product_moniker")
+}
+
 var (
 	SAMPLE_SELECT_STRING string
 	DB_Select_product_samples,
+	DB_Select_product_moniker,
 	DB_Select_samples *sql.Stmt
 )
 
@@ -152,6 +158,10 @@ func DBinit(db *sql.DB) {
 
 	DB_Select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
 	order by product_moniker_name,product_name_internal
+	`)
+
+	DB_Select_product_moniker = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
+	where product_moniker_name = ?
 	`)
 
 }

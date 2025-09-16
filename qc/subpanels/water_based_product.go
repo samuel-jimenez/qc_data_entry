@@ -62,12 +62,12 @@ func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 
 	visual_field := views.NewBoolCheckboxView(group_panel, visual_text)
 
-	sg_field := views.NewNumberEditViewWithChange(group_panel, sg_text, ranges_panel.sg_field)
 	ph_field := views.NewNumberEditViewWithChange(group_panel, ph_text, ranges_panel.ph_field)
+	sg_field := views.NewNumberEditViewWithChange(group_panel, sg_text, ranges_panel.sg_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
-	group_panel.Dock(sg_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)
+	group_panel.Dock(sg_field, windigo.Top)
 
 	submit_cb := func() {
 		measured_product := newWaterBasedProduct(create_new_product_cb(), visual_field.Get(), sg_field.Get(), ph_field.Get())
@@ -170,12 +170,12 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
 	visual_field := product.BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
 
-	sg_field := views.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
 	ph_field := views.BuildNewRangeROView(group_panel, ph_text, qc_product.PH, formats.Format_ranges_ph)
+	sg_field := views.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
 
 	group_panel.Dock(visual_field, windigo.Top)
-	group_panel.Dock(sg_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)
+	group_panel.Dock(sg_field, windigo.Top)
 
 	update := func(qc_product *product.QCProduct) {
 
