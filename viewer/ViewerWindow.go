@@ -33,8 +33,8 @@ type ViewerWinder interface {
 type ViewerWindow struct {
 	*windigo.Form
 
-	product_panel  *DataViewerPanelView
-	FilterListView *SQLFilterListView
+	selection_panel *DataViewerPanelView
+	FilterListView  *SQLFilterListView
 
 	table *QCDataView
 }
@@ -49,8 +49,8 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 
 	dock := windigo.NewSimpleDock(mainWindow)
 
-	product_panel := NewDataViewerPanelView(mainWindow)
-	product_panel.SetMainWindow(mainWindow)
+	selection_panel := NewDataViewerPanelView(mainWindow)
+	selection_panel.SetMainWindow(mainWindow)
 
 	FilterListView := NewSQLFilterListView(mainWindow)
 
@@ -69,7 +69,7 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	mainWindow.SetStatusBar(threads.Status_bar)
 	dock.Dock(threads.Status_bar, windigo.Bottom)
 
-	dock.Dock(product_panel, windigo.Top)
+	dock.Dock(selection_panel, windigo.Top)
 	dock.Dock(FilterListView, windigo.Top)
 
 	dock.Dock(table, windigo.Fill)
@@ -85,7 +85,7 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	FilterListView.Hide()
 
 	// build object
-	mainWindow.product_panel = product_panel
+	mainWindow.selection_panel = selection_panel
 	mainWindow.FilterListView = FilterListView
 	mainWindow.table = table
 
@@ -128,7 +128,7 @@ func (view *ViewerWindow) GetTable() []windigo.ListItem {
 
 func (view *ViewerWindow) SetFont(font *windigo.Font) {
 
-	view.product_panel.SetFont(font)
+	view.selection_panel.SetFont(font)
 	view.FilterListView.SetFont(font)
 	view.table.SetFont(font)
 }
@@ -136,7 +136,7 @@ func (view *ViewerWindow) SetFont(font *windigo.Font) {
 func (view *ViewerWindow) RefreshSize() {
 	refresh_globals(GUI.BASE_FONT_SIZE)
 
-	view.product_panel.RefreshSize()
+	view.selection_panel.RefreshSize()
 	view.FilterListView.RefreshSize()
 	// view.table.RefreshSize()
 

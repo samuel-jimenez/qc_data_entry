@@ -57,7 +57,7 @@ type DataViewerPanelView struct {
 
 	lot_field *GUI.SearchBox
 
-	prod_panel, lot_panel *windigo.AutoPanel
+	product_panel, lot_panel *windigo.AutoPanel
 
 	product_field, moniker_field,
 	sample_field *GUI.ComboBox
@@ -93,24 +93,24 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	clear_label := "Clear"
 	export_json_label := "Export JSON"
 
-	product_panel := windigo.NewAutoPanel(mainWindow)
+	selection_panel := windigo.NewAutoPanel(mainWindow)
 
 	//TODO array db_select_all_product
 
-	prod_panel := windigo.NewAutoPanel(product_panel)
+	product_panel := windigo.NewAutoPanel(selection_panel)
 
-	product_field := GUI.NewListComboBox(prod_panel, product_text)
+	product_field := GUI.NewListComboBox(product_panel, product_text)
 
-	product_clear_button := windigo.NewPushButton(prod_panel)
+	product_clear_button := windigo.NewPushButton(product_panel)
 	product_clear_button.SetText("-")
 
-	moniker_field := GUI.NewListComboBox(prod_panel, moniker_text)
+	moniker_field := GUI.NewListComboBox(product_panel, moniker_text)
 
-	prod_panel.Dock(product_field, windigo.Left)
-	prod_panel.Dock(product_clear_button, windigo.Left)
-	prod_panel.Dock(moniker_field, windigo.Left)
+	product_panel.Dock(product_field, windigo.Left)
+	product_panel.Dock(product_clear_button, windigo.Left)
+	product_panel.Dock(moniker_field, windigo.Left)
 
-	lot_panel := windigo.NewAutoPanel(product_panel)
+	lot_panel := windigo.NewAutoPanel(selection_panel)
 
 	lot_field := GUI.NewLabeledListSearchBox(lot_panel, lot_text)
 	lot_clear_button := windigo.NewPushButton(lot_panel)
@@ -121,36 +121,36 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	lot_panel.Dock(lot_clear_button, windigo.Left)
 	lot_panel.Dock(sample_field, windigo.Left)
 
-	filter_button := windigo.NewPushButton(product_panel)
+	filter_button := windigo.NewPushButton(selection_panel)
 	filter_button.SetText("Filter")
 
-	search_button := windigo.NewPushButton(product_panel)
+	search_button := windigo.NewPushButton(selection_panel)
 	search_button.SetText("Search")
 
-	clear_button := windigo.NewPushButton(product_panel)
+	clear_button := windigo.NewPushButton(selection_panel)
 	clear_button.SetText(clear_label)
 
-	reprint_sample_button := windigo.NewPushButton(product_panel)
+	reprint_sample_button := windigo.NewPushButton(selection_panel)
 	reprint_sample_button.SetText("Reprint Sample")
 
-	regen_sample_button := windigo.NewPushButton(product_panel)
+	regen_sample_button := windigo.NewPushButton(selection_panel)
 	regen_sample_button.SetText("Regen Sample")
 
-	export_json_button := windigo.NewPushButton(product_panel)
+	export_json_button := windigo.NewPushButton(selection_panel)
 	export_json_button.SetText(export_json_label)
 
-	product_panel.Dock(prod_panel, windigo.Top)
-	product_panel.Dock(lot_panel, windigo.Top)
-	product_panel.Dock(filter_button, windigo.Left)
-	product_panel.Dock(search_button, windigo.Left)
-	product_panel.Dock(clear_button, windigo.Left)
+	selection_panel.Dock(product_panel, windigo.Top)
+	selection_panel.Dock(lot_panel, windigo.Top)
+	selection_panel.Dock(filter_button, windigo.Left)
+	selection_panel.Dock(search_button, windigo.Left)
+	selection_panel.Dock(clear_button, windigo.Left)
 
-	product_panel.Dock(reprint_sample_button, windigo.Left)
-	product_panel.Dock(regen_sample_button, windigo.Left)
-	product_panel.Dock(export_json_button, windigo.Left)
+	selection_panel.Dock(reprint_sample_button, windigo.Left)
+	selection_panel.Dock(regen_sample_button, windigo.Left)
+	selection_panel.Dock(export_json_button, windigo.Left)
 
-	view.AutoPanel = product_panel
-	view.prod_panel = prod_panel
+	view.AutoPanel = selection_panel
+	view.product_panel = product_panel
 	view.lot_panel = lot_panel
 
 	view.product_field = product_field
@@ -253,7 +253,7 @@ func (view *DataViewerPanelView) RefreshSize() {
 	top_panel_height := GUI.TOP_SPACER_HEIGHT + GUI.INTER_SPACER_HEIGHT + 2*GUI.PRODUCT_FIELD_HEIGHT + GUI.BUTTON_HEIGHT
 
 	view.AutoPanel.SetSize(GUI.TOP_PANEL_WIDTH, top_panel_height)
-	view.prod_panel.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.product_panel.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.lot_panel.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	view.product_clear_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
@@ -269,8 +269,8 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.sample_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 
 	view.moniker_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
-	view.prod_panel.SetMarginLeft(GUI.HPANEL_MARGIN)
-	view.prod_panel.SetMarginTop(GUI.TOP_SPACER_HEIGHT)
+	view.product_panel.SetMarginLeft(GUI.HPANEL_MARGIN)
+	view.product_panel.SetMarginTop(GUI.TOP_SPACER_HEIGHT)
 
 	view.filter_button.SetSize(GUI.BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.search_button.SetSize(GUI.BUTTON_WIDTH, GUI.OFF_AXIS)
