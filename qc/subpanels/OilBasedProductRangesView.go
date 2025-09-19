@@ -9,10 +9,10 @@ import (
 )
 
 type OilBasedProductRangesViewer interface {
-	Update(*product.QCProduct)
-	Clear()
 	SetFont(font *windigo.Font)
 	RefreshSize()
+	Update(*product.QCProduct)
+	Clear()
 }
 
 type OilBasedProductRangesView struct {
@@ -51,6 +51,24 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *pr
 	}
 }
 
+func (view *OilBasedProductRangesView) SetFont(font *windigo.Font) {
+	view.visual_field.SetFont(font)
+	view.Mass_field.SetFont(font)
+	view.SG_field.SetFont(font)
+	view.Density_field.SetFont(font)
+}
+
+func (view *OilBasedProductRangesView) RefreshSize() {
+	view.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
+	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
+	view.SetMarginTop(GUI.GROUP_MARGIN)
+
+	view.visual_field.RefreshSize()
+	view.Mass_field.RefreshSize()
+	view.SG_field.RefreshSize()
+	view.Density_field.RefreshSize()
+}
+
 func (view *OilBasedProductRangesView) Update(qc_product *product.QCProduct) {
 	view.visual_field.Update(qc_product.Appearance)
 
@@ -62,21 +80,4 @@ func (view *OilBasedProductRangesView) Update(qc_product *product.QCProduct) {
 
 func (data_view *OilBasedProductRangesView) Clear() {
 	data_view.MassRangesView.Clear()
-}
-
-func (view *OilBasedProductRangesView) SetFont(font *windigo.Font) {
-	view.visual_field.SetFont(font)
-	view.Mass_field.SetFont(font)
-	view.SG_field.SetFont(font)
-	view.Density_field.SetFont(font)
-}
-
-func (view *OilBasedProductRangesView) RefreshSize() {
-	view.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
-	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
-
-	view.visual_field.RefreshSize()
-	view.Mass_field.RefreshSize()
-	view.SG_field.RefreshSize()
-	view.Density_field.RefreshSize()
 }

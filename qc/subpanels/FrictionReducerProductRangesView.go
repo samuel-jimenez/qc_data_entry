@@ -12,9 +12,9 @@ type FrictionReducerProductRangesViewer interface {
 	*windigo.AutoPanel
 	*views.MassRangesView
 
-	Update(qc_product *product.QCProduct)
 	SetFont(font *windigo.Font)
 	RefreshSize()
+	Update(*product.QCProduct)
 	Clear()
 }
 
@@ -72,17 +72,6 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 
 }
 
-func (view *FrictionReducerProductRangesView) Update(qc_product *product.QCProduct) {
-	view.visual_field.Update(qc_product.Appearance)
-	view.viscosity_field.Update(qc_product.Viscosity)
-	view.string_field.Update(qc_product.String_test)
-
-	// view.MassRangesView.Update(qc_product)
-	view.Mass_field.Update(qc_product.SG)
-	view.SG_field.Update(qc_product.SG)
-	view.Density_field.Update(qc_product.Density)
-}
-
 func (view *FrictionReducerProductRangesView) SetFont(font *windigo.Font) {
 	view.visual_field.SetFont(font)
 	view.viscosity_field.SetFont(font)
@@ -95,12 +84,25 @@ func (view *FrictionReducerProductRangesView) SetFont(font *windigo.Font) {
 func (view *FrictionReducerProductRangesView) RefreshSize() {
 	view.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
 	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
+	view.SetMarginTop(GUI.GROUP_MARGIN)
+
 	view.visual_field.RefreshSize()
 	view.viscosity_field.RefreshSize()
 	view.Mass_field.RefreshSize()
 	view.string_field.RefreshSize()
 	view.SG_field.RefreshSize()
 	view.Density_field.RefreshSize()
+}
+
+func (view *FrictionReducerProductRangesView) Update(qc_product *product.QCProduct) {
+	view.visual_field.Update(qc_product.Appearance)
+	view.viscosity_field.Update(qc_product.Viscosity)
+	view.string_field.Update(qc_product.String_test)
+
+	// view.MassRangesView.Update(qc_product)
+	view.Mass_field.Update(qc_product.SG)
+	view.SG_field.Update(qc_product.SG)
+	view.Density_field.Update(qc_product.Density)
 }
 
 func (view *FrictionReducerProductRangesView) Clear() {

@@ -107,7 +107,4 @@ func (view *OilBasedProductView) RefreshSize() {
 	view.visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 	view.density_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.DATA_SUBFIELD_WIDTH, GUI.DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 
-	// view.ranges_panel.SetMarginTop(GUI.GROUP_MARGIN)
-	// view.ranges_panel.Refresh()
-
 }

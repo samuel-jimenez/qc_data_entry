@@ -176,7 +176,6 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 		top_group.RefreshSize()
 		bottom_group.RefreshSize()
 
-		ranges_panel.SetMarginTop(GUI.GROUP_MARGIN)
 		ranges_panel.RefreshSize()
 		component_panel.RefreshSize()
 	}

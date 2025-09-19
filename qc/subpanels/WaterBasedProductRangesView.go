@@ -11,9 +11,10 @@ import (
 )
 
 type WaterBasedProductRangesViewer interface {
-	Update(*product.QCProduct)
 	SetFont(font *windigo.Font)
 	RefreshSize()
+	Update(*product.QCProduct)
+	Clear()
 }
 
 type WaterBasedProductRangesView struct {
@@ -23,7 +24,7 @@ type WaterBasedProductRangesView struct {
 	sg_field *views.RangeROView
 }
 
-func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) WaterBasedProductRangesView {
+func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *WaterBasedProductRangesView {
 
 	visual_text := "Visual Inspection"
 	sg_text := "SG"
@@ -41,22 +42,10 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 	group_panel.Dock(ph_field, windigo.Top)
 	group_panel.Dock(sg_field, windigo.Top)
 
-	return WaterBasedProductRangesView{group_panel, &visual_field, &ph_field, &sg_field}
+	return &WaterBasedProductRangesView{group_panel, &visual_field, &ph_field, &sg_field}
 
 }
 
-func (view *WaterBasedProductRangesView) Update(qc_product *product.QCProduct) {
-
-	log.Println("Debug:BuildNewWaterBasedProductRangesView  update", qc_product)
-	view.visual_field.Update(qc_product.Appearance)
-	view.sg_field.Update(qc_product.SG)
-	view.ph_field.Update(qc_product.PH)
-}
-
-func (view WaterBasedProductRangesView) Clear() {
-	view.ph_field.Clear()
-	view.sg_field.Clear()
-}
 
 func (view *WaterBasedProductRangesView) SetFont(font *windigo.Font) {
 	view.visual_field.SetFont(font)
@@ -67,8 +56,22 @@ func (view *WaterBasedProductRangesView) SetFont(font *windigo.Font) {
 func (view *WaterBasedProductRangesView) RefreshSize() {
 	view.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
 	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
+	view.SetMarginTop(GUI.GROUP_MARGIN)
 
 	view.visual_field.RefreshSize()
 	view.sg_field.RefreshSize()
 	view.ph_field.RefreshSize()
+}
+
+func (view *WaterBasedProductRangesView) Update(qc_product *product.QCProduct) {
+
+	log.Println("Debug:BuildNewWaterBasedProductRangesView  update", qc_product)
+	view.visual_field.Update(qc_product.Appearance)
+	view.sg_field.Update(qc_product.SG)
+	view.ph_field.Update(qc_product.PH)
+}
+
+func (view *WaterBasedProductRangesView) Clear() {
+	view.ph_field.Clear()
+	view.sg_field.Clear()
 }

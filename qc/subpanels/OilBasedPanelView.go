@@ -88,7 +88,6 @@ func (view *OilBasedPanelView) RefreshSize() {
 
 	view.group_panel.RefreshSize()
 
-	view.ranges_panel.SetMarginTop(GUI.GROUP_MARGIN)
 	view.ranges_panel.RefreshSize()
 
 	view.button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
