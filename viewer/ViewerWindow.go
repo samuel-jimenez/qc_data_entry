@@ -18,7 +18,7 @@ type ViewerWinder interface {
 	ClearFilters()
 	SetTable(samples []QCData)
 	GetTable() []windigo.ListItem
-	SetFont()
+	SetFont(font *windigo.Font)
 	RefreshSize()
 	AddShortcuts()
 	set_font_size()
@@ -62,7 +62,7 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
 	table := NewQCDataView(mainWindow)
-	table.Set(select_samples())
+	table.Set(select_all_samples())
 	table.Update()
 
 	threads.Status_bar = windigo.NewStatusBar(mainWindow)
@@ -92,16 +92,6 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	return mainWindow
 }
 
-func (view *ViewerWindow) clear_lot(product_id int) {
-
-	if product_id > 0 {
-		view.table.Set(select_product_samples(product_id))
-	} else {
-		view.table.Set(select_samples())
-	}
-	view.table.Update()
-}
-
 func (view *ViewerWindow) ToggleFilterListView() {
 	if view.FilterListView.Visible() {
 		view.FilterListView.Hide()
@@ -110,12 +100,20 @@ func (view *ViewerWindow) ToggleFilterListView() {
 	}
 }
 
+func (view *ViewerWindow) ShowFilterListView() {
+	view.FilterListView.Show()
+}
+
 func (view *ViewerWindow) UpdateFilterListView() {
 	view.FilterListView.Update(COL_KEY_LOT, COL_ITEMS_LOT)
 	view.FilterListView.Update(COL_KEY_SAMPLE_PT, COL_ITEMS_SAMPLE_PT)
 }
 func (view *ViewerWindow) ClearFilters() {
 	view.FilterListView.Clear()
+}
+
+func (view *ViewerWindow) AddItem(key string, entry string) {
+	view.FilterListView.AddItem(key, entry)
 }
 
 func (view *ViewerWindow) SetTable(samples []QCData) {

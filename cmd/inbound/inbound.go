@@ -177,6 +177,7 @@ func get_sched(file_name, worksheet_name string) {
 					continue
 				}
 
+				// TODO split lot between multiple containers
 				if InboundLotMap0[lot] == nil {
 					inby := blendbound.NewInboundLotFromValues(lot, product, provider, container_name, container_type, blendbound.Status_AVAILABLE)
 					if inby == nil {

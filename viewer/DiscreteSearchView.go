@@ -9,6 +9,28 @@ import (
 
 /*
  *
+ * DiscreteSearchViewer
+ *
+ */
+type DiscreteSearchViewer interface {
+	windigo.Controller
+	SetFont(font *windigo.Font)
+	RefreshSize()
+
+	Get() []string
+	Update(set []string)
+
+	box_OnSelectedChange(e *windigo.Event)
+	Contains(entry string) bool
+
+	AddItem(entry string)
+	DelItem(entry string)
+
+	Clear()
+}
+
+/*
+ *
  * DiscreteSearchView
  *
  */
@@ -23,13 +45,12 @@ func BuildNewDiscreteSearchView(parent *SQLFilterViewDiscreteSearch, labels []st
 	view := new(DiscreteSearchView)
 	view.parent = parent
 
-	panel := windigo.NewAutoPanel(parent)
-	view.AutoPanel = panel
+	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	view.box = GUI.NewListSearchBoxWithLabels(panel, labels)
-	view.box.OnSelectedChange().Bind(view.AddItem)
+	view.box = GUI.NewListSearchBoxWithLabels(view.AutoPanel, labels)
+	view.box.OnSelectedChange().Bind(view.box_OnSelectedChange)
 
-	panel.Dock(view.box, windigo.Left)
+	view.AutoPanel.Dock(view.box, windigo.Left)
 
 	view.RefreshSize()
 
@@ -46,15 +67,7 @@ func (view *DiscreteSearchView) SetFont(font *windigo.Font) {
 	view.box.SetFont(font)
 }
 
-// TODO ?
-// Filters map[string]SQLFilterView
 func (view DiscreteSearchView) Get() []string {
-	// var selected []string
-	// for _, button := range data_view.buttons {
-	// 	if button.Checked() {
-	// 		selected = append(selected, button.Text())
-	// 	}
-	// }
 	return view.chosen
 }
 
@@ -62,13 +75,18 @@ func (view *DiscreteSearchView) Update(set []string) {
 	view.box.Update(set)
 }
 
-func (view *DiscreteSearchView) AddItem(e *windigo.Event) {
+func (view *DiscreteSearchView) box_OnSelectedChange(e *windigo.Event) {
 	entry := view.box.GetSelectedItem()
-	if i := slices.Index(view.chosen, entry); i >= 0 {
-		return
-	}
-	view.chosen = append(view.chosen, entry)
 	view.parent.AddItem(entry)
+}
+
+func (view *DiscreteSearchView) Contains(entry string) bool {
+	i := slices.Index(view.chosen, entry)
+	return i >= 0
+}
+
+func (view *DiscreteSearchView) AddItem(entry string) {
+	view.chosen = append(view.chosen, entry)
 }
 
 func (view *DiscreteSearchView) DelItem(entry string) {

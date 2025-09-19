@@ -288,17 +288,18 @@ func (data_view *SearchBox) Update(set []string) {
 		data_view.AddItem(name)
 	}
 }
-
-func (data_view *SearchBox) AddEntry(entry string) {
-	data_view.AddItem(entry)
-	data_view.entries = append(data_view.entries, entry)
+func (data_view *SearchBox) AddItem(entry string) bool {
+	val := data_view.ComboBox.AddItem(entry)
+	if val {
+		data_view.entries = append(data_view.entries, entry)
+	}
+	return val
 }
 
 func (data_view *SearchBox) FromQuery(select_statement *sql.Stmt, args ...any) {
 	data_view.entries = nil
 	Fill_combobox_from_query_fn(data_view, func(id int, name string) {
 		data_view.AddItem(name)
-		data_view.entries = append(data_view.entries, name)
 	}, select_statement, args...)
 }
 

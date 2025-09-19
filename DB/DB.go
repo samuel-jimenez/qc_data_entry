@@ -63,7 +63,7 @@ var (
 	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
 	// bs.product_moniker
-	DB_Select_all_product_moniker,
+	DB_Select_all_product_moniker, DB_Select_product_lot_product_moniker,
 	// bs.product_sample_points
 	DB_Select_all_sample_points, DB_Select_product_sample_points,
 	DB_Insel_sample_point,
@@ -697,12 +697,13 @@ select product_lot_id, lot_name
 from bs.product_lot
 join bs.lot_list using (lot_id)
 where product_id = ?
+order by lot_id desc
 `)
 	DB_Select_product_lot_all = PrepareOrElse(db, `
 select product_lot_id, lot_name
 from bs.product_lot
 join bs.lot_list using (lot_id)
-order by lot_name
+order by lot_id desc
 `)
 
 	DB_Insert_product_lot = PrepareOrElse(db, `
@@ -755,9 +756,9 @@ where blend_components.product_lot_id =?
 
 	db_select_product_id = PrepareOrElse(db, `
 	select product_id
-		from bs.product_line
+	from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
-		where product_name_internal = ?
+	where product_name_internal = ?
 		and product_moniker_name = ?
 	`)
 
@@ -797,13 +798,22 @@ where blend_components.product_lot_id =?
 	// bs.product_moniker
 	DB_Select_all_product_moniker = PrepareOrElse(db, `
 select
-product_moniker_id, product_moniker_name
-
+	product_moniker_id, product_moniker_name
 from
-bs.product_moniker
-
+	bs.product_moniker
 order by
-product_moniker_name
+	product_moniker_name
+`)
+
+	DB_Select_product_lot_product_moniker = PrepareOrElse(db, `
+	select
+		product_lot_id, lot_name
+		from bs.product_lot
+		join bs.lot_list using (lot_id)
+		join bs.product_line using (product_id)
+		join bs.product_moniker using (product_moniker_id)
+	where product_moniker_name = ?
+	order by lot_name
 `)
 
 	// bs.product_sample_points

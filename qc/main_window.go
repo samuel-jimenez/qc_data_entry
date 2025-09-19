@@ -10,15 +10,10 @@ import (
 func Show_window() {
 
 	log.Println("Info: Process started")
-	// DEBUG
 	// log.Println(time.Now().UTC().UnixNano())
 
 	//
-	//
-	//
 	// build window
-	//
-
 	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
 	mainWindow := NewQCWindow(nil)
 	mainWindow.set_font_size()

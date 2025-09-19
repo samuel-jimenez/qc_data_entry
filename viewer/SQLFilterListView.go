@@ -80,6 +80,11 @@ func (view *SQLFilterListView) Update(key string,
 
 }
 
+func (view *SQLFilterListView) AddItem(key string,
+	entry string) {
+	view.Filters[key].AddItem(entry)
+}
+
 func (view SQLFilterListView) Get() *SQLFilterList {
 	selected := NewSQLFilterList()
 	for _, filter := range view.Filters {

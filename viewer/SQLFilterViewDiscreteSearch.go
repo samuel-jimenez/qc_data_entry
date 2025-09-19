@@ -47,6 +47,16 @@ func (view *SQLFilterViewDiscreteSearch) Update(set []string) {
 	view.selection_options.Update(set)
 }
 
+func (view *SQLFilterViewDiscreteSearch) AddItem(entry string) {
+
+	if view.selection_options.Contains(entry) {
+		return
+	}
+
+	view.SQLFilterView.AddItem(entry)
+	view.selection_options.AddItem(entry)
+}
+
 func (view *SQLFilterViewDiscreteSearch) DelItem(entry string) {
 	view.selection_options.DelItem(entry)
 }

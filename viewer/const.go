@@ -17,6 +17,14 @@ var (
 
 	HEADER_HEIGHT int
 
+	COL_KEY_PRODUCT   = "product_id"
+	COL_LABEL_PRODUCT = "Product"
+	// COL_ITEMS_PRODUCT []string
+
+	COL_KEY_MONIKER   = "product_moniker_name"
+	COL_LABEL_MONIKER = "Product Moniker"
+	// COL_ITEMS_MONIKER []string
+
 	COL_KEY_TIME   = "time_stamp"
 	COL_LABEL_TIME = "Time Stamp"
 

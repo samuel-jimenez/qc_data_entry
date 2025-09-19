@@ -3,6 +3,7 @@ package viewer
 import (
 	"database/sql"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
@@ -102,26 +103,63 @@ func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
 	return data_1
 }
 
-func select_samples() []QCData {
+func select_all_samples() []QCData {
 	rows, err := DB_Select_samples.Query()
+	return _select_samples(rows, err, "select_all_samples")
+}
+
+//TODO extract
+
+func Concat(str ...string) string {
+	num_Str := len(str)
+	Builder := strings.Builder{}
+	Builder_len := 0
+	for i := range num_Str {
+		Builder_len += len(str[i])
+	}
+
+	Builder.Grow(Builder_len)
+	for i := range num_Str {
+		Builder.WriteString(str[i])
+	}
+
+	return Builder.String()
+}
+
+func select_samples(query string) []QCData {
+
+	rows, err := QC_DB.Query(Concat(SAMPLE_SELECT_STRING, query, SAMPLE_ORDER_STRING))
+
 	return _select_samples(rows, err, "select_samples")
 }
 
-func select_product_samples(product_id int) []QCData {
-	rows, err := DB_Select_product_samples.Query(product_id)
-	return _select_samples(rows, err, "select_product_samples")
-}
+func select_lot(fn func(int, string), query string) {
+	proc_name := "select_lot"
 
-func select_product_moniker(product_moniker string) []QCData {
-	rows, err := DB_Select_product_moniker.Query(product_moniker)
-	return _select_samples(rows, err, "select_product_moniker")
+	rows, err := QC_DB.Query(Concat(LOT_SELECT_STRING, query, LOT_ORDER_STRING))
+
+	if err != nil {
+		log.Printf("error: [%s]: %q\n", proc_name, err)
+		return
+	}
+	for rows.Next() {
+		var (
+			id   int
+			name string
+		)
+		if err := rows.Scan(
+			&id, &name,
+		); err != nil {
+			log.Printf("error: [%s]: %q\n", proc_name, err)
+		}
+		fn(id, name)
+	}
 }
 
 var (
-	SAMPLE_SELECT_STRING string
-	DB_Select_product_samples,
-	DB_Select_product_moniker,
-	DB_Select_samples *sql.Stmt
+	SAMPLE_SELECT_STRING, SAMPLE_ORDER_STRING string
+	LOT_SELECT_STRING, LOT_ORDER_STRING       string
+	DB_Select_samples                         *sql.Stmt
 )
 
 func DBinit(db *sql.DB) {
@@ -151,17 +189,21 @@ func DBinit(db *sql.DB) {
 		left join bs.qc_sample_storage_list using (qc_sample_storage_id)
 		left join bs.product_customer_line using (product_customer_id, product_id)
 	`
+	SAMPLE_ORDER_STRING = `
+	order by time_stamp desc
+	`
+	LOT_SELECT_STRING = `
+	select
+	product_lot_id, lot_name
+	from bs.product_lot
+	join bs.lot_list using (lot_id)
+	join bs.product_line using (product_id)
+	join bs.product_moniker using (product_moniker_id)
+	`
+	LOT_ORDER_STRING = `
+	order by lot_name desc
+	`
 
-	DB_Select_product_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
-	where product_id = ?
-	`)
-
-	DB_Select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
-	order by product_moniker_name,product_name_internal
-	`)
-
-	DB_Select_product_moniker = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+`
-	where product_moniker_name = ?
-	`)
+	DB_Select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+SAMPLE_ORDER_STRING)
 
 }

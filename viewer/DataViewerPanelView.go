@@ -3,6 +3,7 @@ package viewer
 import (
 	"database/sql"
 	"log"
+	"strconv"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -22,16 +23,30 @@ type DataViewerPanelViewer interface {
 	RefreshSize()
 	SetMainWindow(mainWindow *ViewerWindow)
 
-	clear_product(e *windigo.Event)
-	clear_lot(e *windigo.Event)
 	ClearFilters(e *windigo.Event)
 
+	update_product(id int, name string)
 	update_lot(id int, name string)
 	update_sample(id int, name string)
 
+	clear_moniker()
+	clear_product()
+	clear_lot()
+
+	SetTable()
+
 	// listeners
+
+	moniker_field_OnChange(e *windigo.Event)
+	moniker_clear_button_OnClick(e *windigo.Event)
+
 	product_field_OnChange(e *windigo.Event)
+	product_clear_button_OnClick(e *windigo.Event)
+
 	lot_field_OnChange(e *windigo.Event)
+	lot_clear_button_OnClick(e *windigo.Event)
+	lot_add_button_OnClick(e *windigo.Event)
+
 	filter_button_OnClick(e *windigo.Event)
 	search_button_OnClick(e *windigo.Event)
 	reprint_sample_button_OnClick(e *windigo.Event)
@@ -48,12 +63,15 @@ type DataViewerPanelView struct {
 
 	mainWindow *ViewerWindow
 
-	product_data map[string]int
-	lot_data     []string
+	product_map  map[string]int
+	moniker_map  map[string][]string
+	product_data []string
 
 	SQLFilters *SQLFilterList
 
-	LotFilter *SQLFilterDiscrete
+	ProductFilter,
+	LotFilter,
+	MonikerFilter *SQLFilterDiscrete
 
 	lot_field *GUI.SearchBox
 
@@ -62,7 +80,7 @@ type DataViewerPanelView struct {
 	product_field, moniker_field,
 	sample_field *GUI.ComboBox
 
-	product_clear_button, lot_clear_button,
+	product_clear_button, lot_clear_button, lot_add_button, moniker_clear_button,
 	filter_button, search_button, clear_button,
 	reprint_sample_button, regen_sample_button, export_json_button *windigo.PushButton
 }
@@ -73,104 +91,101 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	view := new(DataViewerPanelView)
 
-	view.product_data = make(map[string]int)
-	// lot_data := make(map[string]int)
-	// var lot_data []string
+	view.product_map = make(map[string]int)
+	view.moniker_map = make(map[string][]string)
 
 	// LotFilter := &SQLFilterDiscrete{COL_KEY_LOT,nil}
 	view.SQLFilters = NewSQLFilterList()
 
+	view.ProductFilter = NewSQLFilterDiscrete(
+		COL_KEY_PRODUCT,
+		nil,
+	)
 	view.LotFilter = NewSQLFilterDiscrete(
 		COL_KEY_LOT,
 		nil,
 	)
+	view.MonikerFilter = NewSQLFilterDiscrete(
+		COL_KEY_MONIKER,
+		nil,
+	)
 
-	product_text := "Product"
-	lot_text := "Lot Number"
-	sample_text := "Sample Point"
-	moniker_text := "Product Moniker"
+	clear_field_label := "-"
+	add_field_label := "+"
 
+	filter_label := "Filter"
+	search_label := "Search"
 	clear_label := "Clear"
+
+	reprint_sample_label := "Reprint Sample"
+	regen_sample_label := "Regen Sample"
 	export_json_label := "Export JSON"
 
-	selection_panel := windigo.NewAutoPanel(mainWindow)
+	view.AutoPanel = windigo.NewAutoPanel(mainWindow)
 
 	//TODO array db_select_all_product
 
-	product_panel := windigo.NewAutoPanel(selection_panel)
+	view.product_panel = windigo.NewAutoPanel(view.AutoPanel)
 
-	product_field := GUI.NewListComboBox(product_panel, product_text)
+	view.product_field = GUI.NewListComboBox(view.product_panel, COL_LABEL_PRODUCT)
 
-	product_clear_button := windigo.NewPushButton(product_panel)
-	product_clear_button.SetText("-")
+	view.product_clear_button = windigo.NewPushButton(view.product_panel)
+	view.product_clear_button.SetText(clear_field_label)
 
-	moniker_field := GUI.NewListComboBox(product_panel, moniker_text)
+	view.moniker_field = GUI.NewListComboBox(view.product_panel, COL_LABEL_MONIKER)
+	view.moniker_clear_button = windigo.NewPushButton(view.product_panel)
+	view.moniker_clear_button.SetText(clear_field_label)
 
-	product_panel.Dock(product_field, windigo.Left)
-	product_panel.Dock(product_clear_button, windigo.Left)
-	product_panel.Dock(moniker_field, windigo.Left)
+	view.product_panel.Dock(view.product_field, windigo.Left)
+	view.product_panel.Dock(view.product_clear_button, windigo.Left)
+	view.product_panel.Dock(view.moniker_field, windigo.Left)
+	view.product_panel.Dock(view.moniker_clear_button, windigo.Left)
 
-	lot_panel := windigo.NewAutoPanel(selection_panel)
+	view.lot_panel = windigo.NewAutoPanel(view.AutoPanel)
 
-	lot_field := GUI.NewLabeledListSearchBox(lot_panel, lot_text)
-	lot_clear_button := windigo.NewPushButton(lot_panel)
-	lot_clear_button.SetText("-")
-	sample_field := GUI.NewListComboBox(lot_panel, sample_text)
+	view.lot_field = GUI.NewLabeledListSearchBox(view.lot_panel, COL_LABEL_LOT)
+	view.lot_clear_button = windigo.NewPushButton(view.lot_panel)
+	view.lot_clear_button.SetText(clear_field_label)
+	view.lot_add_button = windigo.NewPushButton(view.lot_panel)
+	view.lot_add_button.SetText(add_field_label)
 
-	lot_panel.Dock(lot_field, windigo.Left)
-	lot_panel.Dock(lot_clear_button, windigo.Left)
-	lot_panel.Dock(sample_field, windigo.Left)
+	view.sample_field = GUI.NewListComboBox(view.lot_panel, COL_LABEL_SAMPLE_PT)
 
-	filter_button := windigo.NewPushButton(selection_panel)
-	filter_button.SetText("Filter")
+	view.lot_panel.Dock(view.lot_field, windigo.Left)
+	view.lot_panel.Dock(view.lot_clear_button, windigo.Left)
+	view.lot_panel.Dock(view.lot_add_button, windigo.Left)
+	view.lot_panel.Dock(view.sample_field, windigo.Left)
 
-	search_button := windigo.NewPushButton(selection_panel)
-	search_button.SetText("Search")
+	view.filter_button = windigo.NewPushButton(view.AutoPanel)
+	view.filter_button.SetText(filter_label)
 
-	clear_button := windigo.NewPushButton(selection_panel)
-	clear_button.SetText(clear_label)
+	view.search_button = windigo.NewPushButton(view.AutoPanel)
+	view.search_button.SetText(search_label)
 
-	reprint_sample_button := windigo.NewPushButton(selection_panel)
-	reprint_sample_button.SetText("Reprint Sample")
+	view.clear_button = windigo.NewPushButton(view.AutoPanel)
+	view.clear_button.SetText(clear_label)
 
-	regen_sample_button := windigo.NewPushButton(selection_panel)
-	regen_sample_button.SetText("Regen Sample")
+	view.reprint_sample_button = windigo.NewPushButton(view.AutoPanel)
+	view.reprint_sample_button.SetText(reprint_sample_label)
 
-	export_json_button := windigo.NewPushButton(selection_panel)
-	export_json_button.SetText(export_json_label)
+	view.regen_sample_button = windigo.NewPushButton(view.AutoPanel)
+	view.regen_sample_button.SetText(regen_sample_label)
 
-	selection_panel.Dock(product_panel, windigo.Top)
-	selection_panel.Dock(lot_panel, windigo.Top)
-	selection_panel.Dock(filter_button, windigo.Left)
-	selection_panel.Dock(search_button, windigo.Left)
-	selection_panel.Dock(clear_button, windigo.Left)
+	view.export_json_button = windigo.NewPushButton(view.AutoPanel)
+	view.export_json_button.SetText(export_json_label)
 
-	selection_panel.Dock(reprint_sample_button, windigo.Left)
-	selection_panel.Dock(regen_sample_button, windigo.Left)
-	selection_panel.Dock(export_json_button, windigo.Left)
+	view.AutoPanel.Dock(view.product_panel, windigo.Top)
+	view.AutoPanel.Dock(view.lot_panel, windigo.Top)
+	view.AutoPanel.Dock(view.filter_button, windigo.Left)
+	view.AutoPanel.Dock(view.search_button, windigo.Left)
+	view.AutoPanel.Dock(view.clear_button, windigo.Left)
 
-	view.AutoPanel = selection_panel
-	view.product_panel = product_panel
-	view.lot_panel = lot_panel
-
-	view.product_field = product_field
-	view.lot_field = lot_field
-	view.moniker_field = moniker_field
-	view.sample_field = sample_field
-
-	view.product_clear_button = product_clear_button
-	view.lot_clear_button = lot_clear_button
-
-	view.filter_button = filter_button
-	view.search_button = search_button
-	view.clear_button = clear_button
-
-	view.reprint_sample_button = reprint_sample_button
-	view.regen_sample_button = regen_sample_button
-
-	view.export_json_button = export_json_button
+	view.AutoPanel.Dock(view.reprint_sample_button, windigo.Left)
+	view.AutoPanel.Dock(view.regen_sample_button, windigo.Left)
+	view.AutoPanel.Dock(view.export_json_button, windigo.Left)
 
 	// functionality
+	view.SQLFilters.Filters = []SQLFilter{view.ProductFilter, view.LotFilter, view.MonikerFilter}
 
 	// clear := func() {
 	// 	clear_product()
@@ -178,46 +193,54 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	// }
 
 	// combobox
-	GUI.Fill_combobox_from_query_rows(product_field, func(row *sql.Rows) error {
-		var (
-			id                   int
-			internal_name        string
-			product_moniker_name string
-		)
-		if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
-			return err
-		}
-		name := product_moniker_name + " " + internal_name
-		view.product_data[name] = id
+	DB.Forall_err("DataViewerPanelView.fill-product-moniker",
+		func() {
+			view.product_field.DeleteAllItems()
+		},
+		func(row *sql.Rows) error {
+			var (
+				id                   int
+				internal_name        string
+				product_moniker_name string
+			)
+			if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
+				return err
+			}
+			name := product_moniker_name + " " + internal_name
 
-		product_field.AddItem(name)
-		return nil
-	},
+			view.product_map[name] = id
+			view.product_data = append(view.product_data, name)
+
+			view.moniker_map[product_moniker_name] = append(view.moniker_map[product_moniker_name], name)
+
+			view.product_field.AddItem(name)
+			return nil
+		},
 		DB.DB_Select_product_info)
 
-	lot_field.Fill_FromFnQuery(func(id int, name string) {
-		// lot_data[name] = id
-		view.lot_data = append(view.lot_data, name)
-		view.update_lot(id, name)
-	}, DB.DB_Select_product_lot_all)
+	view.lot_field.Fill_FromFnQuery(
+		view.update_lot,
+		DB.DB_Select_product_lot_all)
 
-	GUI.Fill_combobox_from_query(moniker_field, DB.DB_Select_all_product_moniker)
-	GUI.Fill_combobox_from_query_fn(sample_field, view.update_sample, DB.DB_Select_all_sample_points)
+	GUI.Fill_combobox_from_query(view.moniker_field, DB.DB_Select_all_product_moniker)
+	GUI.Fill_combobox_from_query_fn(view.sample_field, view.update_sample, DB.DB_Select_all_sample_points)
 
 	// listeners
-	product_field.OnSelectedChange().Bind(view.product_field_OnChange)
-	lot_field.OnSelectedChange().Bind(view.lot_field_OnChange)
-	moniker_field.OnSelectedChange().Bind(view.moniker_field_OnChange)
+	view.product_field.OnSelectedChange().Bind(view.product_field_OnChange)
+	view.lot_field.OnSelectedChange().Bind(view.lot_field_OnChange)
+	view.moniker_field.OnSelectedChange().Bind(view.moniker_field_OnChange)
 
-	filter_button.OnClick().Bind(view.filter_button_OnClick)
-	search_button.OnClick().Bind(view.search_button_OnClick)
-	product_clear_button.OnClick().Bind(view.clear_product)
-	lot_clear_button.OnClick().Bind(view.clear_lot)
-	clear_button.OnClick().Bind(view.ClearFilters)
+	view.filter_button.OnClick().Bind(view.filter_button_OnClick)
+	view.search_button.OnClick().Bind(view.search_button_OnClick)
+	view.product_clear_button.OnClick().Bind(view.product_clear_button_OnClick)
+	view.moniker_clear_button.OnClick().Bind(view.moniker_clear_button_OnClick)
+	view.lot_clear_button.OnClick().Bind(view.lot_clear_button_OnClick)
+	view.lot_add_button.OnClick().Bind(view.lot_add_button_OnClick)
+	view.clear_button.OnClick().Bind(view.ClearFilters)
 
-	reprint_sample_button.OnClick().Bind(view.reprint_sample_button_OnClick)
-	regen_sample_button.OnClick().Bind(view.regen_sample_button_OnClick)
-	export_json_button.OnClick().Bind(view.export_json_button_OnClick)
+	view.reprint_sample_button.OnClick().Bind(view.reprint_sample_button_OnClick)
+	view.regen_sample_button.OnClick().Bind(view.regen_sample_button_OnClick)
+	view.export_json_button.OnClick().Bind(view.export_json_button_OnClick)
 
 	return view
 }
@@ -230,11 +253,9 @@ func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 	view.sample_field.SetFont(font)
 
 	view.product_clear_button.SetFont(font)
+	view.moniker_clear_button.SetFont(font)
 	view.lot_clear_button.SetFont(font)
-
-	// view.AutoPanel.SetFont(font)
-	// view.lot_panel.SetFont(font)
-	// view.prod_panel.SetFont(font)
+	view.lot_add_button.SetFont(font)
 
 	view.filter_button.SetFont(font)
 	view.search_button.SetFont(font)
@@ -257,16 +278,20 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.lot_panel.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	view.product_clear_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	view.moniker_clear_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+
 	view.product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.moniker_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	view.lot_clear_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	view.lot_add_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+
 	view.sample_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
 	view.lot_panel.SetMarginTop(GUI.INTER_SPACER_HEIGHT)
 	view.lot_panel.SetMarginLeft(GUI.HPANEL_MARGIN)
-	view.sample_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
+	view.sample_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH - GUI.SMOL_BUTTON_WIDTH)
 
 	view.moniker_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 	view.product_panel.SetMarginLeft(GUI.HPANEL_MARGIN)
@@ -287,46 +312,16 @@ func (view *DataViewerPanelView) SetMainWindow(mainWindow *ViewerWindow) {
 	view.mainWindow = mainWindow
 }
 
-// TODO combine all this (CLEAR, OnChange) into filter
-// conditional serch, refine (browes)
-// TODO ADD BUTTON TO MOVE TO LOWER FILTERS
-func (view *DataViewerPanelView) clear_product(e *windigo.Event) {
-
-	view.mainWindow.SetTable(select_samples())
-
-	view.product_field.SetSelectedItem(-1)
-
-	COL_ITEMS_LOT = nil
-	view.lot_field.Update(nil)
-
-	for id, name := range view.lot_data {
-		view.update_lot(id, name)
-	}
-
-	COL_ITEMS_SAMPLE_PT = nil
-	GUI.Fill_combobox_from_query_fn(view.sample_field, view.update_sample, DB.DB_Select_all_sample_points)
-	view.mainWindow.UpdateFilterListView()
-
-}
-
-func (view *DataViewerPanelView) clear_lot(e *windigo.Event) {
-
-	product_id := view.product_data[view.product_field.GetSelectedItem()]
-	view.mainWindow.clear_lot(product_id)
-	view.lot_field.SetSelectedItem(-1)
-}
-
-func (view *DataViewerPanelView) clear_moniker(e *windigo.Event) {
-
-	view.moniker_field.SetSelectedItem(-1)
-}
-
 func (view *DataViewerPanelView) ClearFilters(e *windigo.Event) {
 	view.mainWindow.ClearFilters()
 }
 
+func (view *DataViewerPanelView) update_product(id int, name string) {
+	view.product_field.AddItem(name)
+	// COL_ITEMS_LOT = append(COL_ITEMS_LOT, name)
+}
 func (view *DataViewerPanelView) update_lot(id int, name string) {
-	view.lot_field.AddEntry(name)
+	view.lot_field.AddItem(name)
 	COL_ITEMS_LOT = append(COL_ITEMS_LOT, name)
 }
 func (view *DataViewerPanelView) update_sample(id int, name string) {
@@ -334,13 +329,72 @@ func (view *DataViewerPanelView) update_sample(id int, name string) {
 	COL_ITEMS_SAMPLE_PT = append(COL_ITEMS_SAMPLE_PT, name)
 }
 
+func (view *DataViewerPanelView) clear_moniker() {
+	view.moniker_field.SetSelectedItem(-1)
+	view.MonikerFilter.Set(nil)
+	view.clear_product()
+
+	view.product_field.DeleteAllItems()
+	for id, name := range view.product_data {
+		view.update_product(id, name)
+	}
+}
+
+func (view *DataViewerPanelView) clear_product() {
+	view.clear_lot()
+	view.product_field.SetSelectedItem(-1)
+	view.ProductFilter.Set(nil)
+
+	COL_ITEMS_LOT = nil
+	view.lot_field.Update(nil)
+	select_lot(view.update_lot, view.SQLFilters.Get())
+
+	COL_ITEMS_SAMPLE_PT = nil
+	GUI.Fill_combobox_from_query_fn(view.sample_field, view.update_sample, DB.DB_Select_all_sample_points)
+}
+
+func (view *DataViewerPanelView) clear_lot() {
+	view.lot_field.SetSelectedItem(-1)
+	view.LotFilter.Set(nil)
+}
+
+func (view *DataViewerPanelView) SetTable() {
+	view.mainWindow.SetTable(select_samples(view.SQLFilters.Get()))
+}
+
 // listeners
+
+func (view *DataViewerPanelView) moniker_field_OnChange(e *windigo.Event) {
+
+	product_moniker := view.moniker_field.GetSelectedItem()
+	view.MonikerFilter.Set([]string{product_moniker})
+
+	view.clear_product()
+
+	view.product_field.DeleteAllItems()
+	for id, name := range view.moniker_map[product_moniker] {
+		view.update_product(id, name)
+	}
+
+	view.SetTable()
+	view.mainWindow.UpdateFilterListView()
+
+}
+
+func (view *DataViewerPanelView) moniker_clear_button_OnClick(e *windigo.Event) {
+
+	view.clear_moniker()
+	view.SetTable()
+	view.mainWindow.UpdateFilterListView()
+
+}
+
 func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
 	// product_field_pop_data(product_field.GetSelectedItem())
 
-	product_id := view.product_data[view.product_field.GetSelectedItem()]
-	samples := select_product_samples(product_id)
-	view.mainWindow.SetTable(samples)
+	product_id := view.product_map[view.product_field.GetSelectedItem()]
+	view.ProductFilter.Set([]string{strconv.Itoa(product_id)})
+	view.LotFilter.Set(nil)
 
 	COL_ITEMS_LOT = nil
 	view.lot_field.Fill_FromFnQuery(view.update_lot, DB.DB_Select_product_lot_product, product_id)
@@ -348,32 +402,32 @@ func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
 	COL_ITEMS_SAMPLE_PT = nil
 	GUI.Fill_combobox_from_query_fn(view.sample_field, view.update_sample, DB.DB_Select_product_sample_points, product_id)
 
+	view.SetTable()
 	view.mainWindow.UpdateFilterListView()
+}
 
-	view.moniker_field.SetSelectedItem(-1)
+func (view *DataViewerPanelView) product_clear_button_OnClick(e *windigo.Event) {
+
+	view.clear_product()
+
+	view.SetTable()
+	view.mainWindow.UpdateFilterListView()
 
 }
 
 func (view *DataViewerPanelView) lot_field_OnChange(e *windigo.Event) {
 	view.LotFilter.Set([]string{view.lot_field.GetSelectedItem()})
-	view.SQLFilters.Filters = []SQLFilter{view.LotFilter}
-	rows, err := QC_DB.Query(SAMPLE_SELECT_STRING + view.SQLFilters.Get())
-	view.mainWindow.SetTable(_select_samples(rows, err, "search samples"))
-
-	view.moniker_field.SetSelectedItem(-1)
+	view.SetTable()
 }
 
-func (view *DataViewerPanelView) moniker_field_OnChange(e *windigo.Event) {
+func (view *DataViewerPanelView) lot_clear_button_OnClick(e *windigo.Event) {
+	view.clear_lot()
+	view.SetTable()
+}
 
-	view.clear_product(nil)
-	// view.product_field.SetSelectedItem(-1)
-	// clear_lot
-	view.lot_field.SetSelectedItem(-1)
-
-	product_moniker := view.moniker_field.GetSelectedItem()
-
-	samples := select_product_moniker(product_moniker)
-	view.mainWindow.SetTable(samples)
+func (view *DataViewerPanelView) lot_add_button_OnClick(e *windigo.Event) {
+	view.mainWindow.ShowFilterListView()
+	view.mainWindow.AddItem(COL_KEY_LOT, view.lot_field.GetSelectedItem())
 }
 
 func (view *DataViewerPanelView) filter_button_OnClick(e *windigo.Event) {
@@ -381,13 +435,7 @@ func (view *DataViewerPanelView) filter_button_OnClick(e *windigo.Event) {
 }
 
 func (view *DataViewerPanelView) search_button_OnClick(e *windigo.Event) {
-
-	//TODO
-	log.Println("FilterListView:", view.mainWindow.FilterListView.Get().Get())
-	log.Println("SAMPLE_SELECT_STRING", SAMPLE_SELECT_STRING+view.mainWindow.FilterListView.Get().Get())
-	rows, err := QC_DB.Query(SAMPLE_SELECT_STRING + view.mainWindow.FilterListView.Get().Get())
-	view.mainWindow.SetTable(_select_samples(rows, err, "search samples"))
-
+	view.mainWindow.SetTable(select_samples(view.mainWindow.FilterListView.Get().Get()))
 }
 
 func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event) {
