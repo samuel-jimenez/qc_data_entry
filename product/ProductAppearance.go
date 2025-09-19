@@ -58,9 +58,9 @@ func BuildNewProductAppearanceView(parent windigo.Controller, field_text string,
 
 type ProductAppearanceROView struct {
 	*GUI.View
-	Update  func(field_data ProductAppearance)
-	SetFont func(*windigo.Font)
-	Refresh func()
+	Update      func(field_data ProductAppearance)
+	SetFont     func(*windigo.Font)
+	RefreshSize func()
 }
 
 func BuildNewProductAppearanceROView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceROView {

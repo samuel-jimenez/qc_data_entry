@@ -124,9 +124,9 @@ func (view *QCWindow) RefreshSize() {
 
 	view.tabs.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
-	view.panel_water_based.Refresh()
-	view.panel_oil_based.Refresh()
-	view.panel_fr.Refresh()
+	view.panel_water_based.RefreshSize()
+	view.panel_oil_based.RefreshSize()
+	view.panel_fr.RefreshSize()
 }
 
 func (view *QCWindow) set_font_size() {

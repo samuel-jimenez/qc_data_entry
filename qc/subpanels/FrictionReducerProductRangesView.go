@@ -14,7 +14,7 @@ type FrictionReducerProductRangesViewer interface {
 
 	Update(qc_product *product.QCProduct)
 	SetFont(font *windigo.Font)
-	Refresh()
+	RefreshSize()
 	Clear()
 }
 
@@ -92,15 +92,15 @@ func (view *FrictionReducerProductRangesView) SetFont(font *windigo.Font) {
 	view.Density_field.SetFont(font)
 }
 
-func (view *FrictionReducerProductRangesView) Refresh() {
+func (view *FrictionReducerProductRangesView) RefreshSize() {
 	view.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
-	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.RANGES_RO_PADDING, GUI.BTM_SPACER_HEIGHT)
-	view.visual_field.Refresh()
-	view.viscosity_field.Refresh()
-	view.Mass_field.Refresh()
-	view.string_field.Refresh()
-	view.SG_field.Refresh()
-	view.Density_field.Refresh()
+	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
+	view.visual_field.RefreshSize()
+	view.viscosity_field.RefreshSize()
+	view.Mass_field.RefreshSize()
+	view.string_field.RefreshSize()
+	view.SG_field.RefreshSize()
+	view.Density_field.RefreshSize()
 }
 
 func (view *FrictionReducerProductRangesView) Clear() {

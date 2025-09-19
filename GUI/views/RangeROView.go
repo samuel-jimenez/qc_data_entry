@@ -64,7 +64,7 @@ func (data_view *RangeROView) SetFont(font *windigo.Font) {
 	data_view.max_field.SetFont(font)
 }
 
-func (data_view *RangeROView) Refresh() {
+func (data_view *RangeROView) RefreshSize() {
 	data_view.SetSize(GUI.OFF_AXIS, GUI.RANGES_RO_FIELD_HEIGHT)
 	data_view.min_field.Refresh()
 	data_view.min_field_spacer.Refresh()

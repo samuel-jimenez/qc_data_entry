@@ -17,7 +17,7 @@ type FrictionReducerPanelView struct {
 	Update          func(qc_product *product.QCProduct)
 	ChangeContainer func(qc_product *product.QCProduct)
 	SetFont         func(font *windigo.Font)
-	Refresh         func()
+	RefreshSize     func()
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
@@ -173,9 +173,11 @@ func Show_fr(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_ne
 		button_dock_totes.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 		button_dock_cars.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
-		top_group.Refresh()
-		bottom_group.Refresh()
-		ranges_panel.Refresh()
+		top_group.RefreshSize()
+		bottom_group.RefreshSize()
+
+		ranges_panel.SetMarginTop(GUI.GROUP_MARGIN)
+		ranges_panel.RefreshSize()
 		component_panel.RefreshSize()
 	}
 

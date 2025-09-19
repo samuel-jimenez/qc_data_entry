@@ -43,9 +43,9 @@ func (product WaterBasedProduct) Check_data() bool {
 }
 
 type WaterBasedPanelView struct {
-	Update  func(qc_product *product.QCProduct)
-	SetFont func(font *windigo.Font)
-	Refresh func()
+	Update      func(qc_product *product.QCProduct)
+	SetFont     func(font *windigo.Font)
+	RefreshSize func()
 }
 
 func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, create_new_product_cb func() product.BaseProduct) *WaterBasedPanelView {
@@ -137,7 +137,7 @@ func Show_water_based(parent *windigo.AutoPanel, qc_product *product.QCProduct, 
 
 		button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
-		ranges_panel.Refresh()
+		ranges_panel.RefreshSize()
 	}
 
 	return &WaterBasedPanelView{ranges_panel.Update, setFont, refresh}
@@ -149,9 +149,9 @@ type WaterBasedProductRangesView struct {
 	ph_field,
 	sg_field *views.RangeROView
 
-	Update  func(qc_product *product.QCProduct)
-	SetFont func(font *windigo.Font)
-	Refresh func()
+	Update      func(qc_product *product.QCProduct)
+	SetFont     func(font *windigo.Font)
+	RefreshSize func()
 }
 
 func (data_view WaterBasedProductRangesView) Clear() {
@@ -193,9 +193,9 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 		group_panel.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
 		group_panel.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
 
-		visual_field.Refresh()
-		sg_field.Refresh()
-		ph_field.Refresh()
+		visual_field.RefreshSize()
+		sg_field.RefreshSize()
+		ph_field.RefreshSize()
 	}
 
 	return WaterBasedProductRangesView{group_panel, &ph_field, &sg_field, update, setFont, refresh}

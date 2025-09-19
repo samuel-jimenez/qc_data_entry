@@ -111,7 +111,7 @@ func (view *FrictionReducerProductView) SetFont(font *windigo.Font) {
 	view.string_field.SetFont(font)
 }
 
-func (view *FrictionReducerProductView) Refresh() {
+func (view *FrictionReducerProductView) RefreshSize() {
 	view.SetSize(GUI.GROUP_WIDTH, GUI.GROUP_HEIGHT)
 	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
 

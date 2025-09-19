@@ -47,7 +47,7 @@ type OilBasedProductViewer interface {
 	Get(base_product product.BaseProduct) product.Product
 	Clear()
 	SetFont(font *windigo.Font)
-	Refresh()
+	RefreshSize()
 }
 
 type OilBasedProductView struct {
@@ -102,7 +102,7 @@ func (view *OilBasedProductView) SetFont(font *windigo.Font) {
 	view.density_field.SetFont(font)
 }
 
-func (view *OilBasedProductView) Refresh() {
+func (view *OilBasedProductView) RefreshSize() {
 	view.SetSize(GUI.GROUP_WIDTH, GUI.GROUP_HEIGHT)
 	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
 
@@ -185,15 +185,15 @@ func (view *OilBasedPanelView) SetFont(font *windigo.Font) {
 	view.button_dock.SetFont(font)
 }
 
-func (view *OilBasedPanelView) Refresh() {
+func (view *OilBasedPanelView) RefreshSize() {
 
 	view.SetSize(GUI.OFF_AXIS, GUI.GROUP_HEIGHT)
 	view.SetMargins(GUI.GROUP_MARGIN, GUI.GROUP_MARGIN, 0, 0)
 
-	view.group_panel.Refresh()
+	view.group_panel.RefreshSize()
 
 	view.ranges_panel.SetMarginTop(GUI.GROUP_MARGIN)
-	view.ranges_panel.Refresh()
+	view.ranges_panel.RefreshSize()
 
 	view.button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
 
@@ -259,11 +259,12 @@ func (view *OilBasedProductRangesView) SetFont(font *windigo.Font) {
 	view.Density_field.SetFont(font)
 }
 
-func (view *OilBasedProductRangesView) Refresh() {
+func (view *OilBasedProductRangesView) RefreshSize() {
 	view.SetSize(GUI.DATA_FIELD_WIDTH, GUI.GROUP_HEIGHT)
-	// view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
-	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.RANGES_RO_PADDING, GUI.BTM_SPACER_HEIGHT)
-	view.Mass_field.Refresh()
-	view.SG_field.Refresh()
-	view.Density_field.Refresh()
+	view.SetPaddings(GUI.TOP_SPACER_WIDTH, GUI.TOP_SPACER_HEIGHT, GUI.BTM_SPACER_WIDTH, GUI.BTM_SPACER_HEIGHT)
+
+	view.visual_field.RefreshSize()
+	view.Mass_field.RefreshSize()
+	view.SG_field.RefreshSize()
+	view.Density_field.RefreshSize()
 }
