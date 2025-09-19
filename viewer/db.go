@@ -3,10 +3,10 @@ package viewer
 import (
 	"database/sql"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 )
 
 var (
@@ -108,27 +108,9 @@ func select_all_samples() []QCData {
 	return _select_samples(rows, err, "select_all_samples")
 }
 
-//TODO extract
-
-func Concat(str ...string) string {
-	num_Str := len(str)
-	Builder := strings.Builder{}
-	Builder_len := 0
-	for i := range num_Str {
-		Builder_len += len(str[i])
-	}
-
-	Builder.Grow(Builder_len)
-	for i := range num_Str {
-		Builder.WriteString(str[i])
-	}
-
-	return Builder.String()
-}
-
 func select_samples(query string) []QCData {
 
-	rows, err := QC_DB.Query(Concat(SAMPLE_SELECT_STRING, query, SAMPLE_ORDER_STRING))
+	rows, err := QC_DB.Query(util.Concat(SAMPLE_SELECT_STRING, query, SAMPLE_ORDER_STRING))
 
 	return _select_samples(rows, err, "select_samples")
 }
@@ -136,7 +118,7 @@ func select_samples(query string) []QCData {
 func select_lot(fn func(int, string), query string) {
 	proc_name := "select_lot"
 
-	rows, err := QC_DB.Query(Concat(LOT_SELECT_STRING, query, LOT_ORDER_STRING))
+	rows, err := QC_DB.Query(util.Concat(LOT_SELECT_STRING, query, LOT_ORDER_STRING))
 
 	if err != nil {
 		log.Printf("error: [%s]: %q\n", proc_name, err)
