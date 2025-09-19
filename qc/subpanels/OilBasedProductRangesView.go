@@ -8,6 +8,13 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
+type OilBasedProductRangesViewer interface {
+	Update(*product.QCProduct)
+	Clear()
+	SetFont(font *windigo.Font)
+	RefreshSize()
+}
+
 type OilBasedProductRangesView struct {
 	*windigo.AutoPanel
 	*views.MassRangesView

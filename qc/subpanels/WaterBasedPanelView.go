@@ -9,6 +9,12 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
+type WaterBasedPanelViewer interface {
+	SetFont(font *windigo.Font)
+	RefreshSize()
+	Update(*product.QCProduct)
+}
+
 type WaterBasedPanelView struct {
 	Update      func(qc_product *product.QCProduct)
 	SetFont     func(font *windigo.Font)
