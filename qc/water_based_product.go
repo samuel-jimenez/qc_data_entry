@@ -1,4 +1,4 @@
-package subpanels
+package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -55,18 +55,14 @@ type WaterBasedProductView struct {
 
 func newWaterBasedProductView(parent *windigo.AutoPanel, ranges_panel *WaterBasedProductRangesView) *WaterBasedProductView {
 
-	visual_text := "Visual Inspection"
-	sg_text := "SG"
-	ph_text := "pH"
-
 	view := new(WaterBasedProductView)
 
 	group_panel := windigo.NewAutoPanel(parent)
 
-	visual_field := views.NewBoolCheckboxView(group_panel, visual_text)
+	visual_field := views.NewBoolCheckboxView(group_panel, VISUAL_TEXT)
 
-	ph_field := views.NewNumberEditViewWithChange(group_panel, ph_text, ranges_panel.ph_field)
-	sg_field := views.NewNumberEditViewWithChange(group_panel, sg_text, ranges_panel.sg_field)
+	ph_field := views.NewNumberEditViewWithChange(group_panel, views.PH_TEXT, ranges_panel.ph_field)
+	sg_field := views.NewNumberEditViewWithChange(group_panel, views.SG_TEXT, ranges_panel.sg_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)
@@ -86,11 +82,8 @@ func (view *WaterBasedProductView) Get(base_product product.BaseProduct) product
 
 func (view *WaterBasedProductView) Clear() {
 	view.visual_field.Clear()
-
 	view.sg_field.Clear()
-
 	view.ph_field.Clear()
-
 }
 
 func (view *WaterBasedProductView) SetFont(font *windigo.Font) {

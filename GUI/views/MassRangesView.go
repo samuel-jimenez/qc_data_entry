@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/formats"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -23,6 +24,20 @@ type MassRangesView struct {
 	Mass_field,
 	SG_field,
 	Density_field *RangeROView
+}
+
+func NewMassRangesView(mass_field,
+	sg_field,
+	density_field *RangeROView) *MassRangesView {
+	return &MassRangesView{Mass_field: mass_field,
+		SG_field:      sg_field,
+		Density_field: density_field}
+
+	// view := new(MassRangesView)
+	// view.Mass_field = mass_field
+	// view.SG_field = sg_field
+	// view.Density_field = density_field
+	// return view
 }
 
 func (view *MassRangesView) CheckMass(data float64) bool {
@@ -55,12 +70,11 @@ func (view *MassRangesView) Clear() {
 	view.Density_field.Clear()
 }
 
-/*
 func (view *MassRangesView) Update(qc_product *product.QCProduct) {
 	view.Mass_field.Update(qc_product.SG)
 	view.SG_field.Update(qc_product.SG)
 	view.Density_field.Update(qc_product.Density)
-}*/
+}
 
 /* MassDataViewable
  *
@@ -86,16 +100,17 @@ type MassDataView struct {
 	ranges_panel MassRangesViewable
 }
 
-func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable, mass_field *NumberEditView) *MassDataView {
+// func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable, mass_field *NumberEditView) *MassDataView {
 
-	sg_text := "Specific Gravity"
-	density_text := "Density"
+func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable) *MassDataView {
 
 	view := new(MassDataView)
 
 	//TAB ORDER
-	sg_field := NewNumberEditViewWithUnits(parent, sg_text, formats.SG_UNITS)
-	density_field := NewNumberEditViewWithUnits(parent, density_text, formats.DENSITY_UNITS)
+	mass_field := NewNumberEditView(parent, MASS_TEXT)
+
+	sg_field := NewNumberEditViewWithUnits(parent, SG_TEXT, formats.SG_UNITS)
+	density_field := NewNumberEditViewWithUnits(parent, DENSITY_TEXT, formats.DENSITY_UNITS)
 
 	//PUSH TO BOTTOM
 	parent.Dock(density_field, windigo.Bottom)

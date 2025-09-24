@@ -1,4 +1,4 @@
-package subpanels
+package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -53,43 +53,30 @@ type FrictionReducerProductView struct {
 	viscosity_field,
 	string_field *views.NumberEditView
 	density_field *views.MassDataView
-	ranges_panel  *FrictionReducerProductRangesView
 	sample_point  string
 }
 
 func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point string, ranges_panel *FrictionReducerProductRangesView) *FrictionReducerProductView {
 
-	visual_text := "Visual Inspection"
-	viscosity_text := "Viscosity"
-	string_text := "String"
-	mass_text := "Mass"
-
 	view := new(FrictionReducerProductView)
 
-	group_panel := windigo.NewGroupAutoPanel(parent)
-	group_panel.SetText(sample_point)
+	view.AutoPanel = windigo.NewGroupAutoPanel(parent)
+	view.AutoPanel.SetText(sample_point)
 
-	visual_field := views.NewBoolCheckboxView(group_panel, visual_text)
+	view.visual_field = views.NewBoolCheckboxView(view.AutoPanel, VISUAL_TEXT)
 
-	viscosity_field := views.NewNumberEditView(group_panel, viscosity_text)
+	view.viscosity_field = views.NewNumberEditView(view.AutoPanel, views.VISCOSITY_TEXT)
 
-	mass_field := views.NewNumberEditView(group_panel, mass_text)
+	view.string_field = views.NewNumberEditViewWithChange(view.AutoPanel, STRING_TEXT, ranges_panel.string_field)
 
-	string_field := views.NewNumberEditViewWithChange(group_panel, string_text, ranges_panel.string_field)
+	view.density_field = views.NewMassDataView(view.AutoPanel, ranges_panel)
+	view.density_field.SetZAfter(view.viscosity_field)
 
-	density_field := views.NewMassDataView(group_panel, ranges_panel, mass_field)
+	view.AutoPanel.Dock(view.visual_field, windigo.Top)
+	view.AutoPanel.Dock(view.viscosity_field, windigo.Top)
+	view.AutoPanel.Dock(view.density_field, windigo.Top)
+	view.AutoPanel.Dock(view.string_field, windigo.Top)
 
-	group_panel.Dock(visual_field, windigo.Top)
-	group_panel.Dock(viscosity_field, windigo.Top)
-	group_panel.Dock(density_field, windigo.Top)
-	group_panel.Dock(string_field, windigo.Top)
-
-	view.AutoPanel = group_panel
-	view.visual_field = visual_field
-	view.viscosity_field = viscosity_field
-	view.string_field = string_field
-	view.density_field = density_field
-	view.ranges_panel = ranges_panel
 	view.sample_point = sample_point
 	return view
 
@@ -123,21 +110,8 @@ func (view *FrictionReducerProductView) RefreshSize() {
 }
 
 func (view *FrictionReducerProductView) Clear() {
-
-	view.visual_field.SetChecked(false)
+	view.visual_field.Clear()
 	view.viscosity_field.Clear()
-
 	view.density_field.Clear()
-
 	view.string_field.Clear()
-
-	view.ranges_panel.Clear()
-
 }
-
-/*
-func (view FrictionReducerProductView) Clear() {
-	view.MassRangesView.Clear()
-	view.viscosity_field.Clear()
-	view.string_field.Clear()
-}*/

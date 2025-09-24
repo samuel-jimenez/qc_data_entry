@@ -1,4 +1,4 @@
-package subpanels
+package qc
 
 import (
 	"log"
@@ -26,26 +26,20 @@ type WaterBasedProductRangesView struct {
 
 func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *WaterBasedProductRangesView {
 
-	visual_text := "Visual Inspection"
-	sg_text := "SG"
-	ph_text := "pH"
+	view := new(WaterBasedProductRangesView)
+	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	group_panel := windigo.NewAutoPanel(parent)
+	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
+	view.ph_field = views.BuildNewRangeROView(view.AutoPanel, views.PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
+	view.sg_field = views.BuildNewRangeROView(view.AutoPanel, views.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
 
-	// visual_field := show_checkbox(parent, label_col, field_col, visual_row, visual_text)
-	visual_field := product.BuildNewProductAppearanceROView(group_panel, visual_text, qc_product.Appearance)
+	view.AutoPanel.Dock(view.visual_field, windigo.Top)
+	view.AutoPanel.Dock(view.ph_field, windigo.Top)
+	view.AutoPanel.Dock(view.sg_field, windigo.Top)
 
-	ph_field := views.BuildNewRangeROView(group_panel, ph_text, qc_product.PH, formats.Format_ranges_ph)
-	sg_field := views.BuildNewRangeROView(group_panel, sg_text, qc_product.SG, formats.Format_ranges_sg)
-
-	group_panel.Dock(visual_field, windigo.Top)
-	group_panel.Dock(ph_field, windigo.Top)
-	group_panel.Dock(sg_field, windigo.Top)
-
-	return &WaterBasedProductRangesView{group_panel, &visual_field, &ph_field, &sg_field}
+	return view
 
 }
-
 
 func (view *WaterBasedProductRangesView) SetFont(font *windigo.Font) {
 	view.visual_field.SetFont(font)

@@ -22,7 +22,7 @@ type RangeROView struct {
 	data_map func(float64) float64
 }
 
-func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string, data_map func(float64) float64) RangeROView {
+func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string, data_map func(float64) float64) *RangeROView {
 
 	panel := windigo.NewAutoPanel(parent)
 	//TODO toolti[p]
@@ -43,7 +43,7 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 	panel.Dock(max_field_spacer, windigo.Left)
 	panel.Dock(max_field, windigo.Left)
 
-	return RangeROView{panel,
+	return &RangeROView{panel,
 		field_data,
 		min_field,
 		min_field_spacer,
@@ -52,7 +52,7 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 		max_field, data_map}
 }
 
-func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string) RangeROView {
+func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string) *RangeROView {
 	return BuildNewRangeROViewMap(parent, field_text, field_data, format, nil)
 }
 

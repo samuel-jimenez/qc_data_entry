@@ -16,6 +16,7 @@ import (
 func Release_testing_lot(lot_number string) error {
 	proc_name := "product.Release_testing_lot"
 	err := DB.Update(proc_name,
+		//TODO only the BSQL?
 		DB.DB_Update_lot_list__component_status, lot_number, Status_SHIPPED,
 	)
 	if err != nil {
@@ -153,7 +154,7 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 	Blend := blender.NewProductBlend()
 	base_product.Blend = Blend
 
-	// TODO blend012 ensure doens't break show_fr()
+	// TODO blend012 ensure doesn't break show_fr()
 
 	// base_product.Insel_product_self()
 

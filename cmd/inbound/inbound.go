@@ -144,6 +144,10 @@ func get_sched(file_name, worksheet_name string) {
 			// }
 			// log.Printf("\n")
 
+			if len(row) <= 1 {
+				continue
+			}
+
 			// release_date := row[16]
 			released_row := 16
 			comments_row := 16

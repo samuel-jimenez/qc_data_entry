@@ -5,10 +5,10 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/product"
-	"github.com/samuel-jimenez/qc_data_entry/qc/subpanels"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -42,9 +42,9 @@ type QCWindow struct {
 	product_panel *TopPanelView
 
 	tabs              *windigo.TabView
-	panel_water_based *subpanels.WaterBasedPanelView
-	panel_oil_based   *subpanels.OilBasedPanelView
-	panel_fr          *subpanels.FrictionReducerPanelView
+	panel_water_based *WaterBasedPanelView
+	panel_oil_based   *OilBasedPanelView
+	panel_fr          *FrictionReducerPanelView
 
 	keygrab *windigo.Edit
 }
@@ -64,9 +64,9 @@ func NewQCWindow(parent windigo.Controller) *QCWindow {
 	product_panel := NewTopPanelView(view)
 
 	tabs := windigo.NewTabView(view)
-	tab_wb := tabs.AddAutoPanel("Water Based")
-	tab_oil := tabs.AddAutoPanel("Oil Based")
-	tab_fr := tabs.AddAutoPanel("Friction Reducer")
+	tab_wb := tabs.AddAutoPanel(views.BLEND_WB)
+	tab_oil := tabs.AddAutoPanel(views.BLEND_OIL)
+	tab_fr := tabs.AddAutoPanel(views.BLEND_FR)
 
 	//
 	//
@@ -87,9 +87,9 @@ func NewQCWindow(parent windigo.Controller) *QCWindow {
 	//
 	// functionality
 
-	panel_water_based := subpanels.Show_water_based(tab_wb, product_panel.QC_Product, product_panel.BaseProduct)
-	panel_oil_based := subpanels.Show_oil_based(tab_oil, product_panel.QC_Product, product_panel.BaseProduct)
-	panel_fr := subpanels.Show_fr(tab_fr, product_panel.QC_Product, product_panel.BaseProduct)
+	panel_water_based := Show_water_based(tab_wb, product_panel)
+	panel_oil_based := Show_oil_based(tab_oil, product_panel)
+	panel_fr := Show_fr(tab_fr, product_panel)
 
 	view.AddShortcuts()
 

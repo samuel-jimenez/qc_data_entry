@@ -12,6 +12,16 @@ var (
 	NUM_FIELDS,
 
 	BUTTON_MARGIN int
+
+	VISUAL_TEXT = "Visual Inspection"
+	STRING_TEXT = "String"
+
+	SUBMIT_TEXT = "Submit"
+	CLEAR_TEXT  = "Clear"
+	LOG_TEXT    = "Log"
+
+	SUBMIT_CLEAR_BTN     = []string{SUBMIT_TEXT, CLEAR_TEXT}
+	SUBMIT_CLEAR_LOG_BTN = []string{SUBMIT_TEXT, CLEAR_TEXT, LOG_TEXT}
 )
 
 func refresh_globals(font_size int) {

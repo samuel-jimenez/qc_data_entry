@@ -38,7 +38,7 @@ func ShowNewQCProductRangesView(qc_product *product.QCProduct) {
 	prod_label.SetText(WindowText)
 	prod_label.SetSize(GUI.OFF_AXIS, GUI.RANGES_FIELD_SMALL_HEIGHT)
 
-	radio_dock := product.BuildNewDiscreteView(rangeWindow, "Type", qc_product.Product_type, []string{"Water Based", "Oil Based", "Friction Reducer"})
+	radio_dock := product.BuildNewDiscreteView(rangeWindow, "Type", qc_product.Product_type, []string{BLEND_WB, BLEND_OIL, BLEND_FR})
 	radio_dock.SetSize(GUI.OFF_AXIS, GUI.DISCRETE_FIELD_HEIGHT)
 	radio_dock.SetItemSize(GUI.PRODUCT_TYPE_WIDTH)
 	radio_dock.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
@@ -56,20 +56,20 @@ func ShowNewQCProductRangesView(qc_product *product.QCProduct) {
 	//TODO center
 	//TODO layout split n
 
-	ph_dock := BuildNewRangeView(rangeWindow, "pH", qc_product.PH, formats.Format_ranges_ph)
+	ph_dock := BuildNewRangeView(rangeWindow, PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
 	ph_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	sg_dock := BuildNewRangeView(rangeWindow, "Specific Gravity", qc_product.SG, formats.Format_ranges_sg)
+	sg_dock := BuildNewRangeView(rangeWindow, SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
 	sg_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	density_dock := BuildNewRangeView(rangeWindow, "Density", qc_product.Density, formats.Format_ranges_density)
+	density_dock := BuildNewRangeView(rangeWindow, DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
 	density_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
 	string_dock := BuildNewRangeView(rangeWindow, "String Test \n\t at 0.5gpt", qc_product.String_test, formats.Format_ranges_string_test)
 	string_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 	//TODO store string_amt "at 0.5gpt"
 
-	visco_dock := BuildNewRangeView(rangeWindow, "Viscosity", qc_product.Viscosity, formats.Format_ranges_viscosity)
+	visco_dock := BuildNewRangeView(rangeWindow, VISCOSITY_TEXT, qc_product.Viscosity, formats.Format_ranges_viscosity)
 	visco_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
 	exit := func() {

@@ -17,38 +17,55 @@ type ProductAppearance struct {
 }
 
 /*
+ * ProductAppearanceViewer
+ *
+ */
+type ProductAppearanceViewer interface {
+	*windigo.LabeledEdit
+	Get() ProductAppearance
+	Set(field_data ProductAppearance)
+}
+
+/*
  * ProductAppearanceView
  *
  */
 type ProductAppearanceView struct {
 	*windigo.LabeledEdit
-	Get func() ProductAppearance
-	Set func(field_data ProductAppearance)
 }
 
 // func BuildNewProductAppearanceView(parent windigo.Controller,  label_width, control_width, height int, field_text string, field_data ProductAppearance) ProductAppearanceView {
-func BuildNewProductAppearanceView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceView {
+func BuildNewProductAppearanceView(parent windigo.Controller, field_text string, field_data ProductAppearance) *ProductAppearanceView {
 
-	field := windigo.NewSizedLabeledEdit(parent, GUI.LABEL_WIDTH, GUI.OFF_AXIS, GUI.RANGES_FIELD_HEIGHT, field_text)
-	field.SetPaddingsAll(GUI.RANGES_PADDING)
+	view := new(ProductAppearanceView)
+	view.LabeledEdit = windigo.NewSizedLabeledEdit(parent, GUI.LABEL_WIDTH, GUI.OFF_AXIS, GUI.RANGES_FIELD_HEIGHT, field_text)
+	view.LabeledEdit.SetPaddingsAll(GUI.RANGES_PADDING)
 	if field_data.Valid {
-		field.SetText(field_data.String)
+		view.LabeledEdit.SetText(field_data.String)
 	}
 
-	get := func() ProductAppearance {
-		field_text := field.Text()
-		return ProductAppearance{sql.NullString{String: field_text, Valid: true}}
-	}
+	return view
+}
 
-	update := func(field_data ProductAppearance) {
-		if field_data.Valid {
-			field.SetText(field_data.String)
-		} else {
-			field.SetText("")
-		}
-	}
+func (view *ProductAppearanceView) Get() ProductAppearance {
+	field_text := view.LabeledEdit.Text()
+	return ProductAppearance{sql.NullString{String: field_text, Valid: true}}
+}
 
-	return ProductAppearanceView{field, get, update}
+func (view *ProductAppearanceView) Set(field_data ProductAppearance) {
+	if field_data.Valid {
+		view.LabeledEdit.SetText(field_data.String)
+	} else {
+		view.LabeledEdit.SetText("")
+	}
+}
+
+type ProductAppearanceROViewer interface {
+	*GUI.View
+	windigo.BaseController
+	Update(field_data ProductAppearance)
+	SetFont(font *windigo.Font)
+	RefreshSize()
 }
 
 /*
@@ -58,30 +75,28 @@ func BuildNewProductAppearanceView(parent windigo.Controller, field_text string,
 
 type ProductAppearanceROView struct {
 	*GUI.View
-	Update      func(field_data ProductAppearance)
-	SetFont     func(*windigo.Font)
-	RefreshSize func()
+	data_field *windigo.LabeledLabel
 }
 
-func BuildNewProductAppearanceROView(parent windigo.Controller, field_text string, field_data ProductAppearance) ProductAppearanceROView {
+func BuildNewProductAppearanceROView(parent windigo.Controller, field_text string, field_data ProductAppearance) *ProductAppearanceROView {
 	data_field := windigo.NewLabeledLabel(parent, "")
 
 	//TODO toolti[p]
 	// label := windigo.NewLabel(panel)
 	// label.SetText(field_text)
-	update := func(field_data ProductAppearance) {
-		if field_data.Valid {
-			data_field.SetText(field_data.String)
-		} else {
-			data_field.SetText("")
-		}
-	}
-	update(field_data)
 
-	refresh := func() {
-		data_field.SetSize(GUI.OFF_AXIS, GUI.RANGES_RO_FIELD_HEIGHT)
-		data_field.SetPaddingsAll(GUI.ERROR_MARGIN)
-	}
+	return &ProductAppearanceROView{&GUI.View{ComponentFrame: data_field}, data_field}
+}
 
-	return ProductAppearanceROView{&GUI.View{ComponentFrame: data_field}, update, data_field.SetFont, refresh}
+func (view *ProductAppearanceROView) Update(field_data ProductAppearance) {
+	if field_data.Valid {
+		view.data_field.SetText(field_data.String)
+	} else {
+		view.data_field.SetText("")
+	}
+}
+func (view *ProductAppearanceROView) SetFont(font *windigo.Font) { view.data_field.SetFont(font) }
+func (view *ProductAppearanceROView) RefreshSize() {
+	view.SetSize(GUI.OFF_AXIS, GUI.RANGES_RO_FIELD_HEIGHT)
+	view.SetPaddingsAll(GUI.ERROR_MARGIN)
 }

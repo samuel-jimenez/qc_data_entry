@@ -1,4 +1,4 @@
-package subpanels
+package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -52,30 +52,20 @@ type OilBasedProductView struct {
 	*windigo.AutoPanel
 	visual_field  *views.BoolCheckboxView
 	density_field *views.MassDataView
-	ranges_panel  *OilBasedProductRangesView
 }
 
 func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedProductRangesView) *OilBasedProductView {
 
-	visual_text := "Visual Inspection"
-	mass_text := "Mass"
-
 	view := new(OilBasedProductView)
 
-	panel := windigo.NewAutoPanel(parent)
+	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	visual_field := views.NewBoolCheckboxView(panel, visual_text)
-	mass_field := views.NewNumberEditView(panel, mass_text)
+	view.visual_field = views.NewBoolCheckboxView(view.AutoPanel, VISUAL_TEXT)
 
-	density_field := views.NewMassDataView(panel, ranges_panel, mass_field)
+	view.density_field = views.NewMassDataView(view.AutoPanel, ranges_panel)
 
-	panel.Dock(visual_field, windigo.Top)
-	panel.Dock(density_field, windigo.Top)
-
-	view.AutoPanel = panel
-	view.visual_field = visual_field
-	view.density_field = density_field
-	view.ranges_panel = ranges_panel
+	view.AutoPanel.Dock(view.visual_field, windigo.Top)
+	view.AutoPanel.Dock(view.density_field, windigo.Top)
 
 	return view
 }
@@ -87,11 +77,7 @@ func (view *OilBasedProductView) Get(base_product product.BaseProduct) product.P
 
 func (view *OilBasedProductView) Clear() {
 	view.visual_field.Clear()
-
 	view.density_field.Clear()
-
-	view.ranges_panel.Clear()
-
 }
 
 func (view *OilBasedProductView) SetFont(font *windigo.Font) {
