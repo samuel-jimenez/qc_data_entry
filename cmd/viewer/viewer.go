@@ -28,8 +28,10 @@ func main() {
 	}
 	defer log_file.Close()
 
+	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
+
 	log.SetOutput(log_file)
-	log.Println("Info: Logging Started")
+	log.Println("Info: Logging to logfile:", config.LOG_FILE)
 
 	//open_db
 	// viewer.QC_DB, err := sql.Open("sqlite3", DB_FILE)
@@ -39,6 +41,7 @@ func main() {
 		log.Fatal("Crit: error opening database: ", err)
 	}
 	defer viewer.QC_DB.Close()
+	log.Println("Info: Using db:", config.DB_FILE)
 	viewer.DBinit(viewer.QC_DB)
 
 	//setup print goroutine
