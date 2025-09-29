@@ -4,7 +4,6 @@ package views
 
 import (
 	"math"
-	"strconv"
 	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -29,20 +28,18 @@ type NumberEditViewable interface {
 	Entangle(other_field *NumberEditView, range_field *RangeROView, delta_max float64)
 }
 
-// TODO combine NumbEditView nmaybe?
-
 /*
  * NumberEditView
  *
  */
 type NumberEditView struct {
 	GUI.ErrableView
-	*windigo.Edit
-	*windigo.Labeled
+	NumbEditView
+	windigo.Labeled
 }
 
 func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
-	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, label.Edit, &windigo.Labeled{FieldLabel: label.Label()}}
+	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
 }
 
 func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEditView {
@@ -59,11 +56,6 @@ func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, r
 	return edit_field
 }
 
-func (control *NumberEditView) Get() float64 {
-	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
-	return val
-}
-
 func (control *NumberEditView) GetFixed() float64 {
 	start, end := control.Selected()
 	// IndexAny(s, chars string) int
@@ -73,11 +65,6 @@ func (control *NumberEditView) GetFixed() float64 {
 	// mass_field.SelectText(-1, 0)
 
 	return control.Get()
-}
-func (control *NumberEditView) Set(val float64) {
-	start, end := control.Selected()
-	control.SetText(strconv.FormatFloat(val, 'f', 2, 64))
-	control.SelectText(start, end)
 }
 
 func (control *NumberEditView) Clear() {
@@ -126,7 +113,7 @@ func (this_field *NumberEditView) Entangle(other_field *NumberEditView, range_fi
  *
  */
 type NumberUnitsEditView struct {
-	*NumberEditView
+	NumberEditView
 	SetFont        func(font *windigo.Font)
 	SetLabeledSize func(label_width, control_width, unit_width, height int)
 }
@@ -174,5 +161,5 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 
 	}
 
-	return &NumberUnitsEditView{&NumberEditView{&GUI.View{ComponentFrame: panel}, text_field, &windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
+	return &NumberUnitsEditView{NumberEditView{&GUI.View{ComponentFrame: panel}, NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
 }

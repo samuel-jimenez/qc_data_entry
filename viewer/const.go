@@ -61,7 +61,7 @@ var (
 	COL_LABEL_VISCOSITY = "Viscosity"
 )
 
-func refresh_globals(font_size int) {
+func Refresh_globals(font_size int) {
 
 	COL_WIDTH_TIME = 15 * font_size
 	COL_WIDTH_LOT = 10 * font_size

@@ -216,7 +216,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 			view.product_field.AddItem(name)
 			return nil
 		},
-		DB.DB_Select_product_info)
+		DB.DB_Select_product_info_all)
 
 	view.lot_field.Fill_FromFnQuery(
 		view.update_lot,

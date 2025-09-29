@@ -1,9 +1,10 @@
-package views
+package blender_ui
 
 import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -13,7 +14,7 @@ import (
  *
  */
 type BlendViewer interface {
-	QCBlendViewer
+	views.QCBlendViewer
 	// windigo.Pane
 	// Get() *blender.ProductBlend
 	// UpdateRecipe(blend *blender.ProductBlend)
@@ -27,24 +28,24 @@ type BlendViewer interface {
  *
  */
 type BlendView struct {
-	QCBlendView
-	amount_field *NumberEditView
+	views.QCBlendView
+	amount_field *views.NumberEditView
 }
 
 func NewBlendView(parent windigo.Controller) *BlendView {
 	view := new(BlendView)
-	view.QCBlendView = *NewQCBlendView(parent)
+	view.QCBlendView = *views.NewQCBlendView(parent)
 
 	amount_text := "Amount"
 	// amount_text := "Quantity"
 
 	//TODO normalize amounts
 
-	view.amount_field = NewNumberEditView(view.panel, amount_text)
+	view.amount_field = views.NewNumberEditView(view.Panel, amount_text)
 
 	// TODO/ RecipeHeader from  RecipeComponent Component Amount
 
-	view.panel.Dock(view.amount_field, windigo.Left)
+	view.Panel.Dock(view.amount_field, windigo.Left)
 
 	view.amount_field.OnChange().Bind(func(e *windigo.Event) {
 		view.SetAmount(view.amount_field.Get())
@@ -122,7 +123,7 @@ func (view *BlendView) RefreshSize() {
 	log.Println("Crit: DEBUG: BlendView RefreshSize", height, GUI.PRODUCT_FIELD_HEIGHT, len(view.Components))
 
 	view.SetSize(GUI.OFF_AXIS, height+len(view.Components)*delta_height)
-	view.panel.SetSize(GUI.TOP_PANEL_WIDTH, height)
+	view.Panel.SetSize(GUI.TOP_PANEL_WIDTH, height)
 	view.amount_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, height)
 
 	for _, component := range view.Components {

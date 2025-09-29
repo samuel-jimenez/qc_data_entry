@@ -1,6 +1,7 @@
-package views
+package blender_ui
 
 import (
+	"database/sql"
 	"log"
 	"strconv"
 
@@ -25,11 +26,12 @@ type BlendProductView struct {
 
 	RecipeProduct *blender.RecipeProduct
 	// BlendProduct                   *blender.BlendProduct
-	Blend                          *BlendView
-	Product_data                   map[string]int64
-	Product_Field, Blend_sel_field *GUI.ComboBox
-	panels                         []*windigo.AutoPanel
-	controls                       []windigo.Controller
+	Blend           *BlendView
+	Product_data    map[string]int64
+	Product_Field   *GUI.SearchBox
+	Blend_sel_field *GUI.ComboBox
+	panels          []*windigo.AutoPanel
+	controls        []windigo.Controller
 }
 
 func NewBlendProductView(parent windigo.Controller) *BlendProductView {
@@ -41,6 +43,8 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	view.RecipeProduct = blender.NewRecipeProduct()
 	// view.BlendProduct = NewBlendProduct()
 
+	view.Product_data = make(map[string]int64)
+
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
 	product_panel := windigo.NewAutoPanel(view.AutoPanel)
@@ -48,9 +52,9 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	view.panels = append(view.panels, product_panel)
 	view.panels = append(view.panels, recipe_panel)
 
-	view.Product_Field = GUI.NewComboBox(product_panel, product_text)
+	view.Product_Field = GUI.NewLabeledListSearchBox(product_panel, product_text)
 
-	view.Blend_sel_field = GUI.NewComboBox(recipe_panel, recipe_text)
+	view.Blend_sel_field = GUI.NewListComboBox(recipe_panel, recipe_text)
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
 	recipe_accept_button.SetText("OK")
@@ -68,6 +72,23 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	product_panel.Dock(view.Product_Field, windigo.Left)
 	recipe_panel.Dock(view.Blend_sel_field, windigo.Left)
 	recipe_panel.Dock(recipe_accept_button, windigo.Left)
+
+	// combobox
+	GUI.Fill_combobox_from_query_rows(view.Product_Field, func(row *sql.Rows) error {
+		var (
+			id                   int64
+			internal_name        string
+			product_moniker_name string
+		)
+		if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
+			return err
+		}
+		name := product_moniker_name + " " + internal_name
+		view.Product_data[name] = id
+		view.Product_Field.AddItem(name)
+		return nil
+	},
+		DB.DB_Select_product_info_all)
 
 	//event handling
 	view.Product_Field.OnSelectedChange().Bind(func(e *windigo.Event) {

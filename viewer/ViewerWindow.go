@@ -2,7 +2,7 @@ package viewer
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -21,7 +21,7 @@ type ViewerWinder interface {
 	SetFont(font *windigo.Font)
 	RefreshSize()
 	AddShortcuts()
-	set_font_size()
+	Set_font_size()
 	Increase_font_size() bool
 	Decrease_font_size() bool
 }
@@ -125,55 +125,34 @@ func (view *ViewerWindow) GetTable() []windigo.ListItem {
 }
 
 func (view *ViewerWindow) SetFont(font *windigo.Font) {
-
 	view.selection_panel.SetFont(font)
 	view.FilterListView.SetFont(font)
 	view.table.SetFont(font)
 }
 
 func (view *ViewerWindow) RefreshSize() {
-	refresh_globals(GUI.BASE_FONT_SIZE)
-
+	Refresh_globals(GUI.BASE_FONT_SIZE)
 	view.selection_panel.RefreshSize()
 	view.FilterListView.RefreshSize()
 	// view.table.RefreshSize()
-
 }
 
 func (view *ViewerWindow) AddShortcuts() {
-
-	// Resize handling
-	view.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModControl, Key: windigo.KeyOEMPlus}, // +
-		view.Increase_font_size,
-	)
-
-	view.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModControl, Key: windigo.KeyOEMMinus}, // -
-		view.Decrease_font_size,
-	)
-
+	toplevel_ui.AddShortcuts(view)
 }
 
-func (mainWindow *ViewerWindow) set_font_size() {
-
-	config.Main_config.Set("font_size", GUI.BASE_FONT_SIZE)
-	config.Write_config(config.Main_config)
-
-	old_font := windigo.DefaultFont
-	windigo.DefaultFont = windigo.NewFont(old_font.Family(), GUI.BASE_FONT_SIZE, 0)
-	old_font.Dispose()
-
-	refresh_globals(GUI.BASE_FONT_SIZE)
-
+func (mainWindow *ViewerWindow) Set_font_size() {
+	toplevel_ui.Set_font_size()
 	mainWindow.SetFont(windigo.DefaultFont)
 	mainWindow.RefreshSize()
 }
 func (view *ViewerWindow) Increase_font_size() bool {
 	GUI.BASE_FONT_SIZE += 1
-	view.set_font_size()
+	view.Set_font_size()
 	return true
 }
 func (view *ViewerWindow) Decrease_font_size() bool {
 	GUI.BASE_FONT_SIZE -= 1
-	view.set_font_size()
+	view.Set_font_size()
 	return true
 }

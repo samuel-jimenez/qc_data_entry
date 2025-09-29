@@ -24,7 +24,7 @@ var (
 	SUBMIT_CLEAR_LOG_BTN = []string{SUBMIT_TEXT, CLEAR_TEXT, LOG_TEXT}
 )
 
-func refresh_globals(font_size int) {
+func Refresh_globals(font_size int) {
 
 	GUI.CLOCK_TIMER_WIDTH = 35
 	GUI.CLOCK_TIMER_OFFSET_H = 10

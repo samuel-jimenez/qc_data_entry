@@ -48,8 +48,10 @@ func (qc_product *QCProduct) ResetQC() {
 }
 
 func (qc_product *QCProduct) Select_product_details() {
-
-	err := DB.DB_Select_product_details.QueryRow(qc_product.Product_id).Scan(
+	proc_name := "Select_product_details"
+	DB.Select_Error(
+		proc_name,
+		DB.DB_Select_product_details.QueryRow(qc_product.Product_id),
 		&qc_product.Product_type, &qc_product.Container_type, &qc_product.Appearance,
 		&qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
 		&qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
@@ -57,14 +59,13 @@ func (qc_product *QCProduct) Select_product_details() {
 		&qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
 		&qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
 	)
-	if err != nil {
-		log.Printf("Error: [%s]: %q\n", "Select_product_details", err)
-	}
 }
 
 func (qc_product *QCProduct) Select_product_coa_details() {
-
-	err := DB.DB_Select_product_coa_details.QueryRow(qc_product.Product_id).Scan(
+	proc_name := "Select_product_coa_details"
+	DB.Select_ErrNoRows(
+		proc_name,
+		DB.DB_Select_product_coa_details.QueryRow(qc_product.Product_id),
 		&qc_product.Appearance,
 		&qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
 		&qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
@@ -72,10 +73,6 @@ func (qc_product *QCProduct) Select_product_coa_details() {
 		&qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
 		&qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
 	)
-	if err != nil {
-		log.Printf("Error: [%s]: %q\n", "select_product_coa_details", err)
-	}
-	// TODO 2025/07/31 14:50:45 Error: [select_product_coa_details]: "sql: no rows in result set"
 }
 
 func (qc_product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {

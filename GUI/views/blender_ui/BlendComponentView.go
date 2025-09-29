@@ -1,9 +1,10 @@
-package views
+package blender_ui
 
 import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -26,8 +27,9 @@ type BlendComponentViewer interface {
  *
  */
 type BlendComponentView struct {
-	QCBlendComponentView
-	amount_field *NumbEditView
+	views.QCBlendComponentView
+	amount_field   *views.NumbEditView
+	InboundLotView *views.InboundLotView
 }
 
 // TODO
@@ -46,62 +48,59 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 	DEL_BUTTON_WIDTH := 20
 
 	view := new(BlendComponentView)
-	view.recipeComponent = recipeComponent
+	view.Recipe_Component = recipeComponent
 
 	// view.BlendComponent = NewBlendComponent()
 	// view.BlendComponent.Add_order = len(parent.Components)
 	// view.BlendComponent.
 
-	view.component_types_data = make(map[string]blender.BlendComponent)
+	view.Component_types_data = make(map[string]blender.BlendComponent)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
 	// view.component_field = GUI.NewSearchBoxWithLabels(view.AutoPanel, parent.component_types_list)
 	// view.component_field = GUI.NewListSearchBoxWithLabels(view.AutoPanel, view.component_types_list)
-	view.component_field = GUI.NewListSearchBox(view.AutoPanel)
+	view.Component_field = GUI.NewListSearchBox(view.AutoPanel)
 
 	// cf NumberEditView
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)
-	view.amount_field = NewNumbEditView(view.AutoPanel)
-
-	//??TODO make memnber?
-	var InboundLotView *InboundLotView
+	view.amount_field = views.NewNumbEditView(view.AutoPanel)
 
 	lot_add_button := windigo.NewPushButton(view.AutoPanel)
 	lot_add_button.SetText("+")
 	// TODO add lot
 	lot_add_button.OnClick().Bind(func(e *windigo.Event) {
-		if InboundLotView != nil {
+		if view.InboundLotView != nil {
 			return
 		}
-		InboundLotView = NewInboundLotView(view, recipeComponent)
-		InboundLotView.RefreshSize()
-		view.AutoPanel.Dock(InboundLotView, windigo.Left)
-		InboundLotView.OnClose().Bind(func(e *windigo.Event) {
-			InboundLotView = nil
+		view.InboundLotView = views.NewInboundLotView(view, recipeComponent)
+		view.InboundLotView.RefreshSize()
+		view.AutoPanel.Dock(view.InboundLotView, windigo.Left)
+		view.InboundLotView.OnClose().Bind(func(e *windigo.Event) {
+			view.InboundLotView = nil
 			view.Update_component_types()
 		})
 	})
 
-	view.controls = append(view.controls, lot_add_button)
+	view.Controls = append(view.Controls, lot_add_button)
 
 	view.AutoPanel.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.component_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.Component_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.amount_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	lot_add_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-	view.AutoPanel.Dock(view.component_field, windigo.Left)
+	view.AutoPanel.Dock(view.Component_field, windigo.Left)
 	view.AutoPanel.Dock(view.amount_field, windigo.Left)
 	// view.AutoPanel.Dock(order_field, windigo.Left)
 	view.AutoPanel.Dock(lot_add_button, windigo.Left)
 
-	view.component_field.Label().SetText(recipeComponent.Component_name)
+	view.Component_field.Label().SetText(recipeComponent.Component_name)
 	// view.component_field.SetText(RecipeComponent.Component_name)
 	view.amount_field.Set(recipeComponent.Component_amount)
 
 	view.Update_component_types()
 
 	view.amount_field.OnChange().Bind(func(e *windigo.Event) {
-		parent.SetAmount(view.amount_field.Get() / view.recipeComponent.Component_amount)
+		parent.SetAmount(view.amount_field.Get() / view.Recipe_Component.Component_amount)
 	})
 
 	return view
@@ -117,13 +116,13 @@ func (view *BlendComponentView) Get() *blender.BlendComponent {
 	}
 	//TODO check for zero amount?
 	BlendComponent.Component_amount = view.amount_field.Get()
-	log.Println("DEBUG: BlendComponentView update_component_types", BlendComponent, view.component_field.GetSelectedItem(), view.component_field.SelectedItem(), view.component_types_data[view.component_field.Text()])
+	log.Println("DEBUG: BlendComponentView update_component_types", BlendComponent, view.Component_field.GetSelectedItem(), view.Component_field.SelectedItem(), view.Component_types_data[view.Component_field.Text()])
 
 	return BlendComponent
 }
 
 func (view *BlendComponentView) SetAmount(amount float64) {
-	view.amount_field.Set(amount * view.recipeComponent.Component_amount)
+	view.amount_field.Set(amount * view.Recipe_Component.Component_amount)
 }
 
 /*

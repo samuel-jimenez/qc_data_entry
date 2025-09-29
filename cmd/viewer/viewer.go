@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/qc_data_entry/viewer"
@@ -27,11 +29,10 @@ func main() {
 		log.Fatalf("Crit: error opening file: %v", err)
 	}
 	defer log_file.Close()
-
-	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
+	log.Println("Info: Logging to logfile:", config.LOG_FILE)
 
 	log.SetOutput(log_file)
-	log.Println("Info: Logging to logfile:", config.LOG_FILE)
+	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
 
 	//open_db
 	// viewer.QC_DB, err := sql.Open("sqlite3", DB_FILE)
@@ -54,7 +55,8 @@ func main() {
 	defer close(threads.STATUS_QUEUE)
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
-	//show main window
-	viewer.Show_window()
+	viewer.Refresh_globals(GUI.BASE_FONT_SIZE)
 
+	//show main window
+	toplevel_ui.Show_window(viewer.NewViewerWindow(nil))
 }

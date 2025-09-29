@@ -53,13 +53,11 @@ func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_
 	Inbound := NewInboundLot()
 	Inbound.Lot_number = Lot_number
 	Inbound.Product_name = product_name
-	if err := DB.DB_Select_inbound_product_name.QueryRow(Inbound.Product_name).Scan(
+	if err := DB.Select_ErrNoRows(
+		proc_name,
+		DB.DB_Select_inbound_product_name.QueryRow(Inbound.Product_name),
 		&Inbound.Product_id,
 	); err != nil {
-		if err != sql.ErrNoRows { // no row? no problem!
-			log.Printf("Error: [%s]: %q\n", proc_name, err)
-			//TODO DB_Insert_inbound_product
-		}
 		return nil
 	}
 

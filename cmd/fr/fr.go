@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views/blender_ui"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/fr_ui"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
@@ -53,10 +53,7 @@ func main() {
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
-	toplevel_ui.Show_window(blender_ui.NewBlenderWindow(nil))
-
-	//TODO do something with this guy
-	// toplevel_ui.Show_window(blender_ui.NewFormulatorWindow(nil))
+	toplevel_ui.Show_window(fr_ui.NewBlenderWindow(nil))
 
 }
 

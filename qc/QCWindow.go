@@ -6,8 +6,8 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
-	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
@@ -21,7 +21,7 @@ type QCWinder interface {
 	clear_lot(product_id int)
 	SetFont()
 	RefreshSize()
-	set_font_size()
+	Set_font_size()
 	Increase_font_size() bool
 	Decrease_font_size() bool
 	keygrab_start() bool
@@ -115,7 +115,7 @@ func (view *QCWindow) SetFont(font *windigo.Font) {
 }
 
 func (view *QCWindow) RefreshSize() {
-	refresh_globals(GUI.BASE_FONT_SIZE)
+	Refresh_globals(GUI.BASE_FONT_SIZE)
 
 	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
@@ -129,28 +129,19 @@ func (view *QCWindow) RefreshSize() {
 	view.panel_fr.RefreshSize()
 }
 
-func (view *QCWindow) set_font_size() {
-
-	config.Main_config.Set("font_size", GUI.BASE_FONT_SIZE)
-	config.Write_config(config.Main_config)
-
-	old_font := windigo.DefaultFont
-	windigo.DefaultFont = windigo.NewFont(old_font.Family(), GUI.BASE_FONT_SIZE, 0)
-	old_font.Dispose()
-
-	refresh_globals(GUI.BASE_FONT_SIZE)
-
+func (view *QCWindow) Set_font_size() {
+	toplevel_ui.Set_font_size()
 	view.SetFont(windigo.DefaultFont)
 	view.RefreshSize()
 }
 func (view *QCWindow) Increase_font_size() bool {
 	GUI.BASE_FONT_SIZE += 1
-	view.set_font_size()
+	view.Set_font_size()
 	return true
 }
 func (view *QCWindow) Decrease_font_size() bool {
 	GUI.BASE_FONT_SIZE -= 1
-	view.set_font_size()
+	view.Set_font_size()
 	return true
 }
 
@@ -192,14 +183,7 @@ func (view *QCWindow) AddShortcuts() {
 	)
 
 	// Resize handling
-	view.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModControl, Key: windigo.KeyOEMPlus}, // +
-		view.Increase_font_size,
-	)
-
-	view.AddShortcut(windigo.Shortcut{Modifiers: windigo.ModControl, Key: windigo.KeyOEMMinus}, // -
-		view.Decrease_font_size,
-	)
-
+	toplevel_ui.AddShortcuts(view)
 }
 
 func (view *QCWindow) ChangeContainer(qc_product *product.QCProduct) {

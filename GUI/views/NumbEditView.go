@@ -14,15 +14,12 @@ import (
 type NumbEditViewer interface {
 	Get() float64
 	Set(float64)
+	SetInt(val float64)
 }
 
-// TODO combine NumberEditView nmaybe?
-
 /*
-* NumbEditView
-* 	// cf NumberEditView
-
-*
+ * NumbEditView
+ *
  */
 type NumbEditView struct {
 	// GUI.ErrableView

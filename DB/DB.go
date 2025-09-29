@@ -22,7 +22,7 @@ var (
 	DB_Select_recipe_components_id, DB_Insert_recipe_component, DB_Update_recipe_component, DB_Delete_recipe_component, DB_Select_recipe_components_count,
 	// component_types
 	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
-	DB_Select_component_type_product, DB_Insert_internal_product_component_type, DB_Insert_inbound_product_component_type,
+	DB_Select_component_type_product, DB_Select_component_type_density, DB_Insert_internal_product_component_type, DB_Insert_inbound_product_component_type,
 	DB_Select_inbound_product_component_type_id,
 	// inbound_product
 	DB_Select_inbound_product_name, DB_Insert_inbound_product,
@@ -58,7 +58,7 @@ var (
 	DB_Select_product_lot_components,
 	// product_line
 	db_select_product_id, db_insert_product,
-	DB_Select_product_info,
+	DB_Select_product_info_all, DB_Select_product_info_moniker,
 	// product_customer_line
 	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
@@ -211,33 +211,51 @@ func DBinit(db *sql.DB) {
 	// `)
 
 	DB_Select_component_type_product = PrepareOrElse(db, `
-select
-false, product_lot_id, product_name_internal, lot_name, ''
+	select
+	false, product_lot_id, product_name_internal, lot_name, ''
 
-from bs.component_type_product_internal
-join bs.product_line using (product_id)
-join bs.product_lot using (product_id)
-join bs.lot_list using (lot_id)
-join bs.internal_status_list using (internal_status_id)
+	from bs.component_type_product_internal
+	join bs.product_line using (product_id)
+	join bs.product_lot using (product_id)
+	join bs.lot_list using (lot_id)
+	join bs.internal_status_list using (internal_status_id)
 
-where component_type_id = ?1
-and internal_status_name = ?2
+	where component_type_id = ?1
+	and internal_status_name = ?2
 
-union
+	union
 
-select
-true, inbound_lot_id,inbound_product_name, inbound_lot_name, container_name
+	select
+	true, inbound_lot_id,inbound_product_name, inbound_lot_name, container_name
 
-from bs.component_type_product_inbound
-join bs.inbound_product using (inbound_product_id)
-join bs.inbound_lot using (inbound_product_id)
-join bs.container_list using (container_id)
-join bs.inbound_status_list using (inbound_status_id)
+	from bs.component_type_product_inbound
+	join bs.inbound_product using (inbound_product_id)
+	join bs.inbound_lot using (inbound_product_id)
+	join bs.container_list using (container_id)
+	join bs.inbound_status_list using (inbound_status_id)
 
-where component_type_id = ?1
-and inbound_status_name != ?3
+	where component_type_id = ?1
+	and inbound_status_name != ?3
 
-`)
+	`)
+
+	DB_Select_component_type_density = PrepareOrElse(db, `
+	select
+		specific_gravity
+	from  bs.product_lot
+	join bs.qc_samples using (lot_id)
+	where product_lot_id = ?1
+		and false = ?2
+
+	union
+
+	select
+		specific_gravity
+	from  bs.inbound_relabel
+	join bs.qc_samples using (lot_id)
+	where inbound_lot_id = ?1
+		and true = ?2
+	`)
 
 	// 	TODO get sources
 
@@ -762,10 +780,18 @@ where blend_components.product_lot_id =?
 		and product_moniker_name = ?
 	`)
 
-	DB_Select_product_info = PrepareOrElse(db, `
+	DB_Select_product_info_all = PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
 		from bs.product_line
 		join bs.product_moniker using (product_moniker_id)
+	order by product_moniker_name, product_name_internal
+	`)
+
+	DB_Select_product_info_moniker = PrepareOrElse(db, `
+	select product_id, product_name_internal, product_moniker_name
+	from bs.product_line
+		join bs.product_moniker using (product_moniker_id)
+	where product_moniker_name = ?
 	order by product_moniker_name, product_name_internal
 	`)
 
@@ -1408,11 +1434,14 @@ func Select_Error(proc_name string, query *sql.Row, args ...any) error {
 	return err
 }
 
-// TODO permit empty
-// if err != sql.ErrNoRows { // no row? no problem!
-// 		log.Printf("Error: [%s]: %q\n", proc_name, err)
-// 	}
-// 	return nil
+// permit empty
+func Select_ErrNoRows(proc_name string, query *sql.Row, args ...any) error {
+	err := query.Scan(args...)
+	if err != sql.ErrNoRows { // no row? no problem!
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
+	}
+	return err
+}
 
 func Select_Panic(proc_name string, query *sql.Row, args ...any) {
 	err := query.Scan(args...)
@@ -1426,9 +1455,7 @@ func Select_Panic_ErrorBox(proc_name string, query *sql.Row, args ...any) {
 	err := query.Scan(args...)
 	if err != nil {
 		log.Printf("Critical hit: [%s]: %q\n", proc_name, err)
-		// 			TODO: make windigo.Error to avoid
-		// [printf] (default) non-constant format string in call to github.com/samuel-jimenez/windigo.Errorf
-		windigo.Errorf(nil, "Something's gone wrong.")
+		windigo.Errorf(nil, "Something's gone wrong: [%s]: \n%q\n", proc_name, err)
 		panic(err)
 	}
 }
@@ -1488,12 +1515,10 @@ func Insel_product_name_customer(product_name_customer string, product_id int64)
 	return Insel("Insel_product_name_customer", db_insert_product_customer, db_select_product_customer, product_name_customer, product_id)
 }
 
-//TODO add variant with if err != sql.ErrNoRow
-
 func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
-		log.Printf("error: [%s]: %q\n", proc_name, err)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return
 	}
 	start_fn()
@@ -1506,13 +1531,13 @@ func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), selec
 func Forall_err(proc_name string, start_fn func(), row_fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
-		log.Printf("error: [%s]: %q\n", proc_name, err)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return
 	}
 	start_fn()
 	for rows.Next() {
 		if err = row_fn(rows); err != nil {
-			log.Printf("error: [%s]: %q\n", proc_name, err)
+			log.Printf("Err: [%s]: %q\n", proc_name, err)
 		}
 	}
 }
@@ -1520,7 +1545,7 @@ func Forall_err(proc_name string, start_fn func(), row_fn func(row *sql.Rows) er
 func Forall_exit(proc_name string, start_fn func(), row_fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
-		log.Printf("error: [%s]: %q\n", proc_name, err)
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return
 	}
 	start_fn()

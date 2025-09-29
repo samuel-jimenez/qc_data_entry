@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/qc"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
@@ -22,11 +23,10 @@ func main() {
 		log.Fatalf("Crit: error opening file: %v", err)
 	}
 	defer log_file.Close()
-
-	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
+	log.Println("Info: Logging to logfile:", config.LOG_FILE)
 
 	log.SetOutput(log_file)
-	log.Println("Info: Logging to logfile:", config.LOG_FILE)
+	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
 
 	//open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
@@ -50,6 +50,6 @@ func main() {
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
-	qc.Show_window()
+	toplevel_ui.Show_window(qc.NewQCWindow(nil))
 
 }

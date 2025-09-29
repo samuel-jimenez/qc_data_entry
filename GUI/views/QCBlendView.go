@@ -20,6 +20,7 @@ type QCBlendViewer interface {
 	RefreshSize()
 }
 
+//TODO combine BlendView
 /*
  * QCBlendView
  *
@@ -28,7 +29,9 @@ type QCBlendView struct {
 	*windigo.AutoPanel
 	Recipe *blender.ProductRecipe
 	Blend  *blender.ProductBlend
-	panel  *windigo.AutoPanel
+
+	//TODO to fully combine with BlendView this needs to be split out and given its own size fn
+	Panel *windigo.AutoPanel
 
 	Components []QCBlendComponentViewer
 }
@@ -37,11 +40,11 @@ func NewQCBlendView(parent windigo.Controller) *QCBlendView {
 	view := new(QCBlendView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	view.panel = windigo.NewAutoPanel(view.AutoPanel)
+	view.Panel = windigo.NewAutoPanel(view.AutoPanel)
 
 	// TODO/ RecipeHeader from  RecipeComponent Component Amount
 
-	view.AutoPanel.Dock(view.panel, windigo.Top)
+	view.AutoPanel.Dock(view.Panel, windigo.Top)
 	return view
 }
 
@@ -161,19 +164,14 @@ func (view *QCBlendView) SetFont(font *windigo.Font) {
 }
 
 func (view *QCBlendView) RefreshSize() {
-	// height := GUI.PRODUCT_FIELD_HEIGHT+GUI.ERROR_MARGIN
 	height := GUI.EDIT_FIELD_HEIGHT
 	delta_height := GUI.PRODUCT_FIELD_HEIGHT
-	// width := view.ClientWidth()
 
 	view.SetSize(GUI.OFF_AXIS, height+len(view.Components)*delta_height)
-	view.panel.SetSize(GUI.TOP_PANEL_WIDTH, height)
+	view.Panel.SetSize(GUI.TOP_PANEL_WIDTH, height)
 
 	for _, component := range view.Components {
 		component.RefreshSize()
-
-		// component.SetSize(width, delta_height)
-		// component.Size(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, delta_height)
 	}
 
 }

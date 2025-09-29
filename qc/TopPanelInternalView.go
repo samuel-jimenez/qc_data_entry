@@ -119,7 +119,7 @@ func NewTopPanelInternalView(
 
 		internal_product_field.AddItem(name)
 		return nil
-	}, DB.DB_Select_product_info)
+	}, DB.DB_Select_product_info_all)
 
 	//
 	// functionality
