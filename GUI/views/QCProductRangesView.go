@@ -11,153 +11,186 @@ import (
 )
 
 /*
+ * QCProductRangesViewer
+ *
+ */
+type QCProductRangesViewer interface {
+	OnExit(arg *windigo.Event)
+	Exit()
+	Save()
+	try_save()
+	save_coa()
+	load_coa()
+}
+
+/*
  * QCProductRangesView
  *
  */
+type QCProductRangesView struct {
+	*windigo.Form
+	qc_product                                              *product.QCProduct
+	prod_label                                              *windigo.Label
+	radio_dock                                              *product.DiscreteView
+	coa_field                                               *windigo.CheckBox
+	appearance_dock                                         *product.ProductAppearanceView
+	labels                                                  *GUI.TextDock
+	ph_dock, sg_dock, density_dock, string_dock, visco_dock RangeView
+	button_dock                                             *GUI.ButtonDock
+}
 
-func ShowNewQCProductRangesView(qc_product *product.QCProduct) {
+func NewQCProductRangesView(parent windigo.Controller, qc_product *product.QCProduct) *QCProductRangesView {
 
-	rangeWindow := windigo.NewForm(nil)
+	view := new(QCProductRangesView)
+	view.qc_product = qc_product
+	view.Form = windigo.NewForm(parent)
 	var WindowText string
 	// rangeWindow.SetTranslucentBackground()
 
-	if qc_product.Product_name_customer != "" {
-		WindowText = fmt.Sprintf("%s (%s)", qc_product.Product_name, qc_product.Product_name_customer)
+	if view.qc_product.Product_name_customer != "" {
+		WindowText = fmt.Sprintf("%s (%s)", view.qc_product.Product_name, view.qc_product.Product_name_customer)
 	} else {
-		WindowText = qc_product.Product_name
+		WindowText = view.qc_product.Product_name
 	}
-	rangeWindow.SetSize(GUI.RANGES_WINDOW_WIDTH,
+	view.SetSize(GUI.RANGES_WINDOW_WIDTH,
 		GUI.RANGES_WINDOW_HEIGHT) // (width, height)
-	rangeWindow.SetText(WindowText)
+	view.SetText(WindowText)
 
-	dock := windigo.NewSimpleDock(rangeWindow)
+	dock := windigo.NewSimpleDock(view)
 	dock.SetPaddingsAll(GUI.RANGES_WINDOW_PADDING)
 	dock.SetPaddingTop(GUI.RANGES_PADDING)
 
-	prod_label := windigo.NewLabel(rangeWindow)
-	prod_label.SetText(WindowText)
-	prod_label.SetSize(GUI.OFF_AXIS, GUI.RANGES_FIELD_SMALL_HEIGHT)
+	view.prod_label = windigo.NewLabel(view)
+	view.prod_label.SetText(WindowText)
+	view.prod_label.SetSize(GUI.OFF_AXIS, GUI.RANGES_FIELD_SMALL_HEIGHT)
 
-	radio_dock := product.BuildNewDiscreteView(rangeWindow, "Type", qc_product.Product_type, []string{BLEND_WB, BLEND_OIL, BLEND_FR})
-	radio_dock.SetSize(GUI.OFF_AXIS, GUI.DISCRETE_FIELD_HEIGHT)
-	radio_dock.SetItemSize(GUI.PRODUCT_TYPE_WIDTH)
-	radio_dock.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
+	view.radio_dock = product.BuildNewDiscreteView(view, "Type", view.qc_product.Product_type, []string{BLEND_WB, BLEND_OIL, BLEND_FR})
+	view.radio_dock.SetSize(GUI.OFF_AXIS, GUI.DISCRETE_FIELD_HEIGHT)
+	view.radio_dock.SetItemSize(GUI.PRODUCT_TYPE_WIDTH)
+	view.radio_dock.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
 
-	coa_field := windigo.NewCheckBox(rangeWindow)
-	coa_field.SetText("Save to COA published ranges")
-	coa_field.SetMarginsAll(GUI.ERROR_MARGIN)
-	coa_field.SetSize(GUI.OFF_AXIS, GUI.RANGES_FIELD_SMALL_HEIGHT)
+	view.coa_field = windigo.NewCheckBox(view)
+	view.coa_field.SetText("Save to COA published ranges")
+	view.coa_field.SetMarginsAll(GUI.ERROR_MARGIN)
+	view.coa_field.SetSize(GUI.OFF_AXIS, GUI.RANGES_FIELD_SMALL_HEIGHT)
 
-	appearance_dock := product.BuildNewProductAppearanceView(rangeWindow, "Appearance", qc_product.Appearance)
+	view.appearance_dock = product.BuildNewProductAppearanceView(view, "Appearance", view.qc_product.Appearance)
 
-	labels := GUI.NewTextDock(rangeWindow, []string{"", "Min", "Target", "Max"})
-	labels.SetMarginsAll(GUI.RANGES_PADDING)
-	labels.SetDockSize(GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_SMALL_HEIGHT)
+	view.labels = GUI.NewTextDock(view, []string{"", "Min", "Target", "Max"})
+	view.labels.SetMarginsAll(GUI.RANGES_PADDING)
+	view.labels.SetDockSize(GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_SMALL_HEIGHT)
 	//TODO center
 	//TODO layout split n
 
-	ph_dock := BuildNewRangeView(rangeWindow, PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
-	ph_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
+	view.ph_dock = BuildNewRangeView(view, PH_TEXT, view.qc_product.PH, formats.Format_ranges_ph)
+	view.ph_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	sg_dock := BuildNewRangeView(rangeWindow, SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
-	sg_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
+	view.sg_dock = BuildNewRangeView(view, SG_TEXT, view.qc_product.SG, formats.Format_ranges_sg)
+	view.sg_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	density_dock := BuildNewRangeView(rangeWindow, DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
-	density_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
+	view.density_dock = BuildNewRangeView(view, DENSITY_TEXT, view.qc_product.Density, formats.Format_ranges_density)
+	view.density_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	string_dock := BuildNewRangeView(rangeWindow, "String Test \n\t at 0.5gpt", qc_product.String_test, formats.Format_ranges_string_test)
-	string_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
+	view.string_dock = BuildNewRangeView(view, "String Test \n\t at 0.5gpt", view.qc_product.String_test, formats.Format_ranges_string_test)
+	view.string_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 	//TODO store string_amt "at 0.5gpt"
 
-	visco_dock := BuildNewRangeView(rangeWindow, VISCOSITY_TEXT, qc_product.Viscosity, formats.Format_ranges_viscosity)
-	visco_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
+	view.visco_dock = BuildNewRangeView(view, VISCOSITY_TEXT, view.qc_product.Viscosity, formats.Format_ranges_viscosity)
+	view.visco_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	exit := func() {
-		rangeWindow.Close()
-		windigo.Exit()
+	view.button_dock = GUI.NewButtonDock(view, []string{"OK", "Cancel", "Load CoA Data"}, []func(){view.try_save, view.Exit, view.load_coa})
+	view.button_dock.SetDockSize(GUI.RANGES_BUTTON_WIDTH, GUI.RANGES_BUTTON_HEIGHT)
+	view.button_dock.SetMarginLeft(GUI.RANGES_PADDING)
+
+	dock.Dock(view.prod_label, windigo.Top)
+	dock.Dock(view.radio_dock, windigo.Top)
+	dock.Dock(view.coa_field, windigo.Top)
+	dock.Dock(view.appearance_dock, windigo.Top)
+
+	dock.Dock(view.labels, windigo.Top)
+	dock.Dock(view.ph_dock, windigo.Top)
+	dock.Dock(view.sg_dock, windigo.Top)
+	dock.Dock(view.density_dock, windigo.Top)
+	dock.Dock(view.string_dock, windigo.Top)
+	dock.Dock(view.visco_dock, windigo.Top)
+	dock.Dock(view.button_dock, windigo.Top)
+
+	return view
+}
+
+func ShowNewQCProductRangesView(qc_product *product.QCProduct) {
+	view := NewQCProductRangesView(nil, qc_product)
+
+	view.Center()
+	view.Show()
+	view.OnClose().Bind(view.OnExit)
+	view.RunMainLoop()
+}
+
+func (view *QCProductRangesView) OnExit(arg *windigo.Event) {
+	view.Exit()
+}
+
+func (view *QCProductRangesView) Exit() {
+	view.Close()
+	windigo.Exit()
+}
+
+func (view *QCProductRangesView) Save() {
+	view.qc_product.Edit(
+		view.radio_dock.Get(),
+		view.appearance_dock.Get(),
+		view.ph_dock.Get(),
+		view.sg_dock.Get(),
+		view.density_dock.Get(),
+		view.string_dock.Get(),
+		view.visco_dock.Get(),
+	)
+
+	view.qc_product.Upsert()
+	threads.Show_status("QC Data Updated")
+	view.qc_product.Update()
+	view.Exit()
+}
+
+func (view *QCProductRangesView) try_save() {
+	if !view.radio_dock.Get().Valid {
+		view.radio_dock.Error()
+		return
 	}
-	save := func() {
-		qc_product.Edit(
-			radio_dock.Get(),
-			appearance_dock.Get(),
-			ph_dock.Get(),
-			sg_dock.Get(),
-			density_dock.Get(),
-			string_dock.Get(),
-			visco_dock.Get(),
-		)
-
-		qc_product.Upsert()
-		threads.Show_status("QC Data Updated")
-		qc_product.Update()
-		exit()
+	view.radio_dock.Ok()
+	if view.coa_field.Checked() {
+		view.save_coa()
+	} else {
+		view.Save()
 	}
-	save_coa := func() {
-		var coa_product product.QCProduct
-		coa_product.Product = qc_product.Product
-		coa_product.Edit(
-			radio_dock.Get(),
-			appearance_dock.Get(),
-			ph_dock.Get(),
-			sg_dock.Get(),
-			density_dock.Get(),
-			string_dock.Get(),
-			visco_dock.Get(),
-		)
+}
 
-		coa_product.Upsert_coa()
-		threads.Show_status("COA Data Updated")
-		qc_product.Select_product_details()
-		qc_product.Update()
-		exit()
-	}
+func (view *QCProductRangesView) save_coa() {
+	var coa_product product.QCProduct
+	coa_product.Product = view.qc_product.Product
+	coa_product.Edit(
+		view.radio_dock.Get(),
+		view.appearance_dock.Get(),
+		view.ph_dock.Get(),
+		view.sg_dock.Get(),
+		view.density_dock.Get(),
+		view.string_dock.Get(),
+		view.visco_dock.Get(),
+	)
 
-	try_save := func() {
-		if radio_dock.Get().Valid {
-			radio_dock.Ok()
-			if coa_field.Checked() {
-				save_coa()
-			} else {
-				save()
-			}
-		} else {
-			radio_dock.Error()
-		}
-	}
+	coa_product.Upsert_coa()
+	threads.Show_status("COA Data Updated")
+	view.qc_product.Select_product_details()
+	view.qc_product.Update()
+	view.Exit()
+}
 
-	load_coa := func() {
-		qc_product.ResetQC()
-		qc_product.Select_product_coa_details()
-		appearance_dock.Set(qc_product.Appearance)
-		ph_dock.Set(qc_product.PH)
-		sg_dock.Set(qc_product.SG)
-		density_dock.Set(qc_product.Density)
-		string_dock.Set(qc_product.String_test)
-		visco_dock.Set(qc_product.Viscosity)
-	}
-
-	button_dock := GUI.NewButtonDock(rangeWindow, []string{"OK", "Cancel", "Load CoA Data"}, []func(){try_save, exit, load_coa})
-	button_dock.SetDockSize(GUI.RANGES_BUTTON_WIDTH, GUI.RANGES_BUTTON_HEIGHT)
-	button_dock.SetMarginLeft(GUI.RANGES_PADDING)
-
-	dock.Dock(prod_label, windigo.Top)
-	dock.Dock(radio_dock, windigo.Top)
-	dock.Dock(coa_field, windigo.Top)
-	dock.Dock(appearance_dock, windigo.Top)
-
-	dock.Dock(labels, windigo.Top)
-	dock.Dock(ph_dock, windigo.Top)
-	dock.Dock(sg_dock, windigo.Top)
-	dock.Dock(density_dock, windigo.Top)
-	dock.Dock(string_dock, windigo.Top)
-	dock.Dock(visco_dock, windigo.Top)
-	dock.Dock(button_dock, windigo.Top)
-
-	rangeWindow.Center()
-	rangeWindow.Show()
-	rangeWindow.OnClose().Bind(
-		func(arg *windigo.Event) {
-			exit()
-		})
-	rangeWindow.RunMainLoop() // Must call to start event loop.
+func (view *QCProductRangesView) load_coa() {
+	view.qc_product.ResetQC()
+	view.qc_product.Select_product_coa_details()
+	view.sg_dock.Set(view.qc_product.SG)
+	view.density_dock.Set(view.qc_product.Density)
+	view.string_dock.Set(view.qc_product.String_test)
+	view.visco_dock.Set(view.qc_product.Viscosity)
 }
