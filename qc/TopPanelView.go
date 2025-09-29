@@ -70,6 +70,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	tester_text := "Tester"
 
 	ranges_text := "Ranges"
+	inventory_text := "Inventory"
 	reprint_text := "Reprint"
 	inbound_text := "Inbound"
 	sample_button_text := "Sample"
@@ -133,6 +134,9 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	release_button.SetText(release_button_text)
 	release_button.Hide()
 
+	inventory_button := windigo.NewPushButton(product_panel)
+	inventory_button.SetText(inventory_text)
+
 	reprint_button := windigo.NewPushButton(product_panel)
 	reprint_button.SetText(reprint_text)
 
@@ -156,7 +160,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 		product_panel_0_0, product_panel_0_1,
 		internal_product_field, customer_field, lot_field, sample_field,
 		container_field,
-		ranges_button, reprint_button, inbound_button)
+		ranges_button, inventory_button, reprint_button, inbound_button)
 	view.TopPanelInboundView = NewTopPanelInboundView(
 		view.mainWindow.Form,
 		view.QC_Product,
@@ -189,6 +193,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	product_panel.Dock(release_button, windigo.Left)
 	product_panel.Dock(container_field, windigo.Left)
 	product_panel.Dock(today_button, windigo.Left)
+	product_panel.Dock(inventory_button, windigo.Left)
 	product_panel.Dock(reprint_button, windigo.Left)
 	product_panel.Dock(inbound_button, windigo.Left)
 	product_panel.Dock(internal_button, windigo.Left)

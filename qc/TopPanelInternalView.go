@@ -60,7 +60,7 @@ type TopPanelInternalView struct {
 
 	container_field *product.DiscreteView
 
-	ranges_button, reprint_button, inbound_button *windigo.PushButton
+	ranges_button, inventory_button, reprint_button, inbound_button *windigo.PushButton
 }
 
 func NewTopPanelInternalView(
@@ -69,7 +69,7 @@ func NewTopPanelInternalView(
 	product_panel_0_0, product_panel_0_1 *windigo.AutoPanel,
 	internal_product_field, customer_field, lot_field, sample_field *GUI.ComboBox,
 	container_field *product.DiscreteView,
-	ranges_button, reprint_button, inbound_button *windigo.PushButton,
+	ranges_button, inventory_button, reprint_button, inbound_button *windigo.PushButton,
 ) *TopPanelInternalView {
 
 	view := new(TopPanelInternalView)
@@ -92,20 +92,21 @@ func NewTopPanelInternalView(
 	view.container_field = container_field
 
 	view.ranges_button = ranges_button
+	view.inventory_button = inventory_button
 	view.reprint_button = reprint_button
 	view.inbound_button = inbound_button
 
 	//
 	// Dock
-	product_panel_0_0.Dock(internal_product_field, windigo.Left)
-	product_panel_0_0.Dock(customer_field, windigo.Left)
+	view.product_panel_0_0.Dock(view.internal_product_field, windigo.Left)
+	view.product_panel_0_0.Dock(view.customer_field, windigo.Left)
 
-	product_panel_0_1.Dock(lot_field, windigo.Left)
-	product_panel_0_1.Dock(sample_field, windigo.Left)
+	view.product_panel_0_1.Dock(view.lot_field, windigo.Left)
+	view.product_panel_0_1.Dock(view.sample_field, windigo.Left)
 
 	//
 	// combobox
-	GUI.Fill_combobox_from_query_rows(internal_product_field, func(row *sql.Rows) error {
+	GUI.Fill_combobox_from_query_rows(view.internal_product_field, func(row *sql.Rows) error {
 		var (
 			id                   int
 			internal_name        string
@@ -117,32 +118,37 @@ func NewTopPanelInternalView(
 		name := product_moniker_name + " " + internal_name
 		view.product_data[name] = id
 
-		internal_product_field.AddItem(name)
+		view.internal_product_field.AddItem(name)
 		return nil
 	}, DB.DB_Select_product_info_all)
 
 	//
 	// functionality
-	internal_product_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.product_field_pop_data(internal_product_field.GetSelectedItem()) })
-	internal_product_field.OnKillFocus().Bind(func(e *windigo.Event) { view.product_field_text_pop_data(internal_product_field.Text()) })
+	view.internal_product_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.product_field_pop_data(internal_product_field.GetSelectedItem()) })
+	view.internal_product_field.OnKillFocus().Bind(func(e *windigo.Event) { view.product_field_text_pop_data(internal_product_field.Text()) })
 
-	lot_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.lot_field_pop_data(lot_field.GetSelectedItem()) })
-	lot_field.OnKillFocus().Bind(func(e *windigo.Event) { view.lot_field_text_pop_data(lot_field.Text()) })
+	view.lot_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.lot_field_pop_data(lot_field.GetSelectedItem()) })
+	view.lot_field.OnKillFocus().Bind(func(e *windigo.Event) { view.lot_field_text_pop_data(lot_field.Text()) })
 
-	customer_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.customer_field_pop_data(customer_field.GetSelectedItem()) })
-	customer_field.OnKillFocus().Bind(func(e *windigo.Event) { view.customer_field_text_pop_data(customer_field.Text()) })
+	view.customer_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.customer_field_pop_data(customer_field.GetSelectedItem()) })
+	view.customer_field.OnKillFocus().Bind(func(e *windigo.Event) { view.customer_field_text_pop_data(customer_field.Text()) })
 
-	sample_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.sample_field_pop_data(sample_field.GetSelectedItem()) })
-	sample_field.OnKillFocus().Bind(func(e *windigo.Event) { view.sample_field_text_pop_data(sample_field.Text()) })
+	view.sample_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.sample_field_pop_data(sample_field.GetSelectedItem()) })
+	view.sample_field.OnKillFocus().Bind(func(e *windigo.Event) { view.sample_field_text_pop_data(sample_field.Text()) })
 
-	ranges_button.OnClick().Bind(func(e *windigo.Event) {
+	view.ranges_button.OnClick().Bind(func(e *windigo.Event) {
 		if view.QC_Product.Product_name != "" {
 			views.ShowNewQCProductRangesView(view.QC_Product)
 			log.Println("debug: ranges_button-product_lot", view.QC_Product)
 		}
 	})
 
-	reprint_button.OnClick().Bind(func(e *windigo.Event) {
+	view.inventory_button.OnClick().Bind(func(e *windigo.Event) {
+		// views.ShowNewQCProductRangesView()
+		New_InventoryView().Start()
+	})
+
+	view.reprint_button.OnClick().Bind(func(e *windigo.Event) {
 		if view.QC_Product.Lot_number != "" {
 			log.Println("debug: reprint_button")
 			view.QC_Product.Reprint()
@@ -160,6 +166,7 @@ func (view *TopPanelInternalView) SetFont(font *windigo.Font) {
 	view.sample_field.SetFont(font)
 
 	view.ranges_button.SetFont(font)
+	view.inventory_button.SetFont(font)
 	view.reprint_button.SetFont(font)
 	view.inbound_button.SetFont(font)
 
@@ -187,6 +194,9 @@ func (view *TopPanelInternalView) RefreshSize() {
 	view.ranges_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.ranges_button.SetMarginsAll(BUTTON_MARGIN)
 
+	view.inventory_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	view.inventory_button.SetMarginsAll(BUTTON_MARGIN)
+
 	view.reprint_button.SetMarginsAll(BUTTON_MARGIN)
 	view.reprint_button.SetMarginLeft(GUI.REPRINT_BUTTON_MARGIN_L)
 	view.reprint_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
@@ -210,6 +220,7 @@ func (view *TopPanelInternalView) Show() {
 	view.ranges_button.Show()
 	view.container_field.Show()
 	view.reprint_button.Show()
+	view.inventory_button.Show()
 	view.inbound_button.Show()
 
 }
@@ -221,6 +232,7 @@ func (view *TopPanelInternalView) Hide() {
 	view.ranges_button.Hide()
 	view.container_field.Hide()
 	view.reprint_button.Hide()
+	view.inventory_button.Hide()
 	view.inbound_button.Hide()
 
 }

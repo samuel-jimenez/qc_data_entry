@@ -73,8 +73,8 @@ var (
 	DB_insert_measurement,
 	DB_Update_qc_samples_storage,
 	// bs.product_sample_storage
-	DB_Select_product_sample_storage_capacity, DB_Select_gen_product_sample_storage,
-	DB_Update_product_sample_storage_qc_sample, DB_Update_product_sample_storage_capacity,
+	DB_Select_product_sample_storage_capacity, DB_Select_gen_product_sample_storage, DB_Select_all_product_sample_storage,
+	DB_Update_product_sample_storage_qc_sample, DB_Update_dec_product_sample_storage_capacity, DB_Update_product_sample_storage_capacity,
 	// bs.qc_sample_storage_list
 	DB_Insert_sample_storage,
 	// bs.product_appearance
@@ -946,6 +946,18 @@ join bs.product_moniker using (product_moniker_id)
 where product_id = ?1
 	`)
 
+	DB_Select_all_product_sample_storage = PrepareOrElse(db, `
+	select
+
+	product_sample_storage_id, product_moniker_name, qc_sample_storage_name, max_storage_capacity,  qc_storage_capacity
+
+	from bs.product_sample_storage
+		join bs.qc_sample_storage_list using (qc_sample_storage_id)
+		join bs.product_moniker using (product_moniker_id)
+	where max_storage_capacity !=  qc_storage_capacity
+	order by qc_sample_storage_name
+	`)
+
 	DB_Update_product_sample_storage_qc_sample = PrepareOrElse(db, `
 update bs.product_sample_storage
 	set
@@ -956,12 +968,20 @@ qc_storage_capacity = max_storage_capacity
 where product_sample_storage_id = ?1
 	`)
 
-	DB_Update_product_sample_storage_capacity = PrepareOrElse(db, `
-update bs.product_sample_storage
+	DB_Update_dec_product_sample_storage_capacity = PrepareOrElse(db, `
+	update bs.product_sample_storage
 	set
-qc_storage_capacity = qc_storage_capacity - ?2
+	qc_storage_capacity = qc_storage_capacity - ?2
 
-where qc_sample_storage_id = ?1
+	where qc_sample_storage_id = ?1
+	`)
+
+	DB_Update_product_sample_storage_capacity = PrepareOrElse(db, `
+	update bs.product_sample_storage
+	set
+	qc_storage_capacity = ?2
+
+	where product_sample_storage_id = ?1
 	`)
 	/*
 	    *

@@ -248,7 +248,7 @@ func Store(products ...Product) {
 
 	// update capacity
 	DB.Update(proc_name,
-		DB.DB_Update_product_sample_storage_capacity,
+		DB.DB_Update_dec_product_sample_storage_capacity,
 		qc_sample_storage_id, numSamples)
 
 }

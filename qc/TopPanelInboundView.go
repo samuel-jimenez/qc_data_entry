@@ -95,11 +95,11 @@ func NewTopPanelInboundView(
 
 	//
 	// Dock
-	product_panel_1_0.Dock(testing_lot_field, windigo.Left)
-	product_panel_1_0.Dock(inbound_product_field, windigo.Left)
+	view.product_panel_1_0.Dock(view.testing_lot_field, windigo.Left)
+	view.product_panel_1_0.Dock(view.inbound_product_field, windigo.Left)
 
-	product_panel_1_1.Dock(inbound_lot_field, windigo.Left)
-	product_panel_1_1.Dock(inbound_container_field, windigo.Left)
+	view.product_panel_1_1.Dock(view.inbound_lot_field, windigo.Left)
+	view.product_panel_1_1.Dock(view.inbound_container_field, windigo.Left)
 
 	//
 	// combobox
@@ -108,15 +108,15 @@ func NewTopPanelInboundView(
 	proc_name := "TopPanelInboundView.FillInbound"
 	DB.Forall_err(proc_name,
 		func() {
-			inbound_container_field.DeleteAllItems()
-			inbound_lot_field.DeleteAllItems()
+			view.inbound_container_field.DeleteAllItems()
+			view.inbound_lot_field.DeleteAllItems()
 		},
 		func(row *sql.Rows) error {
 			Inbound, err := blendbound.NewInboundLotFromRow(row)
 			if err != nil {
 				return err
 			}
-			inbound_lot_field.AddItem(Inbound.Lot_number)
+			view.inbound_lot_field.AddItem(Inbound.Lot_number)
 			view.inbound_lot_data[Inbound.Lot_number] = Inbound
 			view.inbound_container_data[Inbound.Container_name] = Inbound
 			return nil
@@ -124,18 +124,18 @@ func NewTopPanelInboundView(
 		DB.DB_Select_inbound_lot_status, blendbound.Status_AVAILABLE)
 
 	for _, Container_name := range slices.Sorted(maps.Keys(view.inbound_container_data)) {
-		inbound_container_field.AddItem(Container_name)
+		view.inbound_container_field.AddItem(Container_name)
 	}
 
 	//
 	// functionality
-	inbound_lot_field.OnSelectedChange().Bind(view.inbound_lot_field_OnSelectedChange)
-	inbound_container_field.OnSelectedChange().Bind(view.inbound_container_field_OnSelectedChange)
-	testing_lot_field.OnSelectedChange().Bind(view.testing_lot_field_OnSelectedChange)
+	view.inbound_lot_field.OnSelectedChange().Bind(view.inbound_lot_field_OnSelectedChange)
+	view.inbound_container_field.OnSelectedChange().Bind(view.inbound_container_field_OnSelectedChange)
+	view.testing_lot_field.OnSelectedChange().Bind(view.testing_lot_field_OnSelectedChange)
 
-	sample_button.OnClick().Bind(view.sample_button_OnClick)
-	release_button.OnClick().Bind(view.release_button_OnClick)
-	today_button.OnClick().Bind(view.today_button_OnClick)
+	view.sample_button.OnClick().Bind(view.sample_button_OnClick)
+	view.release_button.OnClick().Bind(view.release_button_OnClick)
+	view.today_button.OnClick().Bind(view.today_button_OnClick)
 
 	return view
 }
