@@ -39,9 +39,9 @@ type QCBlendComponentView struct {
 	// BlendComponent       *BlendComponent
 	Component_name_field  *windigo.Label
 	Component_field       *GUI.SearchBox
-	Amount_required_field *NumbEditView
+	Amount_required_field *GUI.NumbEditView
 
-	// amount_field   *NumbEditView
+	// amount_field   *GUI.NumbEditView
 
 	component_types_list []string
 	Component_types_data map[string]blender.BlendComponent
@@ -80,7 +80,7 @@ func New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent windigo.Contr
 	// view.component_field = GUI.NewListSearchBoxWithLabels(view.AutoPanel, view.component_types_list)
 
 	view.Component_name_field = windigo.NewLabel(view.AutoPanel)
-	view.Amount_required_field = NewNumbEditView(view.AutoPanel)
+	view.Amount_required_field = GUI.NewNumbEditView(view.AutoPanel)
 
 	view.Component_field = GUI.NewListSearchBox(view.AutoPanel)
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)

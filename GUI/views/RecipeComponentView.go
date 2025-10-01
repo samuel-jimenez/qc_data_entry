@@ -34,7 +34,7 @@ type RecipeComponentView struct {
 	*windigo.AutoPanel
 	RecipeComponent      *blender.RecipeComponent
 	component_field      *GUI.SearchBox
-	amount_field         *NumbEditView
+	amount_field         *GUI.NumbEditView
 	component_types_data map[string]int64
 
 	// Component_name   string
@@ -58,7 +58,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	// cf NumberEditView
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)
-	view.amount_field = NewNumbEditView(view.AutoPanel)
+	view.amount_field = GUI.NewNumbEditView(view.AutoPanel)
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("-")

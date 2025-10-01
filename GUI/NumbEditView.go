@@ -1,4 +1,4 @@
-package views
+package GUI
 
 import (
 	"strconv"
@@ -22,7 +22,7 @@ type NumbEditViewer interface {
  *
  */
 type NumbEditView struct {
-	// GUI.ErrableView
+	// ErrableView
 	*windigo.Edit
 }
 

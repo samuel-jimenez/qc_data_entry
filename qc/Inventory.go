@@ -75,7 +75,7 @@ type StorageBinView struct {
 
 	Product_name_field, Bin_name_field *windigo.Label
 
-	Samples_field *views.NumbEditView
+	Samples_field *GUI.NumbEditView
 }
 
 func New_StorageBinView(parent windigo.Controller, StorageBin *StorageBin) *StorageBinView {
@@ -85,7 +85,7 @@ func New_StorageBinView(parent windigo.Controller, StorageBin *StorageBin) *Stor
 
 	view.Bin_name_field = windigo.NewLabel(view.AutoPanel)
 	view.Product_name_field = windigo.NewLabel(view.AutoPanel)
-	view.Samples_field = views.NewNumbEditView(view.AutoPanel)
+	view.Samples_field = GUI.NewNumbEditView(view.AutoPanel)
 
 	view.AutoPanel.Dock(view.Bin_name_field, windigo.Left)
 	view.AutoPanel.Dock(view.Product_name_field, windigo.Left)

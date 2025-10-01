@@ -28,7 +28,7 @@ type BlendComponentViewer interface {
  */
 type BlendComponentView struct {
 	views.QCBlendComponentView
-	amount_field   *views.NumbEditView
+	amount_field   *GUI.NumbEditView
 	InboundLotView *views.InboundLotView
 }
 
@@ -63,7 +63,7 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 
 	// cf NumberEditView
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)
-	view.amount_field = views.NewNumbEditView(view.AutoPanel)
+	view.amount_field = GUI.NewNumbEditView(view.AutoPanel)
 
 	lot_add_button := windigo.NewPushButton(view.AutoPanel)
 	lot_add_button.SetText("+")

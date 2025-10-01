@@ -31,9 +31,9 @@ type BlendComponentViewer interface {
 type BlendComponentView struct {
 	views.QCBlendComponentView
 	// InboundLotView *views.InboundLotView
-	// SG_field *views.NumbEditView
-	Density_field *views.NumbEditView
-	Gallons_field *views.NumbEditView
+	// SG_field *GUI.NumbEditView
+	Density_field *GUI.NumbEditView
+	Gallons_field *GUI.NumbEditView
 	// parent        *BlendView
 }
 
@@ -42,13 +42,13 @@ func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.Recip
 	view := new(BlendComponentView)
 	view.QCBlendComponentView = *views.New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent, recipeComponent)
 
-	// view.SG_field = views.NewNumbEditView(view.AutoPanel)
+	// view.SG_field = GUI.NewNumbEditView(view.AutoPanel)
 	// view.AutoPanel.Dock(view.SG_field, windigo.Left)
 
-	view.Density_field = views.NewNumbEditView(view.AutoPanel)
+	view.Density_field = GUI.NewNumbEditView(view.AutoPanel)
 	view.AutoPanel.Dock(view.Density_field, windigo.Left)
 
-	view.Gallons_field = views.NewNumbEditView(view.AutoPanel)
+	view.Gallons_field = GUI.NewNumbEditView(view.AutoPanel)
 	view.AutoPanel.Dock(view.Gallons_field, windigo.Left)
 
 	// RefreshSize

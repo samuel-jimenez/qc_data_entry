@@ -34,12 +34,12 @@ type NumberEditViewable interface {
  */
 type NumberEditView struct {
 	GUI.ErrableView
-	NumbEditView
+	GUI.NumbEditView
 	windigo.Labeled
 }
 
 func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
-	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
+	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, GUI.NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
 }
 
 func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEditView {
@@ -161,5 +161,5 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 
 	}
 
-	return &NumberUnitsEditView{NumberEditView{&GUI.View{ComponentFrame: panel}, NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
+	return &NumberUnitsEditView{NumberEditView{&GUI.View{ComponentFrame: panel}, GUI.NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
 }
