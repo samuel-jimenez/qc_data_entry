@@ -2,7 +2,6 @@ package blender
 
 import (
 	"database/sql"
-	"log"
 	"strconv"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
@@ -39,7 +38,6 @@ func (object *RecipeProduct) GetRecipes(combo_field *GUI.ComboBox) {
 			); err != nil {
 				return err
 			}
-			log.Println("DEBUG: GetRecipes qc_data", proc_name, recipe_data)
 			object.Recipes = append(object.Recipes, &recipe_data)
 			combo_field.AddItem(strconv.Itoa(i))
 			i++

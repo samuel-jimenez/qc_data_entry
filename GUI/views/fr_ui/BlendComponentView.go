@@ -34,6 +34,7 @@ type BlendComponentView struct {
 	// SG_field *views.NumbEditView
 	Density_field *views.NumbEditView
 	Gallons_field *views.NumbEditView
+	// parent        *BlendView
 }
 
 func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeComponent) *BlendComponentView {
@@ -79,10 +80,10 @@ func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.Recip
 
 }
 
-func NewHeelBlendComponentView(parent *BlendView) *BlendComponentView {
+func NewDummyBlendComponentView(parent *BlendView, name string) *BlendComponentView {
 
 	Recipe_Component := blender.NewRecipeComponent()
-	Recipe_Component.Component_name = "HEEL"
+	Recipe_Component.Component_name = name
 	Recipe_Component.Component_amount = 1
 
 	view := NewBaseBlendComponentView(parent, Recipe_Component)
@@ -91,9 +92,27 @@ func NewHeelBlendComponentView(parent *BlendView) *BlendComponentView {
 	view.Component_field.SetEnabled(false)
 	view.Gallons_field.SetEnabled(false)
 
+	return view
+
+}
+
+func NewHeelBlendComponentView(parent *BlendView) *BlendComponentView {
+
+	view := NewDummyBlendComponentView(parent, "HEEL")
+
 	view.Density_field.OnChange().Bind(func(e *windigo.Event) {
-		view.Gallons_field.SetInt(view.Amount_required_field.Get() / view.Density_field.Get())
+		volume := view.Gallons_field.Get()
+		parent.SetHeelVolume(volume)
 	})
+	return view
+
+}
+
+func NewTotalBlendComponentView(parent *BlendView) *BlendComponentView {
+
+	view := NewDummyBlendComponentView(parent, "Total")
+
+	view.Density_field.SetEnabled(false)
 	return view
 
 }
@@ -134,6 +153,7 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 	view.Gallons_field.OnChange().Bind(func(e *windigo.Event) {
 		// view.Density_field.Set(view.Amount_required_field.Get() / view.Gallons_field.Get())
 		view.Amount_required_field.SetInt(view.Gallons_field.Get() * view.Density_field.Get())
+		view.Amount_required_field.OnChange().Fire(nil)
 	})
 
 	return view
@@ -154,9 +174,19 @@ func (view *BlendComponentView) Get() *blender.BlendComponent {
 	return BlendComponent
 }
 
-func (view *BlendComponentView) SetAmount(amount float64) {
-	view.Amount_required_field.SetInt(amount * view.Recipe_Component.Component_amount)
-	view.Gallons_field.SetInt(view.Amount_required_field.Get() / view.Density_field.Get())
+func (view *BlendComponentView) SetAmount(amount float64) float64 {
+	Amount := amount * view.Recipe_Component.Component_amount
+	Gallons := Amount / view.Density_field.Get()
+	view.Amount_required_field.SetInt(Amount)
+	view.Gallons_field.SetInt(Gallons)
+	return Gallons
+}
+
+func (view *BlendComponentView) SetVolume(volume float64) float64 {
+	mass := volume * view.Density_field.Get()
+	view.Amount_required_field.SetInt(mass)
+	view.Gallons_field.SetInt(volume)
+	return mass
 }
 
 func (view *BlendComponentView) SetFont(font *windigo.Font) {

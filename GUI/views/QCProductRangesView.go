@@ -64,7 +64,7 @@ func NewQCProductRangesView(parent windigo.Controller, qc_product *product.QCPro
 	view.prod_label.SetText(WindowText)
 	view.prod_label.SetSize(GUI.OFF_AXIS, GUI.RANGES_FIELD_SMALL_HEIGHT)
 
-	view.radio_dock = product.BuildNewDiscreteView(view, "Type", view.qc_product.Product_type, []string{BLEND_WB, BLEND_OIL, BLEND_FR})
+	view.radio_dock = product.BuildNewDiscreteView(view, "Type", view.qc_product.Product_type, BLEND_WB, BLEND_OIL, BLEND_FR)
 	view.radio_dock.SetSize(GUI.OFF_AXIS, GUI.DISCRETE_FIELD_HEIGHT)
 	view.radio_dock.SetItemSize(GUI.PRODUCT_TYPE_WIDTH)
 	view.radio_dock.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
@@ -76,7 +76,7 @@ func NewQCProductRangesView(parent windigo.Controller, qc_product *product.QCPro
 
 	view.appearance_dock = product.BuildNewProductAppearanceView(view, "Appearance", view.qc_product.Appearance)
 
-	view.labels = GUI.NewTextDock(view, []string{"", "Min", "Target", "Max"})
+	view.labels = GUI.NewTextDock(view, "", "Min", "Target", "Max")
 	view.labels.SetMarginsAll(GUI.RANGES_PADDING)
 	view.labels.SetDockSize(GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_SMALL_HEIGHT)
 	//TODO center

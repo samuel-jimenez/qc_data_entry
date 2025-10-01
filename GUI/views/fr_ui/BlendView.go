@@ -1,8 +1,6 @@
 package fr_ui
 
 import (
-	"log"
-
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
@@ -92,20 +90,23 @@ func (view *BlendHeader) RefreshSize() {
  */
 type BlendView struct {
 	views.QCBlendView
+
+	parent                                *BlendProductView
 	total_field, heel_field, amount_field *views.NumberEditView
 	headers                               *BlendHeader
-	Heel_Component                        *BlendComponentView
+	Heel_Component, Total_Component       *BlendComponentView
 }
 
-func NewBlendView(parent windigo.Controller) *BlendView {
+func NewBlendView(parent *BlendProductView) *BlendView {
 	view := new(BlendView)
 	view.QCBlendView = *views.NewQCBlendView(parent)
 	//.TODO  strap
+	view.parent = parent
 
 	total_text := "Total"
 	heel_text := "Heel"
 
-	amount_text := "Blend"
+	amount_text := "To Blend"
 	// amount_text := "Produced"
 	// amount_text := "Amount"
 	// amount_text := "Quantity"
@@ -116,6 +117,7 @@ func NewBlendView(parent windigo.Controller) *BlendView {
 	view.headers = NewBlend_Header(view.Panel)
 
 	view.Heel_Component = NewHeelBlendComponentView(view)
+	view.Total_Component = NewTotalBlendComponentView(view)
 
 	// view.Panel.D	ock(view.amount_field, windigo.Left)
 	view.Panel.Dock(view.total_field, windigo.TopLeft)
@@ -123,6 +125,7 @@ func NewBlendView(parent windigo.Controller) *BlendView {
 	view.Panel.Dock(view.amount_field, windigo.TopLeft)
 	view.Panel.Dock(view.headers, windigo.Top)
 	view.Dock(view.Heel_Component, windigo.Top)
+	view.Dock(view.Total_Component, windigo.Bottom)
 
 	view.total_field.OnChange().Bind(func(e *windigo.Event) {
 		view.SetTotal(view.total_field.Get())
@@ -152,16 +155,17 @@ func (view *BlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 	}
 	view.Components = nil
 	view.Recipe = recipe
-	log.Println("BlendView Update", view.Recipe)
+
+	delta_height := GUI.PRODUCT_FIELD_HEIGHT
+	height := view.Panel.ClientHeight() + 2*delta_height
+	width := view.ClientWidth()
+
 	if view.Recipe == nil {
+		view.SetSize(width, height)
 		return
 	}
 
 	amount := view.amount_field.Get()
-
-	height := view.ClientHeight()
-	delta_height := GUI.PRODUCT_FIELD_HEIGHT
-	width := view.ClientWidth()
 
 	for _, component := range view.Recipe.Components {
 		component_view := NewBlendComponentView(view, &component)
@@ -181,11 +185,24 @@ func (view *BlendView) SetTotal(total float64) {
 
 func (view *BlendView) SetProperTotal(total float64) {
 	view.total_field.SetInt(total)
+	view.Total_Component.SetAmount(total)
 }
 
 func (view *BlendView) SetHeel(heel float64) {
 	view.heel_field.SetInt(heel)
-	view.Heel_Component.SetAmount(heel)
+	volume := view.Heel_Component.SetAmount(heel)
+	total := view.total_field.Get()
+	view.SetProperAmount(total - heel)
+	view.SetStrap(volume)
+}
+
+func (view *BlendView) SetStrap(volume float64) {
+	view.parent.SetStrap(volume)
+}
+
+func (view *BlendView) SetHeelVolume(heel float64) {
+	heel = view.Heel_Component.SetVolume(heel)
+	view.heel_field.SetInt(heel)
 	total := view.total_field.Get()
 	view.SetProperAmount(total - heel)
 }
@@ -209,6 +226,7 @@ func (view *BlendView) SetFont(font *windigo.Font) {
 	view.amount_field.SetFont(font)
 	view.headers.SetFont(font)
 	view.Heel_Component.SetFont(font)
+	view.Total_Component.SetFont(font)
 
 	for _, component := range view.Components {
 		component.SetFont(font)
@@ -219,13 +237,14 @@ func (view *BlendView) RefreshSize() {
 	height := 5 * GUI.PRODUCT_FIELD_HEIGHT
 	delta_height := GUI.PRODUCT_FIELD_HEIGHT
 
-	view.SetSize(GUI.OFF_AXIS, height+len(view.Components)*delta_height)
+	view.SetSize(GUI.OFF_AXIS, height+(len(view.Components)+2)*delta_height)
 	view.Panel.SetSize(GUI.TOP_PANEL_WIDTH, height)
 	view.total_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, delta_height)
 	view.heel_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, delta_height)
 	view.amount_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, delta_height)
 	view.headers.RefreshSize()
 	view.Heel_Component.RefreshSize()
+	view.Total_Component.RefreshSize()
 
 	for _, component := range view.Components {
 		component.RefreshSize()

@@ -234,13 +234,42 @@ unique (product_id)
 
 
 
+
 create table bs.container_list (
-	container_id integer not null,
-	container_name text not null,
-	container_type_id not null default 3,
+	container_id							integer not null,
+	container_name							text not null,
+	container_type_id						integer not null default 3,
 foreign key (container_type_id) references container_types,
 unique (container_name),
-primary key (container_id));
+primary key (container_id)
+);
+
+
+create table bs.container_types (
+	container_type_id						integer not null,
+	container_type_name						text not null,
+unique (container_type_name),
+primary key (container_type_id)
+);
+
+create table bs.container_capacity (
+	container_capacity_id						integer not null,
+	container_capacity_name						text not null,
+unique (container_capacity_name),
+primary key (container_capacity_id)
+);
+
+create table container_strap (
+
+	container_strap_id						integer not null,
+	container_capacity_id						integer not null,
+	container_strap_key						integer not null,
+	container_strap_val						integer not null,
+
+foreign key (container_capacity_id) references container_capacity,
+unique (container_capacity_id, container_strap_key),
+primary key (container_strap_id)
+);
 
 
 

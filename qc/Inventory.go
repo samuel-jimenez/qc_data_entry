@@ -130,42 +130,18 @@ func (view *StorageBinView) RefreshSize() {
  *
  */
 type StorageBinHeader struct {
-	*windigo.AutoPanel
-	Product_name_field, Bin_name_field, Samples_field *windigo.Label
+	*GUI.TextDock
 }
 
 func New_StorageBinHeader(parent windigo.Controller) *StorageBinHeader {
 	view := new(StorageBinHeader)
-	view.AutoPanel = windigo.NewAutoPanel(parent)
-
-	view.Bin_name_field = windigo.NewLabel(view.AutoPanel)
-	view.Product_name_field = windigo.NewLabel(view.AutoPanel)
-	view.Samples_field = windigo.NewLabel(view.AutoPanel)
-
-	view.AutoPanel.Dock(view.Bin_name_field, windigo.Left)
-	view.AutoPanel.Dock(view.Product_name_field, windigo.Left)
-	view.AutoPanel.Dock(view.Samples_field, windigo.Left)
-
-	view.Product_name_field.SetText("Product")
-	view.Bin_name_field.SetText("Storage Bin")
-	view.Samples_field.SetText("Inventory")
-
+	view.TextDock = GUI.NewTextDock(parent, "Product", "Storage Bin", "Inventory")
 	view.RefreshSize()
-
 	return view
 }
 
-func (view *StorageBinHeader) SetFont(font *windigo.Font) {
-	view.Product_name_field.SetFont(font)
-	view.Bin_name_field.SetFont(font)
-	view.Samples_field.SetFont(font)
-}
-
 func (view *StorageBinHeader) RefreshSize() {
-	view.SetSize(GUI.OFF_AXIS, GUI.PRODUCT_FIELD_HEIGHT)
-	view.Product_name_field.SetSize(GUI.SOURCES_LABEL_WIDTH, GUI.OFF_AXIS)
-	view.Bin_name_field.SetSize(GUI.SOURCES_LABEL_WIDTH, GUI.OFF_AXIS)
-	view.Samples_field.SetSize(GUI.SOURCES_LABEL_WIDTH, GUI.OFF_AXIS)
+	view.SetDockSize(GUI.SOURCES_LABEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 }
 
 /*

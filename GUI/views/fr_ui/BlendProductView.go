@@ -19,10 +19,12 @@ type BlendProductViewer interface {
 	AddComponent()
 	SetFont(font *windigo.Font)
 	RefreshSize()
+	SetHeelVolume(float64)
 }
 
 type BlendProductView struct {
 	*windigo.AutoPanel
+	parent *BlendStrappingProductView
 
 	RecipeProduct *blender.RecipeProduct
 	// BlendProduct                   *blender.BlendProduct
@@ -34,7 +36,7 @@ type BlendProductView struct {
 	controls        []windigo.Controller
 }
 
-func NewBlendProductView(parent windigo.Controller) *BlendProductView {
+func NewBlendProductView(parent *BlendStrappingProductView) *BlendProductView {
 
 	product_text := "Product"
 	// recipe_text := ""
@@ -43,6 +45,7 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	view := new(BlendProductView)
 	view.RecipeProduct = blender.NewRecipeProduct()
 	// view.BlendProduct = NewBlendProduct()
+	view.parent = parent
 
 	view.Product_data = make(map[string]int64)
 
@@ -61,7 +64,7 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	recipe_accept_button.SetText("OK")
 	recipe_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-	view.Blend = NewBlendView(view.AutoPanel)
+	view.Blend = NewBlendView(view)
 
 	view.controls = append(view.controls, recipe_accept_button)
 
@@ -111,7 +114,6 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	view.Blend_sel_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		i, err := strconv.Atoi(view.Blend_sel_field.GetSelectedItem())
 		if err != nil {
-			log.Println("ERR: recipe_field strconv", err)
 			view.Blend.UpdateRecipe(nil)
 			return
 		}
@@ -205,4 +207,12 @@ func (view *BlendProductView) RefreshSize() {
 	view.Blend_sel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Blend.RefreshSize()
 
+}
+
+func (view *BlendProductView) SetHeelVolume(heel float64) {
+	view.Blend.SetHeelVolume(heel)
+}
+
+func (view *BlendProductView) SetStrap(volume float64) {
+	view.parent.SetStrap(volume)
 }

@@ -1,0 +1,73 @@
+{
+    "Auto_generated": "This file is auto-generated. Any extra tags or formatting will be lost",
+    "target_sets": [
+        {
+            "cmake_config": "",
+            "directory": "C:/Users/QC Lab/Documents/golang/qc_data_entry",
+            "loaded_via_cmake": false,
+            "name": "Target Set+++",
+            "targets": [
+                {
+                    "build_cmd": "go mod tidy",
+                    "name": "tidy",
+                    "run_cmd": ""
+                },
+                {
+                    "build_cmd": "go get -u",
+                    "name": "update",
+                    "run_cmd": ""
+                },
+                {
+                    "build_cmd": "go clean",
+                    "name": "Clean",
+                    "run_cmd": ""
+                },
+                {
+                    "build_cmd": "go build -v",
+                    "name": "Build",
+                    "run_cmd": "./qc_data_entry.exe"
+                },
+                {
+                    "build_cmd": "go build -v -ldflags=\"-H windowsgui\"",
+                    "name": "RELEASE",
+                    "run_cmd": "./qc_data_entry.exe"
+                },
+                {
+                    "build_cmd": "go build -v cmd/viewer/viewer.go",
+                    "name": "build viewer",
+                    "run_cmd": "./viewer.exe "
+                },
+                {
+                    "build_cmd": "go build -v -ldflags=\"-H windowsgui\" cmd/viewer/viewer.go",
+                    "name": "build viewer+",
+                    "run_cmd": "./viewer.exe "
+                },
+                {
+                    "build_cmd": "go build -v cmd/blender/blender.go",
+                    "name": "build blender",
+                    "run_cmd": "./blender.exe "
+                },
+                {
+                    "build_cmd": "go build -v -ldflags=\"-H windowsgui\" cmd/blender/blender.go",
+                    "name": "build blender+",
+                    "run_cmd": "./blender.exe "
+                },
+                {
+                    "build_cmd": "go build -v cmd/inbound/inbound.go",
+                    "name": "build inbound",
+                    "run_cmd": "./inbound.exe "
+                },
+                {
+                    "build_cmd": "go build -v cmd/fr/fr.go",
+                    "name": "build fr",
+                    "run_cmd": "./fr.exe "
+                },
+                {
+                    "build_cmd": "go build -v -ldflags=\"-H windowsgui\" cmd/fr/fr.go",
+                    "name": "build fr+",
+                    "run_cmd": "./fr.exe "
+                }
+            ]
+        }
+    ]
+}

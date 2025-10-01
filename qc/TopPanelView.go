@@ -128,7 +128,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	sample_button.SetText(sample_button_text)
 	sample_button.Hide()
 
-	container_field := product.BuildNewDiscreteView_NOUPDATE(product_panel, "Container Type", []string{"Sample", "Tote", "Railcar", "ISO"}) // bs.container_types
+	container_field := product.BuildNewDiscreteView_NOUPDATE(product_panel, "Container Type", "Sample", "Tote", "Railcar", "ISO") // bs.container_types
 
 	release_button := windigo.NewPushButton(product_panel)
 	release_button.SetText(release_button_text)

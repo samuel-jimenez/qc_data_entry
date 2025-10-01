@@ -24,6 +24,9 @@ var (
 	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	DB_Select_component_type_product, DB_Select_component_type_density, DB_Insert_internal_product_component_type, DB_Insert_inbound_product_component_type,
 	DB_Select_inbound_product_component_type_id,
+
+	// container_strap
+	DB_Select_container_strap_container_capacity,
 	// inbound_product
 	DB_Select_inbound_product_name, DB_Insert_inbound_product,
 	// container_list
@@ -291,11 +294,21 @@ func DBinit(db *sql.DB) {
 	returning component_type_product_inbound_id
 	`)
 	DB_Select_inbound_product_component_type_id = PrepareOrElse(db, `
-select inbound_product_id, inbound_product_name
-from bs.component_type_product_inbound
-left join bs.inbound_product using (inbound_product_id)
-where component_type_id = ?1
-		`)
+	select inbound_product_id, inbound_product_name
+	from bs.component_type_product_inbound
+	left join bs.inbound_product using (inbound_product_id)
+	where component_type_id = ?1
+	`)
+
+	// container_strap
+	//  should be monotonic increasing
+	DB_Select_container_strap_container_capacity = PrepareOrElse(db, `
+	select container_strap_key, container_strap_val
+	from bs.container_strap
+	where container_capacity_id = ?1
+	order by container_strap_key
+	`)
+
 	// inbound_product
 	DB_Select_inbound_product_name = PrepareOrElse(db, `
 select inbound_product_id
