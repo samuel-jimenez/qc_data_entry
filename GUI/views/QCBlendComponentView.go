@@ -8,7 +8,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
-	"github.com/samuel-jimenez/qc_data_entry/blender/blendbound"
+	"github.com/samuel-jimenez/qc_data_entry/blender/inbound"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -80,7 +80,7 @@ func New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent windigo.Contr
 	// view.component_field = GUI.NewListSearchBoxWithLabels(view.AutoPanel, view.component_types_list)
 
 	view.Component_name_field = windigo.NewLabel(view.AutoPanel)
-	view.Amount_required_field = GUI.NewNumbEditView(view.AutoPanel)
+	view.Amount_required_field = GUI.NumbEditView_from_new(view.AutoPanel)
 
 	view.Component_field = GUI.NewListSearchBox(view.AutoPanel)
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)
@@ -139,14 +139,14 @@ func NewQCBlendComponentView_from_BlendComponent(parent windigo.Controller, Blen
 func (view *QCBlendComponentView) Get() *blender.BlendComponent {
 	Component_name := view.Component_field.Text()
 
-	BlendComponent := blender.NewBlendComponent()
+	BlendComponent := blender.BlendComponent_from_new()
 	*BlendComponent = view.Component_types_data[Component_name]
 
 	if BlendComponent.Lot_id == DB.INVALID_ID {
 		//TODO make error
 		return nil
 	}
-	log.Println("DEBUG: BlendComponentView update_component_types", BlendComponent, view.Component_field.GetSelectedItem(), view.Component_field.SelectedItem(), view.Component_types_data[view.Component_field.Text()])
+	log.Println("DEBUG: QCBlendComponentView update_component_types", BlendComponent, view.Component_field.GetSelectedItem(), view.Component_field.SelectedItem(), view.Component_types_data[view.Component_field.Text()])
 
 	return BlendComponent
 }
@@ -186,7 +186,7 @@ func (view *QCBlendComponentView) Update_component_types() {
 		},
 		DB.DB_Select_component_type_product, view.Recipe_Component.Component_type_id,
 		product.Status_TESTED,
-		blendbound.Status_UNAVAILABLE,
+		inbound.Status_UNAVAILABLE,
 	)
 
 	text := view.Component_field.Text()

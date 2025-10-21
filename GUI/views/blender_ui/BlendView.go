@@ -32,16 +32,16 @@ type BlendView struct {
 	amount_field *views.NumberEditView
 }
 
-func NewBlendView(parent windigo.Controller) *BlendView {
+func BlendView_from_new(parent windigo.Controller) *BlendView {
 	view := new(BlendView)
-	view.QCBlendView = *views.NewQCBlendView(parent)
+	view.QCBlendView = *views.QCBlendView_from_new(parent)
 
 	amount_text := "Amount"
 	// amount_text := "Quantity"
 
 	//TODO normalize amounts
 
-	view.amount_field = views.NewNumberEditView(view.Panel, amount_text)
+	view.amount_field = views.NumberEditView_from_new(view.Panel, amount_text)
 
 	// TODO/ RecipeHeader from  RecipeComponent Component Amount
 

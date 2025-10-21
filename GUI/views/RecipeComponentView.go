@@ -58,7 +58,7 @@ func NewRecipeComponentView(parent *RecipeView) *RecipeComponentView {
 
 	// cf NumberEditView
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)
-	view.amount_field = GUI.NewNumbEditView(view.AutoPanel)
+	view.amount_field = GUI.NumbEditView_from_new(view.AutoPanel)
 
 	component_del_button := windigo.NewPushButton(view.AutoPanel)
 	component_del_button.SetText("-")

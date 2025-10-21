@@ -18,6 +18,7 @@ import (
 func main() {
 	//load config
 	config.Main_config = config.Load_config_viewer("qc_data_blender")
+	defer config.Write_config(config.Main_config)
 
 	// log to file
 	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -49,11 +50,11 @@ func main() {
 
 	//setup status_bar goroutine
 	threads.STATUS_QUEUE = make(chan string, 16)
-	defer close(threads.STATUS_QUEUE)
+	close(threads.STATUS_QUEUE)
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
-	toplevel_ui.Show_window(fr_ui.NewBlenderWindow(nil))
+	toplevel_ui.Show_window(fr_ui.BlenderWindow_from_new(nil))
 
 }
 

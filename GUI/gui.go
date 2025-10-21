@@ -9,7 +9,6 @@ import (
 )
 
 var (
-	BASE_FONT_SIZE = 10
 	OFF_AXIS       = 0
 	RANGES_PADDING = 10
 	LABEL_WIDTH    = 100

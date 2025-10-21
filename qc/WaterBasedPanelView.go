@@ -99,7 +99,6 @@ func (view *WaterBasedPanelView) log_data() {
 		log.Println("wb log-data", measured_product)
 		// measured_product.Save()
 		product.Store(measured_product)
-		measured_product.Export_json()
 		// * Check storage
 		measured_product.CheckStorage()
 	}

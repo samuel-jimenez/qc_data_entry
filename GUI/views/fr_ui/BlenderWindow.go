@@ -1,8 +1,8 @@
 package fr_ui
 
 import (
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -29,7 +29,7 @@ type BlenderWindow struct {
 	Blend_product_view *BlendStrappingProductView
 }
 
-func NewBlenderWindow(parent windigo.Controller) *BlenderWindow {
+func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
 	window_title := "QC Data Blender"
 
 	// build window
@@ -41,7 +41,7 @@ func NewBlenderWindow(parent windigo.Controller) *BlenderWindow {
 	dock := windigo.NewSimpleDock(view)
 	// BlendVessel
 
-	view.Blend_product_view = NewBlendStrappingProductView(view)
+	view.Blend_product_view = BlendStrappingProductView_from_new(view)
 
 	// threads.Status_bar = windigo.NewStatusBar(mainWindow)
 	// mainWindow.SetStatusBar(threads.Status_bar)
@@ -63,7 +63,7 @@ func (view *BlenderWindow) SetFont(font *windigo.Font) {
 }
 
 func (view *BlenderWindow) RefreshSize() {
-	Refresh_globals(GUI.BASE_FONT_SIZE)
+	Refresh_globals(config.BASE_FONT_SIZE)
 	view.Blend_product_view.RefreshSize()
 }
 
@@ -77,12 +77,12 @@ func (view *BlenderWindow) Set_font_size() {
 	view.RefreshSize()
 }
 func (view *BlenderWindow) Increase_font_size() bool {
-	GUI.BASE_FONT_SIZE += 1
+	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
 func (view *BlenderWindow) Decrease_font_size() bool {
-	GUI.BASE_FONT_SIZE -= 1
+	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
 	return true
 }

@@ -3,12 +3,13 @@ package viewer
 import (
 	"database/sql"
 	"log"
-	"strconv"
+	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
+	"github.com/xuri/excelize/v2"
 )
 
 //TODO viewerf_refactor: split datatypes, views
@@ -52,6 +53,7 @@ type DataViewerPanelViewer interface {
 	reprint_sample_button_OnClick(e *windigo.Event)
 	regen_sample_button_OnClick(e *windigo.Event)
 	export_json_button_OnClick(e *windigo.Event)
+	export_xl_button_OnClick(e *windigo.Event)
 }
 
 /*
@@ -69,7 +71,7 @@ type DataViewerPanelView struct {
 
 	SQLFilters *SQLFilterList
 
-	ProductFilter,
+	ProductFilter *SQLFilterIntDiscrete
 	LotFilter,
 	MonikerFilter *SQLFilterDiscrete
 
@@ -82,7 +84,7 @@ type DataViewerPanelView struct {
 
 	product_clear_button, lot_clear_button, lot_add_button, moniker_clear_button,
 	filter_button, search_button, clear_button,
-	reprint_sample_button, regen_sample_button, export_json_button *windigo.PushButton
+	reprint_sample_button, regen_sample_button, export_xl_button *windigo.PushButton
 }
 
 // parent
@@ -94,10 +96,9 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.product_map = make(map[string]int)
 	view.moniker_map = make(map[string][]string)
 
-	// LotFilter := &SQLFilterDiscrete{COL_KEY_LOT,nil}
 	view.SQLFilters = NewSQLFilterList()
 
-	view.ProductFilter = NewSQLFilterDiscrete(
+	view.ProductFilter = NewSQLFilterIntDiscrete(
 		COL_KEY_PRODUCT,
 		nil,
 	)
@@ -119,7 +120,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	reprint_sample_label := "Reprint Sample"
 	regen_sample_label := "Regen Sample"
-	export_json_label := "Export JSON"
+	export_xl_label := "Export to Excel"
 
 	view.AutoPanel = windigo.NewAutoPanel(mainWindow)
 
@@ -127,12 +128,12 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	view.product_panel = windigo.NewAutoPanel(view.AutoPanel)
 
-	view.product_field = GUI.NewListComboBox(view.product_panel, COL_LABEL_PRODUCT)
+	view.product_field = GUI.List_ComboBox_from_new(view.product_panel, COL_LABEL_PRODUCT)
 
 	view.product_clear_button = windigo.NewPushButton(view.product_panel)
 	view.product_clear_button.SetText(clear_field_label)
 
-	view.moniker_field = GUI.NewListComboBox(view.product_panel, COL_LABEL_MONIKER)
+	view.moniker_field = GUI.List_ComboBox_from_new(view.product_panel, COL_LABEL_MONIKER)
 	view.moniker_clear_button = windigo.NewPushButton(view.product_panel)
 	view.moniker_clear_button.SetText(clear_field_label)
 
@@ -149,7 +150,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.lot_add_button = windigo.NewPushButton(view.lot_panel)
 	view.lot_add_button.SetText(add_field_label)
 
-	view.sample_field = GUI.NewListComboBox(view.lot_panel, COL_LABEL_SAMPLE_PT)
+	view.sample_field = GUI.List_ComboBox_from_new(view.lot_panel, COL_LABEL_SAMPLE_PT)
 
 	view.lot_panel.Dock(view.lot_field, windigo.Left)
 	view.lot_panel.Dock(view.lot_clear_button, windigo.Left)
@@ -171,8 +172,8 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.regen_sample_button = windigo.NewPushButton(view.AutoPanel)
 	view.regen_sample_button.SetText(regen_sample_label)
 
-	view.export_json_button = windigo.NewPushButton(view.AutoPanel)
-	view.export_json_button.SetText(export_json_label)
+	view.export_xl_button = windigo.NewPushButton(view.AutoPanel)
+	view.export_xl_button.SetText(export_xl_label)
 
 	view.AutoPanel.Dock(view.product_panel, windigo.Top)
 	view.AutoPanel.Dock(view.lot_panel, windigo.Top)
@@ -182,7 +183,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	view.AutoPanel.Dock(view.reprint_sample_button, windigo.Left)
 	view.AutoPanel.Dock(view.regen_sample_button, windigo.Left)
-	view.AutoPanel.Dock(view.export_json_button, windigo.Left)
+	view.AutoPanel.Dock(view.export_xl_button, windigo.Left)
 
 	// functionality
 	view.SQLFilters.Filters = []SQLFilter{view.ProductFilter, view.LotFilter, view.MonikerFilter}
@@ -199,14 +200,22 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 		},
 		func(row *sql.Rows) error {
 			var (
+				internal_p           bool
 				id                   int
 				internal_name        string
 				product_moniker_name string
+				name                 string
 			)
-			if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
+			if err := row.Scan(&internal_p, &id, &internal_name, &product_moniker_name); err != nil {
 				return err
 			}
-			name := product_moniker_name + " " + internal_name
+			if internal_p {
+				name = product_moniker_name + " " + internal_name
+			} else {
+				name = internal_name
+				// 8 product_moniker_id
+				product_moniker_name = "INBOUND"
+			}
 
 			view.product_map[name] = id
 			view.product_data = append(view.product_data, name)
@@ -216,11 +225,11 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 			view.product_field.AddItem(name)
 			return nil
 		},
-		DB.DB_Select_product_info_all)
+		DB.DB_Select_product_info_inbound_all)
 
 	view.lot_field.Fill_FromFnQuery(
 		view.update_lot,
-		DB.DB_Select_product_lot_all)
+		DB.DB_Select_product_inbound_lot_all)
 
 	GUI.Fill_combobox_from_query(view.moniker_field, DB.DB_Select_all_product_moniker)
 	GUI.Fill_combobox_from_query_fn(view.sample_field, view.update_sample, DB.DB_Select_all_sample_points)
@@ -240,7 +249,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	view.reprint_sample_button.OnClick().Bind(view.reprint_sample_button_OnClick)
 	view.regen_sample_button.OnClick().Bind(view.regen_sample_button_OnClick)
-	view.export_json_button.OnClick().Bind(view.export_json_button_OnClick)
+	view.export_xl_button.OnClick().Bind(view.export_xl_button_OnClick)
 
 	return view
 }
@@ -263,7 +272,7 @@ func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 
 	view.reprint_sample_button.SetFont(font)
 	view.regen_sample_button.SetFont(font)
-	view.export_json_button.SetFont(font)
+	view.export_xl_button.SetFont(font)
 
 }
 
@@ -304,7 +313,7 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.reprint_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.reprint_sample_button.SetMarginLeft(reprint_sample_button_margin)
 	view.regen_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
-	view.export_json_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	view.export_xl_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 }
 
@@ -393,7 +402,7 @@ func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
 	// product_field_pop_data(product_field.GetSelectedItem())
 
 	product_id := view.product_map[view.product_field.GetSelectedItem()]
-	view.ProductFilter.Set([]string{strconv.Itoa(product_id)})
+	view.ProductFilter.Set([]int{product_id})
 	view.LotFilter.Set(nil)
 
 	COL_ITEMS_LOT = nil
@@ -435,18 +444,19 @@ func (view *DataViewerPanelView) filter_button_OnClick(e *windigo.Event) {
 }
 
 func (view *DataViewerPanelView) search_button_OnClick(e *windigo.Event) {
-	view.mainWindow.SetTable(select_samples(view.mainWindow.FilterListView.Get().Get()))
+	view.mainWindow.SetTable(select_samples(view.mainWindow.FilterListView.Get()))
+	// TODO there can be only one
 }
 
 func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event) {
-	for _, data := range view.mainWindow.GetTable() {
+	for _, data := range view.mainWindow.GetTableSelected() {
 		data.(QCData).Product().Reprint_sample()
 	}
 
 }
 
 func (view *DataViewerPanelView) regen_sample_button_OnClick(e *windigo.Event) {
-	for _, data := range view.mainWindow.GetTable() {
+	for _, data := range view.mainWindow.GetTableSelected() {
 		if err := data.(QCData).Product().Output_sample(); err != nil {
 			log.Printf("Error: [%s]: %q\n", "regen_sample_button", err)
 			log.Printf("Debug: %q: %v\n", err, data)
@@ -456,11 +466,74 @@ func (view *DataViewerPanelView) regen_sample_button_OnClick(e *windigo.Event) {
 
 }
 
-func (view *DataViewerPanelView) export_json_button_OnClick(e *windigo.Event) {
+func (view *DataViewerPanelView) export_xl_button_OnClick(e *windigo.Event) {
+	DefaultExtension := ".xlsx"
+	//TODO	// "github.com/harry1453/go-common-file-dialog/cfdutil"
+	filePath, ok := windigo.ShowSaveFileDlg(
+		view,
+		"Export excel file",
+		"Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*",
+		0,
+		"",
+	)
+	if !ok {
+		return
+	}
 
-	for _, data := range view.mainWindow.GetTable() {
-		data.(QCData).Product().Export_json()
-		log.Printf("Info: Exporting json: %v\n", data)
+	if !strings.Contains(filePath, ".") {
+		filePath += DefaultExtension
+	}
+
+	// TODO xl-1501
+	// TODO export to excel
+	// TODO return err
+	proc_name := "xl-1501"
+	xl_file := excelize.NewFile()
+	defer func() {
+		if err := xl_file.Close(); err != nil {
+			log.Println("Error: ", proc_name, err)
+		}
+	}()
+
+	sheet_name := "Sheet1"
+	enable := true
+	BaseColWidth := uint8(15)
+	xl_file.SetSheetProps(sheet_name,
+		&excelize.SheetPropsOptions{
+			FitToPage:    &enable,
+			BaseColWidth: &BaseColWidth,
+		})
+
+	file_writer, err := xl_file.NewStreamWriter(sheet_name)
+	if err != nil {
+		log.Println("Error: ", proc_name, err)
+		return
+	}
+	for i, data := range view.mainWindow.GetTableAllSelected() {
+		log.Printf("Info: Exporting xl: %v\n", data)
+		Text := data.Text()
+		row := make([]any, len(Text))
+		for j, cell_Data := range Text {
+			row[j] = cell_Data
+		}
+		cell, err := excelize.CoordinatesToCellName(1, i+1)
+		if err != nil {
+			log.Println("Error: ", proc_name, err)
+			break
+		}
+		if err := file_writer.SetRow(cell, row,
+			excelize.RowOpts{Height: 25, Hidden: false},
+		); err != nil {
+			log.Println("Error: ", proc_name, err)
+			return
+		}
+	}
+	if err := file_writer.Flush(); err != nil {
+		log.Println("Error: ", proc_name, err)
+		return
+	}
+	if err := xl_file.SaveAs(filePath); err != nil {
+		log.Println("Error: ", proc_name, err)
 	}
 
 }

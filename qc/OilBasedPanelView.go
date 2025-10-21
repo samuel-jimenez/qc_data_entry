@@ -98,7 +98,6 @@ func (view *OilBasedPanelView) log_data() {
 		log.Println("ob log data", measured_product)
 		// measured_product.Save()
 		product.Store(measured_product)
-		measured_product.Export_json()
 		// * Check storage
 		measured_product.CheckStorage()
 	}

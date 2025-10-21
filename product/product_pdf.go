@@ -14,6 +14,8 @@ import (
 )
 
 // TODO extract this stuff to package
+// TODO print-pdf-019
+
 func Print_PDF(pdf_path string) {
 	if threads.PRINT_QUEUE != nil {
 		threads.PRINT_QUEUE <- pdf_path
@@ -72,6 +74,9 @@ func (measured_product Product) PrintStorage(qc_sample_storage_name, product_mon
 	return nil
 
 }
+
+// TODO extract this stuff to package
+// TODO pdf-IG99
 
 /*
  * Increment_row_pdf

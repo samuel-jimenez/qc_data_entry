@@ -90,13 +90,13 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 
 	product_panel_0_0 := windigo.NewAutoPanel(product_panel_0)
 
-	internal_product_field := GUI.NewComboBox(product_panel_0_0, product_text)
-	customer_field := GUI.NewComboBox(product_panel_0_0, customer_text)
+	internal_product_field := GUI.ComboBox_from_new(product_panel_0_0, product_text)
+	customer_field := GUI.ComboBox_from_new(product_panel_0_0, customer_text)
 
 	product_panel_1_0 := windigo.NewAutoPanel(product_panel_0)
 	product_panel_1_0.Hide()
 
-	testing_lot_field := GUI.NewListComboBox(product_panel_1_0, lot_text)
+	testing_lot_field := GUI.List_ComboBox_from_new(product_panel_1_0, lot_text)
 	// inbound_product_field := GUI.NewComboBox(product_panel_1_0, product_text)
 	// inbound_product_field := windigo.NewLabeledComboBox(product_panel_1_0, product_text)
 	inbound_product_field := windigo.NewLabeledEdit(product_panel_1_0, product_text)
@@ -104,15 +104,15 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 
 	product_panel_0_1 := windigo.NewAutoPanel(product_panel_0)
 
-	lot_field := GUI.NewComboBox(product_panel_0_1, lot_text)
-	sample_field := GUI.NewComboBox(product_panel_0_1, sample_text)
+	lot_field := GUI.ComboBox_from_new(product_panel_0_1, lot_text)
+	sample_field := GUI.ComboBox_from_new(product_panel_0_1, sample_text)
 
 	product_panel_1_1 := windigo.NewAutoPanel(product_panel_0)
 	product_panel_1_1.Hide()
 
 	// inbound_lot_field := GUI.NewComboBox(product_panel_1_1, product_text)
-	inbound_lot_field := GUI.NewComboBox(product_panel_1_1, inbound_lot_text)
-	inbound_container_field := GUI.NewComboBox(product_panel_1_1, container_text)
+	inbound_lot_field := GUI.ComboBox_from_new(product_panel_1_1, inbound_lot_text)
+	inbound_container_field := GUI.ComboBox_from_new(product_panel_1_1, container_text)
 	// inbound_lot_field container_text
 
 	product_panel_0_2 := windigo.NewAutoPanel(product_panel_0)
@@ -255,24 +255,14 @@ func (view *TopPanelView) SetFont(font *windigo.Font) {
 // func (view *TopPanelView) RefreshSize() {
 func (view *TopPanelView) RefreshSize(font_size int) {
 	var (
-		top_panel_height,
-
-		top_subpanel_height,
-
 		container_item_width int
 	)
 
-	num_rows := 3
-
-	top_subpanel_height = GUI.TOP_SPACER_HEIGHT + num_rows*(GUI.PRODUCT_FIELD_HEIGHT+GUI.INTER_SPACER_HEIGHT) + GUI.BTM_SPACER_HEIGHT
-
-	top_panel_height = top_subpanel_height + num_rows*GUI.GROUPBOX_CUSHION + GUI.PRODUCT_FIELD_HEIGHT
-
 	container_item_width = 6 * font_size
 
-	view.SetSize(GUI.TOP_PANEL_WIDTH, top_panel_height)
+	view.SetSize(GUI.TOP_PANEL_WIDTH, TOP_PANEL_HEIGHT)
 
-	view.product_panel_0.SetSize(GUI.TOP_PANEL_WIDTH, top_subpanel_height)
+	view.product_panel_0.SetSize(GUI.TOP_PANEL_WIDTH, TOP_SUBPANEL_HEIGHT)
 	view.TopPanelInternalView.RefreshSize()
 	view.TopPanelInboundView.RefreshSize()
 

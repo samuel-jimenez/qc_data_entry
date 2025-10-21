@@ -36,7 +36,7 @@ type QCBlendView struct {
 	Components []QCBlendComponentViewer
 }
 
-func NewQCBlendView(parent windigo.Controller) *QCBlendView {
+func QCBlendView_from_new(parent windigo.Controller) *QCBlendView {
 	view := new(QCBlendView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 

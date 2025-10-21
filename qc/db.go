@@ -22,220 +22,61 @@ func DBinit(db *sql.DB) {
 	// `
 	sqlStmt := `
 PRAGMA foreign_keys = ON;
-
-create table bs.database_info (
-	database_id integer not null,
-	database_version_major integer not null,
-	database_version_minor integer not null,
-	database_version_revision integer not null,
-	check (database_id = 0),
-	primary key (database_id));
-
-create table bs.product_moniker (
-	product_moniker_id integer not null,
-	product_moniker_name text unique not null,
-primary key (product_moniker_id)
+create table blend_components (
+	blend_components_id						integer not null,
+	product_lot_id							integer not null,
+	recipe_components_id						integer not null,
+	component_id							integer not null,
+	component_required_amount					real,
+	component_blended_amount					real,
+foreign key (product_lot_id) references product_lot,
+foreign key (component_id) references component_list,
+foreign key (recipe_components_id) references recipe_components,
+primary key (blend_components_id)
 );
-
-
-
-create table bs.product_sample_storage (
-
-product_sample_storage_id integer not null,
-product_moniker_id not null,
-retain_storage_duration integer not null,
-max_storage_capacity integer not null,
-
-qc_sample_storage_id not null,
-qc_sample_storage_offset integer not null,
-qc_storage_capacity integer not null,
-
-unique (qc_sample_storage_id),
-foreign key (product_moniker_id) references product_moniker,
-foreign key (qc_sample_storage_id) references qc_sample_storage_list,
-primary key (product_sample_storage_id)
+create table component_list (
+	component_id							integer not null,
+	component_type_id						integer not null,
+	inbound_lot_id							integer,
+	product_lot_id							integer,
+unique (component_type_id,inbound_lot_id),
+unique (component_type_id,product_lot_id),
+foreign key (component_type_id) references component_types,
+foreign key (inbound_lot_id) references inbound_lot,
+foreign key (product_lot_id) references product_lot,
+primary key (component_id)
 );
-
-create table bs.product_line (
-	product_id integer not null,
-	product_name_internal text unique not null,
-	product_moniker_id not null,
-foreign key (product_moniker_id) references product_moniker,
-primary key (product_id));
-
-
-create table bs.product_customer_line (
-	product_customer_id integer not null,
-	product_id not null,
-	product_name_customer text unique,
+create table component_type_product_inbound (
+	component_type_product_inbound_id				integer not null,
+	component_type_id						integer not null,
+	inbound_product_id						integer not null,
+foreign key (component_type_id) references component_types,
+foreign key (inbound_product_id) references inbound_product,
+unique (component_type_id,inbound_product_id),
+primary key (component_type_product_inbound_id)
+);
+create table component_type_product_internal (
+	component_type_product_internal_id				integer not null,
+	component_type_id						integer not null,
+	product_id							integer not null,
+foreign key (component_type_id) references component_types,
 foreign key (product_id) references product_line,
-primary key (product_customer_id));
-
-
-create table bs.product_lot (
-	product_lot_id integer not null,
-	lot_id not null,
-	product_id not null,
-	product_customer_id,
-	recipe_id,
-primary key (product_lot_id),
-foreign key (lot_id) references lot_list,
-foreign key (product_id) references product_line,
-foreign key (product_customer_id) references product_customer_line,
-foreign key (recipe_id) references recipe_list,
-unique (lot_id,product_id)
+unique (component_type_id,product_id),
+primary key (component_type_product_internal_id)
 );
-
-
-create table bs.lot_list (
-
-lot_id integer not null,
-lot_name text not null,
-internal_status_id not null default 3,
-
-foreign key (internal_status_id) references internal_status_list,
-unique (lot_name),
-primary key (lot_id)
+create table component_types (
+	component_type_id						integer not null,
+	component_type_name						text not null,
+primary key (component_type_id),
+unique (component_type_name)
 );
-
-
-create table bs.internal_status_list (
-	internal_status_id integer not null,
-	internal_status_name text not null,
-primary key (internal_status_id),
-unique (internal_status_name)
+create table container_capacity (
+	container_capacity_id						integer not null,
+	container_capacity_name						text not null,
+unique (container_capacity_name),
+primary key (container_capacity_id)
 );
-
-
-
-create table bs.product_sample_points (
-	sample_point_id integer not null,
-	sample_point text,
-	primary key (sample_point_id),
-	unique (sample_point)
-);
-
-create table bs.qc_tester_list (
-	qc_tester_id integer not null,
-	qc_tester_name text not null,
-unique (qc_tester_name),
-primary key (qc_tester_id)
-);
-
-
-create table bs.qc_samples (
-	qc_id integer not null,
-	lot_id integer not null,
-	sample_point_id integer,
-	qc_tester_id integer,
-	qc_sample_storage_id integer,
-	time_stamp integer,
-	ph real,
-	specific_gravity real,
-	string_test real,
-	viscosity real,
-foreign key (lot_id) references lot_list,
-foreign key (sample_point_id) references product_sample_points,
-foreign key (qc_sample_storage_id) references qc_sample_storage_list,
-foreign key (qc_tester_id) references qc_tester_list,
-primary key (qc_id)
-);
-
-
-
-create table bs.qc_sample_storage_list (
-	qc_sample_storage_id integer not null,
-	qc_sample_storage_name text not null,
-	product_moniker_id not null,
-
-foreign key (product_moniker_id) references product_moniker,
-unique (qc_sample_storage_name),
-primary key (qc_sample_storage_id)
-);
-
-create table bs.container_types (
-	container_type_id integer not null,
-	container_type_name text not null,
-unique (container_type_name),
-primary key (container_type_id)
-);
-
-
-create table bs.product_types (
-	product_type_id integer not null,
-	product_type_name text not null,
-	container_type_id integer not null,
-primary key (product_type_id),
-foreign key (container_type_id) references container_types,
-unique (product_type_name)
-);
-
-
-
-create table bs.product_appearance (
-	product_appearance_id integer not null,
-	product_appearance_text text not null,
-unique (product_appearance_text),
-primary key (product_appearance_id)
-);
-
-create table bs.product_ranges_measured (
-	range_id 		integer not null,
-	product_id 		not null,
-	product_type_id 	integer not null,
-	product_appearance_id 	integer,
-	ph_min			real,
-	ph_target		real,
-	ph_max			real,
-	specific_gravity_min	real,
-	specific_gravity_target	real,
-	specific_gravity_max	real,
-	density_min		real,
-	density_target		real,
-	density_max		real,
-	string_test_min		real,
-	string_test_target	real,
-	string_test_max		real,
-	viscosity_min		real,
-	viscosity_target	real,
-	viscosity_max		real,
-primary key (range_id),
-foreign key (product_id) references product_line,
-foreign key (product_type_id) references product_types,
-foreign key (product_appearance_id) references product_appearance,
-unique (product_id)
-);
-
-create table bs.product_ranges_published (
-	qc_range_id 		integer not null,
-	product_id 		not null,
-	product_appearance_id 	integer not null,
-	ph_min			real,
-	ph_target		real,
-	ph_max			real,
-	specific_gravity_min	real,
-	specific_gravity_target	real,
-	specific_gravity_max	real,
-	density_min		real,
-	density_target		real,
-	density_max		real,
-	string_test_min		real,
-	string_test_target	real,
-	string_test_max		real,
-	viscosity_min		real,
-	viscosity_target	real,
-	viscosity_max		real,
-primary key (qc_range_id),
-foreign key (product_id) references product_line,
-foreign key (product_appearance_id) references product_appearance,
-unique (product_id)
-);
-
-
-
-
-
-create table bs.container_list (
+create table container_list (
 	container_id							integer not null,
 	container_name							text not null,
 	container_type_id						integer not null default 3,
@@ -243,58 +84,36 @@ foreign key (container_type_id) references container_types,
 unique (container_name),
 primary key (container_id)
 );
-
-
-create table bs.container_types (
+create table container_strap (
+	container_strap_id						integer not null,
+	container_capacity_id						integer not null,
+	container_strap_key						integer not null,
+	container_strap_val						integer not null,
+foreign key (container_capacity_id) references container_capacity,
+unique (container_capacity_id, container_strap_key),
+primary key (container_strap_id)
+);
+create table container_types (
 	container_type_id						integer not null,
 	container_type_name						text not null,
 unique (container_type_name),
 primary key (container_type_id)
 );
-
-create table bs.container_capacity (
-	container_capacity_id						integer not null,
-	container_capacity_name						text not null,
-unique (container_capacity_name),
-primary key (container_capacity_id)
+create table database_info (
+	database_id							integer not null,
+	database_version_major						integer not null,
+	database_version_minor						integer not null,
+	database_version_revision					integer not null,
+	check (database_id = 0),
+	primary key (database_id)
 );
-
-create table container_strap (
-
-	container_strap_id						integer not null,
-	container_capacity_id						integer not null,
-	container_strap_key						integer not null,
-	container_strap_val						integer not null,
-
-foreign key (container_capacity_id) references container_capacity,
-unique (container_capacity_id, container_strap_key),
-primary key (container_strap_id)
-);
-
-
-
-create table bs.inbound_provider_list (
-	inbound_provider_id integer not null,
-	inbound_provider_name text not null,
-unique (inbound_provider_name),
-primary key (inbound_provider_id));
-
-
-
-
-create table bs.inbound_product (
-	inbound_product_id integer not null,
-	inbound_product_name text,
-	unique (inbound_product_name),
-	primary key (inbound_product_id));
-
-create table bs.inbound_lot (
-	inbound_lot_id integer not null,
-	inbound_lot_name text,
-	inbound_product_id,
-	inbound_provider_id,
-	container_id not null,
-	inbound_status_id not null default 1,
+create table inbound_lot (
+	inbound_lot_id							integer not null,
+	inbound_lot_name						text,
+	inbound_product_id						integer,
+	inbound_provider_id						integer,
+	container_id							integer not null,
+	inbound_status_id						integer not null default 1,
 unique (inbound_lot_name),
 foreign key (inbound_product_id) references inbound_product,
 foreign key (inbound_provider_id) references inbound_provider_list,
@@ -302,118 +121,220 @@ foreign key (container_id) references container_list,
 foreign key (inbound_status_id) references inbound_status_list,
 primary key (inbound_lot_id)
 );
-
-
-
-create table bs.inbound_status_list (
-	inbound_status_id integer not null,
-	inbound_status_name text not null,
-primary key (inbound_status_id),
-unique (inbound_status_name)
+create table inbound_product (
+	inbound_product_id						integer not null,
+	inbound_product_name						text,
+unique (inbound_product_name),
+primary key (inbound_product_id)
 );
-
-
-
-
-
-create table bs.inbound_relabel (
-	inbound_relabel_id integer not null,
-	lot_id not null,
-	inbound_lot_id not null,
-	container_id not null,
+create table inbound_provider_list (
+	inbound_provider_id						integer not null,
+	inbound_provider_name						text not null,
+unique (inbound_provider_name),
+primary key (inbound_provider_id)
+);
+create table inbound_relabel (
+	inbound_relabel_id						integer not null,
+	lot_id								integer not null,
+	inbound_lot_id							integer not null,
+	container_id							integer not null,
 foreign key (lot_id) references lot_list,
 foreign key (inbound_lot_id) references inbound_lot,
 foreign key (container_id) references container_list,
 primary key (inbound_relabel_id),
 unique (lot_id)
 );
-
-
-
-
-
-
-create table bs.component_types (
-	component_type_id integer not null,
-	component_type_name text not null,
-	primary key (component_type_id),
-	unique (component_type_name));
-
-
-
-
-
-create table bs.component_type_product_internal (
-	component_type_product_internal_id integer not null,
-	component_type_id not null,
-	product_id not null,
-	foreign key (component_type_id) references component_types,
-	foreign key (product_id) references product_line,
-	unique (component_type_id,product_id),
-	primary key (component_type_product_internal_id));
-
-
-create table bs.component_type_product_inbound (
-	component_type_product_inbound_id integer not null,
-	component_type_id not null,
-	inbound_product_id not null,
-	foreign key (component_type_id) references component_types,
-	foreign key (inbound_product_id) references inbound_product,
-	unique (component_type_id,inbound_product_id),
-	primary key (component_type_product_inbound_id));
-
-
-
-
-
-
-
-create table bs.component_list (
-	component_id integer not null,
-	component_type_id not null,
-	inbound_lot_id,
-	product_lot_id,
-unique (component_type_id,inbound_lot_id),
-unique (component_type_id,product_lot_id),
-foreign key (component_type_id) references component_types,
-foreign key (inbound_lot_id) references inbound_lot,
-foreign key (product_lot_id) references product_lot,
-primary key (component_id));
-
-
-
-
-create table bs.recipe_list (
-	recipe_id integer not null,
-	product_id not null,
-	foreign key (product_id) references product_line,
-	primary key (recipe_id));
-
-create table bs.recipe_components (
-	recipe_components_id integer not null,
-	recipe_id integer not null,
-	component_type_id not null,
-	component_type_amount real,
-	component_add_order not null,
-	unique (recipe_id,component_add_order),
-	foreign key (recipe_id) references recipe_list,
-	foreign key (component_type_id) references component_types,
-	primary key (recipe_components_id));
-
-create table bs.blend_components (
-	blend_components_id integer not null,
-	product_lot_id not null,
-	recipe_components_id not null,
-	component_id not null,
-	component_required_amount real,
-	component_blended_amount real,
-foreign key (product_lot_id) references product_lot,
-foreign key (component_id) references component_list,
-foreign key (recipe_components_id) references recipe_components,
-primary key (blend_components_id)
+create table inbound_status_list (
+	inbound_status_id						integer not null,
+	inbound_status_name						text not null,
+primary key (inbound_status_id),
+unique (inbound_status_name)
 );
+create table internal_status_list (
+	internal_status_id						integer not null,
+	internal_status_name						text not null,
+primary key (internal_status_id),
+unique (internal_status_name)
+);
+create table lot_list (
+
+	lot_id								integer not null,
+	lot_name							text not null,
+	internal_status_id						integer not null default 3,
+
+foreign key (internal_status_id) references internal_status_list,
+unique (lot_name),
+primary key (lot_id)
+);
+create table product_appearance (
+	product_appearance_id						integer not null,
+	product_appearance_text						text not null,
+unique (product_appearance_text),
+primary key (product_appearance_id)
+);
+create table product_customer_line (
+	product_customer_id						integer not null,
+	product_id							integer not null,
+	product_name_customer						text unique,
+foreign key (product_id) references product_line,
+primary key (product_customer_id)
+);
+create table product_line (
+	product_id							integer not null,
+	product_name_internal						text unique not null,
+	product_moniker_id						integer not null,
+foreign key (product_moniker_id) references product_moniker,
+primary key (product_id)
+);
+create table product_lot (
+	product_lot_id							integer not null,
+	lot_id								integer not null,
+	product_id							integer not null,
+	product_customer_id						integer,
+	recipe_id							integer,
+unique (lot_id),
+unique (lot_id, product_id),
+foreign key (lot_id) references lot_list,
+foreign key (product_id) references product_line,
+foreign key (product_customer_id) references product_customer_line,
+foreign key (recipe_id) references recipe_list,
+primary key (product_lot_id)
+);
+create table product_moniker (
+	product_moniker_id						integer not null,
+	product_moniker_name						text unique not null,
+primary key (product_moniker_id)
+);
+create table product_ranges_measured (
+	range_id							integer not null,
+	product_id							integer not null,
+	product_type_id							integer not null,
+	product_appearance_id						integer,
+	ph_measure							bool not null,
+	ph_publish							bool not null,
+	ph_min								real,
+	ph_target							real,
+	ph_max								real,
+	specific_gravity_measure					bool not null,
+	specific_gravity_publish					bool not null,
+	specific_gravity_min						real,
+	specific_gravity_target						real,
+	specific_gravity_max						real,
+	density_measure							bool not null,
+	density_publish							bool not null,
+	density_min							real,
+	density_target							real,
+	density_max							real,
+	string_test_measure						bool not null,
+	string_test_publish						bool not null,
+	string_test_min							real,
+	string_test_target						real,
+	string_test_max							real,
+	viscosity_measure						bool not null,
+	viscosity_publish						bool not null,
+	viscosity_min							real,
+	viscosity_target						real,
+	viscosity_max							real,
+primary key (range_id),
+foreign key (product_id) references product_line,
+foreign key (product_type_id) references product_types,
+foreign key (product_appearance_id) references product_appearance,
+unique (product_id)
+);
+create table product_sample_points (
+	sample_point_id							integer not null,
+	sample_point							text,
+primary key (sample_point_id),
+unique (sample_point)
+);
+create table product_sample_storage (
+
+	product_sample_storage_id					integer not null,
+	product_moniker_id						integer not null,
+	retain_storage_duration						integer not null,
+	max_storage_capacity						integer not null,
+
+	qc_sample_storage_id						integer not null,
+	qc_sample_storage_offset					integer not null,
+	qc_storage_capacity						integer not null,
 
 
+foreign key (product_moniker_id) references product_moniker,
+foreign key (qc_sample_storage_id) references qc_sample_storage_list,
+primary key (product_sample_storage_id)
+);
+create table product_types (
+	product_type_id							integer not null,
+	product_type_name						text not null,
+	container_type_id						integer not null,
+primary key (product_type_id),
+foreign key (container_type_id) references container_types,
+unique (product_type_name)
+);
+create table qc_sample_storage_list (
+	qc_sample_storage_id						integer not null,
+	qc_sample_storage_name						text not null,
+	product_moniker_id						integer not null,
+foreign key (product_moniker_id) references product_moniker,
+unique (qc_sample_storage_name),
+primary key (qc_sample_storage_id)
+);
+create table qc_samples (
+	qc_id								integer not null,
+	lot_id								integer not null,
+	sample_point_id							integer,
+	qc_tester_id							integer,
+	qc_sample_storage_id						integer,
+	time_stamp							integer,
+	ph								real,
+	specific_gravity						real,
+	string_test							real,
+	viscosity							real,
+foreign key (lot_id) references lot_list,
+foreign key (sample_point_id) references product_sample_points,
+foreign key (qc_sample_storage_id) references qc_sample_storage_list,
+foreign key (qc_tester_id) references qc_tester_list,
+primary key (qc_id)
+);
+create table qc_tester_list (
+	qc_tester_id							integer not null,
+	qc_tester_name							text not null,
+unique (qc_tester_name),
+primary key (qc_tester_id)
+);
+create table recipe_components (
+	recipe_components_id						integer not null,
+	recipe_id							integer not null,
+	component_type_id						integer not null,
+	component_type_amount						real,
+	component_add_order						integer not null,
+unique (recipe_id,component_add_order),
+foreign key (recipe_id) references recipe_list,
+foreign key (component_type_id) references component_types,
+primary key (recipe_components_id)
+);
+create table recipe_list (
+	recipe_id							integer not null,
+	product_id							integer not null,
+	recipe_procedure_id						integer not null,
+foreign key (product_id) references product_line,
+foreign key (recipe_procedure_id) references recipe_procedure_list,
+primary key (recipe_id)
+);
+create table recipe_procedure_list (
+	recipe_procedure_id						integer not null,
+	recipe_procedure_name						text not null,
+primary key (recipe_procedure_id)
+);
+create table recipe_procedure_steps (
+	recipe_procedure_step_id					integer not null,
+	recipe_procedure_id						integer not null,
+	recipe_procedure_step_number					integer not null,
+	recipe_procedure_step_text					text not null,
+unique (recipe_procedure_id, recipe_procedure_step_number),
+foreign key (recipe_procedure_id) references recipe_procedure_list,
+primary key (recipe_procedure_step_id)
+);
 
 
 

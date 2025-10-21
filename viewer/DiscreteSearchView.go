@@ -52,8 +52,6 @@ func BuildNewDiscreteSearchView(parent *SQLFilterViewDiscreteSearch, labels []st
 
 	view.AutoPanel.Dock(view.box, windigo.Left)
 
-	view.RefreshSize()
-
 	return view
 }
 

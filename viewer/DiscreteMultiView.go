@@ -2,6 +2,7 @@ package viewer
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -19,7 +20,7 @@ func (view *DiscreteMultiView) RefreshSize() {
 	// for _, control := range view.buttons {
 	// 	//TODO
 	// 	control.RefreshSize()
-	// text_width := GUI.BASE_FONT_SIZE*len(label_text)*6/5 + checkbox_size
+	// text_width := config.BASE_FONT_SIZE*len(label_text)*6/5 + checkbox_size
 
 	// }
 }
@@ -68,7 +69,7 @@ func BuildNewDiscreteMultiView(parent windigo.Controller, labels []string) *Disc
 	overpanel.Dock(panel, windigo.Top)
 
 	for _, label_text := range labels {
-		text_width := GUI.BASE_FONT_SIZE*len(label_text)*6/5 + checkbox_size
+		text_width := config.BASE_FONT_SIZE*len(label_text)*6/5 + checkbox_size
 		// text_width := checkbox_size
 		curr_width -= margin
 		curr_width -= text_width

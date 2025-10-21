@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
@@ -72,21 +71,6 @@ func (product Product) get_storage_pdf_name(qc_sample_storage_name string) strin
 	return fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, qc_sample_storage_name, "pdf")
 }
 
-func (product BaseProduct) get_json_filename(path string, base_name string) string {
-	return fmt.Sprintf("%s/%d-%s", path, time.Now().UTC().UnixNano(), base_name)
-}
-
-func (product BaseProduct) get_json_names() []string {
-	var json_names []string
-	base_name := product.get_base_filename("json")
-
-	for _, JSON_PATH := range config.JSON_PATHS {
-
-		json_names = append(json_names, product.get_json_filename(JSON_PATH, base_name))
-	}
-	return json_names
-}
-
 func (product *BaseProduct) Insel_product_self() *BaseProduct {
 	product.Product_id = DB.Insel_product_id(product.Product_name)
 	return product
@@ -104,9 +88,8 @@ func (product *BaseProduct) Update_lot(lot_number, product_name_customer string)
 	}
 
 	if lot_number != "" {
-		product.Lot_number = lot_number
-		product.Lot_id = DB.Insel_lot_id(product.Lot_number)
-		product.Product_Lot_id = DB.Insel_product_lot_id(product.Lot_id, product.Product_id)
+		// we cannot guarantee uniqueness of batch numbers
+		product.Lot_number, product.Lot_id, product.Product_Lot_id = DB.Select_product_lot_name(lot_number, product.Product_id)
 
 		DB.DB_Update_lot_customer.Exec(product.Product_name_customer_id, product.Product_Lot_id)
 	}
@@ -151,7 +134,7 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 	}
 	base_product.Product_name_customer = Product_name_customer.String
 
-	Blend := blender.NewProductBlend()
+	Blend := blender.ProductBlend_from_new()
 	base_product.Blend = Blend
 
 	// TODO blend012 ensure doesn't break show_fr()
@@ -162,7 +145,7 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 		func() {
 		},
 		func(row *sql.Rows) error {
-			blendComponent, err := blender.NewBlendComponentfromSQL(row)
+			blendComponent, err := blender.BlendComponent_from_SQL(row)
 			if err != nil {
 				return err
 			}
@@ -221,19 +204,4 @@ func (product BaseProduct) SaveBlend() {
 	if product.Blend != nil {
 		product.Blend.Save(product.Product_Lot_id)
 	}
-}
-
-func (product *BaseProduct) Insel_lot_self() *BaseProduct {
-	product.Insel_product_name_customer()
-	return product
-
-}
-
-func (product *BaseProduct) Insel_product_name_customer() *BaseProduct {
-	return product
-
-}
-
-func (product BaseProduct) Insel_all() *BaseProduct {
-	return product.Insel_product_self().Insel_lot_self()
 }

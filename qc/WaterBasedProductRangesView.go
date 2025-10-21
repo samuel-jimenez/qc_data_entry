@@ -30,8 +30,8 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
 	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
-	view.ph_field = views.BuildNewRangeROView(view.AutoPanel, views.PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
-	view.sg_field = views.BuildNewRangeROView(view.AutoPanel, views.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
+	view.ph_field = views.RangeROView_from_new(view.AutoPanel, formats.PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
+	view.sg_field = views.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.ph_field, windigo.Top)

@@ -2,7 +2,6 @@ package viewer
 
 import (
 	"database/sql"
-	"log"
 	"slices"
 	"strings"
 	"time"
@@ -27,7 +26,7 @@ func (data *QCDataComponents) GetComponents(Lot_name string) {
 			data.Components = nil
 		},
 		func(row *sql.Rows) error {
-			blendComponent, err := blender.NewBlendComponentfromSQL(row)
+			blendComponent, err := blender.BlendComponent_from_SQL(row)
 			if err != nil {
 				return err
 			}
@@ -49,6 +48,7 @@ func (data QCDataComponents) Text() []string {
 
 }
 
+//TODO tester
 /*
  * QCData
  *
@@ -173,39 +173,6 @@ type QCDataView struct {
 	less []lessFunc
 }
 
-func (data_view *QCDataView) Set(data []QCData) {
-	data_view.data = data
-}
-
-func (data_view *QCDataView) Get(row, column int) string {
-	if row < 0 {
-		return ""
-	}
-	return data_view.data[row].Text()[column]
-}
-
-func (data_view QCDataView) Refresh() {
-
-	data_view.DeleteAllItems()
-
-	for _, row := range data_view.data {
-		data_view.AddItem(row)
-	}
-}
-
-func (data_view QCDataView) Update() {
-	data_view.Refresh()
-}
-
-func (data_view *QCDataView) Sort(col int, asc bool) {
-	if asc {
-		slices.SortStableFunc(data_view.data, data_view.less[col])
-	} else {
-		slices.SortStableFunc(data_view.data, uno_reverse(data_view.less[col]))
-	}
-	data_view.Refresh()
-}
-
 func NewQCDataView(parent windigo.Controller) *QCDataView {
 
 	table := &QCDataView{windigo.NewListView(parent), nil, nil}
@@ -247,12 +214,22 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	// table.AddColumn(
 	// 	"Density"
 	// 	, col_width)
-	table.OnClick().Bind(func(e *windigo.Event) { log.Println(e) })
-	table.OnRClick().Bind(func(e *windigo.Event) {
+
+	table.OnClick().Bind(func(e *windigo.Event) {
 		listViewEvent := e.Data.(windigo.ListViewEvent)
 		if listViewEvent.Row >= 0 { // ignore invalid
-			table.ClipboardCopyText(table.Get(listViewEvent.Row, listViewEvent.Column))
+			table.ClipboardCopyText(table.GetCell(listViewEvent.Row, listViewEvent.Column))
 		}
+	})
+
+	popupMenu := windigo.NewContextMenu()
+	copyMenu := popupMenu.AddItem("Copy", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyC,
+	})
+	table.SetContextMenu(popupMenu)
+	copyMenu.OnClick().Bind(func(e *windigo.Event) {
+		table.ClipboardCopyText(table.GetText())
 	})
 
 	table.less = []lessFunc{
@@ -274,4 +251,76 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 	}
 
 	return table
+}
+
+func (data_view *QCDataView) Set(data []QCData) {
+	data_view.data = data
+}
+
+func (data_view *QCDataView) Get() []QCData {
+	return data_view.data
+}
+
+func (data_view *QCDataView) GetCell(row, column int) string {
+	if row < 0 {
+		return ""
+	}
+	rows := data_view.data[row].Text()
+	if len(rows) <= column {
+		return ""
+	}
+	return rows[column]
+}
+
+func (data_view *QCDataView) GetText() string {
+	var rowText []string
+	for _, row := range data_view.SelectedItems() {
+		rowText = append(rowText, strings.Join(row.Text(), "\t"))
+	}
+	return strings.Join(rowText, "\n")
+}
+
+func (data_view QCDataView) Refresh() {
+	data_view.DeleteAllItems()
+	for _, row := range data_view.data {
+		data_view.AddItem(row)
+	}
+}
+
+func (data_view QCDataView) Update() {
+	data_view.Refresh()
+}
+
+func (view *QCDataView) Sort(col int, asc bool) {
+	if asc {
+		slices.SortStableFunc(view.data, view.less[col])
+	} else {
+		slices.SortStableFunc(view.data, uno_reverse(view.less[col]))
+	}
+	view.Refresh()
+}
+
+func (table *QCDataView) RefreshSize() {
+	widths :=
+		[]int{
+			COL_WIDTH_TIME,
+			COL_WIDTH_TIME,
+			COL_WIDTH_LOT,
+			COL_WIDTH_SAMPLE_PT,
+			COL_WIDTH_SAMPLE_BIN,
+			COL_WIDTH_DATA,
+			COL_WIDTH_DATA,
+			COL_WIDTH_DATA,
+			COL_WIDTH_DATA,
+			COL_WIDTH_TIME,
+			COL_WIDTH_LOT,
+			COL_WIDTH_TIME,
+			COL_WIDTH_TIME,
+			COL_WIDTH_LOT,
+			COL_WIDTH_TIME,
+		}
+	for i := range table.GetNumColumns() {
+		table.SetColumnWidth(i, widths[i])
+
+	}
 }

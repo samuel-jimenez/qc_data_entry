@@ -1,7 +1,6 @@
 package viewer
 
 import (
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -15,32 +14,24 @@ type SQLFilterViewDiscreteSearch struct {
 
 func NewSQLFilterViewDiscreteSearch(parent windigo.Controller, key, label string, set []string) *SQLFilterViewDiscreteSearch {
 	view := new(SQLFilterViewDiscreteSearch)
-
-	panel := windigo.NewAutoPanel(parent)
-	view.AutoPanel = panel
-
-	panel.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
-
-	panel_label := NewSQLFilterViewHeader(view, label)
-	panel_label.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
-
-	selection_options := BuildNewDiscreteSearchView(view, set)
-	panel_label.SetHidePanel(selection_options.AutoPanel)
-	selection_options.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
-
-	panel.Dock(panel_label, windigo.Top)
-	panel.Dock(selection_options, windigo.Top)
-
-	view.label = panel_label
-	view.selection_options = selection_options
 	view.key = key
+
+	view.AutoPanel = windigo.NewAutoPanel(parent)
+
+	view.label = SQLFilterViewHeader_from_new(view, label)
+
+	view.selection_options = BuildNewDiscreteSearchView(view, set)
+	view.label.SetHidePanel(view.selection_options.AutoPanel)
+
+	view.AutoPanel.Dock(view.label, windigo.Top)
+	view.AutoPanel.Dock(view.selection_options, windigo.Top)
 
 	return view
 }
 
-func (view *SQLFilterViewDiscreteSearch) Get() SQLFilter {
+func (view *SQLFilterViewDiscreteSearch) Get() string {
 	return SQLFilterDiscrete{view.key,
-		view.selection_options.Get()}
+		view.selection_options.Get()}.Get()
 }
 
 func (view *SQLFilterViewDiscreteSearch) Update(set []string) {
@@ -48,7 +39,6 @@ func (view *SQLFilterViewDiscreteSearch) Update(set []string) {
 }
 
 func (view *SQLFilterViewDiscreteSearch) AddItem(entry string) {
-
 	if view.selection_options.Contains(entry) {
 		return
 	}

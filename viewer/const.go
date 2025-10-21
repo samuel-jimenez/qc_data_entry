@@ -75,7 +75,8 @@ func Refresh_globals(font_size int) {
 	WINDOW_WIDTH = 2*COL_WIDTH_TIME + COL_WIDTH_LOT + COL_WIDTH_SAMPLE_PT + COL_WIDTH_SAMPLE_BIN +
 		4*COL_WIDTH_DATA + //				data
 		2*(2*COL_WIDTH_TIME+COL_WIDTH_LOT) + //		components
-		2*WINDOW_EDGE + SCROLL_WIDTH //			window cruft
+		2*WINDOW_EDGE + SCROLL_WIDTH + //		window cruft
+		COL_WIDTH_DATA //				selection
 	WINDOW_HEIGHT = 60 * font_size
 
 	GUI.LABEL_WIDTH = 10 * font_size

@@ -33,8 +33,6 @@ type FrictionReducerProductRangesView struct {
 
 func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *FrictionReducerProductRangesView {
 
-
-
 	view := new(FrictionReducerProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -42,13 +40,13 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 
 	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
 
-	view.viscosity_field = views.BuildNewRangeROView(view.AutoPanel, views.VISCOSITY_TEXT, qc_product.Viscosity, formats.Format_ranges_viscosity)
+	view.viscosity_field = views.RangeROView_from_new(view.AutoPanel, formats.VISCOSITY_TEXT, qc_product.Viscosity, formats.Format_ranges_viscosity)
 
-	view.string_field = views.BuildNewRangeROView(view.AutoPanel, STRING_TEXT, qc_product.SG, formats.Format_ranges_string_test)
+	view.string_field = views.RangeROView_from_new(view.AutoPanel, formats.STRING_TEXT_MINI, qc_product.SG, formats.Format_ranges_string_test)
 
-	view.Mass_field = views.BuildNewRangeROViewMap(view.AutoPanel, views.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
-	view.SG_field = views.BuildNewRangeROView(view.AutoPanel, views.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
-	view.Density_field = views.BuildNewRangeROView(view.AutoPanel, views.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
+	view.Mass_field = views.RangeROViewMap_from_new(view.AutoPanel, formats.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	view.SG_field = views.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
+	view.Density_field = views.RangeROView_from_new(view.AutoPanel, formats.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.viscosity_field, windigo.Top)

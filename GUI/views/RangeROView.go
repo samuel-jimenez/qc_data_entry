@@ -22,7 +22,7 @@ type RangeROView struct {
 	data_map func(float64) float64
 }
 
-func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string, data_map func(float64) float64) *RangeROView {
+func RangeROViewMap_from_new(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string, data_map func(float64) float64) *RangeROView {
 
 	panel := windigo.NewAutoPanel(parent)
 	//TODO toolti[p]
@@ -30,11 +30,11 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 	// label.SetText(field_text)
 
 	spacer_format := "≤"
-	min_field := BuildNewNullFloat64ROView(panel, field_data.Min, format)
-	min_field_spacer := BuildNullFloat64SpacerView(panel, field_data.Min, spacer_format)
-	target_field := BuildNewNullFloat64ROView(panel, field_data.Target, format)
-	max_field := BuildNewNullFloat64ROView(panel, field_data.Max, format)
-	max_field_spacer := BuildNullFloat64SpacerView(panel, field_data.Max, spacer_format)
+	min_field := NullFloat64ROView_from_new(panel, field_data.Min, format)
+	min_field_spacer := NullFloat64View_Spacer_from_new(panel, field_data.Min, spacer_format)
+	target_field := NullFloat64ROView_from_new(panel, field_data.Target, format)
+	max_field := NullFloat64ROView_from_new(panel, field_data.Max, format)
+	max_field_spacer := NullFloat64View_Spacer_from_new(panel, field_data.Max, spacer_format)
 
 	// panel.Dock(label, windigo.Left)
 	panel.Dock(min_field, windigo.Left)
@@ -52,8 +52,8 @@ func BuildNewRangeROViewMap(parent windigo.Controller, field_text string, field_
 		max_field, data_map}
 }
 
-func BuildNewRangeROView(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string) *RangeROView {
-	return BuildNewRangeROViewMap(parent, field_text, field_data, format, nil)
+func RangeROView_from_new(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string) *RangeROView {
+	return RangeROViewMap_from_new(parent, field_text, field_data, format, nil)
 }
 
 func (data_view *RangeROView) SetFont(font *windigo.Font) {

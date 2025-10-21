@@ -7,6 +7,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -96,7 +97,7 @@ func (view *FormulatorWindow) SetFont(font *windigo.Font) {
 }
 
 func (view *FormulatorWindow) RefreshSize() {
-	Refresh_globals(GUI.BASE_FONT_SIZE)
+	Refresh_globals(config.BASE_FONT_SIZE)
 	view.Recipe_product_view.RefreshSize()
 }
 
@@ -110,12 +111,12 @@ func (mainWindow *FormulatorWindow) Set_font_size() {
 	mainWindow.RefreshSize()
 }
 func (view *FormulatorWindow) Increase_font_size() bool {
-	GUI.BASE_FONT_SIZE += 1
+	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
 func (view *FormulatorWindow) Decrease_font_size() bool {
-	GUI.BASE_FONT_SIZE -= 1
+	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
 	return true
 }

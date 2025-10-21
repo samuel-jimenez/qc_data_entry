@@ -7,7 +7,7 @@ type ComponentType struct {
 	Component_id   int64
 }
 
-func NewComponentType(Component_name string) *ComponentType {
+func ComponentType_from_new(Component_name string) *ComponentType {
 	component := new(ComponentType)
 	component.Component_name = Component_name
 	component.Insel()

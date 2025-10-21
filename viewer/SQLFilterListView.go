@@ -60,6 +60,12 @@ func (view *SQLFilterListView) AddContinuous(key, label string) {
 	view.addFilter(key)
 }
 
+func (view *SQLFilterListView) AddContinuousTime(key, label string) {
+
+	view.Filters[key] = SQLFilterViewContinuousTime_from_new(view, key, label)
+	view.addFilter(key)
+}
+
 func (view *SQLFilterListView) AddDiscreteMulti(key, label string,
 	set []string) {
 	view.Filters[key] = NewSQLFilterViewDiscreteMulti(view, key, label, set)
@@ -85,12 +91,12 @@ func (view *SQLFilterListView) AddItem(key string,
 	view.Filters[key].AddItem(entry)
 }
 
-func (view SQLFilterListView) Get() *SQLFilterList {
-	selected := NewSQLFilterList()
+func (view SQLFilterListView) Get() string {
+	var selected []string
 	for _, filter := range view.Filters {
-		selected.Filters = append(selected.Filters, filter.Get())
+		selected = append(selected, filter.Get())
 	}
-	return selected
+	return FilterSQL(selected...)
 }
 
 func (view *SQLFilterListView) Clear() {

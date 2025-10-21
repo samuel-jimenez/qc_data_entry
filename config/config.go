@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/spf13/viper"
 )
 
@@ -19,18 +19,27 @@ var (
 	RETAIN_WORKSHEET_NAME,
 	PRODUCTION_SCHEDULE_FILE_NAME,
 	PRODUCTION_SCHEDULE_WORKSHEET_NAME,
+	INBOUND_LOG,
+	BASE_PATH,
+	GEN_PATH,
+	QR_PATH,
+	HOME_DIR,
+	BLENDSHEET_PATH, LOGO_PATH,
 	LOG_FILE string
 
-	JSON_PATHS []string
+	BASE_FONT_SIZE = 12
 )
 
 func load_config_base(appname string) (viper_config *viper.Viper, config_path, config_file string) {
-	home, err := os.UserHomeDir()
+	var err error
+	HOME_DIR, err = os.UserHomeDir()
 	if err != nil {
-		home = "."
+		HOME_DIR = "."
 	}
+	HOME_DIR = strings.ReplaceAll(HOME_DIR, "\\", "/")
+
 	config_name := fmt.Sprintf("config_%s.toml", appname)
-	config_path = fmt.Sprintf("%s/.config/%s", home, appname)
+	config_path = fmt.Sprintf("%s/.config/%s", HOME_DIR, appname)
 	config_file = fmt.Sprintf("%s/%s", config_path, config_name)
 	viper_config = viper.New()
 	viper_config.SetConfigName(config_name) // name of config file (without extension)
@@ -43,13 +52,25 @@ func load_config_base(appname string) (viper_config *viper.Viper, config_path, c
 
 func set_config_defaults(appname string, viper_config *viper.Viper) {
 	// Set defaults
-	viper_config.SetDefault("db_path", ".")
-	viper_config.SetDefault("label_path", ".")
+	if HOME_DIR == "." {
+		BASE_PATH = "."
+		DB_PATH = BASE_PATH
+		LOG_FILE = BASE_PATH
+
+	} else {
+		BASE_PATH = fmt.Sprintf("%s/Isomeric Industries Incorporated/ISOMERIC-BIG SPRING - Documents", HOME_DIR)
+		DB_PATH = fmt.Sprintf("%s/QUALITY/log", BASE_PATH)
+		LOG_FILE = fmt.Sprintf("%s/var/log", BASE_PATH)
+	}
+	GEN_PATH = fmt.Sprintf("%s/gen", BASE_PATH)
+	LABEL_PATH = fmt.Sprintf("%s/labels", GEN_PATH)
+
+	viper_config.SetDefault("db_path", DB_PATH)
+	viper_config.SetDefault("label_path", LABEL_PATH)
 	viper_config.SetDefault("coa_template_path", ".")
 	viper_config.SetDefault("coa_filepath", ".")
-	viper_config.SetDefault("log_file", fmt.Sprintf("./%s.log", appname))
-	viper_config.SetDefault("json_paths", []string{"."})
-	viper_config.SetDefault("font_size", GUI.BASE_FONT_SIZE)
+	viper_config.SetDefault("log_file", fmt.Sprintf("%s/%s.log", LOG_FILE, appname))
+	viper_config.SetDefault("font_size", BASE_FONT_SIZE)
 }
 
 func set_config_defaults_entry(appname string, viper_config *viper.Viper) {
@@ -64,6 +85,21 @@ func set_config_defaults_inbound(appname string, viper_config *viper.Viper) {
 	set_config_defaults(appname, viper_config)
 	viper_config.SetDefault("production_schedule_file_name", "PRODUCTION-SCHEDULE.xlsx")
 	viper_config.SetDefault("production_schedule_worksheet_name", "Sheet1")
+	viper_config.SetDefault("inbound-log", fmt.Sprintf("%s/OneDrive - Isomeric Industries Incorporated/Desktop/%s.log", HOME_DIR, appname))
+
+}
+
+func set_config_defaults_viewer(appname string, viper_config *viper.Viper) {
+	// Set defaults
+	set_config_defaults(appname, viper_config)
+
+	BLENDSHEET_PATH = fmt.Sprintf("%s/PRODUCTION/BLEND SHEETS - ACTIVE TO COMPLETED/C.13 BLEND SHEETS PENDING BLEND DETAILS", BASE_PATH)
+	LOGO_PATH = fmt.Sprintf("%s/res", GEN_PATH)
+	QR_PATH = fmt.Sprintf("%s/QR", GEN_PATH)
+
+	viper_config.SetDefault("blendsheet-path", BLENDSHEET_PATH)
+	viper_config.SetDefault("logo-path", LOGO_PATH)
+	viper_config.SetDefault("qr-path", QR_PATH)
 }
 
 func read_or_create_config(viper_config *viper.Viper, config_path, config_file string) {
@@ -83,11 +119,10 @@ func read_or_create_config(viper_config *viper.Viper, config_path, config_file s
 func set_config_globals(viper_config *viper.Viper) {
 	DB_FILE = viper_config.GetString("db_path") + "/qc.sqlite3"
 	LABEL_PATH = viper_config.GetString("label_path")
-	JSON_PATHS = viper_config.GetStringSlice("json_paths")
 	COA_TEMPLATE_PATH = viper_config.GetString("coa_template_path")
 	COA_FILEPATH = viper_config.GetString("coa_filepath")
 	LOG_FILE = viper_config.GetString("log_file")
-	GUI.BASE_FONT_SIZE = viper_config.GetInt("font_size")
+	BASE_FONT_SIZE = viper_config.GetInt("font_size")
 }
 
 func set_config_globals_entry(viper_config *viper.Viper) {
@@ -100,13 +135,21 @@ func set_config_globals_inbound(viper_config *viper.Viper) {
 	set_config_globals(viper_config)
 	PRODUCTION_SCHEDULE_FILE_NAME = viper_config.GetString("production_schedule_file_name")
 	PRODUCTION_SCHEDULE_WORKSHEET_NAME = viper_config.GetString("production_schedule_worksheet_name")
+	INBOUND_LOG = viper_config.GetString("inbound-log")
+}
+
+func set_config_globals_viewer(viper_config *viper.Viper) {
+	set_config_globals(viper_config)
+	BLENDSHEET_PATH = viper_config.GetString("blendsheet-path")
+	LOGO_PATH = viper_config.GetString("logo-path")
+	QR_PATH = viper_config.GetString("qr-path")
 }
 
 func Load_config_viewer(appname string) *viper.Viper {
 	viper_config, config_path, config_file := load_config_base(appname)
-	set_config_defaults(appname, viper_config)
+	set_config_defaults_viewer(appname, viper_config)
 	read_or_create_config(viper_config, config_path, config_file)
-	set_config_globals(viper_config)
+	set_config_globals_viewer(viper_config)
 	return viper_config
 }
 

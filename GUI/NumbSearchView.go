@@ -33,19 +33,19 @@ func (control *NumbSearchView) Get() float64 {
 }
 
 func (control *NumbSearchView) Add(val float64) {
-	control.SearchBox.AddItem(Format_float(val))
+	control.AddItem(Format_float(val))
 }
 
 func (control *NumbSearchView) AddInt(val float64) {
-	control.SearchBox.AddItem(Format_int(val))
+	control.AddItem(Format_int(val))
 }
 
 func (control *NumbSearchView) Set(val float64) {
 	control.Search()
-	control.SearchBox.SetText(Format_float(val))
+	control.SetText(Format_float(val))
 }
 
 func (control *NumbSearchView) SetInt(val float64) {
 	control.Search()
-	control.SearchBox.SetText(Format_int(val))
+	control.SetText(Format_int(val))
 }

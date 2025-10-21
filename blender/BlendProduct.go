@@ -15,12 +15,12 @@ type BlendProduct struct {
 	Recipe         *ProductRecipe
 }
 
-func NewBlendProduct() *BlendProduct {
+func BlendProduct_from_new() *BlendProduct {
 	return new(BlendProduct)
 }
 
-func NewBlendProductFromRecipe(RecipeProduct *RecipeProduct) *BlendProduct {
-	BlendProduct := NewBlendProduct()
+func BlendProduct_from_Recipe(RecipeProduct *RecipeProduct) *BlendProduct {
+	BlendProduct := BlendProduct_from_new()
 	BlendProduct.Product_id = RecipeProduct.Product_id
 	return BlendProduct
 }
@@ -95,12 +95,17 @@ func Next_Lot_Number(operations_group string) (string, error) {
 }
 
 func Next_Lot_Id(operations_group string) int64 {
-	// proc_name := "Next_Lot_Id"
 	Lot_number, err := Next_Lot_Number(operations_group)
 	if err != nil {
-		// log.Printf("Err: [%s]: %q\n", proc_name, err)
-		// logging in Next_Lot_Number
 		return DB.INVALID_ID
 	}
 	return DB.Insel_lot_id(Lot_number)
+}
+
+func Next_Both_Lot_Id_Number(operations_group string) (int64, string, error) {
+	Lot_number, err := Next_Lot_Number(operations_group)
+	if err != nil {
+		return DB.INVALID_ID, Lot_number, err
+	}
+	return DB.Insel_lot_id(Lot_number), Lot_number, err
 }

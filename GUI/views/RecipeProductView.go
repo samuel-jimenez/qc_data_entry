@@ -42,7 +42,7 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 	recipe_text := ""
 
 	view := new(RecipeProductView)
-	view.Product = blender.NewRecipeProduct()
+	view.Product = blender.RecipeProduct_from_new()
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -51,12 +51,12 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 	view.panels = append(view.panels, product_panel)
 	view.panels = append(view.panels, recipe_panel)
 
-	view.Product_Field = GUI.NewComboBox(product_panel, product_text)
+	view.Product_Field = GUI.ComboBox_from_new(product_panel, product_text)
 	product_add_button := windigo.NewPushButton(product_panel)
 	product_add_button.SetText("+")
 	product_add_button.SetSize(ADD_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-	view.Recipe_sel_field = GUI.NewComboBox(recipe_panel, recipe_text)
+	view.Recipe_sel_field = GUI.ComboBox_from_new(recipe_panel, recipe_text)
 	recipe_add_button := windigo.NewPushButton(recipe_panel)
 	recipe_add_button.SetText("+")
 	recipe_add_button.SetSize(ADD_BUTTON_WIDTH, GUI.OFF_AXIS)
@@ -84,7 +84,7 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 
 	//event handling
 	view.Product_Field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		view.Product = blender.NewRecipeProduct()
+		view.Product = blender.RecipeProduct_from_new()
 		name := view.Product_Field.GetSelectedItem()
 		view.Product.Set(view.Product_data[name])
 		// view.Product.GetRecipes()
@@ -101,12 +101,14 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 	})
 	recipe_add_button.OnClick().Bind(func(e *windigo.Event) {
 		if view.Product.Product_id != DB.INVALID_ID {
+			recipe_procedure_id := 1 // TODO
 
 			numRecipes := len(view.Product.Recipes)
+			recipe_name := view.Product_Field.Text() + ":" + strconv.Itoa(numRecipes)
 
-			view.Recipe_sel_field.AddItem(strconv.Itoa(numRecipes))
+			view.Recipe_sel_field.AddItem(recipe_name)
 			view.Recipe_sel_field.SetSelectedItem(numRecipes)
-			view.Recipe.Update(view.Product.NewRecipe())
+			view.Recipe.Update(view.Product.NewRecipe(recipe_procedure_id, recipe_name))
 
 			// log.Println("product_field", product_field.SelectedItem())
 
@@ -119,13 +121,7 @@ func NewRecipeProductView(parent windigo.Controller) *RecipeProductView {
 	})
 
 	view.Recipe_sel_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		i, err := strconv.Atoi(view.Recipe_sel_field.GetSelectedItem())
-		if err != nil {
-			log.Println("ERR: recipe_field strconv", err)
-			view.Recipe.Update(nil)
-			return
-		}
-		view.Recipe.Update(view.Product.Recipes[i])
+		view.Recipe.Update(view.Product.Recipes[view.Recipe_sel_field.GetSelectedItem()])
 	})
 
 	//TODO normalize amounts

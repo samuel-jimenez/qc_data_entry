@@ -45,7 +45,7 @@ func Show_fr(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionRe
 	view := new(FrictionReducerPanelView)
 	view.product_panel = product_panel
 
-	view.component_panel = views.NewQCBlendView(parent)
+	view.component_panel = views.QCBlendView_from_new(parent)
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -83,7 +83,6 @@ func (view *FrictionReducerPanelView) SetFont(font *windigo.Font) {
 }
 
 func (view *FrictionReducerPanelView) RefreshSize() {
-
 	view.SetSize(GUI.OFF_AXIS, GUI.GROUP_HEIGHT)
 	view.SetMargins(GUI.GROUP_MARGIN, GUI.GROUP_MARGIN, 0, 0)
 
@@ -95,8 +94,8 @@ func (view *FrictionReducerPanelView) RefreshSize() {
 
 	view.ranges_panel.RefreshSize()
 	view.component_panel.RefreshSize()
-
 }
+
 func (view *FrictionReducerPanelView) Update(qc_product *product.QCProduct) {
 	view.ranges_panel.Update(qc_product)
 

@@ -1,9 +1,9 @@
 package product
 
 import (
-	"database/sql"
 	"log"
 
+	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/whatsupdocx/docx"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
@@ -12,6 +12,14 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/datatypes"
 	// "github.com/samuel-jimenez/whatsupdocx/docx"
+)
+
+var (
+	QC_TEST_WIDTH,
+	QC_SPEC_WIDTH,
+	QC_RESULT_WIDTH float64
+
+	EMPTY string
 )
 
 /*
@@ -53,39 +61,25 @@ func (qc_product *QCProduct) Select_product_details() {
 		proc_name,
 		DB.DB_Select_product_details.QueryRow(qc_product.Product_id),
 		&qc_product.Product_type, &qc_product.Container_type, &qc_product.Appearance,
-		&qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
-		&qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
-		&qc_product.Density.Min, &qc_product.Density.Target, &qc_product.Density.Max,
-		&qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
-		&qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
+		&qc_product.PH.Valid, &qc_product.PH.Publish_p, &qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
+		&qc_product.SG.Valid, &qc_product.SG.Publish_p, &qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
+		&qc_product.Density.Valid, &qc_product.Density.Publish_p, &qc_product.Density.Min, &qc_product.Density.Target, &qc_product.Density.Max,
+		&qc_product.String_test.Valid, &qc_product.String_test.Publish_p, &qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
+		&qc_product.Viscosity.Valid, &qc_product.Viscosity.Publish_p, &qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
 	)
 }
 
-func (qc_product *QCProduct) Select_product_coa_details() {
-	proc_name := "Select_product_coa_details"
-	DB.Select_ErrNoRows(
-		proc_name,
-		DB.DB_Select_product_coa_details.QueryRow(qc_product.Product_id),
-		&qc_product.Appearance,
-		&qc_product.PH.Min, &qc_product.PH.Target, &qc_product.PH.Max,
-		&qc_product.SG.Min, &qc_product.SG.Target, &qc_product.SG.Max,
-		&qc_product.Density.Min, &qc_product.Density.Target, &qc_product.Density.Max,
-		&qc_product.String_test.Min, &qc_product.String_test.Target, &qc_product.String_test.Max,
-		&qc_product.Viscosity.Min, &qc_product.Viscosity.Target, &qc_product.Viscosity.Max,
-	)
-}
-
-func (qc_product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
+func (qc_product QCProduct) Upsert() {
 
 	DB.DB_Insert_appearance.Exec(qc_product.Appearance)
 	DB.DB_Upsert_product_type.Exec(qc_product.Product_id, qc_product.Product_type)
-	_, err := db_upsert_statement.Exec(
+	_, err := DB.DB_Upsert_product_details.Exec(
 		qc_product.Product_id, qc_product.Product_type, qc_product.Appearance,
-		qc_product.PH.Min, qc_product.PH.Target, qc_product.PH.Max,
-		qc_product.SG.Min, qc_product.SG.Target, qc_product.SG.Max,
-		qc_product.Density.Min, qc_product.Density.Target, qc_product.Density.Max,
-		qc_product.String_test.Min, qc_product.String_test.Target, qc_product.String_test.Max,
-		qc_product.Viscosity.Min, qc_product.Viscosity.Target, qc_product.Viscosity.Max,
+		qc_product.PH.Valid, qc_product.PH.Publish_p, qc_product.PH.Min, qc_product.PH.Target, qc_product.PH.Max,
+		qc_product.SG.Valid, qc_product.SG.Publish_p, qc_product.SG.Min, qc_product.SG.Target, qc_product.SG.Max,
+		qc_product.Density.Valid, qc_product.Density.Publish_p, qc_product.Density.Min, qc_product.Density.Target, qc_product.Density.Max,
+		qc_product.String_test.Valid, qc_product.String_test.Publish_p, qc_product.String_test.Min, qc_product.String_test.Target, qc_product.String_test.Max,
+		qc_product.Viscosity.Valid, qc_product.Viscosity.Publish_p, qc_product.Viscosity.Min, qc_product.Viscosity.Target, qc_product.Viscosity.Max,
 	)
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", "upsert", err)
@@ -98,8 +92,6 @@ func (qc_product QCProduct) _upsert(db_upsert_statement *sql.Stmt) {
 	// return product_type_id_default, product_name_customer_default
 
 }
-func (qc_product QCProduct) Upsert()     { qc_product._upsert(DB.DB_Upsert_product_details) }
-func (qc_product QCProduct) Upsert_coa() { qc_product._upsert(DB.DB_Upsert_product_coa_details) }
 
 func write_CoA_cell(row *docx.Row, value string) {
 	cell := row.AddCell()
@@ -129,15 +121,6 @@ func write_CoA_row_fmt_int64(table *docx.Table, title, units string, spec dataty
 func (qc_product QCProduct) write_CoA_rows(table *docx.Table) {
 	var (
 		Appearance_units = "Pass/fail"
-
-		Appearance_title = "Appearance"
-		// Appearance_title = "Clarity/Color"
-
-		viscosity_title = "Viscosity"
-		string_title    = "String"
-		ph_title        = "pH"
-		sg_title        = "Specific Gravity"
-		Density_title   = "Density"
 	)
 
 	var (
@@ -152,17 +135,62 @@ func (qc_product QCProduct) write_CoA_rows(table *docx.Table) {
 	}
 
 	// TODO: use QCProduct so this is not required
-	qc_product.Select_product_coa_details()
+	qc_product.Select_product_details()
 
-	write_CoA_row(table, Appearance_title, Appearance_units, qc_product.Appearance.String, visual)
-	write_CoA_row_fmt(table, ph_title, "", qc_product.PH, qc_product.Product.PH, formats.Format_ph)
-	write_CoA_row_fmt(table, sg_title, formats.SG_UNITS, qc_product.SG, qc_product.Product.SG, Format_sg)
-	write_CoA_row_fmt(table, Density_title, formats.DENSITY_UNITS, qc_product.Density, qc_product.Product.Density, formats.Format_density)
+	write_CoA_row(table, formats.APPEARANCE_TEXT, Appearance_units, qc_product.Appearance.String, visual)
+	write_CoA_row_fmt(table, formats.PH_TEXT, "", qc_product.PH, qc_product.Product.PH, formats.Format_ph)
+	write_CoA_row_fmt(table, formats.SG_TEXT, formats.SG_UNITS, qc_product.SG, qc_product.Product.SG, Format_sg)
+	write_CoA_row_fmt(table, formats.DENSITY_TEXT, formats.DENSITY_UNITS, qc_product.Density, qc_product.Product.Density, formats.Format_density)
 	// write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
-	write_CoA_row_fmt_int64(table, string_title, formats.STRING_UNITS, qc_product.String_test, qc_product.Product.String_test, formats.Format_string_test)
+	write_CoA_row_fmt_int64(table, formats.STRING_TEXT_MINI, formats.STRING_UNITS, qc_product.String_test, qc_product.Product.String_test, formats.Format_string_test)
 	// write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
-	write_CoA_row_fmt_int64(table, viscosity_title, formats.VISCOSITY_UNITS, qc_product.Viscosity, qc_product.Product.Viscosity, formats.Format_viscosity)
+	write_CoA_row_fmt_int64(table, formats.VISCOSITY_TEXT, formats.VISCOSITY_UNITS, qc_product.Viscosity, qc_product.Product.Viscosity, formats.Format_viscosity)
 
+}
+
+// TODO Method
+func write_QC_row(pdf *fpdf.Fpdf, height float64, title, units, spec, result_0, result_1 string) {
+
+	pdf.CellFormat(QC_TEST_WIDTH, height, title, "1", 0, "", false, 0, "")
+	// pdf.CellFormat(qc_test_width, qc_header_height, units, "1",0, "", false, 0, "")
+	pdf.CellFormat(QC_SPEC_WIDTH, height, spec, "1", 0, "", false, 0, "")
+	pdf.CellFormat(QC_RESULT_WIDTH, height, result_0, "1", 0, "", false, 0, "")
+	pdf.CellFormat(QC_RESULT_WIDTH, height, result_1, "1", 1, "", false, 0, "")
+
+}
+
+func write_QC_row_fmt(pdf *fpdf.Fpdf, height float64, title, units string, spec datatypes.Range, format_fn func(float64) string) {
+	if spec.Valid {
+		write_QC_row(pdf, height, title, units, spec.QC(format_fn), "", "")
+	}
+}
+
+func (qc_product QCProduct) Write_QC_rows(pdf *fpdf.Fpdf, qc_header_height,
+	qc_height float64) {
+
+	var (
+		Appearance_units = "Pass/fail"
+	)
+
+	//TODO
+	Format_sg := func(sg float64) string {
+		return formats.Format_sg(sg, qc_product.PH.Valid)
+	}
+
+	pdf.SetFontSize(12)
+	pdf.CellFormat(QC_TEST_WIDTH+QC_SPEC_WIDTH+QC_RESULT_WIDTH+QC_RESULT_WIDTH, qc_header_height, "QC Testing", "1", 1, "C", false, 0, "")
+
+	pdf.SetFontSize(10)
+	// TODO Method
+	write_QC_row(pdf, qc_header_height, "Test", "units", "Spec", "Result - Top", "Result - Bottom")
+
+	pdf.SetFontStyle("")
+	write_QC_row(pdf, qc_height, formats.APPEARANCE_TEXT, Appearance_units, qc_product.Appearance.String, EMPTY, EMPTY)
+	write_QC_row_fmt(pdf, qc_height, formats.PH_TEXT, "", qc_product.PH, formats.Format_ph)
+	write_QC_row_fmt(pdf, qc_height, formats.SG_TEXT, formats.SG_UNITS, qc_product.SG, Format_sg)
+	write_QC_row_fmt(pdf, qc_height, formats.DENSITY_TEXT, formats.DENSITY_UNITS, qc_product.Density, formats.Format_density)
+	write_QC_row_fmt(pdf, qc_height, formats.STRING_TEXT_MINI, formats.STRING_UNITS, qc_product.String_test, formats.Format_string_test)
+	write_QC_row_fmt(pdf, qc_height, formats.VISCOSITY_TEXT, formats.VISCOSITY_UNITS, qc_product.Viscosity, formats.Format_viscosity)
 }
 
 func (qc_product *QCProduct) Edit(

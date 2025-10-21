@@ -4,7 +4,6 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
-	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -26,63 +25,6 @@ type BlendViewer interface {
 	// RefreshSize()
 }
 
-// RecipeHeader
-type BlendHeader struct {
-	*windigo.AutoPanel
-	Component_Label, Weight_Label, Lot_Label,
-	Density_Label, Gallons_Label *windigo.Label
-}
-
-func Header_units(title, units string) string {
-	return title + "\n(" + units + ")"
-}
-
-func NewBlend_Header(parent windigo.Controller) *BlendHeader {
-	view := new(BlendHeader)
-
-	view.AutoPanel = windigo.NewAutoPanel(parent)
-	// 	TODO!!! RecipeHeader
-	// SG_UNITS        = "g/mL"
-	view.Component_Label = windigo.NewLabel(view.AutoPanel)
-	view.Component_Label.SetText("Component")
-	view.AutoPanel.Dock(view.Component_Label, windigo.Left)
-
-	view.Weight_Label = windigo.NewLabel(view.AutoPanel)
-	view.Weight_Label.SetText(Header_units("Weight", "lb"))
-	view.AutoPanel.Dock(view.Weight_Label, windigo.Left)
-
-	view.Lot_Label = windigo.NewLabel(view.AutoPanel)
-	view.Lot_Label.SetText("Component Lot")
-	view.AutoPanel.Dock(view.Lot_Label, windigo.Left)
-
-	view.Density_Label = windigo.NewLabel(view.AutoPanel)
-	view.Density_Label.SetText(Header_units("Density", formats.DENSITY_UNITS))
-	view.AutoPanel.Dock(view.Density_Label, windigo.Left)
-
-	view.Gallons_Label = windigo.NewLabel(view.AutoPanel)
-	view.Gallons_Label.SetText(Header_units("Volume", "gal"))
-	view.AutoPanel.Dock(view.Gallons_Label, windigo.Left)
-
-	return view
-}
-
-func (view *BlendHeader) SetFont(font *windigo.Font) {
-	view.Component_Label.SetFont(font)
-	view.Weight_Label.SetFont(font)
-	view.Lot_Label.SetFont(font)
-	view.Density_Label.SetFont(font)
-	view.Gallons_Label.SetFont(font)
-}
-
-func (view *BlendHeader) RefreshSize() {
-	view.SetSize(GUI.OFF_AXIS, 2*GUI.PRODUCT_FIELD_HEIGHT)
-	view.Component_Label.SetSize(GUI.SOURCES_LABEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.Weight_Label.SetSize(GUI.DATA_SUBFIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.Lot_Label.SetSize(GUI.SOURCES_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.Density_Label.SetSize(GUI.DATA_SUBFIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.Gallons_Label.SetSize(GUI.SOURCES_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-}
-
 //TODO combine QCBlendView
 /*
  * BlendView
@@ -91,16 +33,16 @@ func (view *BlendHeader) RefreshSize() {
 type BlendView struct {
 	views.QCBlendView
 
-	parent                                *BlendProductView
-	total_field, heel_field, amount_field *views.NumberEditView
+	parent                                *BlendStrappingProductView
+	total_field, heel_field, amount_field *views.NumbestEditView
 	headers                               *BlendHeader
 	Heel_Component, Total_Component       *BlendComponentView
+	Heel                                  float64
 }
 
-func NewBlendView(parent *BlendProductView) *BlendView {
+func BlendView_from_new(parent *BlendStrappingProductView) *BlendView {
 	view := new(BlendView)
-	view.QCBlendView = *views.NewQCBlendView(parent)
-	//.TODO  strap
+	view.QCBlendView = *views.QCBlendView_from_new(parent)
 	view.parent = parent
 
 	total_text := "Total"
@@ -111,10 +53,10 @@ func NewBlendView(parent *BlendProductView) *BlendView {
 	// amount_text := "Amount"
 	// amount_text := "Quantity"
 
-	view.total_field = views.NewNumberEditView(view.Panel, total_text)
-	view.heel_field = views.NewNumberEditView(view.Panel, heel_text)
-	view.amount_field = views.NewNumberEditView(view.Panel, amount_text)
-	view.headers = NewBlend_Header(view.Panel)
+	view.total_field = views.NumbestEditView_from_new(view.Panel, total_text)
+	view.heel_field = views.NumbestEditView_from_new(view.Panel, heel_text)
+	view.amount_field = views.NumbestEditView_from_new(view.Panel, amount_text)
+	view.headers = BlendHeader_from_new(view.Panel)
 
 	view.Heel_Component = NewHeelBlendComponentView(view)
 	view.Total_Component = NewTotalBlendComponentView(view)
@@ -131,18 +73,41 @@ func NewBlendView(parent *BlendProductView) *BlendView {
 		view.SetTotal(view.total_field.Get())
 	})
 	view.heel_field.OnChange().Bind(func(e *windigo.Event) {
-		view.SetHeel(view.heel_field.Get())
+		view.SetHeelMassVolume(view.heel_field.Get())
 	})
 	view.amount_field.OnChange().Bind(func(e *windigo.Event) {
 		view.SetAmount(view.amount_field.Get())
 	})
 
 	amount := 100.
-	view.heel_field.SetInt(0)
 	view.SetProperTotal(amount)
-	view.SetProperAmount(amount)
+	view.SetHeel(0)
+
+	// WE are strapping this anyway
+	view.heel_field.Hide()
 
 	return view
+}
+
+func (view *BlendView) Get() *blender.ProductBlend {
+	if view.Recipe == nil {
+		return nil
+	}
+	view.Blend = blender.NewProductBlend_from_Recipe(view.Recipe)
+	for _, component := range view.Components {
+		blendComponent := component.Get()
+
+		if blendComponent == nil {
+			// return nil
+			// TODO return once qwe get everything nailed down?
+			continue
+		}
+		// blendComponent
+		view.Blend.AddComponent(*blendComponent)
+	}
+	view.Blend.Total, view.Blend.Heel, view.Blend.Amount = view.total_field.GetInt(), view.heel_field.GetInt(), view.total_field.GetInt()
+	// view.Blend.Total, view.Blend.Heel, view.Blend.Amount = view.total_field.Get(),view.heel_field.Get(),view.total_field.Get()
+	return view.Blend
 }
 
 func (view *BlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
@@ -165,22 +130,24 @@ func (view *BlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 		return
 	}
 
-	amount := view.amount_field.Get()
+	total := view.Recipe.Total_Default.Float64
+	if !view.Recipe.Total_Default.Valid {
+		total = view.total_field.Get()
+	}
 
 	for _, component := range view.Recipe.Components {
 		component_view := NewBlendComponentView(view, &component)
 		view.Components = append(view.Components, component_view)
 		view.AutoPanel.Dock(component_view, windigo.Top)
 		height += delta_height
-		component_view.SetAmount(amount)
 	}
+	view.SetTotal(total)
 	view.SetSize(width, height)
 }
 
 func (view *BlendView) SetTotal(total float64) {
 	view.SetProperTotal(total)
-	heel := view.heel_field.Get()
-	view.SetProperAmount(total - heel)
+	view.SetProperAmount(total - view.Heel)
 }
 
 func (view *BlendView) SetProperTotal(total float64) {
@@ -189,6 +156,15 @@ func (view *BlendView) SetProperTotal(total float64) {
 }
 
 func (view *BlendView) SetHeel(heel float64) {
+	view.Heel = heel
+	view.heel_field.SetInt(heel)
+	view.Heel_Component.SetMassDensity(heel)
+	total := view.total_field.Get()
+	view.SetProperAmount(total - heel)
+}
+
+func (view *BlendView) SetHeelMassVolume(heel float64) {
+	view.Heel = heel
 	view.heel_field.SetInt(heel)
 	volume := view.Heel_Component.SetAmount(heel)
 	total := view.total_field.Get()
@@ -200,16 +176,23 @@ func (view *BlendView) SetStrap(volume float64) {
 	view.parent.SetStrap(volume)
 }
 
-func (view *BlendView) SetHeelVolume(heel float64) {
-	heel = view.Heel_Component.SetVolume(heel)
-	view.heel_field.SetInt(heel)
+func (view *BlendView) GetStrap(volume float64) float64 {
+	return view.parent.GetStrap(volume)
+}
+
+func (view *BlendView) SetHeelVolumeMass(heel float64) {
+	view.Heel = view.Heel_Component.SetVolume(heel)
+	view.heel_field.SetInt(view.Heel)
 	total := view.total_field.Get()
-	view.SetProperAmount(total - heel)
+	view.SetProperAmount(total - view.Heel)
+}
+
+func (view *BlendView) SetHeelVolume(heel float64) {
+	view.Heel_Component.SetVolumeDensity(heel)
 }
 
 func (view *BlendView) SetAmount(amount float64) {
-	heel := view.heel_field.Get()
-	view.SetProperTotal(amount + heel)
+	view.SetProperTotal(amount + view.Heel)
 	view.SetProperAmount(amount)
 }
 
@@ -218,6 +201,18 @@ func (view *BlendView) SetProperAmount(amount float64) {
 	for _, component := range view.Components {
 		component.(*BlendComponentView).SetAmount(amount)
 	}
+	view.ReTotal()
+}
+
+func (view *BlendView) ReTotal() {
+	// heelVol could be useful here?
+	total_vol := 0.
+	total_vol = view.Heel_Component.SetTotal(total_vol)
+
+	for _, component := range view.Components {
+		total_vol = component.(*BlendComponentView).SetTotal(total_vol)
+	}
+	view.Total_Component.SetVolumeDensity(total_vol)
 }
 
 func (view *BlendView) SetFont(font *windigo.Font) {
@@ -239,9 +234,9 @@ func (view *BlendView) RefreshSize() {
 
 	view.SetSize(GUI.OFF_AXIS, height+(len(view.Components)+2)*delta_height)
 	view.Panel.SetSize(GUI.TOP_PANEL_WIDTH, height)
-	view.total_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, delta_height)
-	view.heel_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, delta_height)
-	view.amount_field.SetLabeledSize(GUI.LABEL_WIDTH-GUI.ERROR_MARGIN, GUI.PRODUCT_FIELD_WIDTH, delta_height)
+	view.total_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, delta_height)
+	view.heel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, delta_height)
+	view.amount_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, delta_height)
 	view.headers.RefreshSize()
 	view.Heel_Component.RefreshSize()
 	view.Total_Component.RefreshSize()

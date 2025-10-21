@@ -63,7 +63,7 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 
 	// cf NumberEditView
 	// view.amount_field = windigo.NewEdit(view.AutoPanel)
-	view.amount_field = GUI.NewNumbEditView(view.AutoPanel)
+	view.amount_field = GUI.NumbEditView_from_new(view.AutoPanel)
 
 	lot_add_button := windigo.NewPushButton(view.AutoPanel)
 	lot_add_button.SetText("+")

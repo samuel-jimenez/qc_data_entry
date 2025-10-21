@@ -1,6 +1,8 @@
 package qc
 
 import (
+	"strings"
+
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
@@ -65,9 +67,9 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 	view.visual_field = views.NewBoolCheckboxView(view.AutoPanel, VISUAL_TEXT)
 
-	view.viscosity_field = views.NewNumberEditView(view.AutoPanel, views.VISCOSITY_TEXT)
+	view.viscosity_field = views.NumberEditView_from_new(view.AutoPanel, formats.VISCOSITY_TEXT)
 
-	view.string_field = views.NewNumberEditViewWithChange(view.AutoPanel, STRING_TEXT, ranges_panel.string_field)
+	view.string_field = views.NumberEditView_with_Change_from_new(view.AutoPanel, formats.STRING_TEXT_MINI, ranges_panel.string_field)
 
 	view.density_field = views.NewMassDataView(view.AutoPanel, ranges_panel)
 	view.density_field.SetZAfter(view.viscosity_field)
@@ -77,7 +79,7 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 	view.AutoPanel.Dock(view.density_field, windigo.Top)
 	view.AutoPanel.Dock(view.string_field, windigo.Top)
 
-	view.sample_point = sample_point
+	view.sample_point = strings.ToUpper(sample_point)
 	return view
 
 }

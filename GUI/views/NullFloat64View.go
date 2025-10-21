@@ -24,7 +24,7 @@ type NullFloat64View struct {
 	Set func(nullable.NullFloat64)
 }
 
-func BuildNewNullFloat64View(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) NullFloat64View {
+func NullFloat64View_from_new(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) NullFloat64View {
 	edit_field := windigo.NewEdit(parent)
 
 	if field_data.Valid {
@@ -68,7 +68,7 @@ type NullFloat64ROView struct {
 	Refresh func()
 }
 
-func BuildNewNullFloat64ROView(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) *NullFloat64ROView {
+func NullFloat64ROView_from_new(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) *NullFloat64ROView {
 	data_field := windigo.NewLabeledLabel(parent, "")
 
 	update := func(field_data nullable.NullFloat64) {
@@ -89,7 +89,7 @@ func BuildNewNullFloat64ROView(parent windigo.Controller, field_data nullable.Nu
 	return &NullFloat64ROView{&GUI.View{ComponentFrame: data_field}, update, data_field.SetFont, refresh}
 }
 
-func BuildNullFloat64SpacerView(parent windigo.Controller, field_data nullable.NullFloat64, format string) *NullFloat64ROView {
+func NullFloat64View_Spacer_from_new(parent windigo.Controller, field_data nullable.NullFloat64, format string) *NullFloat64ROView {
 	data_field := windigo.NewLabeledLabel(parent, "")
 
 	update := func(field_data nullable.NullFloat64) {

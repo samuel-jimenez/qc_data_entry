@@ -15,30 +15,25 @@ type SQLFilterViewDiscreteMulti struct {
 
 func NewSQLFilterViewDiscreteMulti(parent windigo.Controller, key, label string, set []string) *SQLFilterViewDiscreteMulti {
 	view := new(SQLFilterViewDiscreteMulti)
-	panel := windigo.NewAutoPanel(parent)
-	view.AutoPanel = panel
-	panel.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
-
-	panel_label := NewSQLFilterViewHeader(view, label)
-	panel_label.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
-
-	selection_options := BuildNewDiscreteMultiView(panel, set)
-	panel_label.SetHidePanel(selection_options.AutoPanel)
-
-	panel.Dock(panel_label, windigo.Top)
-	panel.Dock(selection_options, windigo.Top)
-
-	view.label = panel_label
-	view.selection_options = selection_options
 	view.key = key
+
+	view.AutoPanel = windigo.NewAutoPanel(parent)
+
+	view.label = SQLFilterViewHeader_from_new(view, label)
+
+	view.selection_options = BuildNewDiscreteMultiView(view.AutoPanel, set)
+	view.label.SetHidePanel(view.selection_options.AutoPanel)
+
+	view.AutoPanel.Dock(view.label, windigo.Top)
+	view.AutoPanel.Dock(view.selection_options, windigo.Top)
 
 	return view
 
 }
 
-func (view *SQLFilterViewDiscreteMulti) Get() SQLFilter {
+func (view *SQLFilterViewDiscreteMulti) Get() string {
 	return SQLFilterDiscrete{view.key,
-		view.selection_options.Get()}
+		view.selection_options.Get()}.Get()
 }
 
 func (view *SQLFilterViewDiscreteMulti) Update(set []string) {

@@ -4,13 +4,14 @@ go 1.24.2
 
 require (
 	github.com/samuel-jimenez/whatsupdocx v0.6.2
-	github.com/samuel-jimenez/windigo v0.20.0
+	github.com/samuel-jimenez/windigo v0.23.1
 	github.com/samuel-jimenez/xml v0.2.4 // indirect
 )
 
 require (
 	codeberg.org/go-pdf/fpdf v0.11.1
 	github.com/ncruces/go-sqlite3 v0.29.0
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.21.0
 	github.com/xuri/excelize/v2 v2.9.1
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621

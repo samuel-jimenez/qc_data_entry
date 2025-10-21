@@ -11,6 +11,12 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
+var (
+	// DEFAULT_DENSITY := 8.34 //formats.LB_PER_GAL
+	// DEFAULT_DENSITY = formats.LB_PER_GAL
+	DEFAULT_DENSITY = 9.
+)
+
 /*
  * BlendComponentViewer
  *
@@ -19,7 +25,8 @@ type BlendComponentViewer interface {
 	windigo.Controller
 	Get() *blender.BlendComponent
 	Update_component_types()
-	SetAmount(amount float64)
+	SetAmount(float64)
+	SetTotal(float64) float64
 	SetFont(font *windigo.Font)
 	RefreshSize()
 }
@@ -34,22 +41,27 @@ type BlendComponentView struct {
 	// SG_field *GUI.NumbEditView
 	Density_field *GUI.NumbEditView
 	Gallons_field *GUI.NumbEditView
-	// parent        *BlendView
+	Strap_field   *GUI.NumbEditView
+	parent        *BlendView
 }
 
 func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeComponent) *BlendComponentView {
 
 	view := new(BlendComponentView)
 	view.QCBlendComponentView = *views.New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent, recipeComponent)
+	view.parent = parent
 
 	// view.SG_field = GUI.NewNumbEditView(view.AutoPanel)
 	// view.AutoPanel.Dock(view.SG_field, windigo.Left)
 
-	view.Density_field = GUI.NewNumbEditView(view.AutoPanel)
+	view.Density_field = GUI.NumbEditView_from_new(view.AutoPanel)
 	view.AutoPanel.Dock(view.Density_field, windigo.Left)
 
-	view.Gallons_field = GUI.NewNumbEditView(view.AutoPanel)
+	view.Gallons_field = GUI.NumbEditView_from_new(view.AutoPanel)
 	view.AutoPanel.Dock(view.Gallons_field, windigo.Left)
+
+	view.Strap_field = GUI.NumbEditView_from_new(view.AutoPanel)
+	view.AutoPanel.Dock(view.Strap_field, windigo.Left)
 
 	// RefreshSize
 	view.RefreshSize()
@@ -74,7 +86,10 @@ func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.Recip
 	// lot_add_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 	// view.AutoPanel.Dock(lot_add_button, windigo.Left)
 
-	view.Density_field.Set(9.) // TODO find a good default
+	view.Density_field.Set(DEFAULT_DENSITY) // TODO find a good default
+	// TODO // for inbounds
+
+	view.Strap_field.SetEnabled(false)
 
 	return view
 
@@ -102,8 +117,9 @@ func NewHeelBlendComponentView(parent *BlendView) *BlendComponentView {
 
 	view.Density_field.OnChange().Bind(func(e *windigo.Event) {
 		volume := view.Gallons_field.Get()
-		parent.SetHeelVolume(volume)
+		parent.SetHeelVolumeMass(volume)
 	})
+	// Strap_field
 	return view
 
 }
@@ -113,6 +129,7 @@ func NewTotalBlendComponentView(parent *BlendView) *BlendComponentView {
 	view := NewDummyBlendComponentView(parent, "Total")
 
 	view.Density_field.SetEnabled(false)
+	// view.Strap_field.SetEnabled(false)
 	return view
 
 }
@@ -148,7 +165,13 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 		view.Density_field.OnChange().Fire(nil)
 	})
 	view.Density_field.OnChange().Bind(func(e *windigo.Event) {
-		view.Gallons_field.SetInt(view.Amount_required_field.Get() / view.Density_field.Get())
+		density := view.Density_field.Get()
+		if density == 0 {
+			return
+		}
+
+		view.Gallons_field.SetInt(view.Amount_required_field.Get() / density)
+		parent.ReTotal()
 	})
 	view.Gallons_field.OnChange().Bind(func(e *windigo.Event) {
 		// view.Density_field.Set(view.Amount_required_field.Get() / view.Gallons_field.Get())
@@ -160,26 +183,45 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 }
 
 func (view *BlendComponentView) Get() *blender.BlendComponent {
-
 	BlendComponent := view.QCBlendComponentView.Get()
 
-	if BlendComponent == nil {
-		//TODO make error
-		return nil
+	if BlendComponent == nil { // no lot chosen
+		BlendComponent = blender.BlendComponent_from_RecipeComponent(view.Recipe_Component)
 	}
 	//TODO check for zero amount?
+	// TODO cap fields
 	BlendComponent.Component_amount = view.Amount_required_field.Get()
-	log.Println("DEBUG: BlendComponentView update_component_types", BlendComponent, view.Component_field.GetSelectedItem(), view.Component_field.SelectedItem(), view.Component_types_data[view.Component_field.Text()])
+
+	// TODO blendAmount01
+	BlendComponent.Density, BlendComponent.Gallons, BlendComponent.Strap = view.Density_field.Get(), view.Gallons_field.Get(), view.Strap_field.Get()
 
 	return BlendComponent
 }
 
 func (view *BlendComponentView) SetAmount(amount float64) float64 {
 	Amount := amount * view.Recipe_Component.Component_amount
-	Gallons := Amount / view.Density_field.Get()
 	view.Amount_required_field.SetInt(Amount)
+
+	density := view.Density_field.Get()
+	if density == 0 {
+		return Amount
+	}
+
+	Gallons := Amount / density
 	view.Gallons_field.SetInt(Gallons)
 	return Gallons
+}
+
+func (view *BlendComponentView) SetMassDensity(amount float64) {
+	Amount := amount * view.Recipe_Component.Component_amount
+	view.Amount_required_field.SetInt(Amount)
+
+	volume := view.Gallons_field.Get()
+	if volume == 0 {
+		return
+	}
+	density := Amount / volume
+	view.Density_field.Set(density)
 }
 
 func (view *BlendComponentView) SetVolume(volume float64) float64 {
@@ -189,10 +231,32 @@ func (view *BlendComponentView) SetVolume(volume float64) float64 {
 	return mass
 }
 
+func (view *BlendComponentView) SetTotal(total float64) float64 {
+	total += view.Gallons_field.Get()
+	view.Strap_field.Set(view.GetStrap(total))
+	return total
+}
+
+func (view *BlendComponentView) SetVolumeDensity(volume float64) {
+	view.Gallons_field.SetInt(volume)
+
+	if volume == 0 {
+		return
+	}
+	Amount := view.Amount_required_field.Get()
+	density := Amount / volume
+	view.Density_field.Set(density)
+}
+
+func (view *BlendComponentView) GetStrap(volume float64) float64 {
+	return view.parent.GetStrap(volume)
+}
+
 func (view *BlendComponentView) SetFont(font *windigo.Font) {
 	view.QCBlendComponentView.SetFont(font)
 	view.Density_field.SetFont(font)
 	view.Gallons_field.SetFont(font)
+	view.Strap_field.SetFont(font)
 }
 
 func (view *BlendComponentView) RefreshSize() {
@@ -200,4 +264,5 @@ func (view *BlendComponentView) RefreshSize() {
 	// view.SG_field.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Density_field.SetSize(GUI.DATA_SUBFIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Gallons_field.SetSize(GUI.DATA_SUBFIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.Strap_field.SetSize(GUI.DATA_SUBFIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 }

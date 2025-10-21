@@ -16,6 +16,7 @@ import (
 func main() {
 	//load config
 	config.Main_config = config.Load_config_entry("qc_data_entry")
+	defer config.Write_config(config.Main_config)
 
 	// log to file
 	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -50,6 +51,6 @@ func main() {
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
-	toplevel_ui.Show_window(qc.NewQCWindow(nil))
+	toplevel_ui.Show_window(qc.QCWindow_from_new(nil))
 
 }

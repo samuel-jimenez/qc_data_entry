@@ -11,12 +11,12 @@ type SQLFilterList struct {
 	Filters []SQLFilter
 }
 
-func (data_view SQLFilterList) Get() string {
-
+// TODO extract to external, then call it
+func FilterSQL(Filters ...string) string {
 	var selected []string
 	do_where := true
-	for _, filter := range data_view.Filters {
-		selection := filter.Get()
+	for _, filter := range Filters {
+		selection := filter
 		if selection != "" {
 			if do_where {
 				selected = append(selected, "where ")
@@ -32,6 +32,14 @@ func (data_view SQLFilterList) Get() string {
 	}
 
 	return strings.Join(selected, "")
+}
+
+func (data_view SQLFilterList) Get() string {
+	var selected []string
+	for _, filter := range data_view.Filters {
+		selected = append(selected, filter.Get())
+	}
+	return FilterSQL(selected...)
 }
 
 func NewSQLFilterList() *SQLFilterList {

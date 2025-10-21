@@ -1,8 +1,8 @@
 package blender_ui
 
 import (
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -64,7 +64,7 @@ func (view *BlenderWindow) SetFont(font *windigo.Font) {
 }
 
 func (view *BlenderWindow) RefreshSize() {
-	Refresh_globals(GUI.BASE_FONT_SIZE)
+	Refresh_globals(config.BASE_FONT_SIZE)
 	view.Blend_product_view.RefreshSize()
 }
 
@@ -78,12 +78,12 @@ func (mainWindow *BlenderWindow) Set_font_size() {
 	mainWindow.RefreshSize()
 }
 func (view *BlenderWindow) Increase_font_size() bool {
-	GUI.BASE_FONT_SIZE += 1
+	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
 func (view *BlenderWindow) Decrease_font_size() bool {
-	GUI.BASE_FONT_SIZE -= 1
+	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
 	return true
 }

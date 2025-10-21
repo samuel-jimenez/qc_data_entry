@@ -8,18 +8,37 @@ import (
 	"slices"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
+	"github.com/samuel-jimenez/qc_data_entry/nullable"
 )
 
 // TODO []*
 type ProductRecipe struct {
 	Components, db_components []RecipeComponent
 	Recipe_id                 int64
+	Recipe_name               string
+	Total_Default,            //  nullable.NullInt64
+	Specific_gravity_Default nullable.NullFloat64
 }
 
-func NewProductRecipe(Recipe_id int64) *ProductRecipe {
+func ProductRecipe_from_Recipe_id_name(Recipe_id int64, Recipe_name string) *ProductRecipe {
 	object := new(ProductRecipe)
 	object.Recipe_id = Recipe_id
+	object.Recipe_name = Recipe_name
 	return object
+}
+
+func ProductRecipe_from_SQL(row *sql.Rows) (*ProductRecipe, error) {
+	object := new(ProductRecipe)
+	err := row.Scan(
+		&object.Recipe_id,
+		&object.Recipe_name,
+		&object.Total_Default,
+		&object.Specific_gravity_Default,
+	)
+	if err != nil {
+		log.Println("Crit: [ProductRecipe-ProductRecipe_from_SQL]: ", err)
+	}
+	return object, err
 }
 
 func (object *ProductRecipe) GetComponents() {

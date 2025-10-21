@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
+	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
@@ -49,12 +50,20 @@ type QCWindow struct {
 	keygrab *windigo.Edit
 }
 
-func NewQCWindow(parent windigo.Controller) *QCWindow {
+func QCWindow_from_new(parent windigo.Controller) *QCWindow {
 	window_title := "QC Data Entry"
 
 	view := new(QCWindow)
 	view.Form = windigo.NewForm(parent)
 	view.SetText(window_title)
+
+	// menu := view.NewMenu()
+	//
+	// popupMenu := windigo.NewContextMenu()
+	// copyMenu := popupMenu.AddItem("Copy", windigo.Shortcut{
+	// 	Modifiers: windigo.ModControl,
+	// 	Key:       windigo.KeyC,
+	// })
 
 	view.keygrab = windigo.NewEdit(view)
 	view.keygrab.Hide()
@@ -64,9 +73,9 @@ func NewQCWindow(parent windigo.Controller) *QCWindow {
 	product_panel := NewTopPanelView(view)
 
 	tabs := windigo.NewTabView(view)
-	tab_wb := tabs.AddAutoPanel(views.BLEND_WB)
-	tab_oil := tabs.AddAutoPanel(views.BLEND_OIL)
-	tab_fr := tabs.AddAutoPanel(views.BLEND_FR)
+	tab_wb := tabs.AddAutoPanel(formats.BLEND_WB)
+	tab_oil := tabs.AddAutoPanel(formats.BLEND_OIL)
+	tab_fr := tabs.AddAutoPanel(formats.BLEND_FR)
 
 	//
 	//
@@ -115,12 +124,12 @@ func (view *QCWindow) SetFont(font *windigo.Font) {
 }
 
 func (view *QCWindow) RefreshSize() {
-	Refresh_globals(GUI.BASE_FONT_SIZE)
+	Refresh_globals(config.BASE_FONT_SIZE)
 
 	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
 	// view.product_panel.RefreshSize()
-	view.product_panel.RefreshSize(GUI.BASE_FONT_SIZE)
+	view.product_panel.RefreshSize(config.BASE_FONT_SIZE)
 
 	view.tabs.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
@@ -135,12 +144,12 @@ func (view *QCWindow) Set_font_size() {
 	view.RefreshSize()
 }
 func (view *QCWindow) Increase_font_size() bool {
-	GUI.BASE_FONT_SIZE += 1
+	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
 func (view *QCWindow) Decrease_font_size() bool {
-	GUI.BASE_FONT_SIZE -= 1
+	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
 	return true
 }

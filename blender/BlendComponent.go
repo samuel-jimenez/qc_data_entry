@@ -16,14 +16,22 @@ type BlendComponent struct {
 	// TODO blendAmount00
 	// Component_actual_amount  float64
 
+	// TODO blendAmount01
+	Density, Gallons, Strap float64
 }
 
-func NewBlendComponent() *BlendComponent {
+func BlendComponent_from_new() *BlendComponent {
 	return new(BlendComponent)
 }
 
-func NewBlendComponentfromSQL(row *sql.Rows) (*BlendComponent, error) {
-	blendComponent := NewBlendComponent()
+func BlendComponent_from_RecipeComponent(RecipeComponent *RecipeComponent) *BlendComponent {
+	blendComponent := BlendComponent_from_new()
+	blendComponent.RecipeComponent = *RecipeComponent
+	return blendComponent
+}
+
+func BlendComponent_from_SQL(row *sql.Rows) (*BlendComponent, error) {
+	blendComponent := BlendComponent_from_new()
 	err := row.Scan(
 		// &blendComponent.Component_id,
 		&blendComponent.Component_name, &blendComponent.Lot_id, &blendComponent.Lot_name, &blendComponent.Container_name, &blendComponent.Component_amount, &blendComponent.Add_order,

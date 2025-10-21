@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/util"
@@ -18,13 +19,21 @@ var (
 
 	// recipe_list
 	DB_Select_product_recipe, DB_Insert_product_recipe,
+	DB_Select_product_recipe_defaults,
+	// recipe_procedure_list
+	DB_Select_recipe_procedure_list,
+	// recipe_procedure_steps
+	DB_Select_recipe_procedure_steps,
 	// recipe_components
 	DB_Select_recipe_components_id, DB_Insert_recipe_component, DB_Update_recipe_component, DB_Delete_recipe_component, DB_Select_recipe_components_count,
 	// component_types
 	DB_Select_name_component_types, DB_Select_all_component_types, DB_Insert_component_types,
 	DB_Select_component_type_product, DB_Select_component_type_density, DB_Insert_internal_product_component_type, DB_Insert_inbound_product_component_type,
 	DB_Select_inbound_product_component_type_id,
-
+	// container_capacity
+	DB_Select_container_capacity_all, DB_Select_container_capacity_amount,
+	DB_Select_container_capacity_description,
+	DB_Select_container_capacity_info,
 	// container_strap
 	DB_Select_container_strap_container_capacity,
 	// inbound_product
@@ -50,18 +59,25 @@ var (
 	DB_Insert_Product_blend,
 	// lot_list
 	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all,
-	DB_Select_lot_list_name, DB_Select_lot_list_for_name_status, DB_Update_lot_list_name, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
+	DB_Select_lot_list_name, DB_Select_lot_list_for_name_status, DB_Select_lot_list_for_product_lot_name, DB_Select_lot_list_for_product_lot_id_name,
+	DB_Update_lot_list_name, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
 	DB_Select_product_lot_list_name,
 	DB_Select_product_lot_list_sources,
 	// product_lot
 	db_select_id_lot, DB_Insert_product_lot,
 	DB_Select_product_lot_all, DB_Select_product_lot_product,
+	DB_Select_product_inbound_lot_all,
 	DB_Insert_blend_lot, DB_Update_lot_recipe,
 	DB_Update_lot_customer,
 	DB_Select_product_lot_components,
+
 	// product_line
 	db_select_product_id, db_insert_product,
-	DB_Select_product_info_all, DB_Select_product_info_moniker,
+	DB_Select_product_info_all, DB_Select_product_info_inbound_all,
+	DB_Select_product_info_moniker,
+	//product_defaults
+	DB_Insert_product_defaults_product, DB_Select_product_defaults,
+	DB_Update_product_defaults,
 	// product_customer_line
 	DB_Select_product_customer_id, DB_Select_product_customer_info,
 	db_select_product_customer, db_insert_product_customer,
@@ -83,8 +99,7 @@ var (
 	// bs.product_appearance
 	DB_Insert_appearance,
 	DB_Select_product_details,
-	DB_Upsert_product_details, DB_Upsert_product_type,
-	DB_Select_product_coa_details, DB_Upsert_product_coa_details *sql.Stmt
+	DB_Upsert_product_details, DB_Upsert_product_type *sql.Stmt
 
 	INVALID_ID     int64 = 0
 	DEFAULT_LOT_ID int64 = 1
@@ -137,25 +152,31 @@ func DBinit(db *sql.DB) {
 	// recipe_list
 	DB_Select_product_recipe = PrepareOrElse(db, `
 	select recipe_id
-		from bs.recipe_list
-		where product_id = ?
+	from bs.recipe_list
+	where product_id = ?
+	`)
+	DB_Select_product_recipe_defaults = PrepareOrElse(db, `
+	select recipe_id, recipe_name, amount_total_default, specific_gravity_default
+	from bs.recipe_list
+	left join bs.product_defaults using (product_id)
+	where product_id = ?
 	`)
 
 	DB_Insert_product_recipe = PrepareOrElse(db, `
 	insert into bs.recipe_list
-		(product_id)
-		values (?)
+	(product_id,	recipe_procedure_id, recipe_name)
+		values (?,?,?)
 	returning recipe_id
 	`)
 
 	// recipe_components
 	DB_Select_recipe_components_id = PrepareOrElse(db, `
 	select recipe_components_id, component_type_id, component_type_name, component_type_amount, component_add_order
-		from bs.recipe_components
-		join bs.component_types
-		using (component_type_id)
-		where recipe_id = ?
-		order by component_add_order
+	from bs.recipe_components
+	join bs.component_types
+	using (component_type_id)
+	where recipe_id = ?
+	order by component_add_order
 	`)
 
 	DB_Insert_recipe_component = PrepareOrElse(db, `
@@ -182,6 +203,22 @@ func DBinit(db *sql.DB) {
 	select max(component_add_order)
 		from bs.recipe_components
 		where recipe_id = ?
+	`)
+
+	// recipe_procedure_list
+	DB_Select_recipe_procedure_list = PrepareOrElse(db, `
+	select recipe_procedure_id, recipe_procedure_name
+	from bs.recipe_procedure_list
+	order by recipe_procedure_id
+	`)
+
+	// recipe_procedure_steps
+	DB_Select_recipe_procedure_steps = PrepareOrElse(db, `
+	select recipe_procedure_step_text
+	from bs.recipe_list
+	join bs.recipe_procedure_steps	using (recipe_procedure_id)
+	where recipe_id = ?
+	order by recipe_procedure_step_number
 	`)
 
 	// component_types
@@ -298,6 +335,32 @@ func DBinit(db *sql.DB) {
 	from bs.component_type_product_inbound
 	left join bs.inbound_product using (inbound_product_id)
 	where component_type_id = ?1
+	`)
+
+	// container_capacity
+	DB_Select_container_capacity_all = PrepareOrElse(db, `
+	select container_capacity_id, container_capacity_name
+	from bs.container_capacity
+	order by container_capacity_name
+	`)
+
+	DB_Select_container_capacity_amount = PrepareOrElse(db, `
+	select container_capacity_amount
+	from bs.container_capacity
+	where container_capacity_id = ?1
+	`)
+
+	DB_Select_container_capacity_description = PrepareOrElse(db, `
+	select container_capacity_description
+	from bs.container_capacity
+	where container_capacity_id = ?1
+	`)
+
+	DB_Select_container_capacity_info = PrepareOrElse(db, `
+	select
+	container_capacity_description, container_capacity_amount
+	from bs.container_capacity
+	where container_capacity_id = ?1
 	`)
 
 	// container_strap
@@ -574,6 +637,21 @@ where lot_name like ?
 	and internal_status_name = ?
 	`)
 
+	DB_Select_lot_list_for_product_lot_name = PrepareOrElse(db, `
+	select  lot_id, lot_name, product_lot_id
+	from bs.lot_list
+	left join bs.product_lot using (lot_id)
+	where lot_name like ?
+	`)
+
+	DB_Select_lot_list_for_product_lot_id_name = PrepareOrElse(db, `
+	select  lot_id, lot_name, product_lot_id
+	from bs.lot_list
+	left join bs.product_lot using (lot_id)
+	where product_id = ?
+	and lot_name like ?
+	`)
+
 	DB_Update_lot_list_name = PrepareOrElse(db, `
 update
 bs.lot_list
@@ -737,6 +815,19 @@ join bs.lot_list using (lot_id)
 order by lot_id desc
 `)
 
+	DB_Select_product_inbound_lot_all = PrepareOrElse(db, `
+	select product_lot_id, lot_name
+	from (
+		select product_lot_id, lot_id
+		from bs.product_lot
+		union
+		select inbound_lot_id, lot_id
+		from bs.inbound_relabel
+	)
+	join bs.lot_list using (lot_id)
+	order by lot_name desc
+	`)
+
 	DB_Insert_product_lot = PrepareOrElse(db, `
 	insert into bs.product_lot
 		(lot_id,product_id)
@@ -795,10 +886,26 @@ where blend_components.product_lot_id =?
 
 	DB_Select_product_info_all = PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
-		from bs.product_line
-		join bs.product_moniker using (product_moniker_id)
+	from bs.product_line
+	join bs.product_moniker using (product_moniker_id)
 	order by product_moniker_name, product_name_internal
 	`)
+
+	DB_Select_product_info_inbound_all = PrepareOrElse(db, `
+	select
+	true, product_id, product_name_internal, product_moniker_name
+	from bs.product_line
+	join bs.product_moniker using (product_moniker_id)
+	union
+	select
+	false, inbound_product_id+1000,inbound_product_name, inbound_product_name
+	from bs.inbound_relabel
+	join bs.inbound_lot using (inbound_lot_id)
+	join bs.inbound_product using (inbound_product_id)
+	order by product_moniker_name, product_name_internal
+	`)
+
+	// 8 product_moniker_id
 
 	DB_Select_product_info_moniker = PrepareOrElse(db, `
 	select product_id, product_name_internal, product_moniker_name
@@ -807,6 +914,44 @@ where blend_components.product_lot_id =?
 	where product_moniker_name = ?
 	order by product_moniker_name, product_name_internal
 	`)
+
+	// product_defaults
+	DB_Insert_product_defaults_product = PrepareOrElse(db, `
+	insert into bs.product_defaults
+	(product_default_id,product_id)
+	values (?1, ?1)
+	`)
+	// DB_Insel_product_defaults_product = PrepareOrElse(db, `
+	// with val (qc_tester_name) as (
+	// 	values
+	// 	(?)
+	// ),
+	// sel as (
+	// 	select qc_tester_name, qc_tester_id
+	// 	from val
+	// 	left join bs.qc_tester_list using (qc_tester_name)
+	// )
+	// insert into bs.qc_tester_list (qc_tester_name)
+	// select distinct qc_tester_name from sel where qc_tester_id is null
+	// returning qc_tester_id, qc_tester_name
+	// `)
+	DB_Select_product_defaults = PrepareOrElse(db, `
+	select
+		amount_total_default, specific_gravity_default
+	from bs.product_defaults
+	where product_id = ?
+	`)
+
+	DB_Update_product_defaults = PrepareOrElse(db, `
+	update
+	bs.product_defaults
+
+	set
+	amount_total_default = ?2
+
+	where product_default_id = ?1
+	`)
+	// where product_id = ?1
 
 	// product_customer_line
 	DB_Select_product_customer_info = PrepareOrElse(db, `
@@ -968,6 +1113,7 @@ where product_id = ?1
 		join bs.qc_sample_storage_list using (qc_sample_storage_id)
 		join bs.product_moniker using (product_moniker_id)
 	where max_storage_capacity !=  qc_storage_capacity
+	or qc_sample_storage_offset > 0
 	order by qc_sample_storage_name
 	`)
 
@@ -1042,267 +1188,131 @@ where product_sample_storage_id = ?1
 	returning product_appearance_id, product_appearance_text
 	`)
 
+	BIG_RANGES_QC := `ph_measure,
+	ph_publish,
+	ph_min,
+	ph_target,
+	ph_max,
+
+	specific_gravity_measure,
+	specific_gravity_publish,
+	specific_gravity_min,
+	specific_gravity_target,
+	specific_gravity_max,
+
+	density_measure,
+	density_publish,
+	density_min,
+	density_target,
+	density_max,
+
+	string_test_measure,
+	string_test_publish,
+	string_test_min,
+	string_test_target,
+	string_test_max,
+
+	viscosity_measure,
+	viscosity_publish,
+	viscosity_min,
+	viscosity_target,
+	viscosity_max`
+
 	DB_Select_product_details = PrepareOrElse(db, `
-	with
-		measured as (
-			select
-				product_id,
-
-				product_type_id,
-				product_appearance_text,
-
-
-				ph_min,
-				ph_target,
-				ph_max,
-
-				specific_gravity_min,
-				specific_gravity_target,
-				specific_gravity_max,
-
-				density_min,
-				density_target,
-				density_max,
-
-				string_test_min,
-				string_test_target,
-				string_test_max,
-
-				viscosity_min,
-				viscosity_target,
-				viscosity_max
-			from bs.product_ranges_measured
-				left join bs.product_appearance using (product_appearance_id)
-			where product_id = ?1),
-
-		published as (
-			select
-				product_id,
-				product_appearance_text,
-
-				ph_min,
-				ph_target,
-				ph_max,
-
-				specific_gravity_min,
-				specific_gravity_target,
-				specific_gravity_max,
-
-				density_min,
-				density_target,
-				density_max,
-
-				string_test_min,
-				string_test_target,
-				string_test_max,
-
-				viscosity_min,
-				viscosity_target,
-				viscosity_max
-
-			from bs.product_ranges_published
-				left join bs.product_appearance using (product_appearance_id)
-			where product_id = ?1)
 	select
-		product_type_id,
-		container_type_id,
-		coalesce(measured.product_appearance_text, published.product_appearance_text) as product_appearance_text,
 
-		coalesce(measured.ph_min, published.ph_min) as ph_min,
-		coalesce(measured.ph_target, published.ph_target) as ph_target,
-		coalesce(measured.ph_max, published.ph_max) as ph_max,
+	product_type_id,
+	container_type_id,
+	product_appearance_text,
+	`+BIG_RANGES_QC+`
 
-		coalesce(measured.specific_gravity_min, published.specific_gravity_min) as specific_gravity_min,
-		coalesce(measured.specific_gravity_target, published.specific_gravity_target) as specific_gravity_target,
-		coalesce(measured.specific_gravity_max, published.specific_gravity_max) as specific_gravity_max,
-
-		coalesce(measured.density_min, published.density_min) as density_min,
-		coalesce(measured.density_target, published.density_target) as density_target,
-		coalesce(measured.density_max, published.density_max) as density_max,
-
-		coalesce(measured.string_test_min, published.string_test_min) as string_test_min,
-		coalesce(measured.string_test_target, published.string_test_target) as string_test_target,
-		coalesce(measured.string_test_max, published.string_test_max) as string_test_max,
-
-		coalesce(measured.viscosity_min, published.viscosity_min) as viscosity_min,
-		coalesce(measured.viscosity_target, published.viscosity_target) as viscosity_target,
-		coalesce(measured.viscosity_max, published.viscosity_max) as viscosity_max
-	from measured
-		full join published using (product_id)
+	from bs.product_ranges_measured
+	left join bs.product_appearance using (product_appearance_id)
 		join bs.product_types using (product_type_id)
 	where product_id = ?1
 	`)
 
-	DB_Select_product_coa_details = PrepareOrElse(db, `
-	select
-		product_appearance_text,
-
-		ph_min,
-		ph_target,
-		ph_max,
-
-		specific_gravity_min,
-		specific_gravity_target,
-		specific_gravity_max,
-
-		density_min,
-		density_target,
-		density_max,
-
-		string_test_min,
-		string_test_target,
-		string_test_max,
-
-		viscosity_min,
-		viscosity_target,
-		viscosity_max
-
-	from bs.product_ranges_published
-	join bs.product_appearance using (product_appearance_id)
-	where product_id = ?
-	`)
-
-	DB_Upsert_product_details = PrepareOrElse(db, `
+	BIG_DUMB_RANGES_UPSERT :=
+		`
 	with
-		val
-			(product_id,
-			product_type_id,
-			product_appearance_text,
+	val
+	(product_id,
+	product_type_id,
+	product_appearance_text,
 
-			ph_min,
-			ph_target,
-			ph_max,
-
-			specific_gravity_min,
-			specific_gravity_target,
-			specific_gravity_max,
-
-			density_min,
-			density_target,
-			density_max,
-
-			string_test_min,
-			string_test_target,
-			string_test_max,
-
-			viscosity_min,
-			viscosity_target,
-			viscosity_max)
-		as (
-			values (
-				?,?,?,
-				?,?,?,
-				?,?,?,
-				?,?,?,
-				?,?,?,
-				?,?,?)
-		),
-		sel as (
-			select
+	` + BIG_RANGES_QC + `
+	)
+	as (
+		values (
+			?,?,?,
+			?,?,?,?,?,
+			?,?,?,?,?,
+			?,?,?,?,?,
+			?,?,?,?,?,
+			?,?,?,?,?)
+			),
+			sel as (
+				select
 				product_id,
 				product_type_id,
 				product_appearance_id,
 
 
-				ph_min,
-				ph_target,
-				ph_max,
+				` + BIG_RANGES_QC + `
 
-				specific_gravity_min,
-				specific_gravity_target,
-				specific_gravity_max,
+				from val
+				left join bs.product_appearance using (product_appearance_text)
+				)`
 
-				density_min,
-				density_target,
-				density_max,
+	BIG_EXCLUDED_QC := `ph_measure=excluded.ph_measure,
+				ph_publish=excluded.ph_publish,
+				ph_min=excluded.ph_min,
+				ph_target=excluded.ph_target,
+				ph_max=excluded.ph_max,
 
-				string_test_min,
-				string_test_target,
-				string_test_max,
+				specific_gravity_measure=excluded.specific_gravity_measure,
+				specific_gravity_publish=excluded.specific_gravity_publish,
+				specific_gravity_min=excluded.specific_gravity_min,
+				specific_gravity_target=excluded.specific_gravity_target,
+				specific_gravity_max=excluded.specific_gravity_max,
 
-				viscosity_min,
-				viscosity_target,
-				viscosity_max
-			from val
-			left join bs.product_appearance using (product_appearance_text)
-		)
+				density_measure=excluded.density_measure,
+				density_publish=excluded.density_publish,
+				density_min=excluded.density_min,
+				density_target=excluded.density_target,
+				density_max=excluded.density_max,
+
+				string_test_measure=excluded.string_test_measure,
+				string_test_publish=excluded.string_test_publish,
+				string_test_min=excluded.string_test_min,
+				string_test_target=excluded.string_test_target,
+				string_test_max=excluded.string_test_max,
+
+				viscosity_measure=excluded.viscosity_measure,
+				viscosity_publish=excluded.viscosity_publish,
+				viscosity_min=excluded.viscosity_min,
+				viscosity_target=excluded.viscosity_target,
+				viscosity_max=excluded.viscosity_max`
+	DB_Upsert_product_details = PrepareOrElse(db, BIG_DUMB_RANGES_UPSERT+`
 	insert into bs.product_ranges_measured
 		(product_id,
 		product_type_id,
 		product_appearance_id,
-
-
-		ph_min,
-		ph_target,
-		ph_max,
-
-		specific_gravity_min,
-		specific_gravity_target,
-		specific_gravity_max,
-
-		density_min,
-		density_target,
-		density_max,
-
-		string_test_min,
-		string_test_target,
-		string_test_max,
-
-		viscosity_min,
-		viscosity_target,
-		viscosity_max)
+		`+BIG_RANGES_QC+`
+		)
 	select
 				product_id,
 				product_type_id,
 				product_appearance_id,
 
-
-				ph_min,
-				ph_target,
-				ph_max,
-
-				specific_gravity_min,
-				specific_gravity_target,
-				specific_gravity_max,
-
-				density_min,
-				density_target,
-				density_max,
-
-				string_test_min,
-				string_test_target,
-				string_test_max,
-
-				viscosity_min,
-				viscosity_target,
-				viscosity_max
-			from sel
+				`+BIG_RANGES_QC+`
+				from sel
 			where true
 	on conflict(product_id) do update set
 
 		product_type_id=excluded.product_type_id,
 		product_appearance_id=excluded.product_appearance_id,
-
-		ph_min=excluded.ph_min,
-		ph_target=excluded.ph_target,
-		ph_max=excluded.ph_max,
-
-		specific_gravity_min=excluded.specific_gravity_min,
-		specific_gravity_target=excluded.specific_gravity_target,
-		specific_gravity_max=excluded.specific_gravity_max,
-
-		density_min=excluded.density_min,
-		density_target=excluded.density_target,
-		density_max=excluded.density_max,
-
-		string_test_min=excluded.string_test_min,
-		string_test_target=excluded.string_test_target,
-		string_test_max=excluded.string_test_max,
-
-		viscosity_min=excluded.viscosity_min,
-		viscosity_target=excluded.viscosity_target,
-		viscosity_max=excluded.viscosity_max
-
+		`+BIG_EXCLUDED_QC+`
 		returning range_id
 		`)
 
@@ -1316,145 +1326,6 @@ where product_sample_storage_id = ?1
 		product_type_id=excluded.product_type_id
 
 		returning range_id
-		`)
-	DB_Upsert_product_coa_details = PrepareOrElse(db, `
-	with
-		val
-			(product_id,
-			product_type_id,
-			product_appearance_text,
-
-			ph_min,
-			ph_target,
-			ph_max,
-
-			specific_gravity_min,
-			specific_gravity_target,
-			specific_gravity_max,
-
-			density_min,
-			density_target,
-			density_max,
-
-			string_test_min,
-			string_test_target,
-			string_test_max,
-
-			viscosity_min,
-			viscosity_target,
-			viscosity_max)
-		as (
-			values (
-				?,?,?,
-				?,?,?,
-				?,?,?,
-				?,?,?,
-				?,?,?,
-				?,?,?)
-		),
-		sel as (
-			select
-				product_id,
-				product_appearance_id,
-
-
-				ph_min,
-				ph_target,
-				ph_max,
-
-				specific_gravity_min,
-				specific_gravity_target,
-				specific_gravity_max,
-
-				density_min,
-				density_target,
-				density_max,
-
-				string_test_min,
-				string_test_target,
-				string_test_max,
-
-				viscosity_min,
-				viscosity_target,
-				viscosity_max
-			from val
-			left join bs.product_appearance using (product_appearance_text)
-		)
-	insert into bs.product_ranges_published
-		(product_id,
-		product_appearance_id,
-
-
-		ph_min,
-		ph_target,
-		ph_max,
-
-		specific_gravity_min,
-		specific_gravity_target,
-		specific_gravity_max,
-
-		density_min,
-		density_target,
-		density_max,
-
-		string_test_min,
-		string_test_target,
-		string_test_max,
-
-		viscosity_min,
-		viscosity_target,
-		viscosity_max)
-	select
-				product_id,
-				product_appearance_id,
-
-
-				ph_min,
-				ph_target,
-				ph_max,
-
-				specific_gravity_min,
-				specific_gravity_target,
-				specific_gravity_max,
-
-				density_min,
-				density_target,
-				density_max,
-
-				string_test_min,
-				string_test_target,
-				string_test_max,
-
-				viscosity_min,
-				viscosity_target,
-				viscosity_max
-			from sel
-			where true
-	on conflict(product_id) do update set
-
-		product_appearance_id=excluded.product_appearance_id,
-
-		ph_min=excluded.ph_min,
-		ph_target=excluded.ph_target,
-		ph_max=excluded.ph_max,
-
-		specific_gravity_min=excluded.specific_gravity_min,
-		specific_gravity_target=excluded.specific_gravity_target,
-		specific_gravity_max=excluded.specific_gravity_max,
-
-		density_min=excluded.density_min,
-		density_target=excluded.density_target,
-		density_max=excluded.density_max,
-
-		string_test_min=excluded.string_test_min,
-		string_test_target=excluded.string_test_target,
-		string_test_max=excluded.string_test_max,
-
-		viscosity_min=excluded.viscosity_min,
-		viscosity_target=excluded.viscosity_target,
-		viscosity_max=excluded.viscosity_max
-
-		returning qc_range_id
 		`)
 
 }
@@ -1470,7 +1341,7 @@ func Select_Error(proc_name string, query *sql.Row, args ...any) error {
 // permit empty
 func Select_ErrNoRows(proc_name string, query *sql.Row, args ...any) error {
 	err := query.Scan(args...)
-	if err != sql.ErrNoRows { // no row? no problem!
+	if err != nil && err != sql.ErrNoRows { // no row? no problem!
 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 	}
 	return err
@@ -1513,6 +1384,7 @@ func Exec_Error(proc_name string, statement *sql.Stmt, args ...any) error {
 	util.LogError(proc_name, err)
 	return err
 }
+
 func Update(proc_name string, update_statement *sql.Stmt, args ...any) error {
 	return Exec_Error(proc_name, update_statement, args...)
 }
@@ -1532,8 +1404,10 @@ func Insel(proc_name string, insert_statement, select_statement *sql.Stmt, args 
 func Insel_product_id(product_name_full string) int64 {
 
 	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
+	product_id := Insel("Insel_product_id", db_insert_product, db_select_product_id, product_name_internal, product_moniker_name)
+	DB_Insert_product_defaults_product.Exec(product_id)
 
-	return Insel("Insel_product_id", db_insert_product, db_select_product_id, product_name_internal, product_moniker_name)
+	return product_id
 }
 
 func Insel_lot_id(lot_name string) int64 {
@@ -1548,6 +1422,74 @@ func Insel_product_name_customer(product_name_customer string, product_id int64)
 	return Insel("Insel_product_name_customer", db_insert_product_customer, db_select_product_customer, product_name_customer, product_id)
 }
 
+func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string, Lot_id, Product_Lot_id int64) {
+
+	// we cannot guarantee uniqueness of lot numbers
+	proc_name := "Select_product_lot_name"
+	Lot_name = lot_name + "%"
+
+	// find like Lot_number :%
+	if err := Select_ErrNoRows(proc_name, DB_Select_lot_list_for_product_lot_id_name.QueryRow(product_id, Lot_name),
+		&Lot_id, &Lot_name, &Product_Lot_id,
+	); err == nil {
+		// already in product_lot
+		return
+	}
+
+	currMax := -1
+	var (
+		lot_address_str string
+		p_Lot_id        *int
+		found           bool
+	)
+	// find like Lot_number :%
+	// TODO Forall_done
+	rows, err := DB_Select_lot_list_for_product_lot_name.Query(Lot_name)
+	if err != nil {
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
+		return
+	}
+	for rows.Next() {
+		if err := rows.Scan(
+			&Lot_id, &Lot_name, &p_Lot_id,
+		); err != nil {
+			log.Printf("Err: [%s]: %q\n", proc_name, err)
+		}
+		Lot_name, lot_address_str, found = strings.Cut(Lot_name, ":")
+		lot_address, _ := strconv.Atoi(lot_address_str)
+		currMax = max(currMax, lot_address)
+	}
+
+	// not in lot_list:
+	// proceed as formerly
+	if currMax == -1 {
+		Lot_name = lot_name
+		Lot_id = Insel_lot_id(Lot_name)
+		// Product_Lot_id = Insel_product_lot_id(Lot_id, product_id)
+	}
+
+	// in lot_list:
+	// not product_lot
+	if p_Lot_id == nil {
+		Product_Lot_id = Insel_product_lot_id(Lot_id, product_id)
+		return
+	}
+
+	if !found {
+		if err = Update(proc_name,
+			DB_Update_lot_list_name,
+			Lot_id,
+			Lot_name+":0",
+		); err != nil {
+			log.Printf("Err: [%s]: %q\n", proc_name, err)
+		}
+	}
+	Lot_name += ":" + strconv.Itoa(currMax+1)
+	Lot_id = Insel_lot_id(Lot_name)
+	Product_Lot_id = Insel_product_lot_id(Lot_id, product_id)
+	return
+}
+
 func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), select_statement *sql.Stmt, args ...any) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
@@ -1559,6 +1501,8 @@ func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), selec
 		row_fn(rows)
 	}
 }
+
+// TODO Forall_done
 
 // TODO count?
 func Forall_err(proc_name string, start_fn func(), row_fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {

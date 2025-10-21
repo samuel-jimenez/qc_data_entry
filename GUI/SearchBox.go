@@ -28,7 +28,7 @@ func NewSearchBox(parent windigo.Controller) *SearchBox {
 func NewLabeledSearchBox(parent windigo.Controller, Label string) *SearchBox {
 	data_view := new(SearchBox)
 
-	data_view.ComboBox = *NewComboBox(parent, Label)
+	data_view.ComboBox = *ComboBox_from_new(parent, Label)
 	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
 
 		start, _ := data_view.Selected()
@@ -66,7 +66,7 @@ func NewLabeledListSearchBox(parent windigo.Controller, Label string) *SearchBox
 	// data_view := NewLabeledSearchBox(parent, Label)
 	data_view := new(SearchBox)
 
-	data_view.ComboBox = *NewComboBox(parent, Label)
+	data_view.ComboBox = *ComboBox_from_new(parent, Label)
 	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
 
 		start, _ := data_view.Selected()

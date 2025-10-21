@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
@@ -22,6 +21,7 @@ import (
 func main() {
 	//load config
 	config.Main_config = config.Load_config_viewer("qc_data_viewer")
+	defer config.Write_config(config.Main_config)
 
 	// log to file
 	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -54,8 +54,6 @@ func main() {
 	threads.STATUS_QUEUE = make(chan string, 16)
 	defer close(threads.STATUS_QUEUE)
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
-
-	viewer.Refresh_globals(GUI.BASE_FONT_SIZE)
 
 	//show main window
 	toplevel_ui.Show_window(viewer.NewViewerWindow(nil))

@@ -6,6 +6,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -26,34 +27,89 @@ type BlendVesseler interface {
  */
 type BlendVessel struct {
 	*windigo.AutoPanel
-	Vessel_field       *GUI.SearchBox
-	Strap_field        *GUI.NumbSearchView
-	volume_data_strap  map[float64]float64
-	strap_data_volume  map[float64]float64
-	parent             *BlendStrappingProductView
-	MinStrap, MaxStrap float64
+	top, btm                     *windigo.AutoPanel
+	Vessel_field, Capacity_field *GUI.SearchBox
+	Strap_field                  *GUI.NumbSearchView
+	heel_field                   *views.NumbestEditView
+	volume_data_strap            map[float64]float64
+	strap_data_volume            map[float64]float64
+	capacity_data                map[string]int
+	parent                       *BlendStrappingProductView
+	MinStrap, MaxStrap           float64
+	Strap, HeelVolume, HeelMass  float64
+	Capacity_amount              float64
+	Capacity_description         string
 }
 
-func NewBlendVessel(parent *BlendStrappingProductView) *BlendVessel {
+func BlendVessel_from_new(parent *BlendStrappingProductView) *BlendVessel {
 
 	Vessel_text := "Vessel"
+	Capacity_text := "Capacity"
 	Strap_text := "Strap"
-	container_capacity := 2
+	heel_text := "Heel"
 
 	view := new(BlendVessel)
 	view.parent = parent
 
 	view.volume_data_strap = make(map[float64]float64)
 	view.strap_data_volume = make(map[float64]float64)
-	view.AutoPanel = windigo.NewAutoPanel(parent)
+	view.capacity_data = make(map[string]int)
 
-	view.Vessel_field = GUI.NewLabeledListSearchBox(view, Vessel_text)
-	view.Strap_field = GUI.NumbSearchView_From_SearchBox(GUI.NewLabeledListSearchBox(view, Strap_text))
+	view.AutoPanel = windigo.NewAutoPanel(parent)
+	view.top = windigo.NewAutoPanel(view)
+	view.btm = windigo.NewAutoPanel(view)
+
+	view.Vessel_field = GUI.NewLabeledListSearchBox(view.top, Vessel_text)
+	view.Capacity_field = GUI.NewLabeledListSearchBox(view.top, Capacity_text)
+	view.Strap_field = GUI.NumbSearchView_From_SearchBox(GUI.NewLabeledListSearchBox(view.btm, Strap_text))
+	view.heel_field = views.NumbestEditView_from_new(view.btm, heel_text)
 
 	// bad things happen if this is not true
 	view.MinStrap = 0
 
 	// combobox
+	GUI.Fill_combobox_from_query_fn(
+		view.Capacity_field,
+		func(id int, name string) {
+			view.capacity_data[name] = id
+			view.Capacity_field.AddItem(name)
+		},
+		DB.DB_Select_container_capacity_all,
+	)
+	view.Capacity_field.SetSelectedItem(0)
+	view.OnChange_Capacity_field(nil)
+
+	view.Dock(view.top, windigo.Top)
+	view.Dock(view.btm, windigo.Top)
+
+	view.top.Dock(view.Vessel_field, windigo.Left)
+	view.top.Dock(view.Capacity_field, windigo.Left)
+
+	view.btm.Dock(view.Strap_field, windigo.Left)
+	view.btm.Dock(view.heel_field, windigo.Left)
+
+	view.Strap_field.OnSelectedChange().Bind(func(e *windigo.Event) {
+		view.Strap = view.Strap_field.Get()
+		view.HeelVolume = view.volume_data_strap[view.Strap]
+		view.SetHeelVolume(view.HeelVolume)
+		// TODO broken due to... reasons
+		// view.Strap_field.Set(strap)
+	})
+	view.heel_field.OnChange().Bind(func(e *windigo.Event) {
+		view.SetHeel(view.heel_field.Get())
+	})
+	view.Capacity_field.OnSelectedChange().Bind(view.OnChange_Capacity_field)
+	// view.Vessel_field.OnChange().Bind(func(e *windigo.Event) {
+	// 	view.SetHeel(view.Vessel_field.Get())
+	// })
+
+	return view
+}
+
+func (view *BlendVessel) OnChange_Capacity_field(*windigo.Event) {
+	clear(view.volume_data_strap)
+	clear(view.strap_data_volume)
+	cap_id := view.capacity_data[view.Capacity_field.GetSelectedItem()]
 	GUI.Fill_combobox_from_query_rows(
 		view.Strap_field,
 		func(row *sql.Rows) error {
@@ -72,37 +128,46 @@ func NewBlendVessel(parent *BlendStrappingProductView) *BlendVessel {
 			view.MaxStrap = strap
 			return nil
 		},
-		DB.DB_Select_container_strap_container_capacity, container_capacity)
+		DB.DB_Select_container_strap_container_capacity, cap_id,
+	)
+	proc_name := "BlendVessel-OnChange_Capacity_field"
+	DB.Select_Panic(proc_name,
+		DB.DB_Select_container_capacity_info.QueryRow(cap_id),
+		&view.Capacity_description,
+		&view.Capacity_amount,
+	)
 
-	view.Dock(view.Vessel_field, windigo.Left)
-	view.Dock(view.Strap_field, windigo.Left)
-
-	view.Strap_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		strap := view.Strap_field.Get()
-		view.SetHeelVolume(view.volume_data_strap[strap])
-		// TODO broken due to... reasons
-		// view.Strap_field.Set(strap)
-	})
-	// view.Vessel_field.OnChange().Bind(func(e *windigo.Event) {
-	// 	view.SetHeel(view.Vessel_field.Get())
-	// })
-
-	return view
 }
 
 func (view *BlendVessel) SetFont(font *windigo.Font) {
 	view.Vessel_field.SetFont(font)
+	view.Capacity_field.SetFont(font)
 	view.Strap_field.SetFont(font)
+	view.heel_field.SetFont(font)
 }
 
 func (view *BlendVessel) RefreshSize() {
-	view.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.SetSize(GUI.TOP_PANEL_WIDTH, 2*GUI.PRODUCT_FIELD_HEIGHT)
+	view.top.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.btm.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+
 	view.Vessel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.Capacity_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.Capacity_field.SetPaddingLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
+
 	view.Strap_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.heel_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.heel_field.SetPaddingLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
+
 }
 
 func (view *BlendVessel) SetHeelVolume(heel float64) {
 	view.parent.SetHeelVolume(heel)
+}
+
+func (view *BlendVessel) SetHeel(heel float64) {
+	view.HeelMass = heel
+	view.parent.SetHeel(heel)
 }
 
 // TODO Round function
@@ -146,5 +211,17 @@ func (view *BlendVessel) GetStrap(volume float64) float64 {
 }
 
 func (view *BlendVessel) SetStrap(volume float64) {
-	view.Strap_field.Set(view.GetStrap(volume))
+	view.HeelVolume = volume
+	view.Strap = view.GetStrap(volume)
+
+	view.Strap_field.Set(view.Strap)
+}
+
+func (view *BlendVessel) Get() (string, string, float64, float64, float64) {
+	return view.Vessel_field.Text(),
+		// view.Capacity_amount,
+		view.Capacity_description,
+		view.Strap,
+		view.HeelVolume,
+		view.HeelMass
 }

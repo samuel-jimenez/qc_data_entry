@@ -5,7 +5,6 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -85,7 +84,7 @@ func New_StorageBinView(parent windigo.Controller, StorageBin *StorageBin) *Stor
 
 	view.Bin_name_field = windigo.NewLabel(view.AutoPanel)
 	view.Product_name_field = windigo.NewLabel(view.AutoPanel)
-	view.Samples_field = GUI.NewNumbEditView(view.AutoPanel)
+	view.Samples_field = GUI.NumbEditView_from_new(view.AutoPanel)
 
 	view.AutoPanel.Dock(view.Bin_name_field, windigo.Left)
 	view.AutoPanel.Dock(view.Product_name_field, windigo.Left)

@@ -34,41 +34,37 @@ type SQLFilterViewHeader struct {
 	Options map[string]*SQLFilterViewHeaderOptionLabel
 }
 
-// func NewSQLFilterViewHeader(parent *SQLFilterView, label string) *SQLFilterViewHeader {
-func NewSQLFilterViewHeader(parent SQLFilterViewable, label string) *SQLFilterViewHeader {
+// func SQLFilterViewHeader_from_new(parent *SQLFilterView, label string) *SQLFilterViewHeader {
+func SQLFilterViewHeader_from_new(parent SQLFilterViewable, label string) *SQLFilterViewHeader {
 	header := new(SQLFilterViewHeader)
 	header.Options = make(map[string]*SQLFilterViewHeaderOptionLabel)
+	header.parent = parent
+	header.parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 
-	panel := windigo.NewAutoPanel(parent)
-	panel_label := windigo.NewLabel(panel)
-	panel_label.SetText(label)
-	hide_button := windigo.NewPushButton(panel)
-	hide_button.SetText("+")
-	panel.Dock(panel_label, windigo.Left)
-	panel.Dock(hide_button, windigo.Left)
-	hide_button.OnClick().Bind(func(e *windigo.Event) {
-		grandma := parent.Parent()
+	header.AutoPanel = windigo.NewAutoPanel(parent)
+	header.label = windigo.NewLabel(header.AutoPanel)
+	header.label.SetText(label)
+	header.hide_button = windigo.NewPushButton(header.AutoPanel)
+	header.hide_button.SetText("+")
+	header.AutoPanel.Dock(header.label, windigo.Left)
+	header.AutoPanel.Dock(header.hide_button, windigo.Left)
+	header.hide_button.OnClick().Bind(func(e *windigo.Event) {
+		grandma := header.parent.Parent()
 		if header.child != nil {
 			header.Hidden = !header.Hidden
 			if header.Hidden {
 				grandma.SetSize(grandma.Width(), grandma.Height()-header.child.Height())
-				hide_button.SetText("+")
+				header.hide_button.SetText("+")
 				header.child.Hide()
 				parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 			} else {
 				grandma.SetSize(grandma.Width(), grandma.Height()+header.child.Height())
-				hide_button.SetText("-")
+				header.hide_button.SetText("-")
 				header.child.Show()
 				parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT+header.child.Height())
 			}
 		}
 	})
-
-	header.AutoPanel = panel
-	header.parent = parent
-	// header.parent = parent.(*SQLFilterView)
-	header.label = panel_label
-	header.hide_button = hide_button
 
 	return header
 }

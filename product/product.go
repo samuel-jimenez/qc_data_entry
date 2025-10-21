@@ -1,10 +1,8 @@
 package product
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -152,6 +150,7 @@ func (measured_product Product) NewStorageBin() int {
 	// print
 	measured_product.PrintOldStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
 
+	// TODO maybe move?
 	// gen new based on qc_sample_storage_offset,
 	// product_moniker_id or product_sample_storage_id
 	proc_name = "Product.NewStorageBin.Insert"
@@ -251,21 +250,6 @@ func Store(products ...Product) {
 		DB.DB_Update_dec_product_sample_storage_capacity,
 		qc_sample_storage_id, numSamples)
 
-}
-
-func (measured_product Product) Export_json() {
-	output_files := measured_product.get_json_names()
-	bytestring, err := json.MarshalIndent(measured_product, "", "\t")
-
-	if err != nil {
-		log.Println("error [Product.Export_json]:", err)
-	}
-
-	for _, output_file := range output_files {
-		if err := os.WriteFile(output_file, bytestring, 0666); err != nil {
-			log.Fatal("Crit: Product.Export_json: ", err)
-		}
-	}
 }
 
 func (measured_product Product) get_coa_template() string {
@@ -387,8 +371,6 @@ func (measured_product Product) Check_data() bool {
 }
 
 func (measured_product Product) Printout() error {
-	//TODO test
-	measured_product.Export_json()
 	return measured_product.print()
 }
 
@@ -425,17 +407,18 @@ func (measured_product Product) Output_sample() error {
 
 }
 
+// TODO xl-1501
 // TODO: move these to own file
-func withOpenFile(file_name string, FN func(*excelize.File) error) error {
-	xl_file, err := excelize.OpenFile(file_name)
+func WithOpenFile(file_name string, FN func(*excelize.File) error) error {
+	xl_file, err := excelize.OpenFile(file_name, excelize.Options{ShortDatePattern: "yyyymmdd"})
 	if err != nil {
-		log.Printf("Error: [%s]: %q\n", "withOpenFile", err)
+		log.Printf("Error: [%s]: %q\n", "WithOpenFile", err)
 		return err
 	}
 	defer func() {
 		// Close the spreadsheet.
 		if err := xl_file.Close(); err != nil {
-			log.Printf("Error: [%s]: %q\n", "withOpenFile", err)
+			log.Printf("Error: [%s]: %q\n", "WithOpenFile", err)
 		}
 	}()
 	return FN(xl_file)
@@ -443,7 +426,7 @@ func withOpenFile(file_name string, FN func(*excelize.File) error) error {
 
 func updateExcel(file_name, worksheet_name string, row ...string) error {
 
-	return withOpenFile(file_name, func(xl_file *excelize.File) error {
+	return WithOpenFile(file_name, func(xl_file *excelize.File) error {
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)
 		if err != nil {

@@ -2,6 +2,7 @@ package viewer
 
 import (
 	"database/sql"
+
 	"log"
 	"time"
 
@@ -60,9 +61,10 @@ func select_product_samples(product_id int) []QCData {
 	return _select_samples("select_product_samples", DB_Select_product_samples, product_id)
 }*/
 
-func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
+func __select_samples(proc_name string, rows *sql.Rows, err error, query string) []QCData {
+
 	if err != nil {
-		log.Printf("error: [%s]: %q\n", fn, err)
+		log.Printf("error: [%s]: %q\n%v\n", proc_name, err, query)
 		// return -1
 	}
 
@@ -74,9 +76,12 @@ func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
 			_timestamp           int64
 			product_moniker_name string
 			internal_name        string
+			internalp            bool
 		)
 
-		if err := rows.Scan(&product_moniker_name, &internal_name,
+		if err := rows.Scan(
+			&internalp,
+			&product_moniker_name, &internal_name,
 			&qc_data.Product_name_customer,
 			&qc_data.Lot_name,
 			&qc_data.Sample_point,
@@ -85,11 +90,15 @@ func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
 			&qc_data.PH,
 			&qc_data.Specific_gravity,
 			&qc_data.String_test,
-			&qc_data.Viscosity); err != nil {
-			log.Fatalf("Crit: [%s]: %v", fn, err)
+			&qc_data.Viscosity,
+		); err != nil {
+			log.Fatalf("Crit: [%s]: %v", proc_name, err)
 		}
-		qc_data.Product_name = product_moniker_name + " " + internal_name
-
+		if internalp {
+			qc_data.Product_name = product_moniker_name + " " + internal_name
+		} else {
+			qc_data.Product_name = internal_name
+		}
 		qc_data.Time_stamp = time.Unix(0, _timestamp)
 		data_0 = append(data_0, qc_data)
 	}
@@ -103,16 +112,18 @@ func _select_samples(rows *sql.Rows, err error, fn string) []QCData {
 	return data_1
 }
 
+func _select_samples(proc_name string, query string, args ...any) []QCData {
+	rows, err := QC_DB.Query(query, args...)
+	return __select_samples(proc_name, rows, err, query)
+}
+
 func select_all_samples() []QCData {
 	rows, err := DB_Select_samples.Query()
-	return _select_samples(rows, err, "select_all_samples")
+	return __select_samples("select_all_samples", rows, err, "")
 }
 
 func select_samples(query string) []QCData {
-
-	rows, err := QC_DB.Query(util.Concat(SAMPLE_SELECT_STRING, query, SAMPLE_ORDER_STRING))
-
-	return _select_samples(rows, err, "select_samples")
+	return _select_samples("select_samples", util.Concat(SAMPLE_SELECT_STRING, query, SAMPLE_ORDER_STRING))
 }
 
 func select_lot(fn func(int, string), query string) {
@@ -150,7 +161,22 @@ func DBinit(db *sql.DB) {
 	DB.DBinit(db)
 
 	SAMPLE_SELECT_STRING = `
+	with lots as (
+		select
+			true internal, product_lot_id, lot_id, product_id, product_name_internal,product_customer_id, product_moniker_id
+	from bs.product_lot
+		join bs.product_line using (product_id)
+union
+		select
+			false, inbound_lot_id, lot_id, inbound_product_id+1000,inbound_product_name, null product_customer_id, 8 product_moniker_id
+		from bs.inbound_relabel
+		join bs.inbound_lot using (inbound_lot_id)
+		join bs.inbound_product using (inbound_product_id)
+	)
+
+
 	select
+		internal,
 		product_moniker_name,
 		product_name_internal,
 		product_name_customer,
@@ -163,13 +189,12 @@ func DBinit(db *sql.DB) {
 		string_test ,
 		viscosity
 	from bs.qc_samples
-		join bs.product_lot using (lot_id)
 		join bs.lot_list using (lot_id)
-		join bs.product_line using (product_id)
+		join lots using (lot_id)
 		join bs.product_moniker using (product_moniker_id)
+		left join bs.product_customer_line using (product_customer_id, product_id)
 		left join bs.product_sample_points using (sample_point_id)
 		left join bs.qc_sample_storage_list using (qc_sample_storage_id)
-		left join bs.product_customer_line using (product_customer_id, product_id)
 	`
 	SAMPLE_ORDER_STRING = `
 	order by time_stamp desc
@@ -177,9 +202,21 @@ func DBinit(db *sql.DB) {
 	LOT_SELECT_STRING = `
 	select
 	product_lot_id, lot_name
-	from bs.product_lot
+	from (
+		select
+			product_lot_id, lot_id, product_id, product_customer_id, product_moniker_id
+		from bs.product_lot
+		join bs.product_line using (product_id)
+
+		union
+		select
+			inbound_lot_id, lot_id, inbound_product_id, null product_customer_id, 8 product_moniker_id
+		from bs.inbound_relabel
+		join bs.inbound_lot using (inbound_lot_id)
+		join bs.inbound_product using (inbound_product_id)
+
+	)
 	join bs.lot_list using (lot_id)
-	join bs.product_line using (product_id)
 	join bs.product_moniker using (product_moniker_id)
 	`
 	LOT_ORDER_STRING = `

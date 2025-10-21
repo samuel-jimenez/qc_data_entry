@@ -1,8 +1,8 @@
 package viewer
 
 import (
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -26,6 +26,24 @@ type ViewerWinder interface {
 	Decrease_font_size() bool
 }
 
+//TODO add new moniker
+//
+// insert product_moniker_id :=
+//
+// INSERT INTO product_moniker
+// (product_moniker_name)
+//
+//insel
+// insert into qc_sample_storage_list values(27,'00-018-0000',18);
+// Product.NewStorageBin.Insert
+//
+//
+// insert into product_sample_storage values(18,18,12,24,27,0,24);
+// offset:=0
+// space:=max_cap
+// product_moniker_id, duration,max_cap,storagbin_id,offset,space
+//TODO end add new moniker
+
 /*
  * ViewerWindow
  *
@@ -42,17 +60,26 @@ type ViewerWindow struct {
 func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	window_title := "QC Data Viewer"
 
-	mainWindow := new(ViewerWindow)
-	mainWindow.Form = windigo.NewForm(parent)
-	mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-	mainWindow.SetText(window_title)
+	view := new(ViewerWindow)
+	view.Form = windigo.NewForm(parent)
+	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+	view.SetText(window_title)
 
-	dock := windigo.NewSimpleDock(mainWindow)
+	// menu := view.NewMenu()
+	// TODO settings
+	// 	menu := mainWindow.NewMenu()
+	//
+	// 	fileMn := menu.AddSubMenu("File")
+	// 	fileMn.AddItem("New", windigo.Shortcut{windigo.ModControl, windigo.KeyN})
+	// 	editMn := menu.AddSubMenu("Edit")
+	// 	cutMn := editMn.AddItem("Cut", windigo.Shortcut{windigo.ModControl, windigo.KeyX})
+	//
+	dock := windigo.NewSimpleDock(view)
 
-	selection_panel := NewDataViewerPanelView(mainWindow)
-	selection_panel.SetMainWindow(mainWindow)
+	selection_panel := NewDataViewerPanelView(view)
+	selection_panel.SetMainWindow(view)
 
-	FilterListView := NewSQLFilterListView(mainWindow)
+	FilterListView := NewSQLFilterListView(view)
 
 	// product_panel.Dock(reprint_button, windigo.Left)
 
@@ -61,12 +88,12 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	// tab_oil := tabs.AddAutoPanel("Oil Based")
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
 
-	table := NewQCDataView(mainWindow)
+	table := NewQCDataView(view)
 	table.Set(select_all_samples())
 	table.Update()
 
-	threads.Status_bar = windigo.NewStatusBar(mainWindow)
-	mainWindow.SetStatusBar(threads.Status_bar)
+	threads.Status_bar = windigo.NewStatusBar(view)
+	view.SetStatusBar(threads.Status_bar)
 	dock.Dock(threads.Status_bar, windigo.Bottom)
 
 	dock.Dock(selection_panel, windigo.Top)
@@ -74,7 +101,7 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 
 	dock.Dock(table, windigo.Fill)
 
-	FilterListView.AddContinuous(COL_KEY_TIME, COL_LABEL_TIME)
+	FilterListView.AddContinuousTime(COL_KEY_TIME, COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(COL_KEY_LOT, COL_LABEL_LOT, COL_ITEMS_LOT)
 	FilterListView.AddDiscreteMulti(COL_KEY_SAMPLE_PT, COL_LABEL_SAMPLE_PT, COL_ITEMS_SAMPLE_PT)
 	FilterListView.AddContinuous(COL_KEY_PH, COL_LABEL_PH)
@@ -85,11 +112,11 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	FilterListView.Hide()
 
 	// build object
-	mainWindow.selection_panel = selection_panel
-	mainWindow.FilterListView = FilterListView
-	mainWindow.table = table
+	view.selection_panel = selection_panel
+	view.FilterListView = FilterListView
+	view.table = table
 
-	return mainWindow
+	return view
 }
 
 func (view *ViewerWindow) ToggleFilterListView() {
@@ -120,8 +147,17 @@ func (view *ViewerWindow) SetTable(samples []QCData) {
 	view.table.Set(samples)
 	view.table.Update()
 }
-func (view *ViewerWindow) GetTable() []windigo.ListItem {
+func (view *ViewerWindow) GetTableSelected() []windigo.ListItem {
 	return view.table.SelectedItems()
+}
+func (view *ViewerWindow) GetTableAllSelected() (entries []windigo.ListItem) {
+	entries = view.table.SelectedItems()
+	if len(entries) == 0 {
+		for _, entry := range view.table.Get() {
+			entries = append(entries, entry)
+		}
+	}
+	return
 }
 
 func (view *ViewerWindow) SetFont(font *windigo.Font) {
@@ -131,10 +167,11 @@ func (view *ViewerWindow) SetFont(font *windigo.Font) {
 }
 
 func (view *ViewerWindow) RefreshSize() {
-	Refresh_globals(GUI.BASE_FONT_SIZE)
+	Refresh_globals(config.BASE_FONT_SIZE)
+	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	view.selection_panel.RefreshSize()
 	view.FilterListView.RefreshSize()
-	// view.table.RefreshSize()
+	view.table.RefreshSize()
 }
 
 func (view *ViewerWindow) AddShortcuts() {
@@ -147,12 +184,12 @@ func (mainWindow *ViewerWindow) Set_font_size() {
 	mainWindow.RefreshSize()
 }
 func (view *ViewerWindow) Increase_font_size() bool {
-	GUI.BASE_FONT_SIZE += 1
+	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
 func (view *ViewerWindow) Decrease_font_size() bool {
-	GUI.BASE_FONT_SIZE -= 1
+	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
 	return true
 }

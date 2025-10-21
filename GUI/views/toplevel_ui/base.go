@@ -33,7 +33,7 @@ func Show_window(mainWindow TopLevelWindow) {
 	log.Println("Info: Process started")
 
 	// build window
-	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", GUI.BASE_FONT_SIZE, windigo.FontNormal)
+	windigo.DefaultFont = windigo.NewFont("MS Shell Dlg 2", config.BASE_FONT_SIZE, windigo.FontNormal)
 	mainWindow.AddShortcuts()
 	mainWindow.Set_font_size()
 
@@ -51,11 +51,11 @@ func wndOnClose(arg *windigo.Event) {
 
 func Set_font_size() {
 
-	config.Main_config.Set("font_size", GUI.BASE_FONT_SIZE)
+	config.Main_config.Set("font_size", config.BASE_FONT_SIZE)
 	config.Write_config(config.Main_config)
 
 	old_font := windigo.DefaultFont
-	windigo.DefaultFont = windigo.NewFont(old_font.Family(), GUI.BASE_FONT_SIZE, 0)
+	windigo.DefaultFont = windigo.NewFont(old_font.Family(), config.BASE_FONT_SIZE, 0)
 	old_font.Dispose()
 }
 

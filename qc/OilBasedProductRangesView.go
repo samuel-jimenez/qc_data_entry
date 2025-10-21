@@ -31,9 +31,9 @@ func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *pr
 
 	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
 
-	view.Mass_field = views.BuildNewRangeROViewMap(view.AutoPanel, views.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
-	view.SG_field = views.BuildNewRangeROView(view.AutoPanel, views.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
-	view.Density_field = views.BuildNewRangeROView(view.AutoPanel, views.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
+	view.Mass_field = views.RangeROViewMap_from_new(view.AutoPanel, formats.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	view.SG_field = views.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
+	view.Density_field = views.RangeROView_from_new(view.AutoPanel, formats.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.Mass_field, windigo.Top)

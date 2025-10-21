@@ -38,18 +38,18 @@ type NumberEditView struct {
 	windigo.Labeled
 }
 
-func NewNumberEditViewFromLabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
+func NumberEditView_from_LabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
 	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, GUI.NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
 }
 
-func NewNumberEditView(parent windigo.Controller, field_text string) *NumberEditView {
-	edit_field := NewNumberEditViewFromLabeledEdit(windigo.NewLabeledEdit(parent, field_text))
+func NumberEditView_from_new(parent windigo.Controller, field_text string) *NumberEditView {
+	edit_field := NumberEditView_from_LabeledEdit(windigo.NewLabeledEdit(parent, field_text))
 	return edit_field
 }
 
-func NewNumberEditViewWithChange(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
+func NumberEditView_with_Change_from_new(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
 
-	edit_field := NewNumberEditView(parent, field_text)
+	edit_field := NumberEditView_from_new(parent, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
 		edit_field.Check(range_field.Check(edit_field.GetFixed()))
 	})
@@ -123,7 +123,7 @@ type NumberUnitsEditView struct {
 //		control.SetSize(label_width+control_width, height)
 //		control.Label().SetSize(label_width, height)
 //	}
-func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_units string) *NumberUnitsEditView {
+func NumberEditView_with_Units_from_new(parent *windigo.AutoPanel, field_text, field_units string) *NumberUnitsEditView {
 
 	panel := windigo.NewAutoPanel(parent)
 
@@ -162,4 +162,22 @@ func NewNumberEditViewWithUnits(parent *windigo.AutoPanel, field_text, field_uni
 	}
 
 	return &NumberUnitsEditView{NumberEditView{&GUI.View{ComponentFrame: panel}, GUI.NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
+}
+
+/*
+ * NumbestEditView
+ *
+ */
+type NumbestEditView struct {
+	NumberEditView
+}
+
+func NumbestEditView_from_new(parent windigo.Controller, field_text string) *NumbestEditView {
+	edit_field := NumberEditView_from_new(parent, field_text)
+	return &NumbestEditView{*edit_field}
+}
+
+func (control *NumbestEditView) SetLabeledSize(label_width, control_width, height int) {
+	control.SetSize(label_width+control_width, height)
+	control.Label().SetSize(label_width, height)
 }

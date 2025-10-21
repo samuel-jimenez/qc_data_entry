@@ -13,7 +13,7 @@ type SQLFilterViewable interface {
 	windigo.Controller
 	// windigo.Editable
 	// windigo.DiffLabelable
-	Get() SQLFilter
+	Get() string
 	Update(set []string)
 	AddItem(entry string)
 	DelItem(entry string)

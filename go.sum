@@ -33,10 +33,12 @@ github.com/sagikazarmark/locafero v0.12.0 h1:/NQhBAkUb4+fH1jivKHWusDYFjMOOKU88ee
 github.com/sagikazarmark/locafero v0.12.0/go.mod h1:sZh36u/YSZ918v0Io+U9ogLYQJ9tLLBmM4eneO6WwsI=
 github.com/samuel-jimenez/whatsupdocx v0.6.2 h1:0AGy2/f1l05mtrcplRXdb/Y0kpM3DXuPnIQJJl1e2/I=
 github.com/samuel-jimenez/whatsupdocx v0.6.2/go.mod h1:Q6uwA1lUjU5GO0Gwx2gEE7ENtK7G68bYqpNYggi5x98=
-github.com/samuel-jimenez/windigo v0.20.0 h1:EigsRoWndVQCSkRKvsbF1wP4ETf1Q86Y9PGb+N9r6lM=
-github.com/samuel-jimenez/windigo v0.20.0/go.mod h1:GIVFuMGl+ypJEbUrTg2ddEzegfD0SGqKWCRDfvse/3o=
+github.com/samuel-jimenez/windigo v0.23.1 h1:JEzoH4j2Lk7WAWcf2yRC6ipp8uSgqTSPQZE/fXTXbjc=
+github.com/samuel-jimenez/windigo v0.23.1/go.mod h1:GIVFuMGl+ypJEbUrTg2ddEzegfD0SGqKWCRDfvse/3o=
 github.com/samuel-jimenez/xml v0.2.4 h1:f0MZfU02VTeLbBerKbwKhsI55mjf5uYgWoZQq12qV3M=
 github.com/samuel-jimenez/xml v0.2.4/go.mod h1:atFEn/gqQFEykTzPoTarhoXuo07OcTt6cscwtStM5U0=
+github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e h1:MRM5ITcdelLK2j1vwZ3Je0FKVCfqOLp5zO6trqMLYs0=
+github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e/go.mod h1:XV66xRDqSt+GTGFMVlhk3ULuV0y9ZmzeVGR4mloJI3M=
 github.com/spf13/afero v1.15.0 h1:b/YBCLWAJdFWJTN9cLhiXXcD7mzKn9Dm86dNnfyQw1I=
 github.com/spf13/afero v1.15.0/go.mod h1:NC2ByUVxtQs4b3sIUphxK0NioZnmxgyCrfzeuq8lxMg=
 github.com/spf13/cast v1.10.0 h1:h2x0u2shc1QuLHfxi+cTJvs30+ZAHOGRic8uyGTDWxY=

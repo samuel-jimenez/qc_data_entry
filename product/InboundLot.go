@@ -1,4 +1,4 @@
-package blendbound
+package product
 
 import (
 	"database/sql"
@@ -10,20 +10,9 @@ import (
 	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
+	"github.com/samuel-jimenez/qc_data_entry/blender/inbound"
 	"github.com/samuel-jimenez/qc_data_entry/config"
-	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/util"
-)
-
-// TODO type00 export type
-// bs.inbound_status_list
-type Status string
-
-const (
-	Status_AVAILABLE   Status = "AVAILABLE"
-	Status_SAMPLED            = "SAMPLED"
-	Status_TESTED             = "TESTED"
-	Status_UNAVAILABLE        = "UNAVAILABLE"
 )
 
 type InboundLot struct {
@@ -36,21 +25,21 @@ type InboundLot struct {
 	Container_id   int64
 	Container_name string
 	Status_id      int64
-	Status_name    Status
+	Status_name    inbound.Status
 
 	// We don't use this yet.
-	// Container_type product.ProductContainerType
+	// Container_type ProductContainerType
 }
 
-func NewInboundLot() *InboundLot { return new(InboundLot) }
+func InboundLot_from_new() *InboundLot { return new(InboundLot) }
 
-func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_name string, Container_type product.ProductContainerType, status_name Status) *InboundLot {
+func InboundLot_from_values(Lot_number, product_name, provider_name, container_name string, Container_type ProductContainerType, status_name inbound.Status) *InboundLot {
 	if Lot_number == "" {
 		return nil
 	}
 	proc_name := "NewInboundLotFromValues"
 
-	Inbound := NewInboundLot()
+	Inbound := InboundLot_from_new()
 	Inbound.Lot_number = Lot_number
 	Inbound.Product_name = product_name
 	if err := DB.Select_ErrNoRows(
@@ -80,8 +69,8 @@ func NewInboundLotFromValues(Lot_number, product_name, provider_name, container_
 	return Inbound
 }
 
-func NewInboundLotFromRow(row *sql.Rows) (*InboundLot, error) {
-	Inbound := NewInboundLot()
+func InboundLot_from_Row(row *sql.Rows) (*InboundLot, error) {
+	Inbound := InboundLot_from_new()
 	err := row.Scan(
 		&Inbound.Lot_id, &Inbound.Lot_number,
 		&Inbound.Product_id, &Inbound.Product_name,
@@ -92,11 +81,11 @@ func NewInboundLotFromRow(row *sql.Rows) (*InboundLot, error) {
 	return Inbound, err
 }
 
-func NewInboundLotFromBlendComponent(blendComponent *blender.BlendComponent) *InboundLot {
+func InboundLot_from_BlendComponent(blendComponent *blender.BlendComponent) *InboundLot {
 	if !blendComponent.Inboundp {
 		return nil
 	}
-	Inbound := NewInboundLot()
+	Inbound := InboundLot_from_new()
 	Inbound.Lot_id = blendComponent.Lot_id
 	Inbound.Lot_number = blendComponent.Lot_name
 	Inbound.Container_name = blendComponent.Container_name
@@ -104,14 +93,14 @@ func NewInboundLotFromBlendComponent(blendComponent *blender.BlendComponent) *In
 	return Inbound
 }
 
-func NewInboundLotMapFromQuery() map[string]*InboundLot {
+func InboundLotMap_from_Query() map[string]*InboundLot {
 	InboundLotMap := make(map[string]*InboundLot)
 	proc_name := "NewInboundLotArrayFromQuery"
 
 	DB.Forall_err(proc_name,
 		func() {},
 		func(row *sql.Rows) error {
-			Inbound, err := NewInboundLotFromRow(row)
+			Inbound, err := InboundLot_from_Row(row)
 			if err != nil {
 				return err
 			}
@@ -128,7 +117,7 @@ func (object *InboundLot) Insert() {
 
 }
 
-func (object *InboundLot) Update_status(status Status) {
+func (object *InboundLot) Update_status(status inbound.Status) {
 	proc_name := "InboundLot.Update_status"
 	if err := DB.Select_Error("NewInboundLotFromValues status", DB.DB_Select_name_inbound_status_list.QueryRow(status), &object.Status_id); err != nil {
 		return
@@ -161,20 +150,20 @@ func IntMax(a, b int) int {
 func (object *InboundLot) Sample() {
 	proc_name := "InboundLot.Sample"
 
-	object.Update_status(Status_SAMPLED)
+	object.Update_status(inbound.Status_SAMPLED)
 	pdf_path, err := object.ExportSample_label()
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", proc_name, err)
 		return //err
 	}
-	product.Print_PDF(pdf_path)
+	Print_PDF(pdf_path)
 
 }
 
 func (object *InboundLot) ExportSample_label() (string, error) {
 
 	// func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
-	proc_name := "Product.Export_Storage_pdf"
+	proc_name := "InboundLot.ExportSample_label"
 
 	curr_col := 5.
 	curr_row := 10.
@@ -190,12 +179,12 @@ func (object *InboundLot) ExportSample_label() (string, error) {
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 32)
 
-	curr_row = product.Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Container_name)
+	curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Container_name)
 
-	curr_row = product.Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Lot_number)
+	curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Lot_number)
 
 	pdf.SetFontSize(22)
-	curr_row = product.Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Product_name)
+	curr_row = Increment_row_pdf(pdf, curr_col, curr_row, curr_row_delta, cell_width, cell_height, object.Product_name)
 
 	log.Println("Info: Saving to: ", file_path)
 	err := pdf.OutputFileAndClose(file_path)
@@ -215,15 +204,15 @@ func (object *InboundLot) Quality_test() {
 	DB.Insert(proc_name, DB.DB_Insert_inbound_relabel, Lot_Id, object.Lot_id, object.Container_id)
 
 	// make tested
-	object.Update_status(Status_TESTED)
+	object.Update_status(inbound.Status_TESTED)
 
 	//get recipes
 	DB.Forall_err(proc_name,
 		func() {},
 		func(row *sql.Rows) error {
-			BlendProduct := blender.NewBlendProduct()
-			ProductBlend := blender.NewProductBlend()
-			BlendComponent := blender.NewBlendComponent()
+			BlendProduct := blender.BlendProduct_from_new()
+			ProductBlend := blender.ProductBlend_from_new()
+			BlendComponent := blender.BlendComponent_from_new()
 			BlendProduct.Blend = ProductBlend
 
 			if err := row.Scan(
@@ -260,7 +249,7 @@ recipes:
 		DB.Forall_err(proc_name,
 			func() {},
 			func(row *sql.Rows) error {
-				OtherBlendComponent := blender.NewBlendComponent()
+				OtherBlendComponent := blender.BlendComponent_from_new()
 				OtherBlendComponent.Inboundp = true
 
 				if err := row.Scan(
@@ -275,7 +264,7 @@ recipes:
 				return nil
 			},
 			DB.DB_Select_inbound_lot_components,
-			ProductBlend.Recipe_id, BlendComponent.Component_type_id, Status_TESTED)
+			ProductBlend.Recipe_id, BlendComponent.Component_type_id, inbound.Status_TESTED)
 
 		// ensure all components are sampled
 		DB.Select_Error("MaxRecipeCount",

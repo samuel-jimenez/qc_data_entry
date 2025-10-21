@@ -8,7 +8,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/blender/blendbound"
+	"github.com/samuel-jimenez/qc_data_entry/blender/inbound"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -28,7 +28,7 @@ type TopPanelInboundViewer interface {
 	Hide()
 
 	RefreshLots()
-	RemoveInbound() *blendbound.InboundLot
+	RemoveInbound() *product.InboundLot
 
 	inbound_lot_field_OnSelectedChange(e *windigo.Event)
 	inbound_container_field_OnSelectedChange(e *windigo.Event)
@@ -44,10 +44,10 @@ type TopPanelInboundViewer interface {
  */
 type TopPanelInboundView struct {
 	*windigo.AutoPanel
-	Inbound_Lot                              *blendbound.InboundLot
+	Inbound_Lot                              *product.InboundLot
 	QC_Product                               *product.QCProduct
 	inbound_test                             string
-	inbound_lot_data, inbound_container_data map[string]*blendbound.InboundLot
+	inbound_lot_data, inbound_container_data map[string]*product.InboundLot
 
 	mainWindow *windigo.Form
 
@@ -75,8 +75,8 @@ func NewTopPanelInboundView(
 	// build object
 	view.QC_Product = QC_Product
 	view.inbound_test = "BSQL%"
-	view.inbound_lot_data = make(map[string]*blendbound.InboundLot)
-	view.inbound_container_data = make(map[string]*blendbound.InboundLot)
+	view.inbound_lot_data = make(map[string]*product.InboundLot)
+	view.inbound_container_data = make(map[string]*product.InboundLot)
 
 	view.mainWindow = mainWindow
 
@@ -112,7 +112,7 @@ func NewTopPanelInboundView(
 			view.inbound_lot_field.DeleteAllItems()
 		},
 		func(row *sql.Rows) error {
-			Inbound, err := blendbound.NewInboundLotFromRow(row)
+			Inbound, err := product.InboundLot_from_Row(row)
 			if err != nil {
 				return err
 			}
@@ -121,7 +121,7 @@ func NewTopPanelInboundView(
 			view.inbound_container_data[Inbound.Container_name] = Inbound
 			return nil
 		},
-		DB.DB_Select_inbound_lot_status, blendbound.Status_AVAILABLE)
+		DB.DB_Select_inbound_lot_status, inbound.Status_AVAILABLE)
 
 	for _, Container_name := range slices.Sorted(maps.Keys(view.inbound_container_data)) {
 		view.inbound_container_field.AddItem(Container_name)
@@ -224,7 +224,7 @@ func (view *TopPanelInboundView) RefreshLots() {
 	view.inbound_product_field.SetText("")
 }
 
-func (view *TopPanelInboundView) RemoveInbound() *blendbound.InboundLot {
+func (view *TopPanelInboundView) RemoveInbound() *product.InboundLot {
 	if view.Inbound_Lot == nil {
 		return nil
 	}
@@ -311,7 +311,7 @@ func (view *TopPanelInboundView) release_button_OnClick(e *windigo.Event) {
 			return
 		}
 
-		view.Inbound_Lot = blendbound.NewInboundLotFromBlendComponent(&blend.Components[0])
+		view.Inbound_Lot = product.InboundLot_from_BlendComponent(&blend.Components[0])
 		if view.Inbound_Lot == nil {
 			return
 		}
@@ -320,7 +320,7 @@ func (view *TopPanelInboundView) release_button_OnClick(e *windigo.Event) {
 	Inbound__Lot_ := view.RemoveInbound()
 	log.Printf("Info: Releasing %s: %s - %s\n", Inbound__Lot_.Container_name, Inbound__Lot_.Product_name, Inbound__Lot_.Lot_number)
 
-	Inbound__Lot_.Update_status(blendbound.Status_UNAVAILABLE)
+	Inbound__Lot_.Update_status(inbound.Status_UNAVAILABLE)
 
 	log.Println("TRACE: DEBUG: UPdate componnent DB_Update_lot_list__component_status", proc_name, Inbound__Lot_.Lot_number, Inbound__Lot_)
 

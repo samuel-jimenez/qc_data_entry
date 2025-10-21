@@ -3,7 +3,6 @@ package blender_ui
 import (
 	"database/sql"
 	"log"
-	"strconv"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
@@ -40,7 +39,7 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	recipe_text := ""
 
 	view := new(BlendProductView)
-	view.RecipeProduct = blender.NewRecipeProduct()
+	view.RecipeProduct = blender.RecipeProduct_from_new()
 	// view.BlendProduct = NewBlendProduct()
 
 	view.Product_data = make(map[string]int64)
@@ -54,13 +53,13 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 
 	view.Product_Field = GUI.NewLabeledListSearchBox(product_panel, product_text)
 
-	view.Blend_sel_field = GUI.NewListComboBox(recipe_panel, recipe_text)
+	view.Blend_sel_field = GUI.List_ComboBox_from_new(recipe_panel, recipe_text)
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
 	recipe_accept_button.SetText("OK")
 	recipe_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-	view.Blend = NewBlendView(view.AutoPanel)
+	view.Blend = BlendView_from_new(view.AutoPanel)
 
 	view.controls = append(view.controls, recipe_accept_button)
 
@@ -92,7 +91,7 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 
 	//event handling
 	view.Product_Field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		view.RecipeProduct = blender.NewRecipeProduct()
+		view.RecipeProduct = blender.RecipeProduct_from_new()
 		// view.BlendProduct = NewBlendProduct()
 		name := view.Product_Field.GetSelectedItem()
 		view.RecipeProduct.Set(view.Product_data[name])
@@ -102,23 +101,12 @@ func NewBlendProductView(parent windigo.Controller) *BlendProductView {
 	})
 
 	recipe_accept_button.OnClick().Bind(func(e *windigo.Event) {
-		log.Println("ERR: DEBUG: view Get:", view.Get())
+		log.Println("ERR: DEBUG: recipe_accept_button-view-Get:", view.Get())
 
 	})
 
 	view.Blend_sel_field.OnSelectedChange().Bind(func(e *windigo.Event) {
-		i, err := strconv.Atoi(view.Blend_sel_field.GetSelectedItem())
-		if err != nil {
-			log.Println("ERR: recipe_field strconv", err)
-			view.Blend.UpdateRecipe(nil)
-			return
-		}
-		view.Blend.UpdateRecipe(view.RecipeProduct.Recipes[i])
-
-		// view.Product = NewBlendProduct()
-		// name := product_field.GetSelectedItem()
-		// view.Product.Set(name, product_data[name])
-		// view.Product.LoadBlendCombo(recipe_field)
+		view.Blend.UpdateRecipe(view.RecipeProduct.Recipes[view.Blend_sel_field.GetSelectedItem()])
 	})
 
 	return view
@@ -131,7 +119,7 @@ func (view *BlendProductView) Get() *blender.BlendProduct {
 	if ProductBlend == nil {
 		return nil
 	}
-	BlendProduct := blender.NewBlendProductFromRecipe(view.RecipeProduct)
+	BlendProduct := blender.BlendProduct_from_Recipe(view.RecipeProduct)
 
 	if BlendProduct.Product_id == DB.INVALID_ID {
 		//TODO make error

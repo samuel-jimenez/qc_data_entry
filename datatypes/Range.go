@@ -12,17 +12,21 @@ import (
  */
 
 type Range struct {
-	Min    nullable.NullFloat64
-	Target nullable.NullFloat64
-	Max    nullable.NullFloat64
+	Min       nullable.NullFloat64
+	Target    nullable.NullFloat64
+	Max       nullable.NullFloat64
+	Valid     bool
+	Publish_p bool
 }
 
 func NewRange(
 	min nullable.NullFloat64,
 	target nullable.NullFloat64,
 	max nullable.NullFloat64,
+	Valid, Publish_p bool,
 ) Range {
-	return Range{min, target, max}
+	Valid = Valid || Publish_p || min.Valid || target.Valid || max.Valid
+	return Range{min, target, max, Valid, Publish_p}
 }
 
 // func (field_data Range) Check(data nullable.NullFloat64) bool {
@@ -33,12 +37,19 @@ func (field_data Range) Check(data float64) bool {
 }
 
 func (field_data Range) Map(data_map func(float64) float64) Range {
-	return Range{field_data.Min.Map(data_map),
+	return NewRange(field_data.Min.Map(data_map),
 		field_data.Target.Map(data_map),
-		field_data.Max.Map(data_map)}
+		field_data.Max.Map(data_map),
+		field_data.Valid,
+		field_data.Publish_p,
+	)
 }
 
-func (field_data Range) CoA(format func(float64) string) string {
+func (field_data Range) Print(format func(float64) string, coa_p bool) string {
+	ASIS := "As-is" //TODO datatypes.ASIS
+	if coa_p && !field_data.Publish_p {
+		return ASIS
+	}
 	if field_data.Min.Valid {
 		if field_data.Max.Valid {
 			return fmt.Sprintf("%s - %s", format(field_data.Min.Float64), format(field_data.Max.Float64))
@@ -48,5 +59,13 @@ func (field_data Range) CoA(format func(float64) string) string {
 		return fmt.Sprintf("≤ %s", format(field_data.Max.Float64))
 	}
 
-	return "As-is"
+	return ASIS
+}
+
+func (field_data Range) CoA(format func(float64) string) string {
+	return field_data.Print(format, true)
+}
+
+func (field_data Range) QC(format func(float64) string) string {
+	return field_data.Print(format, false)
 }

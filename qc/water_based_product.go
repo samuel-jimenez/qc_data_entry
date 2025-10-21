@@ -3,6 +3,7 @@ package qc
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
@@ -15,11 +16,16 @@ type WaterBasedProduct struct {
 }
 
 func (wb_product WaterBasedProduct) toProduct() product.Product {
+	PH := nullable.NewNullFloat64(wb_product.ph, true)
+	NULL := nullable.NewNullFloat64(0, false)
+	if wb_product.Product_name == "BIONIX GA510" && wb_product.ph == 0 {
+		PH = NULL
+	}
 	return product.Product{
 		BaseProduct: wb_product.Base(),
-		PH:          nullable.NewNullFloat64(wb_product.ph, true),
+		PH:          PH,
 		SG:          nullable.NewNullFloat64(wb_product.sg, true),
-		Density:     nullable.NewNullFloat64(0, false),
+		Density:     NULL,
 		String_test: nullable.NullInt64Default(),
 		Viscosity:   nullable.NullInt64Default(),
 	}
@@ -61,8 +67,8 @@ func newWaterBasedProductView(parent *windigo.AutoPanel, ranges_panel *WaterBase
 
 	visual_field := views.NewBoolCheckboxView(group_panel, VISUAL_TEXT)
 
-	ph_field := views.NewNumberEditViewWithChange(group_panel, views.PH_TEXT, ranges_panel.ph_field)
-	sg_field := views.NewNumberEditViewWithChange(group_panel, views.SG_TEXT, ranges_panel.sg_field)
+	ph_field := views.NumberEditView_with_Change_from_new(group_panel, formats.PH_TEXT, ranges_panel.ph_field)
+	sg_field := views.NumberEditView_with_Change_from_new(group_panel, formats.SG_TEXT, ranges_panel.sg_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)

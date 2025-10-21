@@ -107,10 +107,10 @@ func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable)
 	view := new(MassDataView)
 
 	//TAB ORDER
-	mass_field := NewNumberEditView(parent, MASS_TEXT)
+	mass_field := NumberEditView_from_new(parent, formats.MASS_TEXT)
 
-	sg_field := NewNumberEditViewWithUnits(parent, SG_TEXT, formats.SG_UNITS)
-	density_field := NewNumberEditViewWithUnits(parent, DENSITY_TEXT, formats.DENSITY_UNITS)
+	sg_field := NumberEditView_with_Units_from_new(parent, formats.SG_TEXT, formats.SG_UNITS)
+	density_field := NumberEditView_with_Units_from_new(parent, formats.DENSITY_TEXT, formats.DENSITY_UNITS)
 
 	//PUSH TO BOTTOM
 	parent.Dock(density_field, windigo.Bottom)

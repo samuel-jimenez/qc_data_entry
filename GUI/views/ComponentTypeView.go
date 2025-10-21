@@ -43,7 +43,7 @@ func NewComponentTypeView(parent *RecipeView) *ComponentTypeView {
 	view.AutoPanel.Dock(component_cancel_button, windigo.Left)
 
 	component_accept_button.OnClick().Bind(func(e *windigo.Event) {
-		component := blender.NewComponentType(view.component_add_field.Text())
+		component := blender.ComponentType_from_new(view.component_add_field.Text())
 		Product_id := parent.Product_data[component.Component_name]
 		if Product_id != DB.INVALID_ID {
 			component.AddProduct(Product_id)
