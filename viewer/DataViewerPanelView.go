@@ -7,6 +7,8 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
 	"github.com/xuri/excelize/v2"
@@ -38,22 +40,23 @@ type DataViewerPanelViewer interface {
 
 	// listeners
 
-	moniker_field_OnChange(e *windigo.Event)
-	moniker_clear_button_OnClick(e *windigo.Event)
+	moniker_field_OnChange(*windigo.Event)
+	moniker_clear_button_OnClick(*windigo.Event)
 
-	product_field_OnChange(e *windigo.Event)
-	product_clear_button_OnClick(e *windigo.Event)
+	product_field_OnChange(*windigo.Event)
+	product_clear_button_OnClick(*windigo.Event)
 
-	lot_field_OnChange(e *windigo.Event)
-	lot_clear_button_OnClick(e *windigo.Event)
-	lot_add_button_OnClick(e *windigo.Event)
+	lot_field_OnChange(*windigo.Event)
+	lot_clear_button_OnClick(*windigo.Event)
+	lot_add_button_OnClick(*windigo.Event)
 
-	filter_button_OnClick(e *windigo.Event)
-	search_button_OnClick(e *windigo.Event)
-	reprint_sample_button_OnClick(e *windigo.Event)
-	regen_sample_button_OnClick(e *windigo.Event)
-	export_json_button_OnClick(e *windigo.Event)
-	export_xl_button_OnClick(e *windigo.Event)
+	filter_button_OnClick(*windigo.Event)
+	search_button_OnClick(*windigo.Event)
+	reprint_sample_button_OnClick(*windigo.Event)
+	regen_sample_button_OnClick(*windigo.Event)
+	export_json_button_OnClick(*windigo.Event)
+	export_xl_button_OnClick(*windigo.Event)
+	ranges_button_OnClick(*windigo.Event)
 }
 
 /*
@@ -84,7 +87,7 @@ type DataViewerPanelView struct {
 
 	product_clear_button, lot_clear_button, lot_add_button, moniker_clear_button,
 	filter_button, search_button, clear_button,
-	reprint_sample_button, regen_sample_button, export_xl_button *windigo.PushButton
+	reprint_sample_button, regen_sample_button, export_xl_button, ranges_button *windigo.PushButton
 }
 
 // parent
@@ -121,6 +124,8 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	reprint_sample_label := "Reprint Sample"
 	regen_sample_label := "Regen Sample"
 	export_xl_label := "Export to Excel"
+
+	ranges_label := "QC Ranges"
 
 	view.AutoPanel = windigo.NewAutoPanel(mainWindow)
 
@@ -175,6 +180,9 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.export_xl_button = windigo.NewPushButton(view.AutoPanel)
 	view.export_xl_button.SetText(export_xl_label)
 
+	view.ranges_button = windigo.NewPushButton(view.AutoPanel)
+	view.ranges_button.SetText(ranges_label)
+
 	view.AutoPanel.Dock(view.product_panel, windigo.Top)
 	view.AutoPanel.Dock(view.lot_panel, windigo.Top)
 	view.AutoPanel.Dock(view.filter_button, windigo.Left)
@@ -184,6 +192,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.AutoPanel.Dock(view.reprint_sample_button, windigo.Left)
 	view.AutoPanel.Dock(view.regen_sample_button, windigo.Left)
 	view.AutoPanel.Dock(view.export_xl_button, windigo.Left)
+	view.AutoPanel.Dock(view.ranges_button, windigo.Left)
 
 	// functionality
 	view.SQLFilters.Filters = []SQLFilter{view.ProductFilter, view.LotFilter, view.MonikerFilter}
@@ -250,6 +259,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.reprint_sample_button.OnClick().Bind(view.reprint_sample_button_OnClick)
 	view.regen_sample_button.OnClick().Bind(view.regen_sample_button_OnClick)
 	view.export_xl_button.OnClick().Bind(view.export_xl_button_OnClick)
+	view.ranges_button.OnClick().Bind(view.ranges_button_OnClick)
 
 	return view
 }
@@ -273,6 +283,7 @@ func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 	view.reprint_sample_button.SetFont(font)
 	view.regen_sample_button.SetFont(font)
 	view.export_xl_button.SetFont(font)
+	view.ranges_button.SetFont(font)
 
 }
 
@@ -314,6 +325,7 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.reprint_sample_button.SetMarginLeft(reprint_sample_button_margin)
 	view.regen_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.export_xl_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	view.ranges_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
 }
 
@@ -536,4 +548,26 @@ func (view *DataViewerPanelView) export_xl_button_OnClick(e *windigo.Event) {
 		log.Println("Error: ", proc_name, err)
 	}
 
+}
+
+func (view *DataViewerPanelView) ranges_button_OnClick(e *windigo.Event) {
+	data := view.mainWindow.GetTableSelected()
+	var Product_name string
+
+	if len(data) == 0 {
+		Product_name = view.product_field.GetSelectedItem()
+	} else {
+		Product_name = data[0].(QCData).Product_name
+
+	}
+	if Product_name == "" {
+		return
+	}
+
+	qc_product := product.NewQCProduct()
+	qc_product.Product_name = Product_name
+	// qc_product.Insel_product_self() // get Product_id
+	qc_product.Product_id = int64(view.product_map[Product_name])
+	qc_product.Select_product_details()
+	views.ShowNewQCProductRangesView(qc_product)
 }
