@@ -1188,145 +1188,137 @@ where product_sample_storage_id = ?1
 	returning product_appearance_id, product_appearance_text
 	`)
 
-	BIG_RANGES_QC := `ph_measure,
-	ph_publish,
-	ph_min,
-	ph_target,
-	ph_max,
-
-	specific_gravity_measure,
-	specific_gravity_publish,
-	specific_gravity_min,
-	specific_gravity_target,
-	specific_gravity_max,
-
-	density_measure,
-	density_publish,
-	density_min,
-	density_target,
-	density_max,
-
-	string_test_measure,
-	string_test_publish,
-	string_test_min,
-	string_test_target,
-	string_test_max,
-
-	viscosity_measure,
-	viscosity_publish,
-	viscosity_min,
-	viscosity_target,
-	viscosity_max`
-
 	DB_Select_product_details = PrepareOrElse(db, `
 	select
 
 	product_type_id,
 	container_type_id,
 	product_appearance_text,
-	`+BIG_RANGES_QC+`
 
-	from bs.product_ranges_measured
+	max(case when qc_test_type_id = 2 then val_measure end) as ph_measure,
+	max(case when qc_test_type_id = 2 then val_publish end) as ph_publish,
+	max(case when qc_test_type_id = 2 then val_min end) as ph_min,
+	max(case when qc_test_type_id = 2 then val_target end) as ph_target,
+	max(case when qc_test_type_id = 2 then val_max end) as ph_max,
+
+	max(case when qc_test_type_id = 3 then val_measure end) as specific_gravity_measure,
+	max(case when qc_test_type_id = 3 then val_publish end) as specific_gravity_publish,
+	max(case when qc_test_type_id = 3 then val_min end) as specific_gravity_min,
+	max(case when qc_test_type_id = 3 then val_target end) as specific_gravity_target,
+	max(case when qc_test_type_id = 3 then val_max end) as specific_gravity_max,
+
+	max(case when qc_test_type_id = 4 then val_measure end) as density_measure,
+	max(case when qc_test_type_id = 4 then val_publish end) as density_publish,
+	max(case when qc_test_type_id = 4 then val_min end) as density_min,
+	max(case when qc_test_type_id = 4 then val_target end) as density_target,
+	max(case when qc_test_type_id = 4 then val_max end) as density_max,
+
+	max(case when qc_test_type_id = 5 then val_measure end) as string_test_measure,
+	max(case when qc_test_type_id = 5 then val_publish end) as string_test_publish,
+	max(case when qc_test_type_id = 5 then val_min end) as string_test_min,
+	max(case when qc_test_type_id = 5 then val_target end) as string_test_target,
+	max(case when qc_test_type_id = 5 then val_max end) as string_test_max,
+
+	max(case when qc_test_type_id = 6 then val_measure end) as viscosity_measure,
+	max(case when qc_test_type_id = 6 then val_publish end) as viscosity_publish,
+	max(case when qc_test_type_id = 6 then val_min end) as viscosity_min,
+	max(case when qc_test_type_id = 6 then val_target end) as viscosity_target,
+	max(case when qc_test_type_id = 6 then val_max end) as viscosity_max
+
+	from bs.product_attributes
+	left join bs.product_ranges_measured using (product_id)
 	left join bs.product_appearance using (product_appearance_id)
 		join bs.product_types using (product_type_id)
 	where product_id = ?1
 	`)
+	// group by product_id
 
-	BIG_DUMB_RANGES_UPSERT :=
-		`
+	BIG_RANGES_QC := ` val_measure,
+	val_publish,
+	val_min,
+	val_target,
+	val_max`
+	BIG_NAME_RANGES_QC := `product_id, qc_test_type_name,
+	` + BIG_RANGES_QC
+
+	BIG_ID_RANGES_QC := `product_id,
+	qc_test_type_id,
+	` + BIG_RANGES_QC
+
+	BIG_EXCLUDED_QC := `val_measure=excluded.val_measure,
+				val_publish=excluded.val_publish,
+				val_min=excluded.val_min,
+				val_target=excluded.val_target,
+				val_max=excluded.val_max`
+	DB_Upsert_product_details = PrepareOrElse(db, `
 	with
 	val
-	(product_id,
-	product_type_id,
-	product_appearance_text,
-
-	` + BIG_RANGES_QC + `
+	(
+		`+BIG_NAME_RANGES_QC+`
 	)
 	as (
 		values (
-			?,?,?,
-			?,?,?,?,?,
-			?,?,?,?,?,
-			?,?,?,?,?,
-			?,?,?,?,?,
+			?,?,
 			?,?,?,?,?)
-			),
-			sel as (
-				select
-				product_id,
-				product_type_id,
-				product_appearance_id,
+	),
 
+	sel as (select
+		`+BIG_ID_RANGES_QC+`
+	from val
+	join bs.qc_test_types using (qc_test_type_name)
+)
 
-				` + BIG_RANGES_QC + `
-
-				from val
-				left join bs.product_appearance using (product_appearance_text)
-				)`
-
-	BIG_EXCLUDED_QC := `ph_measure=excluded.ph_measure,
-				ph_publish=excluded.ph_publish,
-				ph_min=excluded.ph_min,
-				ph_target=excluded.ph_target,
-				ph_max=excluded.ph_max,
-
-				specific_gravity_measure=excluded.specific_gravity_measure,
-				specific_gravity_publish=excluded.specific_gravity_publish,
-				specific_gravity_min=excluded.specific_gravity_min,
-				specific_gravity_target=excluded.specific_gravity_target,
-				specific_gravity_max=excluded.specific_gravity_max,
-
-				density_measure=excluded.density_measure,
-				density_publish=excluded.density_publish,
-				density_min=excluded.density_min,
-				density_target=excluded.density_target,
-				density_max=excluded.density_max,
-
-				string_test_measure=excluded.string_test_measure,
-				string_test_publish=excluded.string_test_publish,
-				string_test_min=excluded.string_test_min,
-				string_test_target=excluded.string_test_target,
-				string_test_max=excluded.string_test_max,
-
-				viscosity_measure=excluded.viscosity_measure,
-				viscosity_publish=excluded.viscosity_publish,
-				viscosity_min=excluded.viscosity_min,
-				viscosity_target=excluded.viscosity_target,
-				viscosity_max=excluded.viscosity_max`
-	DB_Upsert_product_details = PrepareOrElse(db, BIG_DUMB_RANGES_UPSERT+`
 	insert into bs.product_ranges_measured
-		(product_id,
-		product_type_id,
-		product_appearance_id,
-		`+BIG_RANGES_QC+`
-		)
+	(
+		`+BIG_ID_RANGES_QC+`
+	)
 	select
-				product_id,
-				product_type_id,
-				product_appearance_id,
-
-				`+BIG_RANGES_QC+`
-				from sel
-			where true
-	on conflict(product_id) do update set
-
-		product_type_id=excluded.product_type_id,
-		product_appearance_id=excluded.product_appearance_id,
-		`+BIG_EXCLUDED_QC+`
-		returning range_id
-		`)
+	`+BIG_ID_RANGES_QC+`
+	from sel
+	where true
+	on conflict(product_id, qc_test_type_id) do update set
+	`+BIG_EXCLUDED_QC+`
+	returning range_id
+	`)
 
 	DB_Upsert_product_type = PrepareOrElse(db, `
-	insert into bs.product_ranges_measured
-		(product_id,
-		product_type_id)
-	values (?,?)
+	with
+	val
+	(
+		product_id,
+		product_type_id,
+		product_appearance_text
+	)
+	as (
+		values (
+			?,?,?
+		)
+	),
+	sel as (
+		select
+		product_id,
+		product_type_id,
+		product_appearance_id
+		from val
+		left join bs.product_appearance using (product_appearance_text)
+	)
+	insert into bs.product_attributes	(
+		product_id,
+		product_type_id,
+		product_appearance_id
+	)
+	select
+		product_id,
+		product_type_id,
+		product_appearance_id
+	from sel
+	where true
 	on conflict(product_id) do update set
+	product_type_id=excluded.product_type_id,
+	product_appearance_id=excluded.product_appearance_id
 
-		product_type_id=excluded.product_type_id
-
-		returning range_id
-		`)
+	returning product_attribute_id
+	`)
 
 }
 
