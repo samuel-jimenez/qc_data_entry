@@ -28,7 +28,7 @@ var (
  */
 
 type QCProduct struct {
-	Product
+	MeasuredProduct
 	Appearance     ProductAppearance
 	Product_type   Discrete
 	Container_type ProductContainerType // bs.container_types
@@ -50,7 +50,7 @@ func NewQCProduct() *QCProduct {
 
 func (qc_product *QCProduct) ResetQC() {
 	var empty_product QCProduct
-	empty_product.Product = qc_product.Product
+	empty_product.MeasuredProduct = qc_product.MeasuredProduct
 	empty_product.UpdateFN = qc_product.UpdateFN
 	*qc_product = empty_product
 }
@@ -131,20 +131,20 @@ func (qc_product QCProduct) write_CoA_rows(table *docx.Table) {
 		visual = "PASS"
 	}
 	Format_sg := func(sg float64) string {
-		return formats.Format_sg(sg, qc_product.Product.PH.Valid)
+		return formats.Format_sg(sg, qc_product.MeasuredProduct.PH.Valid)
 	}
 
 	// TODO: use QCProduct so this is not required
 	qc_product.Select_product_details()
 
 	write_CoA_row(table, formats.APPEARANCE_TEXT, Appearance_units, qc_product.Appearance.String, visual)
-	write_CoA_row_fmt(table, formats.PH_TEXT, "", qc_product.PH, qc_product.Product.PH, formats.Format_ph)
-	write_CoA_row_fmt(table, formats.SG_TEXT, formats.SG_UNITS, qc_product.SG, qc_product.Product.SG, Format_sg)
-	write_CoA_row_fmt(table, formats.DENSITY_TEXT, formats.DENSITY_UNITS, qc_product.Density, qc_product.Product.Density, formats.Format_density)
+	write_CoA_row_fmt(table, formats.PH_TEXT, "", qc_product.PH, qc_product.MeasuredProduct.PH, formats.Format_ph)
+	write_CoA_row_fmt(table, formats.SG_TEXT, formats.SG_UNITS, qc_product.SG, qc_product.MeasuredProduct.SG, Format_sg)
+	write_CoA_row_fmt(table, formats.DENSITY_TEXT, formats.DENSITY_UNITS, qc_product.Density, qc_product.MeasuredProduct.Density, formats.Format_density)
 	// write_CoA_row_fmt(table, string_title, formats.STRING_UNITS, product.String_test, product.Product.String_test, formats.Format_string_test)
-	write_CoA_row_fmt_int64(table, formats.STRING_TEXT_MINI, formats.STRING_UNITS, qc_product.String_test, qc_product.Product.String_test, formats.Format_string_test)
+	write_CoA_row_fmt_int64(table, formats.STRING_TEXT_MINI, formats.STRING_UNITS, qc_product.String_test, qc_product.MeasuredProduct.String_test, formats.Format_string_test)
 	// write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
-	write_CoA_row_fmt_int64(table, formats.VISCOSITY_TEXT, formats.VISCOSITY_UNITS, qc_product.Viscosity, qc_product.Product.Viscosity, formats.Format_viscosity)
+	write_CoA_row_fmt_int64(table, formats.VISCOSITY_TEXT, formats.VISCOSITY_UNITS, qc_product.Viscosity, qc_product.MeasuredProduct.Viscosity, formats.Format_viscosity)
 
 }
 
@@ -211,7 +211,7 @@ func (qc_product *QCProduct) Edit(
 	qc_product.Viscosity = Viscosity
 }
 
-func (qc_product QCProduct) Check(data Product) bool {
+func (qc_product QCProduct) Check(data MeasuredProduct) bool {
 	return qc_product.PH.Check(data.PH.Float64) && qc_product.SG.Check(data.SG.Float64)
 }
 

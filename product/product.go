@@ -21,7 +21,7 @@ var (
 	COA_LOT_TITLE = "Batch/Lot#"
 )
 
-type Product struct {
+type MeasuredProduct struct {
 	BaseProduct
 	PH          nullable.NullFloat64
 	SG          nullable.NullFloat64
@@ -30,7 +30,7 @@ type Product struct {
 	Viscosity   nullable.NullInt64
 }
 
-func (measured_product Product) Save() int64 {
+func (measured_product MeasuredProduct) Save() int64 {
 
 	proc_name := "Product.Save.Sample_point"
 	DB.Insert(proc_name, DB.DB_Insel_sample_point, measured_product.Sample_point)
@@ -119,7 +119,7 @@ func (measured_product Product) Save() int64 {
  * Returns next storage bin
  *
  */
-func (measured_product Product) NewStorageBin() int {
+func (measured_product MeasuredProduct) NewStorageBin() int {
 	var (
 		qc_sample_storage_id int
 	)
@@ -190,7 +190,7 @@ func (measured_product Product) NewStorageBin() int {
  * keep entire batches together
  *
  */
-func (measured_product Product) GetStorage(numSamples int) int {
+func (measured_product MeasuredProduct) GetStorage(numSamples int) int {
 
 	proc_name := "Product.GetStorage"
 
@@ -221,11 +221,11 @@ func (measured_product Product) GetStorage(numSamples int) int {
  * Check storage bin, print label if full
  *
  */
-func (measured_product Product) CheckStorage() {
+func (measured_product MeasuredProduct) CheckStorage() {
 	measured_product.GetStorage(1)
 }
 
-func Store(products ...Product) {
+func Store(products ...MeasuredProduct) {
 	numSamples := len(products)
 	if numSamples <= 0 {
 		return
@@ -252,7 +252,7 @@ func Store(products ...Product) {
 
 }
 
-func (measured_product Product) get_coa_template() string {
+func (measured_product MeasuredProduct) get_coa_template() string {
 	//TODO db
 	// return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, product.COA_TEMPLATE)
 	// Product_type split
@@ -264,11 +264,11 @@ func (measured_product Product) get_coa_template() string {
 	return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA.docx")
 }
 
-func (measured_product Product) get_coa_name() string {
+func (measured_product MeasuredProduct) get_coa_name() string {
 	return fmt.Sprintf("%s/%s", config.COA_FILEPATH, measured_product.get_base_filename("docx"))
 }
 
-func (measured_product Product) export_CoA() error {
+func (measured_product MeasuredProduct) export_CoA() error {
 	var (
 		p_title   = "[PRODUCT_NAME]"
 		Coa_title = "Parameter"
@@ -303,7 +303,7 @@ func (measured_product Product) export_CoA() error {
 	return doc.SaveTo(output_file)
 }
 
-func (measured_product Product) searchCOAPara(para *docx.Paragraph, p_title, product_name string) {
+func (measured_product MeasuredProduct) searchCOAPara(para *docx.Paragraph, p_title, product_name string) {
 	if strings.Contains(para.String(), p_title) {
 		for _, child := range para.Children {
 			if run := child.Run; run != nil && strings.Contains(run.String(), p_title) {
@@ -318,7 +318,7 @@ func (measured_product Product) searchCOAPara(para *docx.Paragraph, p_title, pro
 	}
 }
 
-func (measured_product Product) searchCOATable(table *docx.Table, Coa_title string, terms []string) {
+func (measured_product MeasuredProduct) searchCOATable(table *docx.Table, Coa_title string, terms []string) {
 	for _, row := range table.RowContents {
 		if measured_product.searchCOARow(table, row.Row, Coa_title, terms) {
 			return
@@ -326,7 +326,7 @@ func (measured_product Product) searchCOATable(table *docx.Table, Coa_title stri
 	}
 }
 
-func (measured_product Product) searchCOARow(table *docx.Table, row *docx.Row, Coa_title string, terms []string) (finished bool) {
+func (measured_product MeasuredProduct) searchCOARow(table *docx.Table, row *docx.Row, Coa_title string, terms []string) (finished bool) {
 	currentHeading := ""
 ROW:
 	for i, cell := range row.Contents {
@@ -340,7 +340,7 @@ ROW:
 				if currentHeading == "" {
 					field_string := field.String()
 					if strings.Contains(field_string, Coa_title) {
-						QCProduct{Product: measured_product}.write_CoA_rows(table)
+						QCProduct{MeasuredProduct: measured_product}.write_CoA_rows(table)
 						return true
 					}
 					for _, term := range terms {
@@ -362,19 +362,19 @@ ROW:
 	return false
 }
 
-func (measured_product Product) toProduct() Product {
+func (measured_product MeasuredProduct) toProduct() MeasuredProduct {
 	return measured_product
 }
 
-func (measured_product Product) Check_data() bool {
+func (measured_product MeasuredProduct) Check_data() bool {
 	return measured_product.Valid
 }
 
-func (measured_product Product) Printout() error {
+func (measured_product MeasuredProduct) Printout() error {
 	return measured_product.print()
 }
 
-func (measured_product Product) Output() error {
+func (measured_product MeasuredProduct) Output() error {
 	if err := measured_product.Printout(); err != nil {
 		log.Printf("Error: [%s]: %q\n", "Output", err)
 		log.Printf("Debug: %q: %v\n", err, measured_product)
@@ -385,14 +385,14 @@ func (measured_product Product) Output() error {
 
 }
 
-func (measured_product *Product) format_sample() {
+func (measured_product *MeasuredProduct) format_sample() {
 	if measured_product.Product_name_customer != "" {
 		measured_product.Product_name = measured_product.Product_name_customer
 	}
 	measured_product.Sample_point = ""
 }
 
-func (measured_product Product) Output_sample() error {
+func (measured_product MeasuredProduct) Output_sample() error {
 	log.Println("DEBUG: Output_sample ", measured_product)
 	measured_product.format_sample()
 	log.Println("DEBUG: Output_sample formatted", measured_product)
@@ -444,13 +444,13 @@ func updateExcel(file_name, worksheet_name string, row ...string) error {
 	})
 }
 
-func (measured_product Product) Save_xl() error {
+func (measured_product MeasuredProduct) Save_xl() error {
 	isomeric_product := strings.Split(measured_product.Product_name, " ")[1]
 	valence_product := strings.Split(measured_product.Product_name_customer, " ")[1]
 	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, measured_product.Lot_number, isomeric_product, valence_product)
 }
 
-func (measured_product Product) print() error {
+func (measured_product MeasuredProduct) print() error {
 
 	pdf_path, err := measured_product.export_label_pdf()
 	if err != nil {
@@ -463,11 +463,11 @@ func (measured_product Product) print() error {
 	return err
 }
 
-func (measured_product Product) Reprint() {
+func (measured_product MeasuredProduct) Reprint() {
 	Print_PDF(measured_product.get_pdf_name())
 }
 
-func (measured_product Product) Reprint_sample() {
+func (measured_product MeasuredProduct) Reprint_sample() {
 	measured_product.format_sample()
 	log.Println("DEBUG: Reprint_sample formatted", measured_product)
 	measured_product.Reprint()

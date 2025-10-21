@@ -14,8 +14,8 @@ type OilBasedProduct struct {
 	sg float64
 }
 
-func (ob_product OilBasedProduct) toProduct() product.Product {
-	return product.Product{
+func (ob_product OilBasedProduct) toProduct() product.MeasuredProduct {
+	return product.MeasuredProduct{
 		BaseProduct: ob_product.Base(),
 		PH:          nullable.NewNullFloat64(0, false),
 		SG:          nullable.NewNullFloat64(ob_product.sg, true),
@@ -28,7 +28,7 @@ func (ob_product OilBasedProduct) toProduct() product.Product {
 }
 
 func newOilBasedProduct(base_product product.BaseProduct,
-	have_visual bool, mass float64) product.Product {
+	have_visual bool, mass float64) product.MeasuredProduct {
 	base_product.Visual = have_visual
 	sg := formats.SG_from_mass(mass)
 
@@ -42,7 +42,7 @@ func (product OilBasedProduct) Check_data() bool {
 
 type OilBasedProductViewer interface {
 	*windigo.AutoPanel
-	Get(base_product product.BaseProduct) product.Product
+	Get(base_product product.BaseProduct) product.MeasuredProduct
 	Clear()
 	SetFont(font *windigo.Font)
 	RefreshSize()
@@ -70,7 +70,7 @@ func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedPro
 	return view
 }
 
-func (view *OilBasedProductView) Get(base_product product.BaseProduct) product.Product {
+func (view *OilBasedProductView) Get(base_product product.BaseProduct) product.MeasuredProduct {
 	// base_product.Visual = view.visual_field.Checked()
 	return newOilBasedProduct(base_product, view.visual_field.Get(), view.density_field.Get())
 }

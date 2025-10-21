@@ -67,7 +67,7 @@ func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s", config.LABEL_PATH, product.get_base_filename("pdf"))
 }
 
-func (product Product) get_storage_pdf_name(qc_sample_storage_name string) string {
+func (product MeasuredProduct) get_storage_pdf_name(qc_sample_storage_name string) string {
 	return fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, qc_sample_storage_name, "pdf")
 }
 

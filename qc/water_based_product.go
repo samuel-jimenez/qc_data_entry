@@ -17,13 +17,13 @@ type WaterBasedProduct struct {
 	ph float64
 }
 
-func (wb_product WaterBasedProduct) toProduct() product.Product {
+func (wb_product WaterBasedProduct) toProduct() product.MeasuredProduct {
 	PH := nullable.NewNullFloat64(wb_product.ph, true)
 	NULL := nullable.NewNullFloat64(0, false)
 	if strings.Contains(wb_product.Product_name, "BIONIX") && wb_product.ph == 0 {
 		PH = NULL
 	}
-	return product.Product{
+	return product.MeasuredProduct{
 		BaseProduct: wb_product.Base(),
 		PH:          PH,
 		SG:          nullable.NewNullFloat64(wb_product.sg, true),
@@ -35,7 +35,7 @@ func (wb_product WaterBasedProduct) toProduct() product.Product {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product product.BaseProduct, have_visual bool, sg, ph float64) product.Product {
+func newWaterBasedProduct(base_product product.BaseProduct, have_visual bool, sg, ph float64) product.MeasuredProduct {
 
 	base_product.Visual = have_visual
 
@@ -48,7 +48,7 @@ func (product WaterBasedProduct) Check_data() bool {
 }
 
 type WaterBasedProductViewer interface {
-	Get(base_product product.BaseProduct) product.Product
+	Get(base_product product.BaseProduct) product.MeasuredProduct
 	Clear()
 	SetFont(font *windigo.Font)
 	RefreshSize()
@@ -84,7 +84,7 @@ func newWaterBasedProductView(parent *windigo.AutoPanel, ranges_panel *WaterBase
 	return view
 }
 
-func (view *WaterBasedProductView) Get(base_product product.BaseProduct) product.Product {
+func (view *WaterBasedProductView) Get(base_product product.BaseProduct) product.MeasuredProduct {
 	return newWaterBasedProduct(base_product, view.visual_field.Get(), view.sg_field.Get(), view.ph_field.Get())
 }
 

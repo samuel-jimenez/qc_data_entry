@@ -116,8 +116,8 @@ func ToString(data nullable.NullFloat64, format func(float64) string) string {
 	return ""
 }
 
-func (data QCData) Product() *product.Product {
-	return &product.Product{BaseProduct: product.BaseProduct{
+func (data QCData) Product() *product.MeasuredProduct {
+	return &product.MeasuredProduct{BaseProduct: product.BaseProduct{
 		Product_name:          data.Product_name,
 		Lot_number:            data.Lot_name,
 		Sample_point:          data.Sample_point.String,

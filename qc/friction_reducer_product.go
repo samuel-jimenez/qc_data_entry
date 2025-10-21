@@ -18,8 +18,8 @@ type FrictionReducerProduct struct {
 	viscosity   int64
 }
 
-func (fr_product FrictionReducerProduct) toProduct() product.Product {
-	return product.Product{
+func (fr_product FrictionReducerProduct) toProduct() product.MeasuredProduct {
+	return product.MeasuredProduct{
 		BaseProduct: fr_product.Base(),
 		PH:          nullable.NewNullFloat64(0, false),
 		SG:          nullable.NewNullFloat64(fr_product.sg, true),
@@ -29,7 +29,7 @@ func (fr_product FrictionReducerProduct) toProduct() product.Product {
 	}
 }
 
-func newFrictionReducerProduct(base_product product.BaseProduct, viscosity, mass, string_test float64) product.Product {
+func newFrictionReducerProduct(base_product product.BaseProduct, viscosity, mass, string_test float64) product.MeasuredProduct {
 
 	sg := formats.SG_from_mass(mass)
 
@@ -43,7 +43,7 @@ func (product *FrictionReducerProduct) Check_data() bool {
 
 type FrictionReducerProductViewer interface {
 	*windigo.AutoPanel
-	Get(base_product product.BaseProduct, replace_sample_point bool) product.Product
+	Get(base_product product.BaseProduct, replace_sample_point bool) product.MeasuredProduct
 	Clear()
 	SetFont(font *windigo.Font)
 	Refresh()
@@ -84,7 +84,7 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 }
 
-func (view *FrictionReducerProductView) Get(base_product product.BaseProduct, replace_sample_point bool) product.Product {
+func (view *FrictionReducerProductView) Get(base_product product.BaseProduct, replace_sample_point bool) product.MeasuredProduct {
 	base_product.Visual = view.visual_field.Checked()
 	if replace_sample_point {
 		base_product.Sample_point = view.sample_point

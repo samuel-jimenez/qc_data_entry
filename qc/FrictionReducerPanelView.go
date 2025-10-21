@@ -197,7 +197,7 @@ func (view *FrictionReducerPanelView) tote_cb() {
 }
 
 // TODO
-func check_dual_data(top_product, bottom_product product.Product) {
+func check_dual_data(top_product, bottom_product product.MeasuredProduct) {
 	// DELTA_DIFF_VISCO := 200
 	var DELTA_DIFF_VISCO int64 = 200 //go sucks
 
