@@ -1281,6 +1281,9 @@ where product_sample_storage_id = ?1
 	returning range_id
 	`)
 
+	product_type_id := `product_id,
+	product_type_id,
+	product_appearance_id`
 	DB_Upsert_product_type = PrepareOrElse(db, `
 	with
 	val
@@ -1296,21 +1299,15 @@ where product_sample_storage_id = ?1
 	),
 	sel as (
 		select
-		product_id,
-		product_type_id,
-		product_appearance_id
+		`+product_type_id+`
 		from val
 		left join bs.product_appearance using (product_appearance_text)
 	)
 	insert into bs.product_attributes	(
-		product_id,
-		product_type_id,
-		product_appearance_id
+		`+product_type_id+`
 	)
 	select
-		product_id,
-		product_type_id,
-		product_appearance_id
+		`+product_type_id+`
 	from sel
 	where true
 	on conflict(product_id) do update set
