@@ -264,8 +264,8 @@ func (measured_product Product) get_coa_template() string {
 	return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA.docx")
 }
 
-func (product Product) get_coa_name() string {
-	return fmt.Sprintf("%s/%s", config.COA_FILEPATH, product.get_base_filename("docx"))
+func (measured_product Product) get_coa_name() string {
+	return fmt.Sprintf("%s/%s", config.COA_FILEPATH, measured_product.get_base_filename("docx"))
 }
 
 func (measured_product Product) export_CoA() error {
