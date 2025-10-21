@@ -26,32 +26,31 @@ type BlenderWinder interface {
 type BlenderWindow struct {
 	*windigo.Form
 
-	// Blend_product_view *views.BlendProductView
-	Blend_product_view *BlendProductView
+	Blend_product_view *BlendStrappingProductView
 }
 
-func NewBlenderWindow(parent windigo.Controller) *BlenderWindow {
-	window_title := "QC Data Blender"
+func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
+	window_title := "Blender"
 
 	// build window
-	mainWindow := new(BlenderWindow)
-	mainWindow.Form = windigo.NewForm(parent)
+	view := new(BlenderWindow)
+	view.Form = windigo.NewForm(parent)
 	// mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-	mainWindow.SetText(window_title)
+	view.SetText(window_title)
 
-	dock := windigo.NewSimpleDock(mainWindow)
+	dock := windigo.NewSimpleDock(view)
+	// BlendVessel
 
-	// mainWindow.Blend_product_view = views.NewBlendProductView(mainWindow)
-	mainWindow.Blend_product_view = NewBlendProductView(mainWindow)
+	view.Blend_product_view = BlendStrappingProductView_from_new(view)
 
 	// threads.Status_bar = windigo.NewStatusBar(mainWindow)
 	// mainWindow.SetStatusBar(threads.Status_bar)
 	// dock.Dock(threads.Status_bar, windigo.Bottom)
 
 	// Dock
-	dock.Dock(mainWindow.Blend_product_view, windigo.Fill)
+	dock.Dock(view.Blend_product_view, windigo.Fill)
 
-	return mainWindow
+	return view
 }
 
 // functionality
@@ -72,10 +71,10 @@ func (view *BlenderWindow) AddShortcuts() {
 	toplevel_ui.AddShortcuts(view)
 }
 
-func (mainWindow *BlenderWindow) Set_font_size() {
+func (view *BlenderWindow) Set_font_size() {
 	toplevel_ui.Set_font_size()
-	mainWindow.SetFont(windigo.DefaultFont)
-	mainWindow.RefreshSize()
+	view.SetFont(windigo.DefaultFont)
+	view.RefreshSize()
 }
 func (view *BlenderWindow) Increase_font_size() bool {
 	config.BASE_FONT_SIZE += 1

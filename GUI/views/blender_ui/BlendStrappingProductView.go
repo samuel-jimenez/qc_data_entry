@@ -1,4 +1,4 @@
-package fr_ui
+package blender_ui
 
 import (
 	"database/sql"
@@ -22,6 +22,7 @@ import (
 type BlendStrappingProductViewer interface {
 	windigo.Pane
 
+	Operations_group_field_OnSelectedChange(*windigo.Event)
 	Product_Field_OnSelectedChange(*windigo.Event)
 	recipe_accept_button_OnClick(*windigo.Event)
 	Blend_sel_field_OnSelectedChange(*windigo.Event)
@@ -47,6 +48,7 @@ type BlendStrappingProductView struct {
 	Blend         *BlendView
 	Product_data  map[string]int64
 	Product_Field *GUI.SearchBox
+	Operations_group_field,
 	Customer_field,
 	Blend_sel_field *GUI.ComboBox
 
@@ -62,6 +64,7 @@ type BlendStrappingProductView struct {
 
 func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappingProductView {
 
+	ops_group_text := "Ops Group"
 	product_text := "Product"
 	// recipe_text := ""
 	recipe_text := "Recipe"
@@ -81,16 +84,20 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
+	ops_group_panel := windigo.NewAutoPanel(view)
 	product_panel := windigo.NewAutoPanel(view)
 	tag_seal_panel := windigo.NewAutoPanel(view)
 	ops_panel := windigo.NewAutoPanel(view)
 	recipe_panel := windigo.NewAutoPanel(view)
 	view.Blend_Vessel = BlendVessel_from_new(view)
 
+	view.panels = append(view.panels, ops_group_panel)
 	view.panels = append(view.panels, product_panel)
 	view.panels = append(view.panels, ops_panel)
 	view.panels = append(view.panels, tag_seal_panel)
 	view.panels = append(view.panels, recipe_panel)
+
+	view.Operations_group_field = GUI.List_ComboBox_from_new(ops_group_panel, ops_group_text)
 
 	view.Product_Field = GUI.NewLabeledListSearchBox(product_panel, product_text)
 
@@ -112,6 +119,7 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 
 	// Dock
 
+	view.Dock(ops_group_panel, windigo.Top)
 	view.Dock(product_panel, windigo.Top)
 	view.Dock(tag_seal_panel, windigo.Top)
 	view.Dock(ops_panel, windigo.Top)
@@ -119,6 +127,8 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 	view.Dock(view.Blend_Vessel, windigo.Top)
 	view.Dock(view.Blend, windigo.Top)
 	view.Dock(recipe_panel, windigo.Top)
+
+	ops_group_panel.Dock(view.Operations_group_field, windigo.Left)
 
 	product_panel.Dock(view.Product_Field, windigo.Left)
 	product_panel.Dock(view.Customer_field, windigo.Left)
@@ -129,8 +139,6 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 	recipe_panel.Dock(recipe_accept_button, windigo.Left)
 
 	// combobox
-	// TODO
-	// operations_group
 	GUI.Fill_combobox_from_query_rows(view.Product_Field, func(row *sql.Rows) error {
 		var (
 			id                   int64
@@ -142,14 +150,19 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 		}
 		name := product_moniker_name + " " + internal_name
 		view.Product_data[name] = id
-		view.Product_Field.AddItem(name)
 		return nil
 	},
-		DB.DB_Select_product_info_moniker,
-		"PETROFLO")
-	// DB_Select_product_info_all
+		DB.DB_Select_product_info_all)
 
+	for _, name := range []string{"BSFR", "BSWB", "BSWH"} {
+		view.Operations_group_field.AddItem(name)
+	}
+	view.Operations_group_field.SetSelectedItem(0)
+	view.Operations_group_field_OnSelectedChange(nil)
 	//event handling
+
+	view.Operations_group_field.OnSelectedChange().Bind(view.Operations_group_field_OnSelectedChange)
+
 	view.Product_Field.OnSelectedChange().Bind(view.Product_Field_OnSelectedChange)
 	recipe_accept_button.OnClick().Bind(view.recipe_accept_button_OnClick)
 	view.Blend_sel_field.OnSelectedChange().Bind(view.Blend_sel_field_OnSelectedChange)
@@ -162,6 +175,8 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 func (view *BlendStrappingProductView) SetFont(font *windigo.Font) {
 	view.Blend_Vessel.SetFont(windigo.DefaultFont)
 	view.Blend.SetFont(font)
+
+	view.Operations_group_field.SetFont(font)
 	view.Product_Field.SetFont(font)
 	view.Customer_field.SetFont(font)
 	view.Blend_sel_field.SetFont(font)
@@ -182,6 +197,7 @@ func (view *BlendStrappingProductView) RefreshSize() {
 		panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	}
 
+	view.Operations_group_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Product_Field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Customer_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Customer_field.SetPaddingLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
@@ -193,6 +209,43 @@ func (view *BlendStrappingProductView) RefreshSize() {
 	view.Operators_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH+GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Blend.RefreshSize()
 
+}
+
+func (view *BlendStrappingProductView) Operations_group_field_OnSelectedChange(e *windigo.Event) {
+	var (
+		select_statement *sql.Stmt
+		args             []any
+	)
+	switch view.Operations_group_field.GetSelectedItem() {
+
+	case "BSFR":
+		select_statement = DB.DB_Select_product_info_moniker
+
+		args = []any{
+			"PETROFLO"}
+
+	// case "BSWB":
+	// case "BSWH":
+	default:
+
+		select_statement = DB.DB_Select_product_info_all
+
+	}
+	GUI.Fill_combobox_from_query_rows(view.Product_Field, func(row *sql.Rows) error {
+		var (
+			id                   int64
+			internal_name        string
+			product_moniker_name string
+		)
+		if err := row.Scan(&id, &internal_name, &product_moniker_name); err != nil {
+			return err
+		}
+		name := product_moniker_name + " " + internal_name
+		view.Product_Field.AddItem(name)
+		return nil
+	},
+		select_statement,
+		args...)
 }
 
 func (view *BlendStrappingProductView) Product_Field_OnSelectedChange(e *windigo.Event) {
@@ -242,7 +295,6 @@ func (view *BlendStrappingProductView) Blend_sel_field_OnSelectedChange(e *windi
 // print blend sheet
 // TODO
 // operations_group
-// func (view *BlendStrappingProductView) Get() *blender.BlendProduct {
 func (view *BlendStrappingProductView) Get() *blendsheet.BlendSheet {
 
 	//TODO
@@ -257,15 +309,11 @@ func (view *BlendStrappingProductView) Get() *blendsheet.BlendSheet {
 		view.RecipeProduct.Product_id,
 		ProductBlend.Total)
 
-	operations_group := "BSFR" //TODO CAP
-
 	Blend_Sheet := blendsheet.BlendSheet_from_new(ProductBlend,
-
 		view.Product_Field.GetSelectedItem(),
-		operations_group,
+		view.Operations_group_field.GetSelectedItem(),
 		view.Customer_field.GetSelectedItem(),
 		view.RecipeProduct.Product_id,
-
 		view.Blend_Vessel.Get(),
 		view.Blend.Total_Component.Get(),
 		view.Tag_field.Text(),

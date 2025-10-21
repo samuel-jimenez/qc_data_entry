@@ -1,4 +1,4 @@
-package fr_ui
+package blender_ui
 
 import (
 	"database/sql"
@@ -218,21 +218,12 @@ func (view *BlendVessel) SetStrap(volume float64) {
 	view.Strap_field.Set(view.Strap)
 }
 
-// func (view *BlendVessel) Get() (string, string, float64, float64, float64) {
-// 	return view.Vessel_field.Text(),
-// 	// view.Capacity_amount,
-// 	view.Capacity_description,
-// 	view.Strap,
-// 	view.HeelVolume,
-// 	view.HeelMass
-// }
-
 func (view *BlendVessel) Get() blender.BlendWessel {
 	return blender.BlendWessel{
-		view.Vessel_field.Text(),
+		Vessel: view.Vessel_field.Text(),
 		// view.Capacity_amount,
-		view.Capacity_description,
-		view.Strap,
-		view.HeelVolume,
-		view.HeelMass}
+		Capacity:   view.Capacity_description,
+		Strap:      view.Strap,
+		HeelVolume: view.HeelVolume,
+		HeelMass:   view.HeelMass}
 }

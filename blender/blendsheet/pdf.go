@@ -1,4 +1,4 @@
-package fr_ui
+package blendsheet
 
 import (
 	"encoding/json"
@@ -212,7 +212,7 @@ func (measured_product BlendSheet) get_qr_name() string {
 	return fmt.Sprintf("%s/%s.png", config.QR_PATH, strings.ToUpper(measured_product.Lot_number))
 }
 
-func (measured_product BlendSheet) export_pdf() (string, error) {
+func (measured_product BlendSheet) Export_pdf() (string, error) {
 	var (
 		label_width, Top_f_height,
 		field_width, field_height,

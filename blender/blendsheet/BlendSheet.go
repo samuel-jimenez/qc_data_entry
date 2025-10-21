@@ -1,4 +1,4 @@
-package fr_ui
+package blendsheet
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
@@ -158,8 +158,9 @@ step_text
 
 
 */
+func BlendSheet_from_new(ProductBlend *blender.ProductBlend, Product_name, operations_group, Product_name_customer string, Product_id int64, BlendVessel blender.BlendWessel, Total_Component *blender.BlendComponent,
 
-func BlendSheet_from_new(ProductBlend *blender.ProductBlend, Product_name, operations_group, Product_name_customer string, Product_id int64, BlendVessel *BlendVessel, Total_Component *blender.BlendComponent,
+	// func BlendSheet_from_new(ProductBlend *blender.ProductBlend, Product_name, operations_group, Product_name_customer string, Product_id int64, BlendVessel *BlendWessel, Total_Component *blender.BlendComponent,
 	Tag, Seal, Operators string) *BlendSheet {
 
 	proc_name := "BlendSheet_from_new"

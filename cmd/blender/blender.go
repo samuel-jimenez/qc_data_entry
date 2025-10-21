@@ -53,7 +53,7 @@ func main() {
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
 	//show main window
-	toplevel_ui.Show_window(blender_ui.NewBlenderWindow(nil))
+	toplevel_ui.Show_window(blender_ui.BlenderWindow_from_new(nil))
 
 	//TODO do something with this guy
 	// toplevel_ui.Show_window(blender_ui.NewFormulatorWindow(nil))
