@@ -30,7 +30,7 @@ type BlenderWindow struct {
 }
 
 func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
-	window_title := "QC Data Blender"
+	window_title := "Blender"
 
 	// build window
 	view := new(BlenderWindow)
