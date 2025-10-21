@@ -57,7 +57,7 @@ func (qc_product *QCProduct) ResetQC() {
 
 func (qc_product *QCProduct) Select_product_details() {
 	proc_name := "Select_product_details"
-	DB.Select_Error(
+	DB.Select_ErrNoRows(
 		proc_name,
 		DB.DB_Select_product_details.QueryRow(qc_product.Product_id),
 		&qc_product.Product_type, &qc_product.Container_type, &qc_product.Appearance,
