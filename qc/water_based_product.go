@@ -1,6 +1,8 @@
 package qc
 
 import (
+	"strings"
+
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
@@ -18,7 +20,7 @@ type WaterBasedProduct struct {
 func (wb_product WaterBasedProduct) toProduct() product.Product {
 	PH := nullable.NewNullFloat64(wb_product.ph, true)
 	NULL := nullable.NewNullFloat64(0, false)
-	if wb_product.Product_name == "BIONIX GA510" && wb_product.ph == 0 {
+	if strings.Contains(wb_product.Product_name, "BIONIX") && wb_product.ph == 0 {
 		PH = NULL
 	}
 	return product.Product{
