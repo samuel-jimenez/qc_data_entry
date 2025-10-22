@@ -1,14 +1,13 @@
 package product
 
 import (
-	"log"
-
 	"codeberg.org/go-pdf/fpdf"
 	"github.com/samuel-jimenez/whatsupdocx/docx"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 
 	"github.com/samuel-jimenez/qc_data_entry/datatypes"
 	// "github.com/samuel-jimenez/whatsupdocx/docx"
@@ -70,27 +69,36 @@ func (qc_product *QCProduct) Select_product_details() {
 }
 
 func (qc_product QCProduct) Upsert() {
-
+	var err error
+	proc_name := "QCProduct-Upsert"
 	DB.DB_Insert_appearance.Exec(qc_product.Appearance)
-	DB.DB_Upsert_product_type.Exec(qc_product.Product_id, qc_product.Product_type)
-	_, err := DB.DB_Upsert_product_details.Exec(
-		qc_product.Product_id, qc_product.Product_type, qc_product.Appearance,
+	DB.DB_Upsert_product_type.Exec(qc_product.Product_id, qc_product.Product_type, qc_product.Appearance)
+	_, err = DB.DB_Upsert_product_details.Exec(
+		qc_product.Product_id, formats.PH_TEXT,
 		qc_product.PH.Valid, qc_product.PH.Publish_p, qc_product.PH.Min, qc_product.PH.Target, qc_product.PH.Max,
+	)
+	util.LogError(proc_name, err)
+
+	_, err = DB.DB_Upsert_product_details.Exec(
+		qc_product.Product_id, formats.SG_TEXT,
 		qc_product.SG.Valid, qc_product.SG.Publish_p, qc_product.SG.Min, qc_product.SG.Target, qc_product.SG.Max,
+	)
+	util.LogError(proc_name, err)
+	_, err = DB.DB_Upsert_product_details.Exec(
+		qc_product.Product_id, formats.DENSITY_TEXT,
 		qc_product.Density.Valid, qc_product.Density.Publish_p, qc_product.Density.Min, qc_product.Density.Target, qc_product.Density.Max,
+	)
+	util.LogError(proc_name, err)
+	_, err = DB.DB_Upsert_product_details.Exec(
+		qc_product.Product_id, formats.STRING_TEXT_MINI,
 		qc_product.String_test.Valid, qc_product.String_test.Publish_p, qc_product.String_test.Min, qc_product.String_test.Target, qc_product.String_test.Max,
+	)
+	util.LogError(proc_name, err)
+	_, err = DB.DB_Upsert_product_details.Exec(
+		qc_product.Product_id, formats.VISCOSITY_TEXT,
 		qc_product.Viscosity.Valid, qc_product.Viscosity.Publish_p, qc_product.Viscosity.Min, qc_product.Viscosity.Target, qc_product.Viscosity.Max,
 	)
-	if err != nil {
-		log.Printf("Error: [%s]: %q\n", "upsert", err)
-	}
-	//TODO?
-	// id, err := result.LastInsertId()
-	// log.Println("upsert", id, err)
-
-	// result.LastInsertId()
-	// return product_type_id_default, product_name_customer_default
-
+	util.LogError(proc_name, err)
 }
 
 func write_CoA_cell(row *docx.Row, value string) {
