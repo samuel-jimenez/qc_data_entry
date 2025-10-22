@@ -83,6 +83,7 @@ var (
 	db_select_product_customer, db_insert_product_customer,
 	// bs.product_moniker
 	DB_Select_all_product_moniker, DB_Select_product_lot_product_moniker,
+	DB_Insert_product_moniker,
 	// bs.product_sample_points
 	DB_Select_all_sample_points, DB_Select_product_sample_points,
 	DB_Insel_sample_point,
@@ -93,6 +94,7 @@ var (
 	DB_Update_qc_samples_storage,
 	// bs.product_sample_storage
 	DB_Select_product_sample_storage_capacity, DB_Select_gen_product_sample_storage, DB_Select_all_product_sample_storage,
+	DB_Insert_product_sample_storage,
 	DB_Update_product_sample_storage_qc_sample, DB_Update_dec_product_sample_storage_capacity, DB_Update_product_sample_storage_capacity,
 	// bs.qc_sample_storage_list
 	DB_Insert_sample_storage,
@@ -1000,6 +1002,13 @@ order by
 	order by lot_name
 `)
 
+	DB_Insert_product_moniker = PrepareOrElse(db, `
+	insert into bs.product_moniker
+		(product_moniker_name)
+		values (?)
+	returning product_moniker_id
+`)
+
 	// bs.product_sample_points
 	DB_Insel_sample_point = PrepareOrElse(db, `
 	with val (sample_point) as (
@@ -1115,6 +1124,12 @@ where product_id = ?1
 	where max_storage_capacity !=  qc_storage_capacity
 	or qc_sample_storage_offset > 0
 	order by qc_sample_storage_name
+	`)
+	DB_Insert_product_sample_storage = PrepareOrElse(db, `
+	insert into bs.product_sample_storage
+	( product_sample_storage_id, product_moniker_id, retain_storage_duration, max_storage_capacity, qc_sample_storage_id, qc_sample_storage_offset, qc_storage_capacity )
+	values ( ?, ?, ?, ?, ?, ?, ? )
+	returning product_sample_storage_id
 	`)
 
 	DB_Update_product_sample_storage_qc_sample = PrepareOrElse(db, `

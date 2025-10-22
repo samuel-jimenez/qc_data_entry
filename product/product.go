@@ -30,6 +30,10 @@ type MeasuredProduct struct {
 	Viscosity   nullable.NullInt64
 }
 
+func MeasuredProduct_from_new() *MeasuredProduct {
+	return new(MeasuredProduct)
+}
+
 func (measured_product MeasuredProduct) Save() int64 {
 
 	proc_name := "MeasuredProduct-Save.Sample_point"

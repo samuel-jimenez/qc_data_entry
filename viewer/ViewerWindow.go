@@ -26,24 +26,6 @@ type ViewerWinder interface {
 	Decrease_font_size() bool
 }
 
-//TODO add new moniker
-//
-// insert product_moniker_id :=
-//
-// INSERT INTO product_moniker
-// (product_moniker_name)
-//
-//insel
-// insert into qc_sample_storage_list values(27,'00-018-0000',18);
-// Product.NewStorageBin.Insert
-//
-//
-// insert into product_sample_storage values(18,18,12,24,27,0,24);
-// offset:=0
-// space:=max_cap
-// product_moniker_id, duration,max_cap,storagbin_id,offset,space
-//TODO end add new moniker
-
 /*
  * ViewerWindow
  *
