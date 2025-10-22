@@ -32,11 +32,11 @@ type MeasuredProduct struct {
 
 func (measured_product MeasuredProduct) Save() int64 {
 
-	proc_name := "Product.Save.Sample_point"
+	proc_name := "MeasuredProduct-Save.Sample_point"
 	DB.Insert(proc_name, DB.DB_Insel_sample_point, measured_product.Sample_point)
 
 	// ??TODO compare
-	proc_name = "Product.Save.Tester"
+	proc_name = "MeasuredProduct-Save.Tester"
 	log.Println("TRACE: ", proc_name)
 
 	// DB.DB_insert_qc_tester.Exec(product.Tester)
@@ -82,7 +82,7 @@ func (measured_product MeasuredProduct) Save() int64 {
 	DB.Insert(proc_name, DB.DB_Insel_qc_tester, measured_product.Tester)
 
 	var qc_id int64
-	proc_name = "Product.Save.All"
+	proc_name = "MeasuredProduct-Save.All"
 	if err := DB.Select_Error(proc_name,
 		DB.DB_insert_measurement.QueryRow(
 			measured_product.Lot_id, measured_product.Sample_point, measured_product.Tester, time.Now().UTC().UnixNano(), measured_product.PH, measured_product.SG, measured_product.String_test, measured_product.Viscosity,
@@ -94,7 +94,7 @@ func (measured_product MeasuredProduct) Save() int64 {
 		return DB.INVALID_ID
 
 	}
-	proc_name = "Product.Save.Lot-status"
+	proc_name = "MeasuredProduct-Save.Lot-status"
 
 	if err := DB.Update(proc_name,
 		DB.DB_Update_lot_list__status, measured_product.Lot_id, Status_TESTED,
@@ -120,12 +120,12 @@ func (measured_product MeasuredProduct) Save() int64 {
  *
  */
 func (measured_product MeasuredProduct) NewStorageBin() int {
+
 	var (
 		qc_sample_storage_id int
 	)
-
 	// get data for printing bin label, new bin creation
-	proc_name := "Product.NewStorageBin"
+	proc_name := "MeasuredProduct-NewStorageBin"
 
 	var (
 		product_sample_storage_id, qc_sample_storage_offset, start_date_, end_date_ int64
@@ -150,15 +150,38 @@ func (measured_product MeasuredProduct) NewStorageBin() int {
 	// print
 	measured_product.PrintOldStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
 
-	// TODO maybe move?
-	// gen new based on qc_sample_storage_offset,
-	// product_moniker_id or product_sample_storage_id
-	proc_name = "Product.NewStorageBin.Insert"
-	location := 0
 	// product_moniker_id == product_sample_storage_id. update if this is no longer true
-	product_moniker_id := product_sample_storage_id
+	qc_sample_storage_id, qc_sample_storage_offset = measured_product.InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
+
+	//update qc_sample_storage_offset
+	proc_name = "MeasuredProduct-NewStorageBin.Update"
+	DB.Update(proc_name,
+		DB.DB_Update_product_sample_storage_qc_sample,
+		product_sample_storage_id,
+		qc_sample_storage_id, qc_sample_storage_offset)
+	return qc_sample_storage_id
+}
+
+/*
+ * InsertStorageBin
+ *
+ * Gen new based on qc_sample_storage_offset,
+ * product_moniker_id or product_sample_storage_id
+ *
+ * Print label for storage bin
+ *
+ * Returns next storage bin, updated qc_sample_storage_offset
+ *
+ */
+func (measured_product MeasuredProduct) InsertStorageBin(product_moniker_id, qc_sample_storage_offset int64, product_moniker_name string) (int, int64) { //ffs
+	var (
+		qc_sample_storage_id int
+		date                 time.Time
+	)
+	proc_name := "MeasuredProduct-InsertStorageBin"
+	location := 0
 	qc_sample_storage_offset += 1
-	qc_sample_storage_name = fmt.Sprintf("%02d-%03d-%04d", location, product_moniker_id, qc_sample_storage_offset)
+	qc_sample_storage_name := fmt.Sprintf("%02d-%03d-%04d", location, product_moniker_id, qc_sample_storage_offset)
 
 	if err := DB.Select_Error(proc_name,
 		DB.DB_Insert_sample_storage.QueryRow(
@@ -169,15 +192,8 @@ func (measured_product MeasuredProduct) NewStorageBin() int {
 		log.Println("Crit: ", proc_name, measured_product, err)
 		panic(err)
 	}
-	measured_product.PrintNewStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
-
-	//update qc_sample_storage_offset
-	proc_name = "Product.NewStorageBin.Update"
-	DB.Update(proc_name,
-		DB.DB_Update_product_sample_storage_qc_sample,
-		product_sample_storage_id,
-		qc_sample_storage_id, qc_sample_storage_offset)
-	return qc_sample_storage_id
+	measured_product.PrintNewStorage(qc_sample_storage_name, product_moniker_name, &date, &date, &date)
+	return qc_sample_storage_id, qc_sample_storage_offset
 }
 
 /*
@@ -192,7 +208,7 @@ func (measured_product MeasuredProduct) NewStorageBin() int {
  */
 func (measured_product MeasuredProduct) GetStorage(numSamples int) int {
 
-	proc_name := "Product.GetStorage"
+	proc_name := "MeasuredProduct-GetStorage"
 
 	var (
 		qc_sample_storage_id, storage_capacity int
@@ -231,7 +247,7 @@ func Store(products ...MeasuredProduct) {
 		return
 	}
 	measured_product := products[0]
-	proc_name := "Product-Store"
+	proc_name := "MeasuredProduct-Store"
 	qc_sample_storage_id := measured_product.GetStorage(numSamples)
 
 	for _, product := range products {
