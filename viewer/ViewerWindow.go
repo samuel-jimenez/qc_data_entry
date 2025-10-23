@@ -1,6 +1,7 @@
 package viewer
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
@@ -24,6 +25,8 @@ type ViewerWinder interface {
 	Set_font_size()
 	Increase_font_size() bool
 	Decrease_font_size() bool
+
+	newMonikerMenu_OnClick(*windigo.Event)
 }
 
 /*
@@ -47,15 +50,22 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	view.SetText(window_title)
 
-	// menu := view.NewMenu()
+	menu := view.NewMenu()
 	// TODO settings
 	// 	menu := mainWindow.NewMenu()
 	//
-	// 	fileMn := menu.AddSubMenu("File")
-	// 	fileMn.AddItem("New", windigo.Shortcut{windigo.ModControl, windigo.KeyN})
+	fileMenu := menu.AddSubMenu("File")
+
+	newMenu := fileMenu.AddSubMenu("New")
+	newMonikerMenu := newMenu.AddItem("Moniker", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyN,
+	})
 	// 	editMn := menu.AddSubMenu("Edit")
 	// 	cutMn := editMn.AddItem("Cut", windigo.Shortcut{windigo.ModControl, windigo.KeyX})
 	//
+	newMonikerMenu.OnClick().Bind(view.newMonikerMenu_OnClick)
+
 	dock := windigo.NewSimpleDock(view)
 
 	selection_panel := NewDataViewerPanelView(view)
@@ -174,4 +184,11 @@ func (view *ViewerWindow) Decrease_font_size() bool {
 	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
 	return true
+}
+
+func (view *ViewerWindow) newMonikerMenu_OnClick(*windigo.Event) {
+	MonikerView := views.MonikerView_from_new(view)
+	MonikerView.SetModal(false)
+	MonikerView.Show()
+	MonikerView.RefreshSize()
 }

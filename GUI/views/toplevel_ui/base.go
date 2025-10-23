@@ -39,13 +39,17 @@ func Show_window(mainWindow TopLevelWindow) {
 
 	mainWindow.Center()
 	mainWindow.Show()
-	mainWindow.OnClose().Bind(wndOnClose)
+	mainWindow.OnClose().Bind(WndOnClose)
 	mainWindow.RunMainLoop()
 }
 
-func wndOnClose(arg *windigo.Event) {
+func WndOnClose(arg *windigo.Event) {
 	GUI.OKPen.Dispose()
 	GUI.ErroredPen.Dispose()
+	windigo.Exit()
+}
+
+func WndExit(arg *windigo.Event) {
 	windigo.Exit()
 }
 

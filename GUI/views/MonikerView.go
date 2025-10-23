@@ -19,7 +19,10 @@ var (
  *
  */
 type MonikerView struct {
+	*windigo.Dialog
 	*windigo.AutoPanel
+
+	// *windigo.SimpleDock
 
 	product_moniker_name_field    *windigo.LabeledEdit
 	retain_storage_duration_field *NumbestEditView
@@ -30,6 +33,7 @@ type MonikerView struct {
 
 func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 
+	window_title := "Add Product Moniker"
 	product_moniker_name_text := "Product Moniker Name"
 	retain_storage_duration_text := "Retain Storage Duration"
 
@@ -38,32 +42,51 @@ func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 
 	view := new(MonikerView)
 
-	view.AutoPanel = windigo.NewAutoPanel(parent)
+	view.Dialog = windigo.NewDialog(parent)
+	view.Dialog.SetText(window_title)
+
+	// view.SetSize(2*GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH, 6*GUI.PRODUCT_FIELD_HEIGHT)
+
+	view.AutoPanel = windigo.NewAutoPanel(view.Dialog)
+	// view.SimpleDock = windigo.NewSimpleDock(view)
+
+	//
 
 	view.product_moniker_name_field = windigo.NewLabeledEdit(view, product_moniker_name_text)
 
 	view.retain_storage_duration_field = NumbestEditView_from_new(view, retain_storage_duration_text)
 	view.max_storage_capacity_field = GUI.List_ComboBox_from_new(view, max_storage_capacity_text)
 
-	max_storage_capacity_accept_button := windigo.NewPushButton(view)
-	max_storage_capacity_accept_button.SetText("OK")
+	accept_button := windigo.NewPushButton(view)
+	accept_button.SetText("OK")
 	// max_storage_capacity_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
-	max_storage_capacity_accept_button.SetSize(200, 200)
+	accept_button.SetSize(200, GUI.PRODUCT_FIELD_HEIGHT)
+
+	cancel_button := windigo.NewPushButton(view)
+	cancel_button.SetText("Cancel")
+	// max_storage_capacity_accept_button.SetSize(GUI.ACCEPT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	cancel_button.SetSize(200, GUI.PRODUCT_FIELD_HEIGHT)
 
 	// Dock
-	view.Dock(view.product_moniker_name_field, windigo.Left)
-	view.Dock(view.retain_storage_duration_field, windigo.Left)
-	view.Dock(view.max_storage_capacity_field, windigo.Left)
-	view.Dock(max_storage_capacity_accept_button, windigo.Left)
+	view.Dock(view.product_moniker_name_field, windigo.Top)
+	view.Dock(view.retain_storage_duration_field, windigo.Top)
+	view.Dock(view.max_storage_capacity_field, windigo.Top)
+	view.Dock(accept_button, windigo.Top)
+	view.Dock(cancel_button, windigo.Top)
 
 	// combobox
-	for _, name := range []string{"BSFR", "BSWB", "BSWH"} {
+	for _, name := range []string{SMOL_BOTTLE_SIZE, BIG_BOTTLE_SIZE} {
 		view.max_storage_capacity_field.AddItem(name)
 	}
 
 	//event handling
 	view.max_storage_capacity_field.OnSelectedChange().Bind(view.max_storage_capacity_field_OnSelectedChange)
-	max_storage_capacity_accept_button.OnClick().Bind(view.max_storage_capacity_accept_button_OnClick)
+	accept_button.OnClick().Bind(view.accept_button_OnClick)
+	cancel_button.OnClick().Bind(view.cancel_button_OnClick)
+
+	view.SetButtons(accept_button, cancel_button)
+
+	view.RefreshSize()
 
 	return view
 }
@@ -112,10 +135,30 @@ func (view *MonikerView) max_storage_capacity_field_OnSelectedChange(e *windigo.
 	}
 }
 
-func (view *MonikerView) max_storage_capacity_accept_button_OnClick(e *windigo.Event) {
+func (view *MonikerView) accept_button_OnClick(e *windigo.Event) {
 	if view.max_storage_capacity == 0 {
 		// /?TODO display ERROR
 		return
 	}
 	view.AddMoniker()
+}
+
+func (view *MonikerView) cancel_button_OnClick(e *windigo.Event) {
+	view.Close()
+}
+
+func (view *MonikerView) SetSize(w, h int) {
+	view.Dialog.SetSize(w+GUI.WINDOW_FUDGE_MARGIN_W, h+GUI.WINDOW_FUDGE_MARGIN_H)
+	view.AutoPanel.SetSize(w, h)
+}
+
+func (view *MonikerView) RefreshSize() {
+
+	view.SetPaddingsAll(GUI.GROUP_MARGIN)
+	view.SetSize(2*GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH+2*GUI.GROUP_MARGIN, 5*GUI.PRODUCT_FIELD_HEIGHT+2*GUI.GROUP_MARGIN)
+
+	view.product_moniker_name_field.SetLabeledSize(2*GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.retain_storage_duration_field.SetLabeledSize(2*GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.max_storage_capacity_field.SetLabeledSize(2*GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+
 }
