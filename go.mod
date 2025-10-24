@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/samuel-jimenez/whatsupdocx v0.6.2
-	github.com/samuel-jimenez/windigo v0.23.1
+	github.com/samuel-jimenez/windigo v0.24.0
 	github.com/samuel-jimenez/xml v0.2.4 // indirect
 )
 
@@ -15,6 +15,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/xuri/excelize/v2 v2.9.1
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	golang.org/x/text v0.29.0
 )
 
 require (
@@ -37,6 +38,5 @@ require (
 	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
