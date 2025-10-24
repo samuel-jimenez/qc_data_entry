@@ -38,18 +38,28 @@ func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
 	// build window
 	view := new(BlenderWindow)
 	view.Form = windigo.NewForm(parent)
-	// mainWindow.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+	// view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	view.SetText(window_title)
 
 	menu := view.NewMenu()
 	// TODO settings
-	fileMenu := menu.AddSubMenu("File")
-	newMenu := fileMenu.AddSubMenu("New")
-	newMonikerMenu := newMenu.AddItem("Moniker", windigo.Shortcut{
+	fileMenu := menu.AddSubMenu("&File")
+	newMenu := fileMenu.AddSubMenu_Shortcut("&New", windigo.Shortcut{
 		Modifiers: windigo.ModControl,
 		Key:       windigo.KeyN,
 	})
+	newMonikerMenu := newMenu.AddItem("&Moniker", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyM,
+	})
+	quitMenu := fileMenu.AddItem("&Quit", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyQ,
+	})
 	newMonikerMenu.OnClick().Bind(view.newMonikerMenu_OnClick)
+	quitMenu.OnClick().Bind(toplevel_ui.WndOnClose)
+
+	menu.Show()
 
 	dock := windigo.NewSimpleDock(view)
 	// BlendVessel

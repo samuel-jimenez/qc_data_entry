@@ -52,19 +52,24 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 
 	menu := view.NewMenu()
 	// TODO settings
-	// 	menu := mainWindow.NewMenu()
-	//
-	fileMenu := menu.AddSubMenu("File")
-
-	newMenu := fileMenu.AddSubMenu("New")
-	newMonikerMenu := newMenu.AddItem("Moniker", windigo.Shortcut{
+	fileMenu := menu.AddSubMenu("&File")
+	newMenu := fileMenu.AddSubMenu_Shortcut("&New", windigo.Shortcut{
 		Modifiers: windigo.ModControl,
 		Key:       windigo.KeyN,
 	})
-	// 	editMn := menu.AddSubMenu("Edit")
-	// 	cutMn := editMn.AddItem("Cut", windigo.Shortcut{windigo.ModControl, windigo.KeyX})
-	//
+	newMonikerMenu := newMenu.AddItem("&Moniker", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyM,
+	})
+	quitMenu := fileMenu.AddItem("&Quit", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyQ,
+	})
+
 	newMonikerMenu.OnClick().Bind(view.newMonikerMenu_OnClick)
+	quitMenu.OnClick().Bind(toplevel_ui.WndOnClose)
+
+	// menu.Show() // TODO why is this sometimes needed? Maybe the SetSize call?
 
 	dock := windigo.NewSimpleDock(view)
 
