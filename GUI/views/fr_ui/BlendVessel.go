@@ -46,8 +46,9 @@ func BlendVessel_from_new(parent *BlendStrappingProductView) *BlendVessel {
 
 	Vessel_text := "Vessel"
 	Capacity_text := "Capacity"
-	Strap_text := "Strap"
-	heel_text := "Heel"
+
+	Strap_text := "Heel Strap"
+	heel_text := "Heel Weight"
 
 	view := new(BlendVessel)
 	view.parent = parent
