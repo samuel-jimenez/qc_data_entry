@@ -101,6 +101,7 @@ var (
 	// bs.product_appearance
 	DB_Insert_appearance,
 	// bs.qc_test_methods
+	DB_Select_test_methods__test_type,
 	DB_Insel_test_method,
 	// bs.product_attributes
 	// bs.product_ranges_measured
@@ -1208,6 +1209,13 @@ where product_sample_storage_id = ?1
 	`)
 
 	// bs.qc_test_methods
+	DB_Select_test_methods__test_type = PrepareOrElse(db, `
+	select distinct qc_test_method_id,qc_test_method_name
+	from bs.product_ranges_measured
+	join bs.qc_test_methods using (qc_test_method_id)
+	where qc_test_type_id=?
+	`)
+
 	DB_Insel_test_method = PrepareOrElse(db, `
 	with val (qc_test_method_name) as (
 		values

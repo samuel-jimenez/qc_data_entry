@@ -6,7 +6,7 @@ import "database/sql"
 type ProductContainerType int
 
 const (
-	CONTAINER_SAMPLE ProductContainerType = iota + 1
+	CONTAINER_SAMPLE ProductContainerType = 1 + iota
 	CONTAINER_TOTE
 	CONTAINER_RAILCAR
 	CONTAINER_ISO

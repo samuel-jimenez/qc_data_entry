@@ -38,6 +38,14 @@ type QCProductRangesView struct {
 	button_dock                                             *GUI.ButtonDock
 }
 
+const (
+	PH_TEST_TYPE = 2 + iota
+	SG_TEST_TYPE
+	DENSITY_TEST_TYPE
+	STRING_TEST_TYPE
+	VISCOSITY_TEST_TYPE
+)
+
 func NewQCProductRangesView(parent windigo.Controller, qc_product *product.QCProduct) *QCProductRangesView {
 
 	view := new(QCProductRangesView)
@@ -77,19 +85,19 @@ func NewQCProductRangesView(parent windigo.Controller, qc_product *product.QCPro
 	//TODO center
 	//TODO layout split n
 
-	view.ph_dock = RangeView_from_new(view, formats.PH_TEXT, view.qc_product.PH, formats.Format_ranges_ph)
+	view.ph_dock = RangeView_from_new(view, formats.PH_TEXT, view.qc_product.PH, formats.Format_ranges_ph, PH_TEST_TYPE)
 	view.ph_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	view.sg_dock = RangeView_from_new(view, formats.SG_TEXT, view.qc_product.SG, formats.Format_ranges_sg)
+	view.sg_dock = RangeView_from_new(view, formats.SG_TEXT, view.qc_product.SG, formats.Format_ranges_sg, SG_TEST_TYPE)
 	view.sg_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	view.density_dock = RangeView_from_new(view, formats.DENSITY_TEXT, view.qc_product.Density, formats.Format_ranges_density)
+	view.density_dock = RangeView_from_new(view, formats.DENSITY_TEXT, view.qc_product.Density, formats.Format_ranges_density, DENSITY_TEST_TYPE)
 	view.density_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	view.string_dock = RangeView_from_new(view, formats.STRING_TEXT_FULL, view.qc_product.String_test, formats.Format_ranges_string_test)
+	view.string_dock = RangeView_from_new(view, formats.STRING_TEXT_FULL, view.qc_product.String_test, formats.Format_ranges_string_test, STRING_TEST_TYPE)
 	view.string_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
-	view.visco_dock = RangeView_from_new(view, formats.VISCOSITY_TEXT, view.qc_product.Viscosity, formats.Format_ranges_viscosity)
+	view.visco_dock = RangeView_from_new(view, formats.VISCOSITY_TEXT, view.qc_product.Viscosity, formats.Format_ranges_viscosity, VISCOSITY_TEST_TYPE)
 	view.visco_dock.SetLabeledSize(GUI.LABEL_WIDTH, GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_HEIGHT)
 
 	view.button_dock = GUI.NewButtonDock(view, []string{"OK", "Cancel"}, []func(){view.try_save, view.Exit})

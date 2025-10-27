@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/datatypes"
 	"github.com/samuel-jimenez/windigo"
@@ -15,7 +16,7 @@ type RangeView struct {
 	*windigo.AutoPanel
 	label *windigo.Label
 
-	Method_field NullStringView
+	Method_field NullStringComboBox
 	min_field,
 	target_field,
 	max_field NullFloat64View
@@ -23,7 +24,7 @@ type RangeView struct {
 	export_field *windigo.CheckBox
 }
 
-func RangeView_from_new(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string) *RangeView {
+func RangeView_from_new(parent windigo.Controller, field_text string, field_data datatypes.Range, format func(float64) string, qc_test_type_id int) *RangeView {
 
 	view := new(RangeView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
@@ -32,7 +33,7 @@ func RangeView_from_new(parent windigo.Controller, field_text string, field_data
 	view.label = windigo.NewLabel(view.AutoPanel)
 	view.label.SetText(field_text)
 
-	view.Method_field = *NullStringView_from_new(view.AutoPanel, field_data.Method)
+	view.Method_field = *NullStringComboBox_from_new(view.AutoPanel)
 	view.min_field = NullFloat64View_from_new(view.AutoPanel, field_data.Min, format)
 	view.target_field = NullFloat64View_from_new(view.AutoPanel, field_data.Target, format)
 	view.max_field = NullFloat64View_from_new(view.AutoPanel, field_data.Max, format)
@@ -54,6 +55,9 @@ func RangeView_from_new(parent windigo.Controller, field_text string, field_data
 	view.AutoPanel.Dock(view.max_field, windigo.Left)
 	view.AutoPanel.Dock(view.valid_field, windigo.Left)
 	view.AutoPanel.Dock(view.export_field, windigo.Left)
+
+	GUI.Fill_combobox_from_query(view.Method_field, DB.DB_Select_test_methods__test_type, qc_test_type_id)
+	view.Method_field.Set(field_data.Method)
 
 	return view
 }
