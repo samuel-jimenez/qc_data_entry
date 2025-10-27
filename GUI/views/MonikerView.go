@@ -25,7 +25,7 @@ type MonikerView struct {
 	// *windigo.SimpleDock
 
 	product_moniker_name_field    *windigo.LabeledEdit
-	retain_storage_duration_field *NumbestEditView
+	retain_storage_duration_field *GUI.NumbestEditView
 	max_storage_capacity_field    *GUI.ComboBox
 
 	max_storage_capacity int
@@ -54,7 +54,7 @@ func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 
 	view.product_moniker_name_field = windigo.NewLabeledEdit(view, product_moniker_name_text)
 
-	view.retain_storage_duration_field = NumbestEditView_from_new(view, retain_storage_duration_text)
+	view.retain_storage_duration_field = GUI.NumbestEditView_from_new(view, retain_storage_duration_text)
 	view.max_storage_capacity_field = GUI.List_ComboBox_from_new(view, max_storage_capacity_text)
 
 	accept_button := windigo.NewPushButton(view)
@@ -80,6 +80,7 @@ func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 	}
 
 	//event handling
+	view.product_moniker_name_field.OnKillFocus().Bind(view.product_moniker_name_field_OnKillFocus)
 	view.max_storage_capacity_field.OnSelectedChange().Bind(view.max_storage_capacity_field_OnSelectedChange)
 	accept_button.OnClick().Bind(view.accept_button_OnClick)
 	cancel_button.OnClick().Bind(view.cancel_button_OnClick)
@@ -141,10 +142,15 @@ func (view *MonikerView) accept_button_OnClick(e *windigo.Event) {
 		return
 	}
 	view.AddMoniker()
+	view.Close()
 }
 
 func (view *MonikerView) cancel_button_OnClick(e *windigo.Event) {
 	view.Close()
+}
+
+func (view *MonikerView) product_moniker_name_field_OnKillFocus(e *windigo.Event) {
+	GUI.STRING_UPCASE(view.product_moniker_name_field)
 }
 
 func (view *MonikerView) SetSize(w, h int) {

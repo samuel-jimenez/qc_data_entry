@@ -2,7 +2,7 @@ package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
@@ -10,7 +10,7 @@ import (
 
 type FrictionReducerProductRangesViewer interface {
 	*windigo.AutoPanel
-	*views.MassRangesView
+	*qc_ui.MassRangesView
 
 	SetFont(font *windigo.Font)
 	RefreshSize()
@@ -20,15 +20,15 @@ type FrictionReducerProductRangesViewer interface {
 
 type FrictionReducerProductRangesView struct {
 	*windigo.AutoPanel
-	*views.MassRangesView
+	*qc_ui.MassRangesView
 
-	visual_field *product.ProductAppearanceROView
+	visual_field *qc_ui.ProductAppearanceROView
 
 	viscosity_field,
 	// mass_field,
 	// sg_field,
 	// density_field,
-	string_field *views.RangeROView
+	string_field *qc_ui.RangeROView
 }
 
 func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *FrictionReducerProductRangesView {
@@ -36,17 +36,17 @@ func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_prod
 	view := new(FrictionReducerProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	view.MassRangesView = &views.MassRangesView{}
+	view.MassRangesView = &qc_ui.MassRangesView{}
 
-	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
+	view.visual_field = qc_ui.ProductAppearanceROView_from_new(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
 
-	view.viscosity_field = views.RangeROView_from_new(view.AutoPanel, formats.VISCOSITY_TEXT, qc_product.Viscosity, formats.Format_ranges_viscosity)
+	view.viscosity_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.VISCOSITY_TEXT, qc_product.Viscosity, formats.Format_ranges_viscosity)
 
-	view.string_field = views.RangeROView_from_new(view.AutoPanel, formats.STRING_TEXT_MINI, qc_product.SG, formats.Format_ranges_string_test)
+	view.string_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.STRING_TEXT_MINI, qc_product.SG, formats.Format_ranges_string_test)
 
-	view.Mass_field = views.RangeROViewMap_from_new(view.AutoPanel, formats.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
-	view.SG_field = views.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
-	view.Density_field = views.RangeROView_from_new(view.AutoPanel, formats.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
+	view.Mass_field = qc_ui.RangeROViewMap_from_new(view.AutoPanel, formats.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	view.SG_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
+	view.Density_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.viscosity_field, windigo.Top)

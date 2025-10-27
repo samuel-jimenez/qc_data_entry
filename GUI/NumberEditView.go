@@ -1,4 +1,4 @@
-package views
+package GUI
 
 // TODO todo NumberEditView
 
@@ -6,16 +6,24 @@ import (
 	"math"
 	"strings"
 
-	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/windigo"
 )
+
+/*
+ * Checker
+ *
+ */
+type Checker interface {
+	Check(float64) bool
+	CheckAll(...float64) []bool
+}
 
 /*
  * NumberEditViewable
  *
  */
 type NumberEditViewable interface {
-	GUI.ErrableView
+	ErrableView
 	windigo.Editable
 	windigo.DiffLabelable
 	Get() float64
@@ -25,7 +33,7 @@ type NumberEditViewable interface {
 	Check(bool)
 	SetFont(font *windigo.Font)
 	SetLabeledSize(label_width, control_width, height int)
-	Entangle(other_field *NumberEditView, range_field *RangeROView, delta_max float64)
+	Entangle(other_field *NumberEditView, range_field Checker, delta_max float64)
 }
 
 /*
@@ -33,13 +41,13 @@ type NumberEditViewable interface {
  *
  */
 type NumberEditView struct {
-	GUI.ErrableView
-	GUI.NumbEditView
+	ErrableView
+	NumbEditView
 	windigo.Labeled
 }
 
 func NumberEditView_from_LabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
-	return &NumberEditView{&GUI.View{ComponentFrame: label.ComponentFrame}, GUI.NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
+	return &NumberEditView{&View{ComponentFrame: label.ComponentFrame}, NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
 }
 
 func NumberEditView_from_new(parent windigo.Controller, field_text string) *NumberEditView {
@@ -47,7 +55,7 @@ func NumberEditView_from_new(parent windigo.Controller, field_text string) *Numb
 	return edit_field
 }
 
-func NumberEditView_with_Change_from_new(parent windigo.Controller, field_text string, range_field *RangeROView) *NumberEditView {
+func NumberEditView_with_Change_from_new(parent windigo.Controller, field_text string, range_field Checker) *NumberEditView {
 
 	edit_field := NumberEditView_from_new(parent, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
@@ -89,12 +97,12 @@ func (control *NumberEditView) SetLabeledSize(label_width, control_width, height
 	control.SetSize(label_width+control_width, height)
 	// control.Edit.SetSize(control_width, height)
 	control.Label().SetSize(label_width, height)
-	control.SetPaddingsAll(GUI.ERROR_MARGIN)
+	control.SetPaddingsAll(ERROR_MARGIN)
 
 }
 
 // onchange for FR
-func (this_field *NumberEditView) Entangle(other_field *NumberEditView, range_field *RangeROView, delta_max float64) {
+func (this_field *NumberEditView) Entangle(other_field *NumberEditView, range_field Checker, delta_max float64) {
 	bind_fn := func(e *windigo.Event) {
 		this_val := this_field.GetFixed()
 		other_val := other_field.GetFixed()
@@ -148,36 +156,18 @@ func NumberEditView_with_Units_from_new(parent *windigo.AutoPanel, field_text, f
 	setLabeledSize := func(label_width, control_width, unit_width, height int) {
 
 		panel.SetSize(label_width+control_width+unit_width, height)
-		panel.SetPaddingsAll(GUI.ERROR_MARGIN)
+		panel.SetPaddingsAll(ERROR_MARGIN)
 
 		text_label.SetSize(label_width, height)
-		text_label.SetMarginTop(GUI.ERROR_MARGIN)
+		text_label.SetMarginTop(ERROR_MARGIN)
 
 		text_field.SetSize(control_width, height)
-		text_field.SetMarginRight(GUI.DATA_MARGIN)
+		text_field.SetMarginRight(DATA_MARGIN)
 
 		text_units.SetSize(unit_width, height)
-		text_units.SetMarginTop(GUI.ERROR_MARGIN)
+		text_units.SetMarginTop(ERROR_MARGIN)
 
 	}
 
-	return &NumberUnitsEditView{NumberEditView{&GUI.View{ComponentFrame: panel}, GUI.NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
-}
-
-/*
- * NumbestEditView
- *
- */
-type NumbestEditView struct {
-	NumberEditView
-}
-
-func NumbestEditView_from_new(parent windigo.Controller, field_text string) *NumbestEditView {
-	edit_field := NumberEditView_from_new(parent, field_text)
-	return &NumbestEditView{*edit_field}
-}
-
-func (control *NumbestEditView) SetLabeledSize(label_width, control_width, height int) {
-	control.SetSize(label_width+control_width, height)
-	control.Label().SetSize(label_width, height)
+	return &NumberUnitsEditView{NumberEditView{&View{ComponentFrame: panel}, NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
 }

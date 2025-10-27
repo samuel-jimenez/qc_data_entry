@@ -1,86 +1,16 @@
-package views
+package qc_ui
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
-	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
-
-/* MassRangesViewable
- *
- */
-type MassRangesViewable interface {
-	CheckMass(data float64) bool
-	CheckSG(data float64) bool
-	CheckDensity(data float64) bool
-	Clear()
-	// Update(qc_product *product.QCProduct)
-}
-
-/* MassRangesView
- *
- */
-type MassRangesView struct {
-	Mass_field,
-	SG_field,
-	Density_field *RangeROView
-}
-
-func NewMassRangesView(mass_field,
-	sg_field,
-	density_field *RangeROView) *MassRangesView {
-	return &MassRangesView{Mass_field: mass_field,
-		SG_field:      sg_field,
-		Density_field: density_field}
-
-	// view := new(MassRangesView)
-	// view.Mass_field = mass_field
-	// view.SG_field = sg_field
-	// view.Density_field = density_field
-	// return view
-}
-
-func (view *MassRangesView) CheckMass(data float64) bool {
-	return view.Mass_field.Check(data)
-}
-
-func (view *MassRangesView) CheckSG(data float64) bool {
-	return view.SG_field.Check(data)
-}
-
-func (view *MassRangesView) CheckDensity(data float64) bool {
-	return view.Density_field.Check(data)
-}
-
-func (view *MassRangesView) CheckMassAll(data []float64) []bool {
-	return view.Mass_field.CheckAll(data...)
-}
-
-func (view *MassRangesView) CheckSGAll(data []float64) []bool {
-	return view.SG_field.CheckAll(data...)
-}
-
-func (view *MassRangesView) CheckDensityAll(data []float64) []bool {
-	return view.Density_field.CheckAll(data...)
-}
-
-func (view *MassRangesView) Clear() {
-	view.Mass_field.Clear()
-	view.SG_field.Clear()
-	view.Density_field.Clear()
-}
-
-func (view *MassRangesView) Update(qc_product *product.QCProduct) {
-	view.Mass_field.Update(qc_product.SG)
-	view.SG_field.Update(qc_product.SG)
-	view.Density_field.Update(qc_product.Density)
-}
 
 /* MassDataViewable
  *
  */
 type MassDataViewable interface {
-	NumberEditViewable
+	GUI.NumberEditViewable
 	Clear()
 	SetFont(font *windigo.Font)
 	// SetLabeledSize(label_width, field_width, subfield_width, unit_width, height int)
@@ -94,23 +24,23 @@ type MassDataViewable interface {
  *
  */
 type MassDataView struct {
-	*NumberEditView
+	*GUI.NumberEditView
 	sg_field,
-	density_field *NumberUnitsEditView
+	density_field *GUI.NumberUnitsEditView
 	ranges_panel MassRangesViewable
 }
 
-// func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable, mass_field *NumberEditView) *MassDataView {
+// func MassDataView_from_new(parent *windigo.AutoPanel, ranges_panel MassRangesViewable, mass_field *GUI.NumberEditView) *MassDataView {
 
-func NewMassDataView(parent *windigo.AutoPanel, ranges_panel MassRangesViewable) *MassDataView {
+func MassDataView_from_new(parent *windigo.AutoPanel, ranges_panel MassRangesViewable) *MassDataView {
 
 	view := new(MassDataView)
 
 	//TAB ORDER
-	mass_field := NumberEditView_from_new(parent, formats.MASS_TEXT)
+	mass_field := GUI.NumberEditView_from_new(parent, formats.MASS_TEXT)
 
-	sg_field := NumberEditView_with_Units_from_new(parent, formats.SG_TEXT, formats.SG_UNITS)
-	density_field := NumberEditView_with_Units_from_new(parent, formats.DENSITY_TEXT, formats.DENSITY_UNITS)
+	sg_field := GUI.NumberEditView_with_Units_from_new(parent, formats.SG_TEXT, formats.SG_UNITS)
+	density_field := GUI.NumberEditView_with_Units_from_new(parent, formats.DENSITY_TEXT, formats.DENSITY_UNITS)
 
 	//PUSH TO BOTTOM
 	parent.Dock(density_field, windigo.Bottom)

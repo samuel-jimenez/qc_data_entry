@@ -31,7 +31,7 @@ type BlendVessel struct {
 	top, btm                     *windigo.AutoPanel
 	Vessel_field, Capacity_field *GUI.SearchBox
 	Strap_field                  *GUI.NumbSearchView
-	heel_field                   *views.NumbestEditView
+	heel_field                   *GUI.NumbestEditView
 	volume_data_strap            map[float64]float64
 	strap_data_volume            map[float64]float64
 	capacity_data                map[string]int
@@ -63,7 +63,7 @@ func BlendVessel_from_new(parent *BlendStrappingProductView) *BlendVessel {
 	view.Vessel_field = GUI.NewLabeledListSearchBox(view.top, Vessel_text)
 	view.Capacity_field = GUI.NewLabeledListSearchBox(view.top, Capacity_text)
 	view.Strap_field = GUI.NumbSearchView_From_SearchBox(GUI.NewLabeledListSearchBox(view.btm, Strap_text))
-	view.heel_field = views.NumbestEditView_from_new(view.btm, heel_text)
+	view.heel_field = GUI.NumbestEditView_from_new(view.btm, heel_text)
 
 	// bad things happen if this is not true
 	view.MinStrap = 0

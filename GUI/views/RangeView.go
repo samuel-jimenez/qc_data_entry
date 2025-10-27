@@ -14,6 +14,8 @@ import (
 type RangeView struct {
 	*windigo.AutoPanel
 	label *windigo.Label
+
+	Method_field NullStringView
 	min_field,
 	target_field,
 	max_field NullFloat64View
@@ -30,6 +32,7 @@ func RangeView_from_new(parent windigo.Controller, field_text string, field_data
 	view.label = windigo.NewLabel(view.AutoPanel)
 	view.label.SetText(field_text)
 
+	view.Method_field = *NullStringView_from_new(view.AutoPanel, field_data.Method)
 	view.min_field = NullFloat64View_from_new(view.AutoPanel, field_data.Min, format)
 	view.target_field = NullFloat64View_from_new(view.AutoPanel, field_data.Target, format)
 	view.max_field = NullFloat64View_from_new(view.AutoPanel, field_data.Max, format)
@@ -45,6 +48,7 @@ func RangeView_from_new(parent windigo.Controller, field_text string, field_data
 	view.export_field.SetChecked(field_data.Publish_p)
 
 	view.AutoPanel.Dock(view.label, windigo.Left)
+	view.AutoPanel.Dock(view.Method_field, windigo.Left)
 	view.AutoPanel.Dock(view.min_field, windigo.Left)
 	view.AutoPanel.Dock(view.target_field, windigo.Left)
 	view.AutoPanel.Dock(view.max_field, windigo.Left)
@@ -59,6 +63,7 @@ func (view RangeView) Get() datatypes.Range {
 		view.min_field.Get(),
 		view.target_field.Get(),
 		view.max_field.Get(),
+		view.Method_field.Get(),
 		view.valid_field.Checked(),
 		view.export_field.Checked(),
 	)
@@ -68,6 +73,7 @@ func (view RangeView) Set(field_data datatypes.Range) {
 	view.min_field.Set(field_data.Min)
 	view.target_field.Set(field_data.Target)
 	view.max_field.Set(field_data.Max)
+	view.Method_field.Set(field_data.Method)
 	view.valid_field.SetChecked(field_data.Valid)
 	view.export_field.SetChecked(field_data.Publish_p)
 }
@@ -78,6 +84,7 @@ func (view RangeView) SetLabeledSize(label_width, control_width, height int) {
 	view.min_field.SetSize(control_width, height)
 	view.target_field.SetSize(control_width, height)
 	view.max_field.SetSize(control_width, height)
+	view.Method_field.SetSize(control_width, height)
 	view.valid_field.SetSize(control_width, height)
 	view.valid_field.SetMarginLeft(control_width / 2)
 	view.export_field.SetSize(control_width, height)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/product"
@@ -53,8 +54,8 @@ type FrictionReducerProductView struct {
 	*windigo.AutoPanel
 	visual_field *views.BoolCheckboxView
 	viscosity_field,
-	string_field *views.NumberEditView
-	density_field *views.MassDataView
+	string_field *GUI.NumberEditView
+	density_field *qc_ui.MassDataView
 	sample_point  string
 }
 
@@ -67,11 +68,11 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 	view.visual_field = views.NewBoolCheckboxView(view.AutoPanel, VISUAL_TEXT)
 
-	view.viscosity_field = views.NumberEditView_from_new(view.AutoPanel, formats.VISCOSITY_TEXT)
+	view.viscosity_field = GUI.NumberEditView_from_new(view.AutoPanel, formats.VISCOSITY_TEXT)
 
-	view.string_field = views.NumberEditView_with_Change_from_new(view.AutoPanel, formats.STRING_TEXT_MINI, ranges_panel.string_field)
+	view.string_field = GUI.NumberEditView_with_Change_from_new(view.AutoPanel, formats.STRING_TEXT_MINI, ranges_panel.string_field)
 
-	view.density_field = views.NewMassDataView(view.AutoPanel, ranges_panel)
+	view.density_field = qc_ui.MassDataView_from_new(view.AutoPanel, ranges_panel)
 	view.density_field.SetZAfter(view.viscosity_field)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)

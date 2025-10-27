@@ -100,6 +100,10 @@ var (
 	DB_Insert_sample_storage,
 	// bs.product_appearance
 	DB_Insert_appearance,
+	// bs.qc_test_methods
+	DB_Insel_test_method,
+	// bs.product_attributes
+	// bs.product_ranges_measured
 	DB_Select_product_details,
 	DB_Upsert_product_details, DB_Upsert_product_type *sql.Stmt
 
@@ -1191,18 +1195,36 @@ where product_sample_storage_id = ?1
 	DB_Insert_appearance = PrepareOrElse(db, `
 	with val (product_appearance_text) as (
 		values
-			(?)
-		),
-		sel as (
-			select product_appearance_text, product_appearance_id
-			from val
-			left join bs.product_appearance using (product_appearance_text)
-		)
+		(?)
+	),
+	sel as (
+		select product_appearance_text, product_appearance_id
+		from val
+		left join bs.product_appearance using (product_appearance_text)
+	)
 	insert into bs.product_appearance (product_appearance_text)
 	select distinct product_appearance_text from sel where product_appearance_id is null and product_appearance_text is not null
 	returning product_appearance_id, product_appearance_text
 	`)
 
+	// bs.qc_test_methods
+	DB_Insel_test_method = PrepareOrElse(db, `
+	with val (qc_test_method_name) as (
+		values
+		(?)
+	),
+	sel as (
+		select qc_test_method_id, qc_test_method_name
+		from val
+		left join bs.qc_test_methods using (qc_test_method_name)
+	)
+	insert into bs.qc_test_methods (qc_test_method_name)
+	select distinct qc_test_method_name from sel where qc_test_method_id is null and qc_test_method_name is not null
+	returning qc_test_method_id, qc_test_method_name
+	`)
+
+	// bs.product_attributes
+	// bs.product_ranges_measured
 	DB_Select_product_details = PrepareOrElse(db, `
 	select
 
@@ -1210,30 +1232,35 @@ where product_sample_storage_id = ?1
 	container_type_id,
 	product_appearance_text,
 
+	max(case when qc_test_type_id = 2 then qc_test_method_name end) as ph_method,
 	max(case when qc_test_type_id = 2 then val_measure end) as ph_measure,
 	max(case when qc_test_type_id = 2 then val_publish end) as ph_publish,
 	max(case when qc_test_type_id = 2 then val_min end) as ph_min,
 	max(case when qc_test_type_id = 2 then val_target end) as ph_target,
 	max(case when qc_test_type_id = 2 then val_max end) as ph_max,
 
+	max(case when qc_test_type_id = 3 then qc_test_method_name end) as specific_gravity_method,
 	max(case when qc_test_type_id = 3 then val_measure end) as specific_gravity_measure,
 	max(case when qc_test_type_id = 3 then val_publish end) as specific_gravity_publish,
 	max(case when qc_test_type_id = 3 then val_min end) as specific_gravity_min,
 	max(case when qc_test_type_id = 3 then val_target end) as specific_gravity_target,
 	max(case when qc_test_type_id = 3 then val_max end) as specific_gravity_max,
 
+	max(case when qc_test_type_id = 4 then qc_test_method_name end) as density_method,
 	max(case when qc_test_type_id = 4 then val_measure end) as density_measure,
 	max(case when qc_test_type_id = 4 then val_publish end) as density_publish,
 	max(case when qc_test_type_id = 4 then val_min end) as density_min,
 	max(case when qc_test_type_id = 4 then val_target end) as density_target,
 	max(case when qc_test_type_id = 4 then val_max end) as density_max,
 
+	max(case when qc_test_type_id = 5 then qc_test_method_name end) as string_test_method,
 	max(case when qc_test_type_id = 5 then val_measure end) as string_test_measure,
 	max(case when qc_test_type_id = 5 then val_publish end) as string_test_publish,
 	max(case when qc_test_type_id = 5 then val_min end) as string_test_min,
 	max(case when qc_test_type_id = 5 then val_target end) as string_test_target,
 	max(case when qc_test_type_id = 5 then val_max end) as string_test_max,
 
+	max(case when qc_test_type_id = 6 then qc_test_method_name end) as viscosity_method,
 	max(case when qc_test_type_id = 6 then val_measure end) as viscosity_measure,
 	max(case when qc_test_type_id = 6 then val_publish end) as viscosity_publish,
 	max(case when qc_test_type_id = 6 then val_min end) as viscosity_min,
@@ -1243,28 +1270,35 @@ where product_sample_storage_id = ?1
 	from bs.product_attributes
 	left join bs.product_ranges_measured using (product_id)
 	left join bs.product_appearance using (product_appearance_id)
-		join bs.product_types using (product_type_id)
+	join bs.product_types using (product_type_id)
+	left join bs.qc_test_methods using (qc_test_method_id)
+
 	where product_id = ?1
 	`)
 	// group by product_id
 
-	BIG_RANGES_QC := ` val_measure,
+	BIG_RANGES_QC := `
+	val_measure,
 	val_publish,
 	val_min,
 	val_target,
 	val_max`
 	BIG_NAME_RANGES_QC := `product_id, qc_test_type_name,
+	qc_test_method_name,
 	` + BIG_RANGES_QC
 
 	BIG_ID_RANGES_QC := `product_id,
 	qc_test_type_id,
+	qc_test_method_id,
 	` + BIG_RANGES_QC
 
-	BIG_EXCLUDED_QC := `val_measure=excluded.val_measure,
-				val_publish=excluded.val_publish,
-				val_min=excluded.val_min,
-				val_target=excluded.val_target,
-				val_max=excluded.val_max`
+	BIG_EXCLUDED_QC := `
+qc_test_method_id=excluded.qc_test_method_id,
+val_measure=excluded.val_measure,
+val_publish=excluded.val_publish,
+val_min=excluded.val_min,
+val_target=excluded.val_target,
+val_max=excluded.val_max`
 	DB_Upsert_product_details = PrepareOrElse(db, `
 	with
 	val
@@ -1274,13 +1308,14 @@ where product_sample_storage_id = ?1
 	as (
 		values (
 			?,?,
-			?,?,?,?,?)
+			?,?,?,?,?,?)
 	),
 
 	sel as (select
 		`+BIG_ID_RANGES_QC+`
 	from val
 	join bs.qc_test_types using (qc_test_type_name)
+	left join bs.qc_test_methods using (qc_test_method_name)
 )
 
 	insert into bs.product_ranges_measured

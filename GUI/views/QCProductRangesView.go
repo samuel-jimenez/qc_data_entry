@@ -32,7 +32,7 @@ type QCProductRangesView struct {
 	qc_product                                              *product.QCProduct
 	prod_label                                              *windigo.Label
 	radio_dock                                              *product.DiscreteView
-	appearance_dock                                         *product.ProductAppearanceView
+	appearance_dock                                         *ProductAppearanceView
 	labels                                                  *GUI.TextDock
 	ph_dock, sg_dock, density_dock, string_dock, visco_dock *RangeView
 	button_dock                                             *GUI.ButtonDock
@@ -68,9 +68,9 @@ func NewQCProductRangesView(parent windigo.Controller, qc_product *product.QCPro
 	view.radio_dock.SetItemSize(GUI.PRODUCT_TYPE_WIDTH)
 	view.radio_dock.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
 
-	view.appearance_dock = product.BuildNewProductAppearanceView(view, "Appearance", view.qc_product.Appearance)
+	view.appearance_dock = ProductAppearanceView_from_new(view, "Appearance", view.qc_product.Appearance)
 
-	view.labels = GUI.NewTextDock(view, "Min", "Target", "Max", "As-is", "Publish to COA") //TODO datatypes.ASIS
+	view.labels = GUI.NewTextDock(view, "Method", "Min", "Target", "Max", "As-is", "Publish to COA") //TODO datatypes.ASIS
 	view.labels.SetMarginsAll(GUI.RANGES_PADDING)
 	view.labels.SetMarginLeft(GUI.RANGES_PADDING + GUI.LABEL_WIDTH + GUI.RANGES_FIELD_WIDTH/2)
 	view.labels.SetDockSize(GUI.RANGES_FIELD_WIDTH, GUI.RANGES_FIELD_SMALL_HEIGHT)

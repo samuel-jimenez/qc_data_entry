@@ -15,6 +15,7 @@ type Range struct {
 	Min       nullable.NullFloat64
 	Target    nullable.NullFloat64
 	Max       nullable.NullFloat64
+	Method    nullable.NullString
 	Valid     bool
 	Publish_p bool
 }
@@ -23,10 +24,11 @@ func NewRange(
 	min nullable.NullFloat64,
 	target nullable.NullFloat64,
 	max nullable.NullFloat64,
+	Method nullable.NullString,
 	Valid, Publish_p bool,
 ) Range {
 	Valid = Valid || Publish_p || min.Valid || target.Valid || max.Valid
-	return Range{min, target, max, Valid, Publish_p}
+	return Range{min, target, max, Method, Valid, Publish_p}
 }
 
 // func (field_data Range) Check(data nullable.NullFloat64) bool {
@@ -37,9 +39,11 @@ func (field_data Range) Check(data float64) bool {
 }
 
 func (field_data Range) Map(data_map func(float64) float64) Range {
-	return NewRange(field_data.Min.Map(data_map),
+	return NewRange(
+		field_data.Min.Map(data_map),
 		field_data.Target.Map(data_map),
 		field_data.Max.Map(data_map),
+		field_data.Method,
 		field_data.Valid,
 		field_data.Publish_p,
 	)

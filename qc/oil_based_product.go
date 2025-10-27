@@ -3,6 +3,7 @@ package qc
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/product"
@@ -51,7 +52,7 @@ type OilBasedProductViewer interface {
 type OilBasedProductView struct {
 	*windigo.AutoPanel
 	visual_field  *views.BoolCheckboxView
-	density_field *views.MassDataView
+	density_field *qc_ui.MassDataView
 }
 
 func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedProductRangesView) *OilBasedProductView {
@@ -62,7 +63,7 @@ func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedPro
 
 	view.visual_field = views.NewBoolCheckboxView(view.AutoPanel, VISUAL_TEXT)
 
-	view.density_field = views.NewMassDataView(view.AutoPanel, ranges_panel)
+	view.density_field = qc_ui.MassDataView_from_new(view.AutoPanel, ranges_panel)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.density_field, windigo.Top)

@@ -2,7 +2,7 @@ package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
@@ -17,23 +17,22 @@ type OilBasedProductRangesViewer interface {
 
 type OilBasedProductRangesView struct {
 	*windigo.AutoPanel
-	*views.MassRangesView
+	*qc_ui.MassRangesView
 
-	visual_field *product.ProductAppearanceROView
+	visual_field *qc_ui.ProductAppearanceROView
 }
 
 func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *OilBasedProductRangesView {
 
-
 	view := new(OilBasedProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
-	view.MassRangesView = &views.MassRangesView{}
+	view.MassRangesView = &qc_ui.MassRangesView{}
 
-	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
+	view.visual_field = qc_ui.ProductAppearanceROView_from_new(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
 
-	view.Mass_field = views.RangeROViewMap_from_new(view.AutoPanel, formats.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
-	view.SG_field = views.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
-	view.Density_field = views.RangeROView_from_new(view.AutoPanel, formats.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
+	view.Mass_field = qc_ui.RangeROViewMap_from_new(view.AutoPanel, formats.MASS_TEXT, qc_product.SG, formats.Format_mass, formats.Mass_from_sg)
+	view.SG_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
+	view.Density_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.DENSITY_TEXT, qc_product.Density, formats.Format_ranges_density)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.Mass_field, windigo.Top)

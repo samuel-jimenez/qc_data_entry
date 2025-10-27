@@ -1,4 +1,4 @@
-package views
+package qc_ui
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"

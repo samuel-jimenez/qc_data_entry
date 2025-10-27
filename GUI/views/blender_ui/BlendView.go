@@ -34,7 +34,7 @@ type BlendView struct {
 	views.QCBlendView
 
 	parent                                *BlendStrappingProductView
-	total_field, heel_field, amount_field *views.NumbestEditView
+	total_field, heel_field, amount_field *GUI.NumbestEditView
 	headers                               *BlendHeader
 	Heel_Component, Total_Component       *BlendComponentView
 	Heel                                  float64
@@ -53,9 +53,9 @@ func BlendView_from_new(parent *BlendStrappingProductView) *BlendView {
 	// amount_text := "Amount"
 	// amount_text := "Quantity"
 
-	view.total_field = views.NumbestEditView_from_new(view.Panel, total_text)
-	view.heel_field = views.NumbestEditView_from_new(view.Panel, heel_text)
-	view.amount_field = views.NumbestEditView_from_new(view.Panel, amount_text)
+	view.total_field = GUI.NumbestEditView_from_new(view.Panel, total_text)
+	view.heel_field = GUI.NumbestEditView_from_new(view.Panel, heel_text)
+	view.amount_field = GUI.NumbestEditView_from_new(view.Panel, amount_text)
 	view.headers = BlendHeader_from_new(view.Panel)
 
 	view.Heel_Component = NewHeelBlendComponentView(view)

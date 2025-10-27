@@ -2,6 +2,7 @@ package GUI
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/windigo"
@@ -154,7 +155,7 @@ func Refresh_globals(font_size int) {
 
 	REPRINT_BUTTON_MARGIN_L = 2*LABEL_WIDTH + PRODUCT_FIELD_WIDTH + TOP_PANEL_INTER_SPACER_WIDTH - 2*SMOL_BUTTON_WIDTH - DISCRETE_FIELD_WIDTH - 2*BUTTON_MARGIN
 
-	RANGES_WINDOW_WIDTH = 2*RANGES_WINDOW_PADDING + 2*RANGES_PADDING + LABEL_WIDTH + 3*RANGES_FIELD_WIDTH + 2*RANGES_BUTTON_WIDTH + RANGES_BUTTON_WIDTH/2 + WINDOW_FUDGE_MARGIN_W
+	RANGES_WINDOW_WIDTH = 2*RANGES_WINDOW_PADDING + 2*RANGES_PADDING + LABEL_WIDTH + 4*RANGES_FIELD_WIDTH + 2*RANGES_BUTTON_WIDTH + RANGES_BUTTON_WIDTH/2 + WINDOW_FUDGE_MARGIN_W
 	RANGES_WINDOW_HEIGHT = RANGES_WINDOW_PADDING + 3*RANGES_PADDING + 2*ERROR_MARGIN + DISCRETE_FIELD_HEIGHT + 2*RANGES_FIELD_SMALL_HEIGHT + 7*RANGES_FIELD_HEIGHT + RANGES_BUTTON_HEIGHT + WINDOW_FUDGE_MARGIN_H
 
 	// 	num_rows := 3
@@ -222,4 +223,8 @@ func Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, stri
 
 func Fill_combobox_from_query(control windigo.ComboBoxable, select_statement *sql.Stmt, args ...any) {
 	Fill_combobox_from_query_fn(control, func(id int, name string) { control.AddItem(name) }, select_statement, args...)
+}
+
+func STRING_UPCASE(field windigo.BaseController) {
+	field.SetText(strings.ToUpper(strings.TrimSpace(field.Text())))
 }

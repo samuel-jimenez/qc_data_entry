@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
@@ -19,9 +19,9 @@ type WaterBasedProductRangesViewer interface {
 
 type WaterBasedProductRangesView struct {
 	*windigo.AutoPanel
-	visual_field *product.ProductAppearanceROView
+	visual_field *qc_ui.ProductAppearanceROView
 	ph_field,
-	sg_field *views.RangeROView
+	sg_field *qc_ui.RangeROView
 }
 
 func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *WaterBasedProductRangesView {
@@ -29,9 +29,9 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 	view := new(WaterBasedProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	view.visual_field = product.BuildNewProductAppearanceROView(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
-	view.ph_field = views.RangeROView_from_new(view.AutoPanel, formats.PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
-	view.sg_field = views.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
+	view.visual_field = qc_ui.ProductAppearanceROView_from_new(view.AutoPanel, VISUAL_TEXT, qc_product.Appearance)
+	view.ph_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.PH_TEXT, qc_product.PH, formats.Format_ranges_ph)
+	view.sg_field = qc_ui.RangeROView_from_new(view.AutoPanel, formats.SG_TEXT, qc_product.SG, formats.Format_ranges_sg)
 
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.ph_field, windigo.Top)

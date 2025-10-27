@@ -7,7 +7,6 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/blender/blendsheet"
 	"github.com/samuel-jimenez/windigo"
@@ -52,7 +51,7 @@ type BlendStrappingProductView struct {
 	Customer_field,
 	Blend_sel_field *GUI.ComboBox
 
-	Tag_field, Seal_field *views.NumbestEditView
+	Tag_field, Seal_field *GUI.NumbestEditView
 	Operators_field       *windigo.LabeledEdit
 
 	panels   []*windigo.AutoPanel
@@ -104,8 +103,8 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 	view.Customer_field = GUI.ComboBox_from_new(product_panel, customer_text)
 	view.Blend_sel_field = GUI.List_ComboBox_from_new(product_panel, recipe_text)
 
-	view.Tag_field = views.NumbestEditView_from_new(tag_seal_panel, Tag_text)
-	view.Seal_field = views.NumbestEditView_from_new(tag_seal_panel, Seal_text)
+	view.Tag_field = GUI.NumbestEditView_from_new(tag_seal_panel, Tag_text)
+	view.Seal_field = GUI.NumbestEditView_from_new(tag_seal_panel, Seal_text)
 	view.Operators_field = windigo.NewLabeledEdit(ops_panel, Operators_text)
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
