@@ -277,11 +277,11 @@ recipes:
 		}
 		for i := 1; i <= max_Add_order; i++ {
 			if len(Components_collect[i]) == 0 {
-				// component missing
+				// component not sampled
 				continue recipes
 			}
 			for _, comp := range Components_collect[i] {
-				for _, list := range Components_map[i-i] {
+				for _, list := range Components_map[i-1] {
 					Components_map[i] = append(Components_map[i], append(list, comp))
 				}
 			}
@@ -291,6 +291,7 @@ recipes:
 		for _, Components_list := range Components_map[max_Add_order] {
 			ProductBlend.Components = Components_list
 			BlendProduct.Save()
+			log.Println("DEBUG: blend", BlendProduct)
 		}
 	}
 }
