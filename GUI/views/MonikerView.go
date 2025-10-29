@@ -32,7 +32,6 @@ type MonikerView struct {
 }
 
 func MonikerView_from_new(parent windigo.Controller) *MonikerView {
-
 	window_title := "Add Product Moniker"
 	product_moniker_name_text := "Product Moniker Name"
 	retain_storage_duration_text := "Retain Storage Duration"
@@ -79,7 +78,7 @@ func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 		view.max_storage_capacity_field.AddItem(name)
 	}
 
-	//event handling
+	// event handling
 	view.product_moniker_name_field.OnKillFocus().Bind(view.product_moniker_name_field_OnKillFocus)
 	view.max_storage_capacity_field.OnSelectedChange().Bind(view.max_storage_capacity_field_OnSelectedChange)
 	accept_button.OnClick().Bind(view.accept_button_OnClick)
@@ -98,6 +97,8 @@ func (view *MonikerView) AddMoniker() {
 	product_moniker_name := view.product_moniker_name_field.Text()
 	retain_storage_duration := view.retain_storage_duration_field.Get()
 	max_storage_capacity := view.max_storage_capacity
+
+	//  TODO logtofile AddMoniker 	product_moniker_name,	retain_storage_duration 	max_storage_capacity
 
 	// [compiler] (IncompatibleAssign) cannot use qc_sample_storage_offset (variable of type int) as int64 value in argument to measured_product.InsertStorageBin
 	// yknow, this, combined with the whole yOU HaVe UNuSed VaRIBLEs thing makes prototyping really annoying
@@ -159,12 +160,10 @@ func (view *MonikerView) SetSize(w, h int) {
 }
 
 func (view *MonikerView) RefreshSize() {
-
 	view.SetPaddingsAll(GUI.GROUP_MARGIN)
 	view.SetSize(2*GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH+2*GUI.GROUP_MARGIN, 5*GUI.PRODUCT_FIELD_HEIGHT+2*GUI.GROUP_MARGIN)
 
 	view.product_moniker_name_field.SetLabeledSize(2*GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.retain_storage_duration_field.SetLabeledSize(2*GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.max_storage_capacity_field.SetLabeledSize(2*GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-
 }

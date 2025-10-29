@@ -564,7 +564,7 @@ func (view *DataViewerPanelView) ranges_button_OnClick(e *windigo.Event) {
 		return
 	}
 
-	qc_product := product.NewQCProduct()
+	qc_product := product.QCProduct_from_new()
 	qc_product.Product_name = Product_name
 	// qc_product.Insel_product_self() // get Product_id
 	qc_product.Product_id = int64(view.product_map[Product_name])

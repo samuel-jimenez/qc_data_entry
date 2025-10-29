@@ -314,7 +314,7 @@ func (measured_product BlendSheet) Export_pdf() (string, error) {
 	commanFormatter := message.NewPrinter(language.English)
 
 	// product.QCProduct
-	qc_product := product.NewQCProduct()
+	qc_product := product.QCProduct_from_new()
 	qc_product.Product_id = measured_product.Product_id
 	qc_product.Select_product_details()
 

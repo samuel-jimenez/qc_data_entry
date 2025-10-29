@@ -32,7 +32,7 @@ func Print_PDF(pdf_path string) {
  * Create and print storage label with dates
  *
  */
-func (measured_product MeasuredProduct) PrintOldStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
+func (measured_product BaseProduct) PrintOldStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
 
 	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, true); err != nil {
 		return err
@@ -47,7 +47,7 @@ func (measured_product MeasuredProduct) PrintOldStorage(qc_sample_storage_name, 
  * name and id only
  *
  */
-func (measured_product MeasuredProduct) PrintNewStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
+func (measured_product BaseProduct) PrintNewStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
 	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, false); err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (measured_product MeasuredProduct) PrintNewStorage(qc_sample_storage_name, 
  * Create and print storage label
  *
  */
-func (measured_product MeasuredProduct) PrintStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
+func (measured_product BaseProduct) PrintStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
 	file_path := measured_product.get_storage_pdf_name(qc_sample_storage_name)
 
 	if err := Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, printDates); err != nil {
@@ -176,15 +176,13 @@ func (measured_product MeasuredProduct) export_label_pdf() (string, error) {
 
 	}
 
-	var sg_derived bool
+	sg_derived := measured_product.QCProduct.SG.Method.String == METHOD_GARDCO_CUP
 	if measured_product.PH.Valid {
 		curr_row += curr_row_delta
 		pdf.SetXY(label_col, curr_row)
 		pdf.Cell(label_width, label_height, "pH")
 		pdf.Cell(field_width, field_height, formats.Format_ph(measured_product.PH.Float64))
-		sg_derived = false
 	} else {
-		sg_derived = true
 	}
 
 	if measured_product.SG.Valid {

@@ -180,6 +180,8 @@ func BlendSheet_from_new(ProductBlend *blender.ProductBlend, Product_name, opera
 	// object.Lot_number, _ = blender.Next_Lot_Number(operations_group)
 	object.Product_Lot_id = DB.Insert(proc_name, DB.DB_Insert_blend_lot, object.Lot_id, object.Product_id, object.Product_name_customer_id, object.Recipe_id)
 
+	//  TODO logtofile AddLot  object.Lot_id, object.Lot_number,	 object.Product_id, object.Product_name_customer_id, object.Recipe_id)
+
 	object.ProductBlend.Save(object.Product_Lot_id)
 
 	object.Vessel,

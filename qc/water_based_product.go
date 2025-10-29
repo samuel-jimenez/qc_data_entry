@@ -12,7 +12,7 @@ import (
 )
 
 type WaterBasedProduct struct {
-	product.BaseProduct
+	product.QCProduct
 	sg float64
 	ph float64
 }
@@ -24,7 +24,7 @@ func (wb_product WaterBasedProduct) toProduct() product.MeasuredProduct {
 		PH = NULL
 	}
 	return product.MeasuredProduct{
-		BaseProduct: wb_product.Base(),
+		QCProduct:   wb_product.Base(),
 		PH:          PH,
 		SG:          nullable.NewNullFloat64(wb_product.sg, true),
 		Density:     NULL,
@@ -35,7 +35,7 @@ func (wb_product WaterBasedProduct) toProduct() product.MeasuredProduct {
 	//TODO Option?
 }
 
-func newWaterBasedProduct(base_product product.BaseProduct, have_visual bool, sg, ph float64) product.MeasuredProduct {
+func newWaterBasedProduct(base_product product.QCProduct, have_visual bool, sg, ph float64) product.MeasuredProduct {
 
 	base_product.Visual = have_visual
 
@@ -84,7 +84,7 @@ func newWaterBasedProductView(parent *windigo.AutoPanel, ranges_panel *WaterBase
 	return view
 }
 
-func (view *WaterBasedProductView) Get(base_product product.BaseProduct) product.MeasuredProduct {
+func (view *WaterBasedProductView) Get(base_product product.QCProduct) product.MeasuredProduct {
 	return newWaterBasedProduct(base_product, view.visual_field.Get(), view.sg_field.Get(), view.ph_field.Get())
 }
 

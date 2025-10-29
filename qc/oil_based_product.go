@@ -11,13 +11,13 @@ import (
 )
 
 type OilBasedProduct struct {
-	product.BaseProduct
+	product.QCProduct
 	sg float64
 }
 
 func (ob_product OilBasedProduct) toProduct() product.MeasuredProduct {
 	return product.MeasuredProduct{
-		BaseProduct: ob_product.Base(),
+		QCProduct: ob_product.Base(),
 		PH:          nullable.NewNullFloat64(0, false),
 		SG:          nullable.NewNullFloat64(ob_product.sg, true),
 		Density:     nullable.NewNullFloat64(0, false),
@@ -28,7 +28,7 @@ func (ob_product OilBasedProduct) toProduct() product.MeasuredProduct {
 	//TODO Option?
 }
 
-func newOilBasedProduct(base_product product.BaseProduct,
+func newOilBasedProduct(base_product product.QCProduct,
 	have_visual bool, mass float64) product.MeasuredProduct {
 	base_product.Visual = have_visual
 	sg := formats.SG_from_mass(mass)
@@ -71,7 +71,7 @@ func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedPro
 	return view
 }
 
-func (view *OilBasedProductView) Get(base_product product.BaseProduct) product.MeasuredProduct {
+func (view *OilBasedProductView) Get(base_product product.QCProduct) product.MeasuredProduct {
 	// base_product.Visual = view.visual_field.Checked()
 	return newOilBasedProduct(base_product, view.visual_field.Get(), view.density_field.Get())
 }

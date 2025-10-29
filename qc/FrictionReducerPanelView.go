@@ -107,23 +107,19 @@ func (view *FrictionReducerPanelView) Update(qc_product *product.QCProduct) {
 		return
 	}
 
-	var (
-		recipe_data blender.ProductRecipe
-	)
+	var recipe_data blender.ProductRecipe
 	// proc_name := "RecipeProduct.GetRecipes"
 	proc_name := "FrictionReducerPanelView.GetRecipes"
 
 	DB.Forall(proc_name,
 		func() {},
 		func(row *sql.Rows) {
-
 			if err := row.Scan(
 				&recipe_data.Recipe_id,
 			); err != nil {
 				log.Fatal("Crit: [RecipeProduct GetRecipes]: ", proc_name, err)
 			}
 			log.Println("DEBUG: GetRecipes qc_data", proc_name, recipe_data)
-
 		},
 		DB.DB_Select_product_recipe, qc_product.Product_id)
 
@@ -149,7 +145,6 @@ func (view *FrictionReducerPanelView) ChangeContainer(qc_product *product.QCProd
 
 		// }
 	}
-
 }
 
 func (view *FrictionReducerPanelView) Clear() {
@@ -162,11 +157,11 @@ func (view *FrictionReducerPanelView) submit_cb() {
 	base_product := view.product_panel.BaseProduct()
 
 	// TODO blend012 ensurethis works with testing blends
-	//view.component_panel.saVE
+	// view.component_panel.saVE
 	log.Println("DEBUG: FrictionReducerPanelView.submit_cb base_product", base_product)
 	base_product.SetBlend(view.component_panel.Get())
 	log.Println("DEBUG: FrictionReducerPanelView.submit_cb base_product", base_product)
-	//TODO make sure this is the only time it is saved
+	// TODO make sure this is the only time it is saved
 	base_product.SaveBlend()
 
 	top_product := view.top_group.Get(base_product, true)
@@ -174,7 +169,6 @@ func (view *FrictionReducerPanelView) submit_cb() {
 	log.Println("debug: FrictionReducerPanelView.submit_cb.top", top_product)
 	log.Println("debug: FrictionReducerPanelView.submit_cb.btm", bottom_product)
 	check_dual_data(top_product, bottom_product)
-
 }
 
 func (view *FrictionReducerPanelView) tote_cb() {
@@ -191,7 +185,7 @@ func (view *FrictionReducerPanelView) tote_cb() {
 		if err != nil {
 			log.Printf("Error: [%s]: %q\n", "top_product.Output", err)
 		}
-		//TODO view.component_panel.saVE
+		// TODO view.component_panel.saVE
 
 	}
 }
@@ -199,7 +193,7 @@ func (view *FrictionReducerPanelView) tote_cb() {
 // TODO
 func check_dual_data(top_product, bottom_product product.MeasuredProduct) {
 	// DELTA_DIFF_VISCO := 200
-	var DELTA_DIFF_VISCO int64 = 200 //go sucks
+	var DELTA_DIFF_VISCO int64 = 200 // go sucks
 
 	if math.Abs(top_product.Viscosity.Diff(bottom_product.Viscosity)) <= DELTA_DIFF_VISCO &&
 		top_product.Check_data() && bottom_product.Check_data() {
@@ -223,7 +217,7 @@ func check_dual_data(top_product, bottom_product product.MeasuredProduct) {
 		if err != nil {
 			log.Printf("Error: [%s]: %q\n", "bottom_product.Printout", err)
 		}
-		//TODO find closest: RMS?
+		// TODO find closest: RMS?
 		err = bottom_product.Output_sample()
 		if err != nil {
 			log.Printf("Error: [%s]: %q\n", "bottom_product.Output_sample", err)
@@ -238,7 +232,5 @@ func check_dual_data(top_product, bottom_product product.MeasuredProduct) {
 
 	} else { // TODO show confirm box
 		log.Println("ERROR: Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
-
 	}
-
 }

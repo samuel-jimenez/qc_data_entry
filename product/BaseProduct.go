@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
@@ -39,10 +40,6 @@ type BaseProduct struct {
 	Valid                    bool
 }
 
-func (product BaseProduct) Base() BaseProduct {
-	return product
-}
-
 func (product *BaseProduct) ResetLot() {
 	product.Lot_number = ""
 	product.Product_Lot_id = DB.DEFAULT_LOT_ID
@@ -67,7 +64,7 @@ func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s", config.LABEL_PATH, product.get_base_filename("pdf"))
 }
 
-func (product MeasuredProduct) get_storage_pdf_name(qc_sample_storage_name string) string {
+func (product BaseProduct) get_storage_pdf_name(qc_sample_storage_name string) string {
 	return fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, qc_sample_storage_name, "pdf")
 }
 
@@ -204,4 +201,154 @@ func (product BaseProduct) SaveBlend() {
 	if product.Blend != nil {
 		product.Blend.Save(product.Product_Lot_id)
 	}
+}
+
+//TODO product.NewBin
+// add button to call to account for unlogged samples
+
+/*
+ * NewStorageBin
+ *
+ * Print label for storage bin
+ *
+ * Returns next storage bin
+ *
+ */
+func (measured_product BaseProduct) NewStorageBin() int {
+
+	var (
+		qc_sample_storage_id int
+	)
+	// get data for printing bin label, new bin creation
+	proc_name := "BaseProduct-NewStorageBin"
+
+	var (
+		product_sample_storage_id, qc_sample_storage_offset, start_date_, end_date_ int64
+		retain_storage_duration                                                     int
+		qc_sample_storage_name, product_moniker_name                                string
+	)
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Select_gen_product_sample_storage.QueryRow(
+			measured_product.Product_id,
+		),
+		&product_sample_storage_id, &product_moniker_name, &qc_sample_storage_offset, &qc_sample_storage_name,
+		&start_date_, &end_date_, &retain_storage_duration,
+	); err != nil {
+		log.Println("Crit: ", proc_name, measured_product, err)
+		panic(err)
+	}
+	start_date := time.Unix(0, start_date_)
+	end_date := time.Unix(0, end_date_)
+	retain_date := end_date.AddDate(0, retain_storage_duration, 0)
+	// + retain_storage_duration*time.Month
+
+	// print
+	measured_product.PrintOldStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
+
+	// product_moniker_id == product_sample_storage_id. update if this is no longer true
+	qc_sample_storage_id, qc_sample_storage_offset = measured_product.InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
+
+	//update qc_sample_storage_offset
+	proc_name = "BaseProduct-NewStorageBin.Update"
+	DB.Update(proc_name,
+		DB.DB_Update_product_sample_storage_qc_sample,
+		product_sample_storage_id,
+		qc_sample_storage_id, qc_sample_storage_offset)
+	return qc_sample_storage_id
+}
+
+/*
+ * InsertStorageBin
+ *
+ * Gen new based on qc_sample_storage_offset,
+ * product_moniker_id or product_sample_storage_id
+ *
+ * Print label for storage bin
+ *
+ * Returns next storage bin, updated qc_sample_storage_offset
+ *
+ */
+func (measured_product BaseProduct) InsertStorageBin(product_moniker_id, qc_sample_storage_offset int64, product_moniker_name string) (int, int64) { //ffs
+	var (
+		qc_sample_storage_id int
+		date                 time.Time
+	)
+	proc_name := "BaseProduct-InsertStorageBin"
+	location := 0
+	qc_sample_storage_offset += 1
+	qc_sample_storage_name := fmt.Sprintf("%02d-%03d-%04d", location, product_moniker_id, qc_sample_storage_offset)
+
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Insert_sample_storage.QueryRow(
+			qc_sample_storage_name, product_moniker_id,
+		),
+		&qc_sample_storage_id,
+	); err != nil {
+		log.Println("Crit: ", proc_name, measured_product, err)
+		panic(err)
+	}
+	measured_product.PrintNewStorage(qc_sample_storage_name, product_moniker_name, &date, &date, &date)
+	return qc_sample_storage_id, qc_sample_storage_offset
+}
+
+/*
+ * GetStorage
+ *
+ * Check storage
+ *
+ * Returns next storage bin with capacity for product
+ * products come in sequentially
+ * keep entire batches together
+ *
+ */
+func (measured_product BaseProduct) GetStorage(numSamples int) int {
+
+	proc_name := "BaseProduct-GetStorage"
+
+	var (
+		qc_sample_storage_id, storage_capacity int
+	)
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Select_product_sample_storage_capacity.QueryRow(
+			measured_product.Product_id,
+		),
+		&qc_sample_storage_id, &storage_capacity,
+	); err != nil {
+		log.Println("Crit: ", proc_name, measured_product, err)
+		panic(err)
+	}
+
+	// Check storage
+	if storage_capacity < numSamples {
+		qc_sample_storage_id = measured_product.NewStorageBin()
+	}
+	return qc_sample_storage_id
+
+}
+
+/*
+ * CheckStorage
+ *
+ * Check storage bin, print label if full
+ *
+ */
+func (measured_product BaseProduct) CheckStorage() {
+	measured_product.GetStorage(1)
+}
+
+func (measured_product *BaseProduct) format_sample() {
+	if measured_product.Product_name_customer != "" {
+		measured_product.Product_name = measured_product.Product_name_customer
+	}
+	measured_product.Sample_point = ""
+}
+
+func (measured_product BaseProduct) Reprint() {
+	Print_PDF(measured_product.get_pdf_name())
+}
+
+func (measured_product BaseProduct) Reprint_sample() {
+	measured_product.format_sample()
+	log.Println("DEBUG: Reprint_sample formatted", measured_product)
+	measured_product.Reprint()
 }

@@ -60,7 +60,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	view := new(TopPanelView)
 	// view.QCWindow = QCWindow
 	view.mainWindow = parent
-	view.QC_Product = product.NewQCProduct()
+	view.QC_Product = product.QCProduct_from_new()
 	view.QC_Product.SetUpdate(view.mainWindow.UpdateProduct)
 
 	product_text := "Product"
@@ -288,7 +288,7 @@ func (view *TopPanelView) SetTitle(title string) {
 	view.mainWindow.SetText(title)
 }
 
-func (view *TopPanelView) BaseProduct() product.BaseProduct {
+func (view *TopPanelView) BaseProduct() product.QCProduct {
 	log.Println("Debug: TopPanelView-BaseProduct", view.QC_Product.Base())
 
 	// there has to be better way

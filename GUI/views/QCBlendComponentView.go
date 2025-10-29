@@ -54,7 +54,7 @@ type QCBlendComponentView struct {
 	// Add_order    int64
 }
 
-//TODO multiComp00
+// TODO multiComp00
 // mutliple compents in one
 // e.g. recipe ingrediant x@100 : a@75 b@25
 
@@ -65,7 +65,7 @@ type QCBlendComponentView struct {
 // NewBlendComponentView
 
 func New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent windigo.Controller, recipeComponent *blender.RecipeComponent) *QCBlendComponentView {
-	//TODO multiComp00
+	// TODO multiComp00
 	// TODO blendAmount00
 	// list Component, amount required
 	// capture lot, amount
@@ -101,7 +101,6 @@ func New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent windigo.Contr
 }
 
 func NewQCBlendComponentView_from_RecipeComponent(parent windigo.Controller, recipeComponent *blender.RecipeComponent) *QCBlendComponentView {
-
 	view := New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent, recipeComponent)
 	view.Amount_required_field.SetEnabled(false)
 	view.Amount_required_field.SetInt(recipeComponent.Component_amount)
@@ -114,9 +113,8 @@ func NewQCBlendComponentView_from_RecipeComponent(parent windigo.Controller, rec
 	component_add_button := windigo.NewPushButton(view.AutoPanel)
 	component_add_button.SetText("+")
 	component_add_button.OnClick().Bind(func(e *windigo.Event) {
-		//TODO multiComp00
-		//TODO mutliple compents in one
-		return
+		// TODO multiComp00
+		// TODO mutliple compents in one
 
 	})
 
@@ -143,7 +141,7 @@ func (view *QCBlendComponentView) Get() *blender.BlendComponent {
 	*BlendComponent = view.Component_types_data[Component_name]
 
 	if BlendComponent.Lot_id == DB.INVALID_ID {
-		//TODO make error
+		// TODO make error
 		return nil
 	}
 	log.Println("DEBUG: QCBlendComponentView update_component_types", BlendComponent, view.Component_field.GetSelectedItem(), view.Component_field.SelectedItem(), view.Component_types_data[view.Component_field.Text()])
@@ -195,7 +193,6 @@ func (view *QCBlendComponentView) Update_component_types() {
 }
 
 func (view *QCBlendComponentView) SetFont(font *windigo.Font) {
-
 	view.Component_field.SetFont(font)
 	view.Amount_required_field.SetFont(font)
 	view.Component_name_field.SetFont(font)
@@ -206,7 +203,6 @@ func (view *QCBlendComponentView) SetFont(font *windigo.Font) {
 }
 
 func (view *QCBlendComponentView) RefreshSize() {
-
 	view.SetSize(GUI.OFF_AXIS, GUI.PRODUCT_FIELD_HEIGHT)
 
 	view.Component_name_field.SetSize(GUI.SOURCES_LABEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
@@ -215,5 +211,4 @@ func (view *QCBlendComponentView) RefreshSize() {
 
 	// TODO GUI.SOURCES_MARGIN_WIDTH
 	// view.component_field.SetLabeledSize(GUI.SOURCES_MARGIN_WIDTH, GUI.SOURCES_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-
 }

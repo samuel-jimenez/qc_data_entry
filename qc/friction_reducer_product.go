@@ -13,7 +13,7 @@ import (
 )
 
 type FrictionReducerProduct struct {
-	product.BaseProduct
+	product.QCProduct
 	sg          float64
 	string_test int64
 	viscosity   int64
@@ -21,7 +21,7 @@ type FrictionReducerProduct struct {
 
 func (fr_product FrictionReducerProduct) toProduct() product.MeasuredProduct {
 	return product.MeasuredProduct{
-		BaseProduct: fr_product.Base(),
+		QCProduct:   fr_product.Base(),
 		PH:          nullable.NewNullFloat64(0, false),
 		SG:          nullable.NewNullFloat64(fr_product.sg, true),
 		Density:     nullable.NewNullFloat64(formats.Density_from_sg(fr_product.sg), true),
@@ -30,7 +30,7 @@ func (fr_product FrictionReducerProduct) toProduct() product.MeasuredProduct {
 	}
 }
 
-func newFrictionReducerProduct(base_product product.BaseProduct, viscosity, mass, string_test float64) product.MeasuredProduct {
+func newFrictionReducerProduct(base_product product.QCProduct, viscosity, mass, string_test float64) product.MeasuredProduct {
 
 	sg := formats.SG_from_mass(mass)
 
@@ -85,7 +85,7 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 }
 
-func (view *FrictionReducerProductView) Get(base_product product.BaseProduct, replace_sample_point bool) product.MeasuredProduct {
+func (view *FrictionReducerProductView) Get(base_product product.QCProduct, replace_sample_point bool) product.MeasuredProduct {
 	base_product.Visual = view.visual_field.Checked()
 	if replace_sample_point {
 		base_product.Sample_point = view.sample_point

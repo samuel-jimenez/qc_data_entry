@@ -59,7 +59,7 @@ func (object *BlendComponent) Save(Product_Lot_id int64) {
 	}
 
 	DB.Insert(proc_name, DB.DB_Insert_Product_blend, Product_Lot_id, object.Component_id, Component_id, object.Component_amount)
-
+	//  TODO logtofile AddComponent  Product_Lot_id, object.Component_id, Component_id, object.Component_amount)
 }
 
 func (object BlendComponent) Text() []string {

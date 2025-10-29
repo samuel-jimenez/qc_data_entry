@@ -7,7 +7,6 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/blender/blendsheet"
 	"github.com/samuel-jimenez/windigo"
