@@ -193,7 +193,6 @@ func (object *InboundLot) Quality_test() {
 	operations_group := "BSQL"
 	sample_size := 500.
 	var BlendProducts []*blender.BlendProduct
-	log.Println("DEBUG: ", proc_name, object.Product_name, object.Lot_number)
 
 	// make blend
 	Lot_Id := blender.Next_Lot_Id(operations_group)
@@ -216,7 +215,6 @@ func (object *InboundLot) Quality_test() {
 			); err != nil {
 				return err
 			}
-			log.Println("DEBUG: ", proc_name, ProductBlend.Recipe_id)
 
 			BlendComponent.Lot_id = object.Lot_id
 			BlendComponent.Inboundp = true
@@ -232,13 +230,12 @@ func (object *InboundLot) Quality_test() {
 recipes:
 	for _, BlendProduct := range BlendProducts {
 		ProductBlend := BlendProduct.Blend
-		Components_collect := make(map[int][]blender.BlendComponent)
-		BlendComponent := ProductBlend.Components[0]
+		Sampled_Components := make(map[int][]blender.BlendComponent) // sampled components by add order
+		BlendComponent := ProductBlend.Components[0]                 // component we are testing
 
-		Components_collect[BlendComponent.Add_order] = append(Components_collect[BlendComponent.Add_order], BlendComponent)
+		Sampled_Components[BlendComponent.Add_order] = append(Sampled_Components[BlendComponent.Add_order], BlendComponent)
 		max_Add_order := BlendComponent.Add_order
 		max_recipe_Add_order := -1
-		log.Println("DEBUG: recipe# :", proc_name, ProductBlend.Recipe_id, BlendComponent.Lot_id)
 
 		// get other components,
 		proc_name := "GetComponents"
@@ -254,9 +251,8 @@ recipes:
 					return err
 				}
 				OtherBlendComponent.Component_amount *= sample_size
-				Components_collect[OtherBlendComponent.Add_order] = append(Components_collect[OtherBlendComponent.Add_order], *OtherBlendComponent)
+				Sampled_Components[OtherBlendComponent.Add_order] = append(Sampled_Components[OtherBlendComponent.Add_order], *OtherBlendComponent)
 				max_Add_order = IntMax(max_Add_order, OtherBlendComponent.Add_order)
-				log.Println("\nDEBUG: max_Add_order", proc_name, max_Add_order, OtherBlendComponent.Lot_id)
 				return nil
 			},
 			DB.DB_Select_inbound_lot_components,
@@ -265,22 +261,21 @@ recipes:
 		// ensure all components are sampled
 		DB.Select_Error("MaxRecipeCount",
 			DB.DB_Select_recipe_components_count.QueryRow(ProductBlend.Recipe_id), &max_recipe_Add_order)
-		if max_recipe_Add_order != max_Add_order || len(Components_collect[0]) == 0 {
+		if max_recipe_Add_order != max_Add_order || len(Sampled_Components[0]) == 0 {
 			continue recipes
 		}
 
 		// Take cartesian product of possible components,
 		Components_map := make(map[int][][]blender.BlendComponent)
-
-		for _, comp := range Components_collect[0] {
+		for _, comp := range Sampled_Components[0] {
 			Components_map[0] = append(Components_map[0], []blender.BlendComponent{comp})
 		}
 		for i := 1; i <= max_Add_order; i++ {
-			if len(Components_collect[i]) == 0 {
+			if len(Sampled_Components[i]) == 0 {
 				// component not sampled
 				continue recipes
 			}
-			for _, comp := range Components_collect[i] {
+			for _, comp := range Sampled_Components[i] {
 				for _, list := range Components_map[i-1] {
 					Components_map[i] = append(Components_map[i], append(list, comp))
 				}
@@ -291,7 +286,6 @@ recipes:
 		for _, Components_list := range Components_map[max_Add_order] {
 			ProductBlend.Components = Components_list
 			BlendProduct.Save()
-			log.Println("DEBUG: blend", BlendProduct)
 		}
 	}
 }
