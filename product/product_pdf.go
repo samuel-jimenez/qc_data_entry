@@ -22,7 +22,6 @@ func Print_PDF(pdf_path string) {
 		threads.Show_status("Label Printed")
 	} else {
 		log.Println("Warn: Print queue not configured. Call threads.Do_print_queue() to set up.")
-
 	}
 }
 
@@ -33,7 +32,6 @@ func Print_PDF(pdf_path string) {
  *
  */
 func (measured_product BaseProduct) PrintOldStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
-
 	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, true); err != nil {
 		return err
 	}
@@ -52,7 +50,6 @@ func (measured_product BaseProduct) PrintNewStorage(qc_sample_storage_name, prod
 		return err
 	}
 	return nil
-
 }
 
 /*
@@ -72,7 +69,6 @@ func (measured_product BaseProduct) PrintStorage(qc_sample_storage_name, product
 	Print_PDF(file_path)
 
 	return nil
-
 }
 
 // TODO extract this stuff to package
@@ -128,7 +124,6 @@ func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name 
 	err := pdf.OutputFileAndClose(file_path)
 	util.LogError(proc_name, err)
 	return err
-
 }
 
 func (measured_product MeasuredProduct) export_label_pdf() (string, error) {

@@ -114,7 +114,6 @@ func InboundLotMap_from_Query() map[string]*InboundLot {
 func (object *InboundLot) Insert() {
 	proc_name := "InboundLot.Insert"
 	object.Lot_id = DB.Insert(proc_name, DB.DB_Insert_inbound_lot, object.Lot_number, object.Product_id, object.Provider_id, object.Container_id)
-
 }
 
 func (object *InboundLot) Update_status(status inbound.Status) {
@@ -144,7 +143,6 @@ func (object *InboundLot) Update_status(status inbound.Status) {
 // MaxInt)
 func IntMax(a, b int) int {
 	return int(math.Max(float64(a), float64(b)))
-
 }
 
 func (object *InboundLot) Sample() {
@@ -154,14 +152,12 @@ func (object *InboundLot) Sample() {
 	pdf_path, err := object.ExportSample_label()
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", proc_name, err)
-		return //err
+		return // err
 	}
 	Print_PDF(pdf_path)
-
 }
 
 func (object *InboundLot) ExportSample_label() (string, error) {
-
 	// func Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
 	proc_name := "InboundLot.ExportSample_label"
 
@@ -199,14 +195,14 @@ func (object *InboundLot) Quality_test() {
 	var BlendProducts []*blender.BlendProduct
 	log.Println("DEBUG: ", proc_name, object.Product_name, object.Lot_number)
 
-	//make blend
+	// make blend
 	Lot_Id := blender.Next_Lot_Id(operations_group)
 	DB.Insert(proc_name, DB.DB_Insert_inbound_relabel, Lot_Id, object.Lot_id, object.Container_id)
 
 	// make tested
 	object.Update_status(inbound.Status_TESTED)
 
-	//get recipes
+	// get recipes
 	DB.Forall_err(proc_name,
 		func() {},
 		func(row *sql.Rows) error {
@@ -244,7 +240,7 @@ recipes:
 		max_recipe_Add_order := -1
 		log.Println("DEBUG: recipe# :", proc_name, ProductBlend.Recipe_id, BlendComponent.Lot_id)
 
-		//get other components,
+		// get other components,
 		proc_name := "GetComponents"
 		DB.Forall_err(proc_name,
 			func() {},
@@ -291,11 +287,10 @@ recipes:
 			}
 		}
 
-		//make blend
+		// make blend
 		for _, Components_list := range Components_map[max_Add_order] {
 			ProductBlend.Components = Components_list
 			BlendProduct.Save()
 		}
 	}
-
 }

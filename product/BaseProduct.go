@@ -16,7 +16,7 @@ import (
 func Release_testing_lot(lot_number string) error {
 	proc_name := "product.Release_testing_lot"
 	err := DB.Update(proc_name,
-		//TODO only the BSQL?
+		// TODO only the BSQL?
 		DB.DB_Update_lot_list__component_status, lot_number, Status_SHIPPED,
 	)
 	if err != nil {
@@ -49,8 +49,7 @@ func (product *BaseProduct) ResetLot() {
 	product.Blend = nil
 }
 
-//TODO product.get_coa_name()
-
+// TODO product.get_coa_name()
 func (product BaseProduct) get_base_filename(extension string) string {
 	// if (product.Sample_point.Valid) {
 	if product.Sample_point != "" {
@@ -71,7 +70,6 @@ func (product BaseProduct) get_storage_pdf_name(qc_sample_storage_name string) s
 func (product *BaseProduct) Insel_product_self() *BaseProduct {
 	product.Product_id = DB.Insel_product_id(product.Product_name)
 	return product
-
 }
 
 func (product *BaseProduct) Update_lot(lot_number, product_name_customer string) *BaseProduct {
@@ -172,11 +170,9 @@ func (base_product *BaseProduct) Update_testing_tttToday_Junior() {
 
 func (product *BaseProduct) SetTester(Tester string) {
 	product.Tester = nullable.NewNullString(Tester)
-
 }
 
 func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
-
 	proc_name := "BaseProduct.SetBlend"
 
 	log.Println("Debug: ", proc_name, product.Blend, Blend, product)
@@ -197,13 +193,13 @@ func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
 }
 
 func (product BaseProduct) SaveBlend() {
-	//TODO make sure this is the only time it is saved
+	// TODO make sure this is the only time it is saved
 	if product.Blend != nil {
 		product.Blend.Save(product.Product_Lot_id)
 	}
 }
 
-//TODO product.NewBin
+// TODO product.NewBin
 // add button to call to account for unlogged samples
 
 /*
@@ -215,10 +211,7 @@ func (product BaseProduct) SaveBlend() {
  *
  */
 func (measured_product BaseProduct) NewStorageBin() int {
-
-	var (
-		qc_sample_storage_id int
-	)
+	var qc_sample_storage_id int
 	// get data for printing bin label, new bin creation
 	proc_name := "BaseProduct-NewStorageBin"
 
@@ -248,7 +241,7 @@ func (measured_product BaseProduct) NewStorageBin() int {
 	// product_moniker_id == product_sample_storage_id. update if this is no longer true
 	qc_sample_storage_id, qc_sample_storage_offset = measured_product.InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
 
-	//update qc_sample_storage_offset
+	// update qc_sample_storage_offset
 	proc_name = "BaseProduct-NewStorageBin.Update"
 	DB.Update(proc_name,
 		DB.DB_Update_product_sample_storage_qc_sample,
@@ -268,7 +261,7 @@ func (measured_product BaseProduct) NewStorageBin() int {
  * Returns next storage bin, updated qc_sample_storage_offset
  *
  */
-func (measured_product BaseProduct) InsertStorageBin(product_moniker_id, qc_sample_storage_offset int64, product_moniker_name string) (int, int64) { //ffs
+func (measured_product BaseProduct) InsertStorageBin(product_moniker_id, qc_sample_storage_offset int64, product_moniker_name string) (int, int64) { // ffs
 	var (
 		qc_sample_storage_id int
 		date                 time.Time
@@ -302,12 +295,9 @@ func (measured_product BaseProduct) InsertStorageBin(product_moniker_id, qc_samp
  *
  */
 func (measured_product BaseProduct) GetStorage(numSamples int) int {
-
 	proc_name := "BaseProduct-GetStorage"
 
-	var (
-		qc_sample_storage_id, storage_capacity int
-	)
+	var qc_sample_storage_id, storage_capacity int
 	if err := DB.Select_Error(proc_name,
 		DB.DB_Select_product_sample_storage_capacity.QueryRow(
 			measured_product.Product_id,
@@ -323,7 +313,6 @@ func (measured_product BaseProduct) GetStorage(numSamples int) int {
 		qc_sample_storage_id = measured_product.NewStorageBin()
 	}
 	return qc_sample_storage_id
-
 }
 
 /*

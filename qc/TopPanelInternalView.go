@@ -71,7 +71,6 @@ func NewTopPanelInternalView(
 	container_field *product.DiscreteView,
 	ranges_button, inventory_button, reprint_button, inbound_button *windigo.PushButton,
 ) *TopPanelInternalView {
-
 	view := new(TopPanelInternalView)
 
 	// build object
@@ -159,7 +158,6 @@ func NewTopPanelInternalView(
 }
 
 func (view *TopPanelInternalView) SetFont(font *windigo.Font) {
-
 	view.internal_product_field.SetFont(font)
 	view.customer_field.SetFont(font)
 	view.lot_field.SetFont(font)
@@ -169,11 +167,9 @@ func (view *TopPanelInternalView) SetFont(font *windigo.Font) {
 	view.inventory_button.SetFont(font)
 	view.reprint_button.SetFont(font)
 	view.inbound_button.SetFont(font)
-
 }
 
 func (view *TopPanelInternalView) RefreshSize() {
-
 	view.product_panel_0_0.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.product_panel_0_0.SetMarginTop(GUI.TOP_SPACER_HEIGHT)
 	view.product_panel_0_0.SetMarginLeft(GUI.HPANEL_MARGIN)
@@ -203,7 +199,6 @@ func (view *TopPanelInternalView) RefreshSize() {
 
 	view.inbound_button.SetMarginsAll(BUTTON_MARGIN)
 	view.inbound_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
-
 }
 
 func (view *TopPanelInternalView) SetTitle(title string) {
@@ -214,7 +209,6 @@ func (view *TopPanelInternalView) SetTitle(title string) {
 }
 
 func (view *TopPanelInternalView) Show() {
-
 	view.product_panel_0_0.Show()
 	view.product_panel_0_1.Show()
 	view.ranges_button.Show()
@@ -222,11 +216,9 @@ func (view *TopPanelInternalView) Show() {
 	view.reprint_button.Show()
 	view.inventory_button.Show()
 	view.inbound_button.Show()
-
 }
 
 func (view *TopPanelInternalView) Hide() {
-
 	view.product_panel_0_0.Hide()
 	view.product_panel_0_1.Hide()
 	view.ranges_button.Hide()
@@ -234,7 +226,6 @@ func (view *TopPanelInternalView) Hide() {
 	view.reprint_button.Hide()
 	view.inventory_button.Hide()
 	view.inbound_button.Hide()
-
 }
 
 func (view *TopPanelInternalView) PopQRData(product QR.QRJson) {
@@ -248,7 +239,6 @@ func (view *TopPanelInternalView) AlertProduct() {
 }
 
 func (view *TopPanelInternalView) product_field_pop_data(str string) {
-
 	view.internal_product_field.Ok()
 
 	// if product_lot.product_id != product_lot.insel_product_id(str) {
@@ -296,6 +286,7 @@ func (view *TopPanelInternalView) lot_field_pop_data(str string) {
 	view.QC_Product.Update_lot(str, view.customer_field.Text())
 	view.SetTitle(str)
 }
+
 func (view *TopPanelInternalView) lot_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
 	view.lot_field.SetText(formatted_text)
@@ -306,6 +297,7 @@ func (view *TopPanelInternalView) lot_field_text_pop_data(str string) {
 func (view *TopPanelInternalView) customer_field_pop_data(str string) {
 	view.QC_Product.Update_lot(view.lot_field.Text(), str)
 }
+
 func (view *TopPanelInternalView) customer_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
 	view.customer_field.SetText(formatted_text)
@@ -316,6 +308,7 @@ func (view *TopPanelInternalView) customer_field_text_pop_data(str string) {
 func (view *TopPanelInternalView) sample_field_pop_data(str string) {
 	view.QC_Product.Sample_point = str
 }
+
 func (view *TopPanelInternalView) sample_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
 	view.sample_field.SetText(formatted_text)

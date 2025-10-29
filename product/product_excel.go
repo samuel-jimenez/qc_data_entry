@@ -25,7 +25,6 @@ func WithOpenFile(file_name string, FN func(*excelize.File) error) error {
 }
 
 func updateExcel(file_name, worksheet_name string, row ...string) error {
-
 	return WithOpenFile(file_name, func(xl_file *excelize.File) error {
 		// Get all the rows in the worksheet.
 		rows, err := xl_file.GetRows(worksheet_name)

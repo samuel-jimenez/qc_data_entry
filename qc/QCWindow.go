@@ -143,11 +143,13 @@ func (view *QCWindow) Set_font_size() {
 	view.SetFont(windigo.DefaultFont)
 	view.RefreshSize()
 }
+
 func (view *QCWindow) Increase_font_size() bool {
 	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
+
 func (view *QCWindow) Decrease_font_size() bool {
 	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
@@ -159,6 +161,7 @@ func (view *QCWindow) keygrab_start() bool {
 	view.keygrab.SetFocus()
 	return true
 }
+
 func (view *QCWindow) keygrab_end() bool {
 	var product QR.QRJson
 

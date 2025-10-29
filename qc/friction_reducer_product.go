@@ -31,11 +31,9 @@ func (fr_product FrictionReducerProduct) toProduct() product.MeasuredProduct {
 }
 
 func newFrictionReducerProduct(base_product product.QCProduct, viscosity, mass, string_test float64) product.MeasuredProduct {
-
 	sg := formats.SG_from_mass(mass)
 
 	return FrictionReducerProduct{base_product, sg, int64(string_test), int64(viscosity)}.toProduct()
-
 }
 
 func (product *FrictionReducerProduct) Check_data() bool {
@@ -60,7 +58,6 @@ type FrictionReducerProductView struct {
 }
 
 func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point string, ranges_panel *FrictionReducerProductRangesView) *FrictionReducerProductView {
-
 	view := new(FrictionReducerProductView)
 
 	view.AutoPanel = windigo.NewGroupAutoPanel(parent)
@@ -82,7 +79,6 @@ func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point 
 
 	view.sample_point = strings.ToUpper(sample_point)
 	return view
-
 }
 
 func (view *FrictionReducerProductView) Get(base_product product.QCProduct, replace_sample_point bool) product.MeasuredProduct {
@@ -109,7 +105,6 @@ func (view *FrictionReducerProductView) RefreshSize() {
 	view.viscosity_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 	view.density_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.DATA_SUBFIELD_WIDTH, GUI.DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 	view.string_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
-
 }
 
 func (view *FrictionReducerProductView) Clear() {

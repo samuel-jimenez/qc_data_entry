@@ -38,14 +38,10 @@ func write_CoA_row_fmt_int64(table *docx.Table, title, units string, spec dataty
 }
 
 func (qc_product MeasuredProduct) write_CoA_rows(table *docx.Table) {
-	var (
-		Appearance_units = "Pass/fail"
-	)
+	Appearance_units := "Pass/fail"
 
-	var (
-		// visual        = "PASS"
-		visual = "FAIL"
-	)
+	// visual        = "PASS"
+	visual := "FAIL"
 	if qc_product.Visual {
 		visual = "PASS"
 	}
@@ -64,14 +60,13 @@ func (qc_product MeasuredProduct) write_CoA_rows(table *docx.Table) {
 	write_CoA_row_fmt_int64(table, formats.STRING_TEXT_MINI, formats.STRING_UNITS, qc_product.QCProduct.String_test, qc_product.String_test, formats.Format_string_test)
 	// write_CoA_row_fmt(table, viscosity_title, formats.VISCOSITY_UNITS, product.Viscosity, product.Product.Viscosity, formats.Format_viscosity)
 	write_CoA_row_fmt_int64(table, formats.VISCOSITY_TEXT, formats.VISCOSITY_UNITS, qc_product.QCProduct.Viscosity, qc_product.Viscosity, formats.Format_viscosity)
-
 }
 
 func (measured_product MeasuredProduct) get_coa_template() string {
-	//TODO db
+	// TODO db
 	// return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, product.COA_TEMPLATE)
 	// Product_type split
-	//TODO fix this
+	// TODO fix this
 	product_moniker := strings.Split(measured_product.Product_name, " ")[0]
 	if product_moniker == "PETROFLO" {
 		return fmt.Sprintf("%s/%s", config.COA_TEMPLATE_PATH, "CoA-PETROFLO.docx")
@@ -125,7 +120,7 @@ func (measured_product MeasuredProduct) searchCOAPara(para *docx.Paragraph, p_ti
 
 				run.Clear()
 
-				//Add product name
+				// Add product name
 				run.AddText(product_name)
 				return
 			}
