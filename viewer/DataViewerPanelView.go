@@ -14,7 +14,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-//TODO viewerf_refactor: split datatypes, views
+// TODO viewerf_refactor: split datatypes, views
 
 /*
  * DataViewerPanelViewer
@@ -93,7 +93,6 @@ type DataViewerPanelView struct {
 // parent
 
 func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView {
-
 	view := new(DataViewerPanelView)
 
 	view.product_map = make(map[string]int)
@@ -129,7 +128,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 
 	view.AutoPanel = windigo.NewAutoPanel(mainWindow)
 
-	//TODO array db_select_all_product
+	// TODO array db_select_all_product
 
 	view.product_panel = windigo.NewAutoPanel(view.AutoPanel)
 
@@ -265,7 +264,6 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 }
 
 func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
-
 	view.product_field.SetFont(font)
 	view.moniker_field.SetFont(font)
 	view.lot_field.SetFont(font)
@@ -284,11 +282,9 @@ func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 	view.regen_sample_button.SetFont(font)
 	view.export_xl_button.SetFont(font)
 	view.ranges_button.SetFont(font)
-
 }
 
 func (view *DataViewerPanelView) RefreshSize() {
-
 	reprint_sample_button_margin := GUI.HPANEL_MARGIN + GUI.LABEL_WIDTH + GUI.PRODUCT_FIELD_WIDTH + GUI.SMOL_BUTTON_WIDTH + GUI.TOP_PANEL_INTER_SPACER_WIDTH - 3*GUI.BUTTON_WIDTH
 
 	top_panel_height := GUI.TOP_SPACER_HEIGHT + GUI.INTER_SPACER_HEIGHT + 2*GUI.PRODUCT_FIELD_HEIGHT + GUI.BUTTON_HEIGHT
@@ -326,7 +322,6 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.regen_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.export_xl_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.ranges_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
-
 }
 
 func (view *DataViewerPanelView) SetMainWindow(mainWindow *ViewerWindow) {
@@ -341,10 +336,12 @@ func (view *DataViewerPanelView) update_product(id int, name string) {
 	view.product_field.AddItem(name)
 	// COL_ITEMS_LOT = append(COL_ITEMS_LOT, name)
 }
+
 func (view *DataViewerPanelView) update_lot(id int, name string) {
 	view.lot_field.AddItem(name)
 	COL_ITEMS_LOT = append(COL_ITEMS_LOT, name)
 }
+
 func (view *DataViewerPanelView) update_sample(id int, name string) {
 	view.sample_field.AddItem(name)
 	COL_ITEMS_SAMPLE_PT = append(COL_ITEMS_SAMPLE_PT, name)
@@ -386,7 +383,6 @@ func (view *DataViewerPanelView) SetTable() {
 // listeners
 
 func (view *DataViewerPanelView) moniker_field_OnChange(e *windigo.Event) {
-
 	product_moniker := view.moniker_field.GetSelectedItem()
 	view.MonikerFilter.Set([]string{product_moniker})
 
@@ -399,15 +395,12 @@ func (view *DataViewerPanelView) moniker_field_OnChange(e *windigo.Event) {
 
 	view.SetTable()
 	view.mainWindow.UpdateFilterListView()
-
 }
 
 func (view *DataViewerPanelView) moniker_clear_button_OnClick(e *windigo.Event) {
-
 	view.clear_moniker()
 	view.SetTable()
 	view.mainWindow.UpdateFilterListView()
-
 }
 
 func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
@@ -428,12 +421,10 @@ func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
 }
 
 func (view *DataViewerPanelView) product_clear_button_OnClick(e *windigo.Event) {
-
 	view.clear_product()
 
 	view.SetTable()
 	view.mainWindow.UpdateFilterListView()
-
 }
 
 func (view *DataViewerPanelView) lot_field_OnChange(e *windigo.Event) {
@@ -464,7 +455,6 @@ func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event)
 	for _, data := range view.mainWindow.GetTableSelected() {
 		data.(QCData).Product().Reprint_sample()
 	}
-
 }
 
 func (view *DataViewerPanelView) regen_sample_button_OnClick(e *windigo.Event) {
@@ -475,12 +465,11 @@ func (view *DataViewerPanelView) regen_sample_button_OnClick(e *windigo.Event) {
 			threads.Show_status("Error Creating Label")
 		}
 	}
-
 }
 
 func (view *DataViewerPanelView) export_xl_button_OnClick(e *windigo.Event) {
 	DefaultExtension := ".xlsx"
-	//TODO	// "github.com/harry1453/go-common-file-dialog/cfdutil"
+	// TODO	// "github.com/harry1453/go-common-file-dialog/cfdutil"
 	filePath, ok := windigo.ShowSaveFileDlg(
 		view,
 		"Export excel file",
@@ -547,7 +536,6 @@ func (view *DataViewerPanelView) export_xl_button_OnClick(e *windigo.Event) {
 	if err := xl_file.SaveAs(filePath); err != nil {
 		log.Println("Error: ", proc_name, err)
 	}
-
 }
 
 func (view *DataViewerPanelView) ranges_button_OnClick(e *windigo.Event) {
@@ -558,7 +546,6 @@ func (view *DataViewerPanelView) ranges_button_OnClick(e *windigo.Event) {
 		Product_name = view.product_field.GetSelectedItem()
 	} else {
 		Product_name = data[0].(QCData).Product_name
-
 	}
 	if Product_name == "" {
 		return

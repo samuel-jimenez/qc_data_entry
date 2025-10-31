@@ -9,6 +9,8 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/nullable"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
+	"github.com/samuel-jimenez/qc_data_entry/util"
+	"github.com/samuel-jimenez/qc_data_entry/util/math"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -27,7 +29,7 @@ func MeasuredProduct_from_new() *MeasuredProduct {
 	return new(MeasuredProduct)
 }
 
-func (measured_product MeasuredProduct) Save() int64 {
+func (measured_product *MeasuredProduct) Save() int64 {
 	proc_name := "MeasuredProduct-Save.Sample_point"
 	DB.Insert(proc_name, DB.DB_Insel_sample_point, measured_product.Sample_point)
 
@@ -61,7 +63,7 @@ func (measured_product MeasuredProduct) Save() int64 {
 	return qc_id
 }
 
-func Store(products ...MeasuredProduct) {
+func Store(products ...*MeasuredProduct) {
 	numSamples := len(products)
 	if numSamples <= 0 {
 		return
@@ -85,45 +87,32 @@ func Store(products ...MeasuredProduct) {
 		qc_sample_storage_id, numSamples)
 }
 
-func (measured_product MeasuredProduct) Check_data() bool {
+func (measured_product *MeasuredProduct) Check_data() bool {
 	return measured_product.Valid
 }
 
-func (measured_product MeasuredProduct) Printout() error {
-	return measured_product.print()
-}
-
-func (measured_product MeasuredProduct) Output() error {
-	if err := measured_product.Printout(); err != nil {
-		log.Printf("Error: [%s]: %q\n", "MeasuredProduct-Output", err)
-		log.Printf("Debug: MeasuredProduct-Output %q: %v\n", err, measured_product) // TODO
-		return err
-	}
+func (measured_product *MeasuredProduct) Output_sample() error {
 	measured_product.format_sample()
 	return measured_product.export_CoA()
 }
 
-func (measured_product MeasuredProduct) Output_sample() error {
-	log.Println("DEBUG: Output_sample ", measured_product) // TODO
-	measured_product.format_sample()
-	log.Println("DEBUG: Output_sample formatted", measured_product) // TODO
-	if err := measured_product.export_CoA(); err != nil {
-		log.Printf("Error: [%s]: %q\n", "MeasuredProduct-Output_sample", err)
-		log.Printf("Debug: Output_sample: %q: %v\n", err, measured_product) // TODO
+func (measured_product *MeasuredProduct) Printout() error {
+	proc_name := "MeasuredProduct-Printout"
+	if err := measured_product.Print(); err != nil {
+		log.Printf("Error [%s]: %q\n", proc_name, err)
+		log.Printf("Debug [%s]: %q: %v\n", proc_name, err, measured_product) // TODO
 		return err
 	}
-	return measured_product.print()
-	// TODO clean
-	// return nil
+	return measured_product.Output_sample()
 }
 
-func (measured_product MeasuredProduct) Save_xl() error {
+func (measured_product *MeasuredProduct) Save_xl() error {
 	isomeric_product := strings.Split(measured_product.Product_name, " ")[1]
 	valence_product := strings.Split(measured_product.Product_name_customer, " ")[1]
 	return updateExcel(config.RETAIN_FILE_NAME, config.RETAIN_WORKSHEET_NAME, measured_product.Lot_number, isomeric_product, valence_product)
 }
 
-func (measured_product MeasuredProduct) print() error {
+func (measured_product *MeasuredProduct) Print() error {
 	pdf_path, err := measured_product.export_label_pdf()
 	if err != nil {
 		return err
@@ -133,4 +122,63 @@ func (measured_product MeasuredProduct) print() error {
 	Print_PDF(pdf_path)
 
 	return err
+}
+
+func Check_single_data(measured_product *MeasuredProduct, store_p, print_p bool) (valid bool) {
+	valid = measured_product.Check_data()
+	if valid {
+		log.Println("debug: Check_check_single_data",
+			measured_product)
+		if store_p {
+			Store(measured_product)
+		} else {
+			measured_product.Save()
+		}
+		if print_p {
+			util.LogError("sample_product-Print", measured_product.Print())
+		}
+		if store_p {
+			util.LogError("sample_product-Output_sample", measured_product.Output_sample())
+			measured_product.CheckStorage()
+		}
+	}
+	return
+}
+
+func Check_dual_data(top_product, bottom_product *MeasuredProduct, print_p bool) (valid bool) {
+	// DELTA_DIFF_VISCO := 200
+	var DELTA_DIFF_VISCO int64 = 200 // go sucks
+
+	valid = math.Abs(top_product.Viscosity.Diff(bottom_product.Viscosity)) <= DELTA_DIFF_VISCO &&
+		top_product.Check_data() && bottom_product.Check_data()
+
+	if valid {
+
+		log.Println("debug: Check_check_dual_data",
+			top_product)
+
+		Store(top_product, bottom_product)
+
+		if print_p {
+			util.LogError("top_product-Print", top_product.Print())
+			log.Println("debug: Check_data",
+				bottom_product)
+
+			util.LogError("bottom_product-Print", bottom_product.Print())
+		}
+		// TODO find closest: RMS?
+		util.LogError("bottom_product-Output_sample", bottom_product.Output_sample())
+		if print_p {
+			util.LogError("bottom_product-Print", bottom_product.Print())
+		}
+		log.Println("debug: Check_data",
+			bottom_product)
+
+		util.LogError("bottom_product-Save_xl", bottom_product.Save_xl())
+
+		// * Check storage
+		bottom_product.CheckStorage()
+
+	}
+	return
 }

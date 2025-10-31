@@ -216,6 +216,10 @@ func (view *TopPanelInternalView) Show() {
 	view.reprint_button.Show()
 	view.inventory_button.Show()
 	view.inbound_button.Show()
+
+	lot := view.lot_field.Text()
+	view.internal_product_field.OnSelectedChange().Fire(nil)
+	view.lot_field_text_pop_data(lot)
 }
 
 func (view *TopPanelInternalView) Hide() {

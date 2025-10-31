@@ -3,6 +3,19 @@
     "target_sets": [
         {
             "cmake_config": "",
+            "directory": "C:/Users/QC Lab/Documents/golang/qc_data_entry/test",
+            "loaded_via_cmake": false,
+            "name": "Target Set",
+            "targets": [
+                {
+                    "build_cmd": "go build -C .. -v -o test/",
+                    "name": "Build+",
+                    "run_cmd": "./qc_data_entry.exe"
+                }
+            ]
+        },
+        {
+            "cmake_config": "",
             "directory": "C:/Users/QC Lab/Documents/golang/qc_data_entry",
             "loaded_via_cmake": false,
             "name": "Target Set+++",

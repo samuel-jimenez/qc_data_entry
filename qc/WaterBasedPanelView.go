@@ -1,8 +1,6 @@
 package qc
 
 import (
-	"log"
-
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
@@ -74,27 +72,10 @@ func (view *WaterBasedPanelView) Clear() {
 
 func (view *WaterBasedPanelView) submit_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
-	if measured_product.Check_data() {
-		log.Println("Debug: WaterBasedPanelView-submit_data", measured_product)
-		// TODO blend013 ensurethis works with testing blends
-		// measured_product.Save()
-		product.Store(measured_product)
-		err := measured_product.Output()
-		if err != nil {
-			log.Printf("Error: [%s]: %q\n", "WaterBasedProduct.Output", err)
-		}
-		// * Check storage
-		measured_product.CheckStorage()
-	}
+	product.Check_single_data(measured_product, true, true)
 }
 
 func (view *WaterBasedPanelView) log_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
-	if measured_product.Check_data() {
-		log.Println("Debug: WaterBasedPanelView-log_data", measured_product)
-		// measured_product.Save()
-		product.Store(measured_product)
-		// * Check storage
-		measured_product.CheckStorage()
-	}
+	product.Check_single_data(measured_product, true, false)
 }

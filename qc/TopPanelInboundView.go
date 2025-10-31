@@ -199,6 +199,10 @@ func (view *TopPanelInboundView) Show() {
 	view.release_button.Show()
 	view.today_button.Show()
 	view.internal_button.Show()
+
+	if view.testing_lot_field.SelectedItem() == -1 {
+		return
+	}
 	view.testing_lot_field_OnSelectedChange(nil)
 }
 
@@ -263,7 +267,7 @@ func (view *TopPanelInboundView) testing_lot_field_OnSelectedChange(e *windigo.E
 
 	blend := view.QC_Product.Blend
 	if blend == nil || len(blend.Components) < 1 {
-		log.Println("Err: testing_lot_field.OnSelectedChange", view.QC_Product, blend)
+		log.Println("Err: testing_lot_field-OnSelectedChange", view.QC_Product, blend)
 		return
 	}
 

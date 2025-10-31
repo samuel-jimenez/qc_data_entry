@@ -1,8 +1,6 @@
 package qc
 
 import (
-	"log"
-
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
@@ -27,7 +25,6 @@ type OilBasedPanelView struct {
 }
 
 func Show_oil_based(parent *windigo.AutoPanel, product_panel *TopPanelView) *OilBasedPanelView {
-
 	view := new(OilBasedPanelView)
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
@@ -45,7 +42,6 @@ func Show_oil_based(parent *windigo.AutoPanel, product_panel *TopPanelView) *Oil
 	parent.Dock(view.button_dock, windigo.Top)
 
 	return view
-
 }
 
 func (view *OilBasedPanelView) SetFont(font *windigo.Font) {
@@ -55,7 +51,6 @@ func (view *OilBasedPanelView) SetFont(font *windigo.Font) {
 }
 
 func (view *OilBasedPanelView) RefreshSize() {
-
 	view.SetSize(GUI.OFF_AXIS, GUI.GROUP_HEIGHT)
 	view.SetMargins(GUI.GROUP_MARGIN, GUI.GROUP_MARGIN, 0, 0)
 
@@ -63,7 +58,6 @@ func (view *OilBasedPanelView) RefreshSize() {
 	view.ranges_panel.RefreshSize()
 
 	view.button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
-
 }
 
 func (view *OilBasedPanelView) Update(qc_product *product.QCProduct) {
@@ -77,28 +71,10 @@ func (view *OilBasedPanelView) Clear() {
 
 func (view *OilBasedPanelView) submit_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
-	if measured_product.Check_data() {
-		log.Println("ob sub data", measured_product)
-		// TODO blend013 ensurethis works with testing blends
-		// measured_product.Save()
-		product.Store(measured_product)
-		err := measured_product.Output()
-		if err != nil {
-			log.Printf("Error: [%s]: %q\n", "OilBasedProduct.Output", err)
-		}
-		// * Check storage
-		measured_product.CheckStorage()
-	}
-
+	product.Check_single_data(measured_product, true, true)
 }
 
 func (view *OilBasedPanelView) log_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
-	if measured_product.Check_data() {
-		log.Println("ob log data", measured_product)
-		// measured_product.Save()
-		product.Store(measured_product)
-		// * Check storage
-		measured_product.CheckStorage()
-	}
+	product.Check_single_data(measured_product, true, false)
 }
