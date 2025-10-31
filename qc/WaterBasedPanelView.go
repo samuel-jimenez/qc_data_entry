@@ -26,14 +26,13 @@ type WaterBasedPanelView struct {
 }
 
 func Show_water_based(parent *windigo.AutoPanel, product_panel *TopPanelView) *WaterBasedPanelView {
-
 	view := new(WaterBasedPanelView)
 
 	view.product_panel = product_panel
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	view.ranges_panel = BuildNewWaterBasedProductRangesView(view.AutoPanel, view.product_panel.QC_Product)
+	view.ranges_panel = WaterBasedProductRangesView_from_new(view.AutoPanel, view.product_panel.QC_Product)
 	view.group_panel = newWaterBasedProductView(view.AutoPanel, view.ranges_panel)
 
 	view.button_dock = GUI.NewMarginalButtonDock(parent, SUBMIT_CLEAR_LOG_BTN, []int{40, 0, 10}, []func(){view.submit_data, view.Clear, view.log_data})
@@ -45,7 +44,6 @@ func Show_water_based(parent *windigo.AutoPanel, product_panel *TopPanelView) *W
 	parent.Dock(view.button_dock, windigo.Top)
 
 	return view
-
 }
 
 func (view *WaterBasedPanelView) SetFont(font *windigo.Font) {
@@ -55,7 +53,6 @@ func (view *WaterBasedPanelView) SetFont(font *windigo.Font) {
 }
 
 func (view *WaterBasedPanelView) RefreshSize() {
-
 	view.SetSize(GUI.OFF_AXIS, GUI.GROUP_HEIGHT)
 	view.SetMargins(GUI.GROUP_MARGIN, GUI.GROUP_MARGIN, 0, 0)
 
@@ -64,7 +61,6 @@ func (view *WaterBasedPanelView) RefreshSize() {
 	view.ranges_panel.RefreshSize()
 
 	view.button_dock.SetDockSize(GUI.BUTTON_WIDTH, GUI.BUTTON_HEIGHT)
-
 }
 
 func (view *WaterBasedPanelView) Update(qc_product *product.QCProduct) {
@@ -77,10 +73,9 @@ func (view *WaterBasedPanelView) Clear() {
 }
 
 func (view *WaterBasedPanelView) submit_data() {
-
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
 	if measured_product.Check_data() {
-		log.Println("wb sub-data", measured_product)
+		log.Println("Debug: WaterBasedPanelView-submit_data", measured_product)
 		// TODO blend013 ensurethis works with testing blends
 		// measured_product.Save()
 		product.Store(measured_product)
@@ -96,7 +91,7 @@ func (view *WaterBasedPanelView) submit_data() {
 func (view *WaterBasedPanelView) log_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
 	if measured_product.Check_data() {
-		log.Println("wb log-data", measured_product)
+		log.Println("Debug: WaterBasedPanelView-log_data", measured_product)
 		// measured_product.Save()
 		product.Store(measured_product)
 		// * Check storage

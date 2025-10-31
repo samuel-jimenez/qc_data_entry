@@ -115,7 +115,6 @@ func NewQCBlendComponentView_from_RecipeComponent(parent windigo.Controller, rec
 	component_add_button.OnClick().Bind(func(e *windigo.Event) {
 		// TODO multiComp00
 		// TODO mutliple compents in one
-
 	})
 
 	view.Controls = append(view.Controls, component_add_button)
@@ -136,7 +135,6 @@ func NewQCBlendComponentView_from_BlendComponent(parent windigo.Controller, Blen
 
 func (view *QCBlendComponentView) Get() *blender.BlendComponent {
 	Component_name := view.Component_field.Text()
-
 	BlendComponent := blender.BlendComponent_from_new()
 	*BlendComponent = view.Component_types_data[Component_name]
 
@@ -211,4 +209,8 @@ func (view *QCBlendComponentView) RefreshSize() {
 
 	// TODO GUI.SOURCES_MARGIN_WIDTH
 	// view.component_field.SetLabeledSize(GUI.SOURCES_MARGIN_WIDTH, GUI.SOURCES_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+}
+
+func (view *QCBlendComponentView) SetEnabled(enable_p bool) {
+	view.Component_field.SetEnabled(enable_p)
 }

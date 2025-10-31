@@ -1,12 +1,16 @@
 package qc
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 
+	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
@@ -29,8 +33,10 @@ type QCWinder interface {
 	keygrab_end() bool
 
 	AddShortcuts()
-	ChangeContainer(qc_product *product.QCProduct)
+	ChangeContainer(*product.QCProduct)
 	SetCurrentTab(i int)
+	UpdateProduct(*product.QCProduct)
+	SetBlend(*product.QCProduct)
 }
 
 /*
@@ -46,6 +52,7 @@ type QCWindow struct {
 	panel_water_based *WaterBasedPanelView
 	panel_oil_based   *OilBasedPanelView
 	panel_fr          *FrictionReducerPanelView
+	component_panel   *views.QCBlendView
 
 	keygrab *windigo.Edit
 }
@@ -77,18 +84,19 @@ func QCWindow_from_new(parent windigo.Controller) *QCWindow {
 	tab_oil := tabs.AddAutoPanel(formats.BLEND_OIL)
 	tab_fr := tabs.AddAutoPanel(formats.BLEND_FR)
 
-	//
-	//
-	// Dock
-	//
-	//
-
-	dock.Dock(product_panel, windigo.Top)
-	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
-	dock.Dock(tabs.Panels(), windigo.Fill) // tab panels dock just below tabs and fill area
+	view.component_panel = views.QCBlendView_from_new(view)
 
 	threads.Status_bar = windigo.NewStatusBar(view)
 	view.SetStatusBar(threads.Status_bar)
+
+	//
+	//
+	// Dock
+	dock.Dock(threads.Status_bar, windigo.Bottom)
+	dock.Dock(product_panel, windigo.Top)
+	dock.Dock(view.component_panel, windigo.Bottom)
+	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
+	dock.Dock(tabs.Panels(), windigo.Fill) // tab panels dock just below tabs and fill area
 
 	//
 	//
@@ -120,6 +128,9 @@ func (view *QCWindow) SetFont(font *windigo.Font) {
 	view.panel_water_based.SetFont(font)
 	view.panel_oil_based.SetFont(font)
 	view.panel_fr.SetFont(font)
+
+	view.component_panel.SetFont(font)
+
 	threads.Status_bar.SetFont(font)
 }
 
@@ -136,6 +147,8 @@ func (view *QCWindow) RefreshSize() {
 	view.panel_water_based.RefreshSize()
 	view.panel_oil_based.RefreshSize()
 	view.panel_fr.RefreshSize()
+
+	view.component_panel.RefreshSize()
 }
 
 func (view *QCWindow) Set_font_size() {
@@ -208,9 +221,45 @@ func (view *QCWindow) SetCurrentTab(i int) {
 
 func (view *QCWindow) UpdateProduct(QC_Product *product.QCProduct) {
 	view.product_panel.UpdateProduct(QC_Product)
-	log.Println("Debug: update new_product_cb", QC_Product)
 	view.panel_water_based.Update(QC_Product)
 	view.panel_oil_based.Update(QC_Product)
 	view.panel_fr.Update(QC_Product)
-	view.ChangeContainer(QC_Product)
+	view.ChangeContainer(QC_Product) // TODO recip00
+	// extract to fn, move componenet panel?
+
+	if QC_Product.Blend != nil {
+		view.component_panel.UpdateBlend(QC_Product.Blend)
+		return
+	}
+
+	var recipe_data blender.ProductRecipe
+	// proc_name := "RecipeProduct.GetRecipes"
+	proc_name := "FrictionReducerPanelView.GetRecipes"
+
+	DB.Forall(proc_name,
+		func() {},
+		func(row *sql.Rows) {
+			if err := row.Scan(
+				&recipe_data.Recipe_id,
+			); err != nil {
+				log.Fatal("Crit: [RecipeProduct GetRecipes]: ", proc_name, err)
+			}
+		},
+		DB.DB_Select_product_recipe, QC_Product.Product_id)
+
+	recipe_data.GetComponents()
+	view.component_panel.UpdateRecipe(&recipe_data)
+}
+
+func (view *QCWindow) SetBlend(QC_Product *product.QCProduct) {
+	QC_Product.SetBlend(view.component_panel.Get())
+	QC_Product.SaveBlend()
+}
+
+func (view *QCWindow) ComponentsEnable() {
+	view.component_panel.Enable()
+}
+
+func (view *QCWindow) ComponentsDisable() {
+	view.component_panel.Disable()
 }

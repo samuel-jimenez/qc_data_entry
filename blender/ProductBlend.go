@@ -32,6 +32,17 @@ func (object *ProductBlend) AddComponent(component_data BlendComponent) {
 }
 
 func (object *ProductBlend) Save(Product_Lot_id int64) {
+	// only save once
+	proc_name := "ProductBlend.Save"
+	count := 0
+	DB.Select_Error(proc_name,
+		DB.DB_Select_Product_blend_components.QueryRow(Product_Lot_id),
+		&count,
+	)
+	if count != 0 {
+		return
+	}
+
 	for _, val := range object.Components {
 		val.Save(Product_Lot_id)
 	}

@@ -1,13 +1,9 @@
 package qc
 
 import (
-	"database/sql"
 	"log"
 
-	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
-	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
-	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/util/math"
 	"github.com/samuel-jimenez/windigo"
@@ -27,7 +23,6 @@ type FrictionReducerPanelView struct {
 	*windigo.AutoPanel
 	top_group, bottom_group *FrictionReducerProductView
 	ranges_panel            *FrictionReducerProductRangesView
-	component_panel         *views.QCBlendView
 
 	button_dock_totes, button_dock_cars *GUI.ButtonDock
 
@@ -44,8 +39,6 @@ func Show_fr(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionRe
 
 	view := new(FrictionReducerPanelView)
 	view.product_panel = product_panel
-
-	view.component_panel = views.QCBlendView_from_new(parent)
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -68,8 +61,6 @@ func Show_fr(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionRe
 	parent.Dock(view.button_dock_totes, windigo.Top)
 	parent.Dock(view.button_dock_cars, windigo.Top)
 
-	parent.Dock(view.component_panel, windigo.Top)
-
 	return view
 }
 
@@ -79,7 +70,6 @@ func (view *FrictionReducerPanelView) SetFont(font *windigo.Font) {
 	view.ranges_panel.SetFont(font)
 	view.button_dock_totes.SetFont(font)
 	view.button_dock_cars.SetFont(font)
-	view.component_panel.SetFont(font)
 }
 
 func (view *FrictionReducerPanelView) RefreshSize() {
@@ -93,38 +83,10 @@ func (view *FrictionReducerPanelView) RefreshSize() {
 	view.bottom_group.RefreshSize()
 
 	view.ranges_panel.RefreshSize()
-	view.component_panel.RefreshSize()
 }
 
-func (view *FrictionReducerPanelView) Update(qc_product *product.QCProduct) {
-	view.ranges_panel.Update(qc_product)
-
-	// TODO recip00
-	// extract to fn, move componenet panel?
-
-	if qc_product.Blend != nil {
-		view.component_panel.UpdateBlend(qc_product.Blend)
-		return
-	}
-
-	var recipe_data blender.ProductRecipe
-	// proc_name := "RecipeProduct.GetRecipes"
-	proc_name := "FrictionReducerPanelView.GetRecipes"
-
-	DB.Forall(proc_name,
-		func() {},
-		func(row *sql.Rows) {
-			if err := row.Scan(
-				&recipe_data.Recipe_id,
-			); err != nil {
-				log.Fatal("Crit: [RecipeProduct GetRecipes]: ", proc_name, err)
-			}
-			log.Println("DEBUG: GetRecipes qc_data", proc_name, recipe_data)
-		},
-		DB.DB_Select_product_recipe, qc_product.Product_id)
-
-	recipe_data.GetComponents()
-	view.component_panel.UpdateRecipe(&recipe_data)
+func (view *FrictionReducerPanelView) Update(QC_Product *product.QCProduct) {
+	view.ranges_panel.Update(QC_Product)
 }
 
 func (view *FrictionReducerPanelView) ChangeContainer(qc_product *product.QCProduct) {
@@ -155,31 +117,19 @@ func (view *FrictionReducerPanelView) Clear() {
 
 func (view *FrictionReducerPanelView) submit_cb() {
 	base_product := view.product_panel.BaseProduct()
-
-	// TODO blend012 ensurethis works with testing blends
-	// view.component_panel.saVE
 	log.Println("DEBUG: FrictionReducerPanelView.submit_cb base_product", base_product)
-	base_product.SetBlend(view.component_panel.Get())
-	log.Println("DEBUG: FrictionReducerPanelView.submit_cb base_product", base_product)
-	// TODO make sure this is the only time it is saved
-	base_product.SaveBlend()
 
 	top_product := view.top_group.Get(base_product, true)
 	bottom_product := view.bottom_group.Get(base_product, true)
-	log.Println("debug: FrictionReducerPanelView.submit_cb.top", top_product)
-	log.Println("debug: FrictionReducerPanelView.submit_cb.btm", bottom_product)
 	check_dual_data(top_product, bottom_product)
 }
 
 func (view *FrictionReducerPanelView) tote_cb() {
 	base_product := view.product_panel.BaseProduct()
-	// TODO blend013 do only if base_product.Blend != nil?
-	base_product.SetBlend(view.component_panel.Get())
 	log.Println("DEBUG: FrictionReducerPanelView.submit_cb.tote base_product", base_product)
 
 	top_product := view.top_group.Get(base_product, false)
 	if top_product.Check_data() {
-		log.Println("debug: FrictionReducerPanelView.submit_cb.tote", top_product)
 		top_product.Save()
 		err := top_product.Output()
 		if err != nil {
@@ -231,6 +181,6 @@ func check_dual_data(top_product, bottom_product product.MeasuredProduct) {
 		bottom_product.CheckStorage()
 
 	} else { // TODO show confirm box
-		log.Println("ERROR: Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
+		log.Println("ERROR: check_dual_data-Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
 	}
 }

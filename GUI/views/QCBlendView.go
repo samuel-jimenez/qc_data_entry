@@ -1,8 +1,6 @@
 package views
 
 import (
-	"log"
-
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/windigo"
@@ -18,6 +16,10 @@ type QCBlendViewer interface {
 	UpdateRecipe(blend *blender.ProductRecipe)
 	SetFont(font *windigo.Font)
 	RefreshSize()
+	Enable()
+	Disable()
+	SetEnabled(bool)
+	Component_field_OnSelectedChange(*windigo.Event)
 }
 
 //TODO combine BlendView
@@ -30,10 +32,11 @@ type QCBlendView struct {
 	Recipe *blender.ProductRecipe
 	Blend  *blender.ProductBlend
 
-	//TODO to fully combine with BlendView this needs to be split out and given its own size fn
+	// TODO to fully combine with BlendView this needs to be split out and given its own size fn
 	Panel *windigo.AutoPanel
 
 	Components []QCBlendComponentViewer
+	enabled_p  bool
 }
 
 func QCBlendView_from_new(parent windigo.Controller) *QCBlendView {
@@ -45,6 +48,7 @@ func QCBlendView_from_new(parent windigo.Controller) *QCBlendView {
 	// TODO/ RecipeHeader from  RecipeComponent Component Amount
 
 	view.AutoPanel.Dock(view.Panel, windigo.Top)
+	view.enabled_p = true
 	return view
 }
 
@@ -55,20 +59,24 @@ func (view *QCBlendView) Get() *blender.ProductBlend {
 	if view.Recipe == nil {
 		return nil
 	}
+
 	view.Blend = blender.NewProductBlend_from_Recipe(view.Recipe)
 	for _, component := range view.Components {
 		blendComponent := component.Get()
 
-		log.Println("DEBUG: QCBlendView-Get", blendComponent)
 		if blendComponent == nil {
 			// return nil
-			// TODO return once qwe get everything nailed down?
+			// TODO return once we get everything nailed down?
 			continue
 		}
 		// blendComponent
-		log.Println("DEBUG: QCBlendView-Get-2", blendComponent)
 		view.Blend.AddComponent(*blendComponent)
 	}
+	// TODO make sure at least one was added
+	if len(view.Blend.Components) == 0 {
+		return nil
+	}
+
 	return view.Blend
 }
 
@@ -82,7 +90,6 @@ func (view *QCBlendView) UpdateBlend(blend *blender.ProductBlend) {
 	}
 	view.Components = nil
 	view.Blend = blend
-	log.Println("QCBlendView-UpdateBlend", view.Blend)
 	if view.Blend == nil {
 		return
 	}
@@ -92,8 +99,8 @@ func (view *QCBlendView) UpdateBlend(blend *blender.ProductBlend) {
 	width := view.ClientWidth()
 
 	for _, component := range view.Blend.Components {
-
 		component_view := NewQCBlendComponentView_from_BlendComponent(view, &component)
+		component_view.SetEnabled(view.enabled_p)
 		view.Components = append(view.Components, component_view)
 		view.AutoPanel.Dock(component_view, windigo.Top)
 		height += delta_height
@@ -114,8 +121,6 @@ func (view *QCBlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 	// go == shit
 
 	if view.Recipe == recipe {
-		log.Println("TRACE: QCBlendView-UpdateRecipe-return", view.Recipe, recipe)
-
 		return
 	}
 
@@ -136,7 +141,7 @@ func (view *QCBlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 		return
 	}
 
-	//TODO fix height
+	// TODO fix height
 	// height := view.ClientHeight()
 	height := GUI.EDIT_FIELD_HEIGHT
 	delta_height := GUI.PRODUCT_FIELD_HEIGHT
@@ -148,6 +153,8 @@ func (view *QCBlendView) UpdateRecipe(recipe *blender.ProductRecipe) {
 		component.Component_amount *= SAMPLE_SIZE
 
 		component_view := NewQCBlendComponentView_from_RecipeComponent(view, &component)
+		component_view.SetEnabled(view.enabled_p)
+		component_view.Component_field.OnSelectedChange().Bind(view.Component_field_OnSelectedChange)
 		view.Components = append(view.Components, component_view)
 		view.AutoPanel.Dock(component_view, windigo.Top)
 		height += delta_height
@@ -173,5 +180,23 @@ func (view *QCBlendView) RefreshSize() {
 	for _, component := range view.Components {
 		component.RefreshSize()
 	}
+}
 
+func (view *QCBlendView) Enable() {
+	view.SetEnabled(true)
+}
+
+func (view *QCBlendView) Disable() {
+	view.SetEnabled(false)
+}
+
+func (view *QCBlendView) SetEnabled(enable_p bool) {
+	view.enabled_p = enable_p
+	for _, component := range view.Components {
+		component.SetEnabled(enable_p)
+	}
+}
+
+func (view *QCBlendView) Component_field_OnSelectedChange(e *windigo.Event) {
+	view.Blend = nil
 }

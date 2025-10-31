@@ -44,7 +44,7 @@ func BlendComponent_from_SQL(row *sql.Rows) (*BlendComponent, error) {
 }
 
 func (object *BlendComponent) Save(Product_Lot_id int64) {
-	proc_name := "BlendComponent.Save"
+	proc_name := "BlendComponent-Save"
 	if object.Component_id == 0 {
 		log.Println("Crit: BlendComponent-Save uninitialized object.Component_id", object)
 		panic(proc_name)

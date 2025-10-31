@@ -28,54 +28,10 @@ func MeasuredProduct_from_new() *MeasuredProduct {
 }
 
 func (measured_product MeasuredProduct) Save() int64 {
-
 	proc_name := "MeasuredProduct-Save.Sample_point"
 	DB.Insert(proc_name, DB.DB_Insel_sample_point, measured_product.Sample_point)
 
-	// ??TODO compare
 	proc_name = "MeasuredProduct-Save.Tester"
-	log.Println("TRACE: ", proc_name)
-
-	// DB.DB_insert_qc_tester.Exec(product.Tester)
-
-	// DB.Forall_err(proc_name,
-	// 	func() {},
-	// 	func(row *sql.Rows) error {
-	// 		var (
-	// 			id   int64
-	// 			name string
-	// 		)
-	//
-	// 		if err := row.Scan(
-	// 			&id, &name,
-	// 		); err != nil {
-	// 			return err
-	// 		}
-	//
-	// 		log.Println("DEBUG: ", proc_name, id, name)
-	//
-	// 		return nil
-	// 	},
-	// 	DB.DB_Insel_qc_tester, measured_product.Tester)
-
-	// var (
-	// 	qc_tester_id   int64
-	// 	qc_tester_name string
-	// )
-	//
-	// if err := DB.Select_Error(proc_name,
-	// 	DB.DB_Insel_qc_tester.QueryRow(
-	// 		measured_product.Tester,
-	// 	),
-	// 	&qc_tester_id, &qc_tester_name,
-	// ); err != nil {
-	// 	log.Println("WARN: []%S]:", proc_name, err)
-	//
-	// }
-	// log.Println("TRACE: ", proc_name, "Select_Error", qc_tester_id, qc_tester_name)
-
-	//TODO DB.Select_Nullable_Error(
-
 	DB.Insert(proc_name, DB.DB_Insel_qc_tester, measured_product.Tester)
 
 	var qc_id int64
@@ -117,8 +73,6 @@ func Store(products ...MeasuredProduct) {
 	for _, product := range products {
 		qc_id := product.Save()
 		// assign storage to sample
-		log.Println("DEBUG: ", proc_name, qc_id, qc_sample_storage_id)
-
 		DB.Update(proc_name,
 			DB.DB_Update_qc_samples_storage,
 			qc_id, qc_sample_storage_id)
@@ -129,7 +83,6 @@ func Store(products ...MeasuredProduct) {
 	DB.Update(proc_name,
 		DB.DB_Update_dec_product_sample_storage_capacity,
 		qc_sample_storage_id, numSamples)
-
 }
 
 func (measured_product MeasuredProduct) Check_data() bool {
@@ -142,28 +95,26 @@ func (measured_product MeasuredProduct) Printout() error {
 
 func (measured_product MeasuredProduct) Output() error {
 	if err := measured_product.Printout(); err != nil {
-		log.Printf("Error: [%s]: %q\n", "Output", err)
-		log.Printf("Debug: %q: %v\n", err, measured_product)
+		log.Printf("Error: [%s]: %q\n", "MeasuredProduct-Output", err)
+		log.Printf("Debug: MeasuredProduct-Output %q: %v\n", err, measured_product) // TODO
 		return err
 	}
 	measured_product.format_sample()
 	return measured_product.export_CoA()
-
 }
 
 func (measured_product MeasuredProduct) Output_sample() error {
-	log.Println("DEBUG: Output_sample ", measured_product)
+	log.Println("DEBUG: Output_sample ", measured_product) // TODO
 	measured_product.format_sample()
-	log.Println("DEBUG: Output_sample formatted", measured_product)
+	log.Println("DEBUG: Output_sample formatted", measured_product) // TODO
 	if err := measured_product.export_CoA(); err != nil {
-		log.Printf("Error: [%s]: %q\n", "Output_sample", err)
-		log.Printf("Debug: %q: %v\n", err, measured_product)
+		log.Printf("Error: [%s]: %q\n", "MeasuredProduct-Output_sample", err)
+		log.Printf("Debug: Output_sample: %q: %v\n", err, measured_product) // TODO
 		return err
 	}
 	return measured_product.print()
-	//TODO clean
+	// TODO clean
 	// return nil
-
 }
 
 func (measured_product MeasuredProduct) Save_xl() error {
@@ -173,7 +124,6 @@ func (measured_product MeasuredProduct) Save_xl() error {
 }
 
 func (measured_product MeasuredProduct) print() error {
-
 	pdf_path, err := measured_product.export_label_pdf()
 	if err != nil {
 		return err

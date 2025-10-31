@@ -53,7 +53,7 @@ type TopPanelInboundView struct {
 
 	product_panel_1_0, product_panel_1_1 *windigo.AutoPanel
 
-	testing_lot_field, //inbound_product_field,
+	testing_lot_field, // inbound_product_field,
 	inbound_lot_field, inbound_container_field *GUI.ComboBox
 
 	inbound_product_field *windigo.LabeledEdit
@@ -69,7 +69,6 @@ func NewTopPanelInboundView(
 	testing_lot_field, inbound_lot_field, inbound_container_field *GUI.ComboBox, inbound_product_field *windigo.LabeledEdit,
 	sample_button, release_button, today_button, internal_button *windigo.PushButton,
 ) *TopPanelInboundView {
-
 	view := new(TopPanelInboundView)
 
 	// build object
@@ -141,7 +140,6 @@ func NewTopPanelInboundView(
 }
 
 func (view *TopPanelInboundView) SetFont(font *windigo.Font) {
-
 	view.inbound_lot_field.SetFont(font)
 	view.testing_lot_field.SetFont(font)
 	view.inbound_product_field.SetFont(font)
@@ -185,7 +183,6 @@ func (view *TopPanelInboundView) RefreshSize() {
 
 	view.internal_button.SetMarginsAll(BUTTON_MARGIN)
 	view.internal_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
-
 }
 
 func (view *TopPanelInboundView) SetTitle(title string) {
@@ -202,7 +199,7 @@ func (view *TopPanelInboundView) Show() {
 	view.release_button.Show()
 	view.today_button.Show()
 	view.internal_button.Show()
-
+	view.testing_lot_field_OnSelectedChange(nil)
 }
 
 func (view *TopPanelInboundView) Hide() {
@@ -212,7 +209,6 @@ func (view *TopPanelInboundView) Hide() {
 	view.release_button.Hide()
 	view.today_button.Hide()
 	view.internal_button.Hide()
-
 }
 
 func (view *TopPanelInboundView) RefreshLots() {
@@ -293,21 +289,18 @@ func (view *TopPanelInboundView) sample_button_OnClick(e *windigo.Event) {
 	Inbound__Lot_.Sample()
 	Inbound__Lot_.Quality_test()
 	view.RefreshLots()
-
 }
 
 func (view *TopPanelInboundView) release_button_OnClick(e *windigo.Event) {
-
 	proc_name := "TopPanelInboundView.release_button_OnClick"
 
-	// TODO make a method
 	if view.Inbound_Lot == nil {
 		if view.QC_Product == nil {
 			return
 		}
 		blend := view.QC_Product.Blend
 		if blend == nil || len(blend.Components) < 1 {
-			log.Println("Err: release_button.OnClick", view.QC_Product, blend)
+			log.Println("Err: ", proc_name, view.QC_Product, blend)
 			return
 		}
 
@@ -325,7 +318,7 @@ func (view *TopPanelInboundView) release_button_OnClick(e *windigo.Event) {
 	log.Println("TRACE: DEBUG: UPdate componnent DB_Update_lot_list__component_status", proc_name, Inbound__Lot_.Lot_number, Inbound__Lot_)
 
 	if err := product.Release_testing_lot(Inbound__Lot_.Lot_number); err != nil {
-		log.Println("error[]%S]:", proc_name, err)
+		log.Println("error [%S]:", proc_name, err)
 		return
 	}
 	view.RefreshLots()

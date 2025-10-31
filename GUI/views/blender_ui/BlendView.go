@@ -99,7 +99,7 @@ func (view *BlendView) Get() *blender.ProductBlend {
 
 		if blendComponent == nil {
 			// return nil
-			// TODO return once qwe get everything nailed down?
+			// TODO return once we get everything nailed down?
 			continue
 		}
 		// blendComponent
@@ -244,5 +244,4 @@ func (view *BlendView) RefreshSize() {
 	for _, component := range view.Components {
 		component.RefreshSize()
 	}
-
 }

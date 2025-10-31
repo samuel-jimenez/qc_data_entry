@@ -132,10 +132,6 @@ func (base_product *BaseProduct) Update_testing_lot(lot_number string) {
 	Blend := blender.ProductBlend_from_new()
 	base_product.Blend = Blend
 
-	// TODO blend012 ensure doesn't break show_fr()
-
-	// base_product.Insel_product_self()
-
 	DB.Forall_exit(proc_name,
 		func() {
 		},
@@ -173,18 +169,19 @@ func (product *BaseProduct) SetTester(Tester string) {
 }
 
 func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
-	proc_name := "BaseProduct.SetBlend"
+	proc_name := "BaseProduct-SetBlend"
 
-	log.Println("Debug: ", proc_name, product.Blend, Blend, product)
 	if product.Blend == Blend {
-		log.Println("TRACE: Debug: retrurning ", proc_name, product.Blend, Blend, product)
+		return
+	}
 
-		return
-	}
 	product.Blend = Blend
-	if Blend == nil {
+	if product.Blend == nil ||
+		product.Product_Lot_id == DB.DEFAULT_LOT_ID ||
+		product.Blend.Recipe_id == DB.INVALID_ID {
 		return
 	}
+
 	DB.Update(proc_name,
 		DB.DB_Update_lot_recipe,
 		Blend.Recipe_id,
@@ -193,10 +190,13 @@ func (product *BaseProduct) SetBlend(Blend *blender.ProductBlend) {
 }
 
 func (product BaseProduct) SaveBlend() {
-	// TODO make sure this is the only time it is saved
-	if product.Blend != nil {
-		product.Blend.Save(product.Product_Lot_id)
+	if product.Blend == nil ||
+		product.Product_Lot_id == DB.DEFAULT_LOT_ID ||
+		product.Blend.Recipe_id == DB.INVALID_ID {
+		return
 	}
+
+	product.Blend.Save(product.Product_Lot_id)
 }
 
 // TODO product.NewBin

@@ -1,8 +1,6 @@
 package qc
 
 import (
-	"log"
-
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
@@ -24,8 +22,7 @@ type WaterBasedProductRangesView struct {
 	sg_field *qc_ui.RangeROView
 }
 
-func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *WaterBasedProductRangesView {
-
+func WaterBasedProductRangesView_from_new(parent *windigo.AutoPanel, qc_product *product.QCProduct) *WaterBasedProductRangesView {
 	view := new(WaterBasedProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
@@ -38,7 +35,6 @@ func BuildNewWaterBasedProductRangesView(parent *windigo.AutoPanel, qc_product *
 	view.AutoPanel.Dock(view.sg_field, windigo.Top)
 
 	return view
-
 }
 
 func (view *WaterBasedProductRangesView) SetFont(font *windigo.Font) {
@@ -58,8 +54,6 @@ func (view *WaterBasedProductRangesView) RefreshSize() {
 }
 
 func (view *WaterBasedProductRangesView) Update(qc_product *product.QCProduct) {
-
-	log.Println("Debug:BuildNewWaterBasedProductRangesView  update", qc_product)
 	view.visual_field.Update(qc_product.Appearance)
 	view.sg_field.Update(qc_product.SG)
 	view.ph_field.Update(qc_product.PH)

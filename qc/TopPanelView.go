@@ -86,7 +86,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 
 	product_panel_0 := windigo.NewAutoPanel(product_panel)
 
-	//TODO array db_select_all_product
+	// TODO array db_select_all_product
 
 	product_panel_0_0 := windigo.NewAutoPanel(product_panel_0)
 
@@ -242,21 +242,17 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 }
 
 func (view *TopPanelView) SetFont(font *windigo.Font) {
-
 	view.TopPanelInternalView.SetFont(font)
 	view.TopPanelInboundView.SetFont(font)
 	view.tester_field.SetFont(font)
 	view.container_field.SetFont(font)
-
 }
 
 // container_item_width
 
 // func (view *TopPanelView) RefreshSize() {
 func (view *TopPanelView) RefreshSize(font_size int) {
-	var (
-		container_item_width int
-	)
+	var container_item_width int
 
 	container_item_width = 6 * font_size
 
@@ -278,7 +274,6 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 	view.container_field.SetItemSize(container_item_width)
 	view.container_field.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
 	view.container_field.SetPaddingLeft(0)
-
 }
 
 func (view *TopPanelView) SetTitle(title string) {
@@ -306,13 +301,14 @@ func (view *TopPanelView) BaseProduct() product.QCProduct {
 		view.QC_Product.Blend == nil {
 		view.QC_Product.Valid = false
 		// TODO TopPanelInternalViewAlertProduct replace with proper check
-
-		//isInternal && check()
+		// isInternal && check()
 		view.TopPanelInternalView.AlertProduct()
 
 	}
 
-	// return &(product_panel.QC_Product.Base())
+	if view.QC_Product.Valid {
+		view.mainWindow.SetBlend(view.QC_Product)
+	}
 	return view.QC_Product.Base()
 }
 
@@ -322,15 +318,16 @@ func (view *TopPanelView) GoInbound() {
 
 	view.QC_Product.Container_type = product.CONTAINER_SAMPLE
 	view.ChangeContainer(view.QC_Product)
+	view.mainWindow.ComponentsDisable()
 }
 
 func (view *TopPanelView) GoInternal() {
-
 	view.TopPanelInternalView.Show()
 	view.TopPanelInboundView.Hide()
 
 	view.QC_Product.Blend = nil
-
+	view.mainWindow.UpdateProduct(view.QC_Product)
+	view.mainWindow.ComponentsEnable()
 }
 
 func (view *TopPanelView) PopQRData(product QR.QRJson) {
@@ -346,6 +343,7 @@ func (view *TopPanelView) tester_field_pop_data(str string) {
 		view.tester_field.Error()
 	}
 }
+
 func (view *TopPanelView) tester_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
 	view.tester_field.SetText(formatted_text)

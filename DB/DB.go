@@ -56,6 +56,7 @@ var (
 	DB_Select_internal_blend_component, DB_Insert_internal_blend_component,
 
 	// blend_components
+	DB_Select_Product_blend_components,
 	DB_Insert_Product_blend,
 	// lot_list
 	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all,
@@ -75,7 +76,7 @@ var (
 	db_select_product_id, db_insert_product,
 	DB_Select_product_info_all, DB_Select_product_info_inbound_all,
 	DB_Select_product_info_moniker,
-	//product_defaults
+	// product_defaults
 	DB_Insert_product_defaults_product, DB_Select_product_defaults,
 	DB_Update_product_defaults,
 	// product_customer_line
@@ -123,7 +124,6 @@ func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
 }
 
 func Check_db(db *sql.DB, showWindowp bool) {
-
 	var found_database_version_major,
 		found_database_version_minor,
 		found_database_version_revision int
@@ -248,7 +248,7 @@ func DBinit(db *sql.DB) {
 	returning component_type_id
 	`)
 
-	//TODO
+	// TODO
 	// 	DB_Select_component_type_product = PrepareOrElse(db, `
 	// select component_type_id, component_type_name, product_id, inbound_product_id
 	// from bs.component_types
@@ -598,10 +598,15 @@ returning component_id
 `)
 
 	// blend_components
+	DB_Select_Product_blend_components = PrepareOrElse(db, `
+	select count(blend_components_id)
+	from bs.blend_components
+	where product_lot_id =?
+	`)
 	DB_Insert_Product_blend = PrepareOrElse(db, `
 	insert into bs.blend_components
-		(product_lot_id, recipe_components_id, component_id, component_required_amount)
-		values (?,?,?,?)
+	(product_lot_id, recipe_components_id, component_id, component_required_amount)
+	values (?,?,?,?)
 	returning blend_components_id
 	`)
 
@@ -716,7 +721,6 @@ upd_table
 where lot_list.lot_id = upd_table.lot_id
 		`)
 
-	// TODO blend012 tests
 	// 	TODO get sources
 
 	// select inbound_product_name,inbound_lot_name,container_name from blend_components
@@ -1233,53 +1237,103 @@ where product_sample_storage_id = ?1
 
 	// bs.product_attributes
 	// bs.product_ranges_measured
+	BIG_SEL_RANGES_QC := `
+	ph_method,
+	ph_measure,
+	ph_publish,
+	ph_min,
+	ph_target,
+	ph_max,
+
+	specific_gravity_method,
+	specific_gravity_measure,
+	specific_gravity_publish,
+	specific_gravity_min,
+	specific_gravity_target,
+	specific_gravity_max,
+
+	density_method,
+	density_measure,
+	density_publish,
+	density_min,
+	density_target,
+	density_max,
+
+	string_test_method,
+	string_test_measure,
+	string_test_publish,
+	string_test_min,
+	string_test_target,
+	string_test_max,
+
+	viscosity_method,
+	viscosity_measure,
+	viscosity_publish,
+	viscosity_min,
+	viscosity_target,
+	viscosity_max
+	`
+
 	DB_Select_product_details = PrepareOrElse(db, `
+	with
+	val
+	(
+		product_id,
+	`+BIG_SEL_RANGES_QC+`
+	)
+	as (
+	select product_id,
+		max(case when qc_test_type_id = 2 then qc_test_method_name end) as ph_method,
+		max(case when qc_test_type_id = 2 then val_measure end) as ph_measure,
+		max(case when qc_test_type_id = 2 then val_publish end) as ph_publish,
+		max(case when qc_test_type_id = 2 then val_min end) as ph_min,
+		max(case when qc_test_type_id = 2 then val_target end) as ph_target,
+		max(case when qc_test_type_id = 2 then val_max end) as ph_max,
+
+		max(case when qc_test_type_id = 3 then qc_test_method_name end) as specific_gravity_method,
+		max(case when qc_test_type_id = 3 then val_measure end) as specific_gravity_measure,
+		max(case when qc_test_type_id = 3 then val_publish end) as specific_gravity_publish,
+		max(case when qc_test_type_id = 3 then val_min end) as specific_gravity_min,
+		max(case when qc_test_type_id = 3 then val_target end) as specific_gravity_target,
+		max(case when qc_test_type_id = 3 then val_max end) as specific_gravity_max,
+
+		max(case when qc_test_type_id = 4 then qc_test_method_name end) as density_method,
+		max(case when qc_test_type_id = 4 then val_measure end) as density_measure,
+		max(case when qc_test_type_id = 4 then val_publish end) as density_publish,
+		max(case when qc_test_type_id = 4 then val_min end) as density_min,
+		max(case when qc_test_type_id = 4 then val_target end) as density_target,
+		max(case when qc_test_type_id = 4 then val_max end) as density_max,
+
+		max(case when qc_test_type_id = 5 then qc_test_method_name end) as string_test_method,
+		max(case when qc_test_type_id = 5 then val_measure end) as string_test_measure,
+		max(case when qc_test_type_id = 5 then val_publish end) as string_test_publish,
+		max(case when qc_test_type_id = 5 then val_min end) as string_test_min,
+		max(case when qc_test_type_id = 5 then val_target end) as string_test_target,
+		max(case when qc_test_type_id = 5 then val_max end) as string_test_max,
+
+		max(case when qc_test_type_id = 6 then qc_test_method_name end) as viscosity_method,
+		max(case when qc_test_type_id = 6 then val_measure end) as viscosity_measure,
+		max(case when qc_test_type_id = 6 then val_publish end) as viscosity_publish,
+		max(case when qc_test_type_id = 6 then val_min end) as viscosity_min,
+		max(case when qc_test_type_id = 6 then val_target end) as viscosity_target,
+		max(case when qc_test_type_id = 6 then val_max end) as viscosity_max
+
+	from bs.product_ranges_measured
+	left join bs.qc_test_methods using (qc_test_method_id)
+	where product_id = ?1
+	)
+
 	select
 
 	product_type_id,
 	container_type_id,
 	product_appearance_text,
-
-	max(case when qc_test_type_id = 2 then qc_test_method_name end) as ph_method,
-	max(case when qc_test_type_id = 2 then val_measure end) as ph_measure,
-	max(case when qc_test_type_id = 2 then val_publish end) as ph_publish,
-	max(case when qc_test_type_id = 2 then val_min end) as ph_min,
-	max(case when qc_test_type_id = 2 then val_target end) as ph_target,
-	max(case when qc_test_type_id = 2 then val_max end) as ph_max,
-
-	max(case when qc_test_type_id = 3 then qc_test_method_name end) as specific_gravity_method,
-	max(case when qc_test_type_id = 3 then val_measure end) as specific_gravity_measure,
-	max(case when qc_test_type_id = 3 then val_publish end) as specific_gravity_publish,
-	max(case when qc_test_type_id = 3 then val_min end) as specific_gravity_min,
-	max(case when qc_test_type_id = 3 then val_target end) as specific_gravity_target,
-	max(case when qc_test_type_id = 3 then val_max end) as specific_gravity_max,
-
-	max(case when qc_test_type_id = 4 then qc_test_method_name end) as density_method,
-	max(case when qc_test_type_id = 4 then val_measure end) as density_measure,
-	max(case when qc_test_type_id = 4 then val_publish end) as density_publish,
-	max(case when qc_test_type_id = 4 then val_min end) as density_min,
-	max(case when qc_test_type_id = 4 then val_target end) as density_target,
-	max(case when qc_test_type_id = 4 then val_max end) as density_max,
-
-	max(case when qc_test_type_id = 5 then qc_test_method_name end) as string_test_method,
-	max(case when qc_test_type_id = 5 then val_measure end) as string_test_measure,
-	max(case when qc_test_type_id = 5 then val_publish end) as string_test_publish,
-	max(case when qc_test_type_id = 5 then val_min end) as string_test_min,
-	max(case when qc_test_type_id = 5 then val_target end) as string_test_target,
-	max(case when qc_test_type_id = 5 then val_max end) as string_test_max,
-
-	max(case when qc_test_type_id = 6 then qc_test_method_name end) as viscosity_method,
-	max(case when qc_test_type_id = 6 then val_measure end) as viscosity_measure,
-	max(case when qc_test_type_id = 6 then val_publish end) as viscosity_publish,
-	max(case when qc_test_type_id = 6 then val_min end) as viscosity_min,
-	max(case when qc_test_type_id = 6 then val_target end) as viscosity_target,
-	max(case when qc_test_type_id = 6 then val_max end) as viscosity_max
+	`+BIG_SEL_RANGES_QC+`
 
 	from bs.product_attributes
-	left join bs.product_ranges_measured using (product_id)
+	left join val using (product_id)
 	left join bs.product_appearance using (product_appearance_id)
 	join bs.product_types using (product_type_id)
-	left join bs.qc_test_methods using (qc_test_method_id)
 
 	where product_id = ?1
 	`)
@@ -1374,7 +1428,6 @@ val_max=excluded.val_max`
 
 	returning product_attribute_id
 	`)
-
 }
 
 func Select_Error(proc_name string, query *sql.Row, args ...any) error {
@@ -1435,6 +1488,7 @@ func Exec_Error(proc_name string, statement *sql.Stmt, args ...any) error {
 func Update(proc_name string, update_statement *sql.Stmt, args ...any) error {
 	return Exec_Error(proc_name, update_statement, args...)
 }
+
 func Delete(proc_name string, delete_statement *sql.Stmt, args ...any) error {
 	return Exec_Error(proc_name, delete_statement, args...)
 }
@@ -1442,14 +1496,13 @@ func Delete(proc_name string, delete_statement *sql.Stmt, args ...any) error {
 func Insel(proc_name string, insert_statement, select_statement *sql.Stmt, args ...any) int64 {
 	var insel_id int64
 	if select_statement.QueryRow(args...).Scan(&insel_id) != nil {
-		//no rows
+		// no rows
 		insel_id = Insert(proc_name, insert_statement, args...)
 	}
 	return insel_id
 }
 
 func Insel_product_id(product_name_full string) int64 {
-
 	product_moniker_name, product_name_internal, _ := strings.Cut(product_name_full, " ")
 	product_id := Insel("Insel_product_id", db_insert_product, db_select_product_id, product_name_internal, product_moniker_name)
 	DB_Insert_product_defaults_product.Exec(product_id)
@@ -1470,7 +1523,6 @@ func Insel_product_name_customer(product_name_customer string, product_id int64)
 }
 
 func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string, Lot_id, Product_Lot_id int64) {
-
 	// we cannot guarantee uniqueness of lot numbers
 	proc_name := "Select_product_lot_name"
 	Lot_name = lot_name + "%"

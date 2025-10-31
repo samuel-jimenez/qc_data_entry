@@ -5,10 +5,10 @@ type Status string
 
 const (
 	Status_REQUESTED Status = "REQUESTED"
-	Status_PRINTED          = "PRINTED"
-	Status_BLENDED          = "BLENDED"
-	Status_TESTED           = "TESTED"
-	Status_SHIPPED          = "SHIPPED"
+	Status_PRINTED   Status = "PRINTED"
+	Status_BLENDED   Status = "BLENDED"
+	Status_TESTED    Status = "TESTED"
+	Status_SHIPPED   Status = "SHIPPED"
 )
 
 // // TODO? type01 create type
