@@ -40,7 +40,7 @@ func (measured_product *MeasuredProduct) Save() int64 {
 	proc_name = "MeasuredProduct-Save.All"
 	if err := DB.Select_Error(proc_name,
 		DB.DB_insert_measurement.QueryRow(
-			measured_product.Lot_id, measured_product.Sample_point, measured_product.Tester, time.Now().UTC().UnixNano(), measured_product.PH, measured_product.SG, measured_product.String_test, measured_product.Viscosity,
+			measured_product.Lot_id, measured_product.Sample_point, measured_product.Tester, time.Now().UTC().UnixNano(), measured_product.PH, measured_product.SG, measured_product.Density, measured_product.String_test, measured_product.Viscosity,
 		),
 		&qc_id,
 	); err != nil {

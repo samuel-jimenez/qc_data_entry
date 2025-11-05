@@ -34,7 +34,6 @@ func (data *QCDataComponents) GetComponents(Lot_name string) {
 			return nil
 		},
 		DB.DB_Select_product_lot_list_sources, Lot_name)
-
 }
 
 func (data QCDataComponents) Text() []string {
@@ -45,7 +44,6 @@ func (data QCDataComponents) Text() []string {
 	}
 
 	return Text
-
 }
 
 //TODO tester
@@ -63,7 +61,8 @@ type QCData struct {
 	Sample_bin nullable.NullString
 	Time_stamp time.Time
 	PH,
-	Specific_gravity nullable.NullFloat64
+	Specific_gravity,
+	Density nullable.NullFloat64
 	String_test,
 	Viscosity nullable.NullInt64
 	// prevents 'hash of unhashable type'
@@ -83,6 +82,7 @@ func compare_time_stamp(a, b QCData) int   { return a.Time_stamp.Compare(b.Time_
 
 func compare_ph(a, b QCData) int               { return a.PH.Compare(b.PH) }
 func compare_specific_gravity(a, b QCData) int { return a.Specific_gravity.Compare(b.Specific_gravity) }
+func compare_Density(a, b QCData) int          { return a.Density.Compare(b.Density) }
 func compare_string_test(a, b QCData) int      { return a.String_test.Compare(b.String_test) }
 func compare_viscosity(a, b QCData) int        { return a.Viscosity.Compare(b.Viscosity) }
 
@@ -126,7 +126,7 @@ func (data QCData) Product() *product.MeasuredProduct {
 		}},
 		PH:          data.PH,
 		SG:          data.Specific_gravity,
-		Density:     nullable.NewNullFloat64(formats.Density_from_sg(data.Specific_gravity.Float64), data.Specific_gravity.Valid),
+		Density:     data.Density,
 		String_test: data.String_test,
 		Viscosity:   data.Viscosity,
 	}
@@ -148,13 +148,14 @@ func (data QCData) Text() []string {
 		data.Sample_bin.String,
 		ToString(data.PH, formats.Format_ph),
 		ToString(data.Specific_gravity, func(sg float64) string { return formats.Format_sg(sg, !sg_derived) }),
+		ToString(data.Density, formats.Format_density),
+
 		// ToString(data.String_test, formats.Format_string_test),
 		data.String_test.String(),
 		// ToString(data.Viscosity, formats.Format_viscosity),
 		data.Viscosity.String(),
 	},
 		data.Components.Text()...)
-
 }
 
 func (data QCData) ImageIndex() int { return 0 }
@@ -176,7 +177,6 @@ type QCDataView struct {
 }
 
 func NewQCDataView(parent windigo.Controller) *QCDataView {
-
 	table := &QCDataView{windigo.NewListView(parent), nil, nil}
 	table.EnableGridlines(true)
 	table.EnableFullRowSelect(true)
@@ -197,6 +197,8 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 		"pH", COL_WIDTH_DATA)
 	table.AddColumn(
 		"Specific Gravity", COL_WIDTH_DATA)
+	table.AddColumn(
+		"Density", COL_WIDTH_DATA)
 	table.AddColumn(
 		"String Test", COL_WIDTH_DATA)
 	table.AddColumn(
@@ -243,6 +245,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 		compare_ph,
 		compare_specific_gravity,
 		compare_string_test,
+		compare_Density,
 		compare_viscosity,
 		compare_component_0_name,
 		compare_component_0_lot,
@@ -303,26 +306,25 @@ func (view *QCDataView) Sort(col int, asc bool) {
 }
 
 func (table *QCDataView) RefreshSize() {
-	widths :=
-		[]int{
-			COL_WIDTH_TIME,
-			COL_WIDTH_TIME,
-			COL_WIDTH_LOT,
-			COL_WIDTH_SAMPLE_PT,
-			COL_WIDTH_SAMPLE_BIN,
-			COL_WIDTH_DATA,
-			COL_WIDTH_DATA,
-			COL_WIDTH_DATA,
-			COL_WIDTH_DATA,
-			COL_WIDTH_TIME,
-			COL_WIDTH_LOT,
-			COL_WIDTH_TIME,
-			COL_WIDTH_TIME,
-			COL_WIDTH_LOT,
-			COL_WIDTH_TIME,
-		}
+	widths := []int{
+		COL_WIDTH_TIME,
+		COL_WIDTH_TIME,
+		COL_WIDTH_LOT,
+		COL_WIDTH_SAMPLE_PT,
+		COL_WIDTH_SAMPLE_BIN,
+		COL_WIDTH_DATA,
+		COL_WIDTH_DATA,
+		COL_WIDTH_DATA,
+		COL_WIDTH_DATA,
+		COL_WIDTH_DATA,
+		COL_WIDTH_TIME,
+		COL_WIDTH_LOT,
+		COL_WIDTH_TIME,
+		COL_WIDTH_TIME,
+		COL_WIDTH_LOT,
+		COL_WIDTH_TIME,
+	}
 	for i := range table.GetNumColumns() {
 		table.SetColumnWidth(i, widths[i])
-
 	}
 }

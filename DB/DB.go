@@ -1074,9 +1074,9 @@ order by
 	// bs.qc_samples
 	DB_insert_measurement = PrepareOrElse(db, `
 	with
-		val (lot_id, sample_point, qc_tester_name, time_stamp,  ph, specific_gravity, string_test, viscosity) as (
+		val (lot_id, sample_point, qc_tester_name, time_stamp,  ph, specific_gravity, density, string_test, viscosity) as (
 			values
-				(?, ?, ?, ?, ?, ?, ?, ?)
+				(?, ?, ?, ?, ?, ?, ?, ?, ?)
 		),
 		sel as (
 			select lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity

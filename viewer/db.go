@@ -2,7 +2,6 @@ package viewer
 
 import (
 	"database/sql"
-
 	"log"
 	"time"
 
@@ -10,9 +9,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/util"
 )
 
-var (
-	QC_DB *sql.DB
-)
+var QC_DB *sql.DB
 
 /*
  * ??TODO
@@ -62,7 +59,6 @@ func select_product_samples(product_id int) []QCData {
 }*/
 
 func __select_samples(proc_name string, rows *sql.Rows, err error, query string) []QCData {
-
 	if err != nil {
 		log.Printf("error: [%s]: %q\n%v\n", proc_name, err, query)
 		// return -1
@@ -89,6 +85,7 @@ func __select_samples(proc_name string, rows *sql.Rows, err error, query string)
 			&_timestamp,
 			&qc_data.PH,
 			&qc_data.Specific_gravity,
+			&qc_data.Density,
 			&qc_data.String_test,
 			&qc_data.Viscosity,
 		); err != nil {
@@ -130,7 +127,6 @@ func select_lot(fn func(int, string), query string) {
 	proc_name := "select_lot"
 
 	rows, err := QC_DB.Query(util.Concat(LOT_SELECT_STRING, query, LOT_ORDER_STRING))
-
 	if err != nil {
 		log.Printf("error: [%s]: %q\n", proc_name, err)
 		return
@@ -156,7 +152,6 @@ var (
 )
 
 func DBinit(db *sql.DB) {
-
 	DB.Check_db(db, true)
 	DB.DBinit(db)
 
@@ -186,6 +181,7 @@ union
 		time_stamp,
 		ph ,
 		specific_gravity ,
+		density ,
 		string_test ,
 		viscosity
 	from bs.qc_samples
@@ -224,5 +220,4 @@ union
 	`
 
 	DB_Select_samples = DB.PrepareOrElse(db, SAMPLE_SELECT_STRING+SAMPLE_ORDER_STRING)
-
 }
