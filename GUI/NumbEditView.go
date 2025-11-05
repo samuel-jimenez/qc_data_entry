@@ -37,6 +37,7 @@ func (control *NumbEditView) Get() float64 {
 	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
 	return val
 }
+
 func (control *NumbEditView) GetInt() int {
 	val, _ := strconv.Atoi(strings.TrimSpace(control.Text()))
 	return val
@@ -45,6 +46,12 @@ func (control *NumbEditView) GetInt() int {
 func (control *NumbEditView) Set(val float64) {
 	start, end := control.Selected()
 	control.SetText(Format_float(val))
+	control.SelectText(start, end)
+}
+
+func (control *NumbEditView) Setf(val float64, Format func(float64) string) {
+	start, end := control.Selected()
+	control.SetText(Format(val))
 	control.SelectText(start, end)
 }
 

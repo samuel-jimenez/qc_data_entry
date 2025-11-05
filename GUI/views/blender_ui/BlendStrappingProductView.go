@@ -39,6 +39,8 @@ type BlendStrappingProductViewer interface {
  */
 type BlendStrappingProductView struct {
 	*windigo.AutoPanel
+	// parent windigo.Controller
+	parent windigo.Dockable
 
 	Blend_Vessel *BlendVessel
 
@@ -62,7 +64,6 @@ type BlendStrappingProductView struct {
 }
 
 func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappingProductView {
-
 	ops_group_text := "Ops Group"
 	product_text := "Product"
 	// recipe_text := ""
@@ -76,6 +77,8 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 	Operators_text := "Operators"
 
 	view := new(BlendStrappingProductView)
+
+	view.parent = parent
 
 	view.RecipeProduct = blender.RecipeProduct_from_new()
 
@@ -158,7 +161,7 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 	}
 	view.Operations_group_field.SetSelectedItem(0)
 	view.Operations_group_field_OnSelectedChange(nil)
-	//event handling
+	// event handling
 
 	view.Operations_group_field.OnSelectedChange().Bind(view.Operations_group_field_OnSelectedChange)
 
@@ -186,11 +189,11 @@ func (view *BlendStrappingProductView) SetFont(font *windigo.Font) {
 	for _, control := range view.controls {
 		control.SetFont(font)
 	}
-
 }
 
-func (view *BlendStrappingProductView) RefreshSize() {
-	view.Blend_Vessel.RefreshSize()
+func (view *BlendStrappingProductView) RefreshSize() (width, height int) {
+	_, height = view.Blend_Vessel.RefreshSize()
+	// view.SetSize(width, height)
 
 	for _, panel := range view.panels {
 		panel.SetSize(GUI.TOP_PANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
@@ -206,8 +209,12 @@ func (view *BlendStrappingProductView) RefreshSize() {
 	view.Seal_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Seal_field.SetPaddingLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 	view.Operators_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH+GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.Blend.RefreshSize()
+	// _, height +=view.Blend.RefreshSize() //TODO UGH GO
+	_, height_ := view.Blend.RefreshSize()
+	width, height = 3*(GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH)+2*GUI.TOP_PANEL_INTER_SPACER_WIDTH,
+		height+(len(view.panels))*GUI.PRODUCT_FIELD_HEIGHT+height_
 
+	return
 }
 
 func (view *BlendStrappingProductView) Operations_group_field_OnSelectedChange(e *windigo.Event) {
@@ -221,7 +228,8 @@ func (view *BlendStrappingProductView) Operations_group_field_OnSelectedChange(e
 		select_statement = DB.DB_Select_product_info_moniker
 
 		args = []any{
-			"PETROFLO"}
+			"PETROFLO",
+		}
 
 	// case "BSWB":
 	// case "BSWH":
@@ -254,7 +262,7 @@ func (view *BlendStrappingProductView) Product_Field_OnSelectedChange(e *windigo
 	view.RecipeProduct = blender.RecipeProduct_from_Product_id(Product_id)
 	view.RecipeProduct.GetRecipes(view.Blend_sel_field)
 	view.RecipeProduct.GetComponents()
-	view.Blend_sel_field.OnSelectedChange().Fire(nil)
+	view.Blend_sel_field_OnSelectedChange(nil)
 	GUI.Fill_combobox_from_query(view.Customer_field, DB.DB_Select_product_customer_info, Product_id)
 }
 
@@ -287,7 +295,10 @@ func (view *BlendStrappingProductView) recipe_accept_button_OnClick(e *windigo.E
 }
 
 func (view *BlendStrappingProductView) Blend_sel_field_OnSelectedChange(e *windigo.Event) {
+	old_height := view.Blend.Height()
 	view.Blend.UpdateRecipe(view.RecipeProduct.Recipes[view.Blend_sel_field.GetSelectedItem()])
+	view.SetSize(view.ClientWidth(), view.Height()+view.Blend.Height()-old_height)
+	view.parent.SetSize(view.parent.Width(), view.parent.Height()+view.Blend.Height()-old_height)
 }
 
 // return BlendSheet
@@ -295,8 +306,7 @@ func (view *BlendStrappingProductView) Blend_sel_field_OnSelectedChange(e *windi
 // TODO
 // operations_group
 func (view *BlendStrappingProductView) Get() *blendsheet.BlendSheet {
-
-	//TODO
+	// TODO
 	ProductBlend := view.Blend.Get()
 	if ProductBlend == nil {
 		return nil
@@ -331,7 +341,6 @@ func (view *BlendStrappingProductView) Get() *blendsheet.BlendSheet {
 	// BlendProduct.Blend = ProductBlend
 	// BlendProduct.Save()	// TODO NOT HERE
 	return Blend_Sheet
-
 }
 
 func (view *BlendStrappingProductView) Update_products(product_data map[string]int64) {
@@ -339,11 +348,17 @@ func (view *BlendStrappingProductView) Update_products(product_data map[string]i
 }
 
 func (view *BlendStrappingProductView) SetHeelVolume(heel float64) {
-	view.Blend.SetHeelVolume(heel)
+	if view.Blend != nil {
+		view.Blend.SetHeelVolume(heel)
+	}
 }
 
 func (view *BlendStrappingProductView) SetHeel(heel float64) {
 	view.Blend.SetHeel(heel)
+}
+
+func (view *BlendStrappingProductView) SetTare(tare float64) {
+	view.Blend.SetTare(tare)
 }
 
 func (view *BlendStrappingProductView) SetStrap(volume float64) {

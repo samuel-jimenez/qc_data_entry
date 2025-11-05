@@ -1,6 +1,7 @@
 package blender_ui
 
 import (
+	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
@@ -79,15 +80,15 @@ func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
 // functionality
 
 func (view *BlenderWindow) SetFont(font *windigo.Font) {
-
 	view.Blend_product_view.SetFont(windigo.DefaultFont)
 	// threads.Status_bar.SetFont(windigo.DefaultFont)
-
 }
 
 func (view *BlenderWindow) RefreshSize() {
 	Refresh_globals(config.BASE_FONT_SIZE)
-	view.Blend_product_view.RefreshSize()
+	GUI.WINDOW_WIDTH, GUI.WINDOW_HEIGHT = view.Blend_product_view.RefreshSize()
+	GUI.WINDOW_HEIGHT += GUI.WINDOW_FUDGE_MARGIN_H + GUI.MENU_HEIGHT
+	view.SetSize(GUI.WINDOW_WIDTH, GUI.WINDOW_HEIGHT)
 }
 
 func (view *BlenderWindow) AddShortcuts() {
@@ -99,11 +100,13 @@ func (view *BlenderWindow) Set_font_size() {
 	view.SetFont(windigo.DefaultFont)
 	view.RefreshSize()
 }
+
 func (view *BlenderWindow) Increase_font_size() bool {
 	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
+
 func (view *BlenderWindow) Decrease_font_size() bool {
 	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()

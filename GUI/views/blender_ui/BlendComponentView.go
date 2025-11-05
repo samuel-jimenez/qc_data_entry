@@ -11,11 +11,9 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-var (
-	// DEFAULT_DENSITY := 8.34 //formats.LB_PER_GAL
-	// DEFAULT_DENSITY = formats.LB_PER_GAL
-	DEFAULT_DENSITY = 9.
-)
+// DEFAULT_DENSITY := 8.34 //formats.LB_PER_GAL
+// DEFAULT_DENSITY = formats.LB_PER_GAL
+var DEFAULT_DENSITY = 9.
 
 /*
  * BlendComponentViewer
@@ -46,7 +44,6 @@ type BlendComponentView struct {
 }
 
 func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeComponent) *BlendComponentView {
-
 	view := new(BlendComponentView)
 	view.QCBlendComponentView = *views.New_Bare_QCBlendComponentView_from_RecipeComponent_com(parent, recipeComponent)
 	view.parent = parent
@@ -86,17 +83,16 @@ func NewBaseBlendComponentView(parent *BlendView, recipeComponent *blender.Recip
 	// lot_add_button.SetSize(DEL_BUTTON_WIDTH, GUI.OFF_AXIS)
 	// view.AutoPanel.Dock(lot_add_button, windigo.Left)
 
-	view.Density_field.Set(DEFAULT_DENSITY) // TODO find a good default
+	// view.Density_field.Set(DEFAULT_DENSITY) // TODO find a good default
+	view.Density_field.Setf(DEFAULT_DENSITY, formats.Format_density) // TODO find a good default
 	// TODO // for inbounds
 
 	view.Strap_field.SetEnabled(false)
 
 	return view
-
 }
 
 func NewDummyBlendComponentView(parent *BlendView, name string) *BlendComponentView {
-
 	Recipe_Component := blender.NewRecipeComponent()
 	Recipe_Component.Component_name = name
 	Recipe_Component.Component_amount = 1
@@ -108,11 +104,9 @@ func NewDummyBlendComponentView(parent *BlendView, name string) *BlendComponentV
 	view.Gallons_field.SetEnabled(false)
 
 	return view
-
 }
 
 func NewHeelBlendComponentView(parent *BlendView) *BlendComponentView {
-
 	view := NewDummyBlendComponentView(parent, "HEEL")
 
 	view.Density_field.OnChange().Bind(func(e *windigo.Event) {
@@ -121,21 +115,17 @@ func NewHeelBlendComponentView(parent *BlendView) *BlendComponentView {
 	})
 	// Strap_field
 	return view
-
 }
 
 func NewTotalBlendComponentView(parent *BlendView) *BlendComponentView {
-
 	view := NewDummyBlendComponentView(parent, "Total")
 
 	view.Density_field.SetEnabled(false)
 	// view.Strap_field.SetEnabled(false)
 	return view
-
 }
 
-func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeComponent) *BlendComponentView {
-
+func BlendComponentView_from_new(parent *BlendView, recipeComponent *blender.RecipeComponent) *BlendComponentView {
 	view := NewBaseBlendComponentView(parent, recipeComponent)
 
 	view.Amount_required_field.OnChange().Bind(func(e *windigo.Event) {
@@ -161,7 +151,7 @@ func NewBlendComponentView(parent *BlendView, recipeComponent *blender.RecipeCom
 		}
 		log.Println("DEBUG:", proc_name, "SG", SG)
 		// view.SG_field.Set(SG)
-		view.Density_field.Set(formats.Density_from_sg(SG))
+		view.Density_field.Setf(formats.Density_from_sg(SG), formats.Format_density)
 		view.Density_field.OnChange().Fire(nil)
 	})
 	view.Density_field.OnChange().Bind(func(e *windigo.Event) {
@@ -188,7 +178,7 @@ func (view *BlendComponentView) Get() *blender.BlendComponent {
 	if BlendComponent == nil { // no lot chosen
 		BlendComponent = blender.BlendComponent_from_RecipeComponent(view.Recipe_Component)
 	}
-	//TODO check for zero amount?
+	// TODO check for zero amount?
 	// TODO cap fields
 	BlendComponent.Component_amount = view.Amount_required_field.Get()
 
@@ -221,7 +211,7 @@ func (view *BlendComponentView) SetMassDensity(amount float64) {
 		return
 	}
 	density := Amount / volume
-	view.Density_field.Set(density)
+	view.Density_field.Setf(density, formats.Format_density)
 }
 
 func (view *BlendComponentView) SetVolume(volume float64) float64 {
@@ -245,7 +235,7 @@ func (view *BlendComponentView) SetVolumeDensity(volume float64) {
 	}
 	Amount := view.Amount_required_field.Get()
 	density := Amount / volume
-	view.Density_field.Set(density)
+	view.Density_field.Setf(density, formats.Format_density)
 }
 
 func (view *BlendComponentView) GetStrap(volume float64) float64 {
