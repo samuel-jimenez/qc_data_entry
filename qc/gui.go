@@ -27,8 +27,8 @@ var (
 func Refresh_globals(font_size int) {
 	GUI.Refresh_globals(font_size)
 
-	GUI.CLOCK_TIMER_WIDTH = 35
-	GUI.CLOCK_TIMER_OFFSET_H = 10
+	GUI.CLOCK_TIMER_WIDTH = 4*font_size + 5
+	GUI.CLOCK_TIMER_OFFSET_H = 1 * font_size
 	GUI.CLOCK_WIDTH = 3*GUI.CLOCK_TIMER_WIDTH + 4*GUI.CLOCK_TIMER_OFFSET_H
 
 	NUM_FIELDS = 6

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -26,6 +27,7 @@ type ClockTimerView struct {
 	clock_display_future,
 	clock_display_now,
 	clock_display_past *windigo.LabeledLabel
+	clock_font *windigo.Font
 }
 
 func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
@@ -39,11 +41,11 @@ func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 	clock_display_now := windigo.NewLabeledLabel(clock_panel, "")
 	clock_display_past := windigo.NewLabeledLabel(clock_panel, "")
 
-	clock_font := windigo.NewFont(clock_display_now.Font().Family(), clock_font_size, clock_font_style_flags)
+	view.clock_font = windigo.NewFont(clock_display_now.Font().Family(), clock_font_size, clock_font_style_flags)
 
-	clock_display_future.SetFont(clock_font)
-	clock_display_now.SetFont(clock_font)
-	clock_display_past.SetFont(clock_font)
+	clock_display_future.SetFont(view.clock_font)
+	clock_display_now.SetFont(view.clock_font)
+	clock_display_past.SetFont(view.clock_font)
 
 	clock_display_future.SetFGColor(windigo.RGB(128, 0, 0))
 	clock_display_now.SetFGColor(windigo.RGB(0, 128, 0))
@@ -74,9 +76,22 @@ func NewClockTimerView(parent windigo.Controller) *ClockTimerView {
 	return view
 }
 
-func (view *ClockTimerView) RefreshSize() {
+func (view *ClockTimerView) SetFont(font *windigo.Font) {
+	view.clock_display_future.SetFont(font)
+	view.clock_display_now.SetFont(font)
+	view.clock_display_past.SetFont(font)
+}
 
-	clock_timer_offset_v := 30
+func (view *ClockTimerView) RefreshSize() {
+	clock_font_size := 3 * config.BASE_FONT_SIZE
+	clock_font_style_flags := windigo.FontNormal
+
+	old_font := view.clock_font
+	view.clock_font = windigo.NewFont(old_font.Family(), clock_font_size, clock_font_style_flags)
+	old_font.Dispose()
+	view.SetFont(view.clock_font)
+
+	clock_timer_offset_v := 3 * config.BASE_FONT_SIZE
 
 	view.SetSize(GUI.CLOCK_WIDTH, GUI.OFF_AXIS)
 	view.clock_display_future.SetSize(GUI.CLOCK_TIMER_WIDTH, GUI.OFF_AXIS)
