@@ -24,7 +24,6 @@ type DataViewerPanelViewer interface {
 	windigo.Controller
 	SetFont(font *windigo.Font)
 	RefreshSize()
-	SetMainWindow(mainWindow *ViewerWindow)
 
 	ClearFilters(e *windigo.Event)
 
@@ -92,8 +91,10 @@ type DataViewerPanelView struct {
 
 // parent
 
-func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView {
+func NewDataViewerPanelView(mainWindow *ViewerWindow) *DataViewerPanelView {
 	view := new(DataViewerPanelView)
+
+	view.mainWindow = mainWindow
 
 	view.product_map = make(map[string]int)
 	view.moniker_map = make(map[string][]string)
@@ -248,7 +249,7 @@ func NewDataViewerPanelView(mainWindow windigo.Controller) *DataViewerPanelView 
 	view.moniker_field.OnSelectedChange().Bind(view.moniker_field_OnChange)
 
 	view.filter_button.OnClick().Bind(view.filter_button_OnClick)
-	view.search_button.OnClick().Bind(view.search_button_OnClick)
+	view.search_button.OnClick().Bind(view.mainWindow.search_button_OnClick)
 	view.product_clear_button.OnClick().Bind(view.product_clear_button_OnClick)
 	view.moniker_clear_button.OnClick().Bind(view.moniker_clear_button_OnClick)
 	view.lot_clear_button.OnClick().Bind(view.lot_clear_button_OnClick)
@@ -322,10 +323,6 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.regen_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.export_xl_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.ranges_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
-}
-
-func (view *DataViewerPanelView) SetMainWindow(mainWindow *ViewerWindow) {
-	view.mainWindow = mainWindow
 }
 
 func (view *DataViewerPanelView) ClearFilters(e *windigo.Event) {
@@ -444,11 +441,6 @@ func (view *DataViewerPanelView) lot_add_button_OnClick(e *windigo.Event) {
 
 func (view *DataViewerPanelView) filter_button_OnClick(e *windigo.Event) {
 	view.mainWindow.ToggleFilterListView()
-}
-
-func (view *DataViewerPanelView) search_button_OnClick(e *windigo.Event) {
-	view.mainWindow.SetTable(select_samples(view.mainWindow.FilterListView.Get()))
-	// TODO there can be only one
 }
 
 func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event) {

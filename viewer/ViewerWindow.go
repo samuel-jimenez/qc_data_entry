@@ -65,16 +65,19 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 		Modifiers: windigo.ModControl,
 		Key:       windigo.KeyQ,
 	})
+	refMenu := fileMenu.AddItem("&Refresh", windigo.Shortcut{
+		Key: windigo.KeyF5,
+	})
 
 	newMonikerMenu.OnClick().Bind(view.newMonikerMenu_OnClick)
 	quitMenu.OnClick().Bind(toplevel_ui.WndOnClose)
+	refMenu.OnClick().Bind(view.search_button_OnClick)
 
 	// menu.Show() // TODO why is this sometimes needed? Maybe the SetSize call?
 
 	dock := windigo.NewSimpleDock(view)
 
 	selection_panel := NewDataViewerPanelView(view)
-	selection_panel.SetMainWindow(view)
 
 	FilterListView := NewSQLFilterListView(view)
 
@@ -103,7 +106,7 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	FilterListView.AddDiscreteMulti(COL_KEY_SAMPLE_PT, COL_LABEL_SAMPLE_PT, COL_ITEMS_SAMPLE_PT)
 	FilterListView.AddContinuous(COL_KEY_PH, COL_LABEL_PH)
 	FilterListView.AddContinuous(COL_KEY_SG, COL_LABEL_SG)
-	//TODO FilterListView.AddContinuous(COL_KEY_DENSITY, COL_LABEL_DENSITY)
+	// TODO FilterListView.AddContinuous(COL_KEY_DENSITY, COL_LABEL_DENSITY)
 	FilterListView.AddContinuous(COL_KEY_STRING, COL_LABEL_STRING)
 	FilterListView.AddContinuous(COL_KEY_VISCOSITY, COL_LABEL_VISCOSITY)
 	FilterListView.Hide()
@@ -132,6 +135,7 @@ func (view *ViewerWindow) UpdateFilterListView() {
 	view.FilterListView.Update(COL_KEY_LOT, COL_ITEMS_LOT)
 	view.FilterListView.Update(COL_KEY_SAMPLE_PT, COL_ITEMS_SAMPLE_PT)
 }
+
 func (view *ViewerWindow) ClearFilters() {
 	view.FilterListView.Clear()
 }
@@ -144,9 +148,11 @@ func (view *ViewerWindow) SetTable(samples []QCData) {
 	view.table.Set(samples)
 	view.table.Update()
 }
+
 func (view *ViewerWindow) GetTableSelected() []windigo.ListItem {
 	return view.table.SelectedItems()
 }
+
 func (view *ViewerWindow) GetTableAllSelected() (entries []windigo.ListItem) {
 	entries = view.table.SelectedItems()
 	if len(entries) == 0 {
@@ -180,11 +186,13 @@ func (mainWindow *ViewerWindow) Set_font_size() {
 	mainWindow.SetFont(windigo.DefaultFont)
 	mainWindow.RefreshSize()
 }
+
 func (view *ViewerWindow) Increase_font_size() bool {
 	config.BASE_FONT_SIZE += 1
 	view.Set_font_size()
 	return true
 }
+
 func (view *ViewerWindow) Decrease_font_size() bool {
 	config.BASE_FONT_SIZE -= 1
 	view.Set_font_size()
@@ -196,4 +204,9 @@ func (view *ViewerWindow) newMonikerMenu_OnClick(*windigo.Event) {
 	MonikerView.SetModal(false)
 	MonikerView.Show()
 	MonikerView.RefreshSize()
+}
+
+func (view *ViewerWindow) search_button_OnClick(e *windigo.Event) {
+	view.SetTable(select_samples(view.FilterListView.Get()))
+	// TODO there can be only one
 }
