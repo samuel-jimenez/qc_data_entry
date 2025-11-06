@@ -2,6 +2,8 @@ package formats
 
 import (
 	"strconv"
+
+	"github.com/samuel-jimenez/qc_data_entry/util/math"
 )
 
 var (
@@ -21,6 +23,12 @@ var (
 	VISCOSITY_PRECISION   = 0
 )
 
+// TODO fix math.Round()
+func Round(val float64, precision int) float64 {
+	out, _ := strconv.ParseFloat(Format_float(val, precision), 64)
+	return out
+}
+
 func Format_float(val float64, precision int) string {
 	return strconv.FormatFloat(val, 'f', precision, 64)
 }
@@ -31,12 +39,12 @@ func SG_from_density(density float64) float64 {
 }
 
 func SG_from_mass(mass float64) float64 {
-	sg, _ := strconv.ParseFloat(strconv.FormatFloat(mass/SAMPLE_VOLUME, 'G', 4, 64), 64)
+	sg := math.SigFig(mass/SAMPLE_VOLUME, 4)
 	return sg
 }
 
 func Density_from_sg(sg float64) float64 {
-	density := sg * LB_PER_GAL
+	density := math.SigFig(sg*LB_PER_GAL, 4)
 	return density
 }
 

@@ -3,6 +3,8 @@ package math
 // because  go sucks
 
 import (
+	"strconv"
+
 	"golang.org/x/exp/constraints"
 )
 
@@ -24,3 +26,16 @@ type Number interface {
 func Abs[T Number](val0 T) T {
 	return max(val0, -val0)
 }
+
+// func Round[T Number](val0 T,) T {
+
+func SigFig(val float64, figures int) float64 {
+	out, _ := strconv.ParseFloat(strconv.FormatFloat(val, 'G', figures, 64), 64)
+	return out
+}
+
+// // TODO fix math.Round()
+// func Round(val float64, precision int) float64 {
+// 	out, _ := strconv.ParseFloat(formats.Format_float(val, precision), 64)
+// 	return out
+// }
