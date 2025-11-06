@@ -1072,21 +1072,20 @@ order by
 	`)
 
 	// bs.qc_samples
+	BIG_SAMPLES_QC := `time_stamp,  ph, specific_gravity, density, string_test, viscosity`
+	BIG_ID_SAMPLES_QC := `lot_id, sample_point, qc_tester_name, ` + BIG_SAMPLES_QC
+	BIG_NAME_SAMPLES_QC := `lot_id, sample_point_id, qc_tester_id, ` + BIG_SAMPLES_QC
 	DB_insert_measurement = PrepareOrElse(db, `
 	with
-		val (lot_id, sample_point, qc_tester_name, time_stamp,  ph, specific_gravity, density, string_test, viscosity) as (
+		val ( 	`+BIG_ID_SAMPLES_QC+`) as (
 			values
 				(?, ?, ?, ?, ?, ?, ?, ?, ?)
-		),
-		sel as (
-			select lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity
-			from val
-			left join bs.qc_tester_list using (qc_tester_name)
-			left join bs.product_sample_points using (sample_point)
 		)
-	insert into bs.qc_samples (lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity)
-	select lot_id, sample_point_id, qc_tester_id, time_stamp, ph, specific_gravity, string_test, viscosity
-		from   sel
+	insert into bs.qc_samples (`+BIG_NAME_SAMPLES_QC+`)
+	select `+BIG_NAME_SAMPLES_QC+`
+	from val
+	left join bs.qc_tester_list using (qc_tester_name)
+	left join bs.product_sample_points using (sample_point)
 	returning qc_id;
 	`)
 
