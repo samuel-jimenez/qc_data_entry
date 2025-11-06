@@ -56,6 +56,7 @@ func (data QCDataComponents) Text() []string {
 type QCData struct {
 	Product_name,
 	Lot_name string
+	Product_id int64
 	Product_name_customer,
 	Sample_point,
 	Sample_bin nullable.NullString
@@ -117,9 +118,10 @@ func ToString(data nullable.NullFloat64, format func(float64) string) string {
 }
 
 func (data QCData) Product() *product.MeasuredProduct {
-	return &product.MeasuredProduct{
+	qc_product := &product.MeasuredProduct{
 		QCProduct: product.QCProduct{BaseProduct: product.BaseProduct{
 			Product_name:          data.Product_name,
+			Product_id:            data.Product_id,
 			Lot_number:            data.Lot_name,
 			Sample_point:          data.Sample_point.String,
 			Product_name_customer: data.Product_name_customer.String,
@@ -130,15 +132,12 @@ func (data QCData) Product() *product.MeasuredProduct {
 		String_test: data.String_test,
 		Viscosity:   data.Viscosity,
 	}
+	qc_product.Select_product_details()
+	return qc_product
 }
 
 func (data QCData) Text() []string {
-	var sg_derived bool
-	if data.PH.Valid {
-		sg_derived = false
-	} else {
-		sg_derived = true
-	}
+	sg_derived := !( /*data.QCProduct.SG.Method.String == product.METHOD_DMA|| */ data.PH.Valid)
 
 	return append([]string{
 		data.Time_stamp.Format(time.DateTime),

@@ -96,14 +96,13 @@ func (measured_product *MeasuredProduct) Output_sample() error {
 	return measured_product.export_CoA()
 }
 
-func (measured_product *MeasuredProduct) Printout() error {
-	proc_name := "MeasuredProduct-Printout"
-	if err := measured_product.Print(); err != nil {
-		log.Printf("Error [%s]: %q\n", proc_name, err)
-		log.Printf("Debug [%s]: %q: %v\n", proc_name, err, measured_product) // TODO
-		return err
+func (measured_product *MeasuredProduct) Regen_sample() (err error) {
+	err = measured_product.Output_sample()
+	if err != nil {
+		return
 	}
-	return measured_product.Output_sample()
+	_, err = measured_product.export_label_pdf()
+	return
 }
 
 func (measured_product *MeasuredProduct) Save_xl() error {

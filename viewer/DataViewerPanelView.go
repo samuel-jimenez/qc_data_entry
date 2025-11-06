@@ -459,7 +459,7 @@ func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event)
 
 func (view *DataViewerPanelView) regen_sample_button_OnClick(e *windigo.Event) {
 	for _, data := range view.mainWindow.GetTableSelected() {
-		if err := data.(QCData).Product().Output_sample(); err != nil {
+		if err := data.(QCData).Product().Regen_sample(); err != nil {
 			log.Printf("Error: [%s]: %q\n", "regen_sample_button", err)
 			log.Printf("Debug: %q: %v\n", err, data)
 			threads.Show_status("Error Creating Label")

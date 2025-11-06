@@ -77,6 +77,7 @@ func __select_samples(proc_name string, rows *sql.Rows, err error, query string)
 
 		if err := rows.Scan(
 			&internalp,
+			&qc_data.Product_id,
 			&product_moniker_name, &internal_name,
 			&qc_data.Product_name_customer,
 			&qc_data.Lot_name,
@@ -172,6 +173,7 @@ union
 
 	select
 		internal,
+		product_id,
 		product_moniker_name,
 		product_name_internal,
 		product_name_customer,
