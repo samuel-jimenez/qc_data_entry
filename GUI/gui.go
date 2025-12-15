@@ -16,14 +16,15 @@ var (
 
 	ERROR_MARGIN = 3
 
-	ErroredPen = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSolidColorBrush(windigo.RGB(255, 0, 64)))
-	OKPen      = windigo.NewPen(w32.PS_GEOMETRIC, 2, windigo.NewSystemColorBrush(w32.COLOR_BTNFACE))
+	ErroredPen = windigo.Pen_from_flags(w32.PS_GEOMETRIC, 2, windigo.NewSolidColorBrush(windigo.RGB(255, 0, 64)))
+	OKPen      = windigo.Pen_from_flags(w32.PS_GEOMETRIC, 2, windigo.NewSystemColorBrush(w32.COLOR_BTNFACE))
 )
 
 var WINDOW_WIDTH,
 	WINDOW_HEIGHT,
 	WINDOW_FUDGE_MARGIN_W,
 	WINDOW_FUDGE_MARGIN_H,
+	STATUS_BAR_HEIGHT,
 	MENU_HEIGHT,
 
 	GROUPBOX_CUSHION,
@@ -149,6 +150,9 @@ func Refresh_globals(font_size int) {
 	GROUP_MARGIN = 5
 	WINDOW_FUDGE_MARGIN_W = 16
 	WINDOW_FUDGE_MARGIN_H = 39
+	// WINDOW_CHROME_HEIGHT = 39
+	STATUS_BAR_HEIGHT = 25
+
 	MENU_HEIGHT = 20
 	BUTTON_MARGIN = 5
 

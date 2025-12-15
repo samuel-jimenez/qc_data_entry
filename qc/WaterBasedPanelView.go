@@ -2,6 +2,7 @@ package qc
 
 import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -23,7 +24,7 @@ type WaterBasedPanelView struct {
 	product_panel *TopPanelView
 }
 
-func Show_water_based(parent *windigo.AutoPanel, product_panel *TopPanelView) *WaterBasedPanelView {
+func WaterBasedPanelView_from_new(parent *windigo.AutoPanel, product_panel *TopPanelView) *WaterBasedPanelView {
 	view := new(WaterBasedPanelView)
 
 	view.product_panel = product_panel
@@ -31,7 +32,7 @@ func Show_water_based(parent *windigo.AutoPanel, product_panel *TopPanelView) *W
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
 	view.ranges_panel = WaterBasedProductRangesView_from_new(view.AutoPanel, view.product_panel.QC_Product)
-	view.group_panel = newWaterBasedProductView(view.AutoPanel, view.ranges_panel)
+	view.group_panel = WaterBasedProductView_from_new(view.AutoPanel, view.ranges_panel)
 
 	view.button_dock = GUI.NewMarginalButtonDock(parent, SUBMIT_CLEAR_LOG_BTN, []int{40, 0, 10}, []func(){view.submit_data, view.Clear, view.log_data})
 
@@ -70,12 +71,29 @@ func (view *WaterBasedPanelView) Clear() {
 	view.ranges_panel.Clear()
 }
 
+func (view *WaterBasedPanelView) ChangeContainer(qc_product *product.QCProduct) {
+}
+
+func (view *WaterBasedPanelView) Focus() {
+	view.group_panel.FocusVisual()
+}
+
 func (view *WaterBasedPanelView) submit_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
-	product.Check_single_data(measured_product, true, true)
+	valid, err := product.Check_single_data(measured_product, true, true)
+	if valid {
+		view.product_panel.SetMeasuredProduct(measured_product)
+	}
+	qc_ui.Check_dupe_data(view,err, measured_product)
 }
 
 func (view *WaterBasedPanelView) log_data() {
 	measured_product := view.group_panel.Get(view.product_panel.BaseProduct())
-	product.Check_single_data(measured_product, true, false)
+	valid, err := product.Check_single_data(measured_product, true, false)
+	if valid {
+		view.product_panel.SetMeasuredProduct(measured_product)
+	}
+	qc_ui.Check_dupe_data(view,err, measured_product)
 }
+
+

@@ -7,9 +7,16 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
+)
+
+var (
+	MODE_INTERNAL = 0
+	MODE_INBOUND  = 1
 )
 
 /*
@@ -40,11 +47,14 @@ type TopPanelViewer interface {
  */
 type TopPanelView struct {
 	*windigo.AutoPanel
-	QC_Product *product.QCProduct
+	QC_Product       *product.QCProduct
+	Measured_Product []*product.MeasuredProduct
 
 	mainWindow           *QCWindow
 	TopPanelInternalView *TopPanelInternalView
 	TopPanelInboundView  *TopPanelInboundView
+
+	whups_button *windigo.PushButton
 
 	product_panel_0,
 	product_panel_0_2 *windigo.AutoPanel
@@ -53,19 +63,25 @@ type TopPanelView struct {
 
 	container_field *product.DiscreteView
 	clock_panel     *views.ClockTimerView
+
+	mode int
 }
 
-// func NewTopPanelView(parent windigo.Controller,	QCWindow *QCWindow) *TopPanelView {
-func NewTopPanelView(parent *QCWindow) *TopPanelView {
+func (view *TopPanelView) SetMeasuredProduct(products ...*product.MeasuredProduct) {
+	view.Measured_Product = products
+}
+
+// func TopPanelView_from_new(parent windigo.Controller,	QCWindow *QCWindow) *TopPanelView {
+func TopPanelView_from_new(parent *QCWindow) *TopPanelView {
 	view := new(TopPanelView)
 	// view.QCWindow = QCWindow
 	view.mainWindow = parent
 	view.QC_Product = product.QCProduct_from_new()
 	view.QC_Product.SetUpdate(view.mainWindow.UpdateProduct)
+	view.mode = MODE_INTERNAL
 
 	product_text := "Product"
-	lot_text := "Lot Number"
-	sample_text := "Sample Point"
+	sample_text := "Sample Point" // TODO
 	customer_text := "Customer Name"
 	tester_text := "Tester"
 
@@ -74,6 +90,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	reprint_text := "Reprint"
 	inbound_text := "Inbound"
 	sample_button_text := "Sample"
+	whups_text := "Whups"
 
 	release_button_text := "Release"
 	today_button_text := "Today"
@@ -96,15 +113,15 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	product_panel_1_0 := windigo.NewAutoPanel(product_panel_0)
 	product_panel_1_0.Hide()
 
-	testing_lot_field := GUI.List_ComboBox_from_new(product_panel_1_0, lot_text)
+	testing_lot_field := GUI.List_ComboBox_from_new(product_panel_1_0, formats.COL_LABEL_LOT)
 	// inbound_product_field := GUI.NewComboBox(product_panel_1_0, product_text)
-	// inbound_product_field := windigo.NewLabeledComboBox(product_panel_1_0, product_text)
-	inbound_product_field := windigo.NewLabeledEdit(product_panel_1_0, product_text)
+	// inbound_product_field := windigo.LabeledComboBox_from_new(product_panel_1_0, product_text)
+	inbound_product_field := windigo.LabeledEdit_from_new(product_panel_1_0, product_text)
 	inbound_product_field.SetReadOnly(true)
 
 	product_panel_0_1 := windigo.NewAutoPanel(product_panel_0)
 
-	lot_field := GUI.ComboBox_from_new(product_panel_0_1, lot_text)
+	lot_field := GUI.ComboBox_from_new(product_panel_0_1, formats.COL_LABEL_LOT)
 	sample_field := GUI.ComboBox_from_new(product_panel_0_1, sample_text)
 
 	product_panel_1_1 := windigo.NewAutoPanel(product_panel_0)
@@ -150,6 +167,9 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	internal_button := windigo.NewPushButton(product_panel)
 	internal_button.SetText(internal_text)
 	internal_button.Hide()
+
+	view.whups_button = windigo.NewPushButton(product_panel)
+	view.whups_button.SetText(whups_text)
 
 	// build object
 	view.AutoPanel = product_panel
@@ -197,6 +217,7 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	product_panel.Dock(reprint_button, windigo.Left)
 	product_panel.Dock(inbound_button, windigo.Left)
 	product_panel.Dock(internal_button, windigo.Left)
+	product_panel.Dock(view.whups_button, windigo.Left)
 
 	//
 	//
@@ -226,12 +247,24 @@ func NewTopPanelView(parent *QCWindow) *TopPanelView {
 	//
 	// }
 
+	view.AutoPanel.AddShortcut(windigo.Shortcut{Key: windigo.KeyEnter}, parent.FocusTab)
+
 	tester_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.tester_field_pop_data(tester_field.GetSelectedItem()) })
 	tester_field.OnKillFocus().Bind(func(e *windigo.Event) { view.tester_field_text_pop_data(tester_field.Text()) })
 
 	inbound_button.OnClick().Bind(func(e *windigo.Event) { view.GoInbound() })
 
 	internal_button.OnClick().Bind(func(e *windigo.Event) { view.GoInternal() })
+
+	view.whups_button.OnClick().Bind(view.whups_button_OnClick)
+
+	// TODO 	clock_panel.OnClick().Bind(view.clock_panel_OnClick)
+	// clock_panel.OnLBDbl().Bind(view.clock_panel_OnClick)// worthless
+	// clock_panel.OnLBUp().Bind(view.clock_panel_OnClick)
+	// clock_panel.OnLBDown().Bind(view.clock_panel_OnClick)
+
+	// clock_panel.SetOnLBUp(view.clock_panel_OnClick)
+	clock_panel.SetOnLBDown(view.clock_panel_OnClick)
 
 	container_field.OnSelectedChange().Bind(func(e *windigo.Event) {
 		view.QC_Product.Container_type = product.ProductContainerType(container_field.Get().Int32)
@@ -246,16 +279,11 @@ func (view *TopPanelView) SetFont(font *windigo.Font) {
 	view.TopPanelInboundView.SetFont(font)
 	view.tester_field.SetFont(font)
 	view.container_field.SetFont(font)
+
+	view.whups_button.SetFont(font)
 }
 
-// container_item_width
-
-// func (view *TopPanelView) RefreshSize() {
-func (view *TopPanelView) RefreshSize(font_size int) {
-	var container_item_width int
-
-	container_item_width = 6 * font_size
-
+func (view *TopPanelView) RefreshSize() {
 	view.SetSize(GUI.TOP_PANEL_WIDTH, TOP_PANEL_HEIGHT)
 
 	view.product_panel_0.SetSize(GUI.TOP_PANEL_WIDTH, TOP_SUBPANEL_HEIGHT)
@@ -271,9 +299,12 @@ func (view *TopPanelView) RefreshSize(font_size int) {
 	view.clock_panel.RefreshSize()
 
 	view.container_field.SetSize(GUI.DISCRETE_FIELD_WIDTH, GUI.OFF_AXIS)
-	view.container_field.SetItemSize(container_item_width)
+	view.container_field.SetItemSize(CONTAINER_ITEM_WIDTH)
 	view.container_field.SetPaddingsAll(GUI.GROUPBOX_CUSHION)
 	view.container_field.SetPaddingLeft(0)
+
+	view.whups_button.SetMarginsAll(BUTTON_MARGIN)
+	view.whups_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 }
 
 func (view *TopPanelView) SetTitle(title string) {
@@ -313,6 +344,11 @@ func (view *TopPanelView) BaseProduct() product.QCProduct {
 }
 
 func (view *TopPanelView) GoInbound() {
+	if view.mode == MODE_INBOUND {
+		return
+	}
+	view.mode = MODE_INBOUND
+
 	view.TopPanelInboundView.Show()
 	view.TopPanelInternalView.Hide()
 
@@ -322,6 +358,11 @@ func (view *TopPanelView) GoInbound() {
 }
 
 func (view *TopPanelView) GoInternal() {
+	if view.mode == MODE_INTERNAL {
+		return
+	}
+	view.mode = MODE_INTERNAL
+
 	view.TopPanelInternalView.Show()
 	view.TopPanelInboundView.Hide()
 
@@ -357,4 +398,19 @@ func (view *TopPanelView) UpdateProduct(QC_Product *product.QCProduct) {
 
 func (view *TopPanelView) ChangeContainer(qc_product *product.QCProduct) {
 	view.mainWindow.ChangeContainer(qc_product)
+}
+
+func (view *TopPanelView) clock_panel_OnClick(*windigo.Event) {
+	log.Println("clock_panel_OnClick") // ?? TODO
+	ClockPopoutView := views.ClockPopoutView_from_new(view)
+	ClockPopoutView.SetModal(false)
+	ClockPopoutView.Show()
+	ClockPopoutView.RefreshSize()
+}
+
+func (view *TopPanelView) whups_button_OnClick(*windigo.Event) {
+	WhupsView := qc_ui.WhupsView_from_new(view, view.Measured_Product)
+	WhupsView.SetModal(false)
+	WhupsView.RefreshSize()
+	WhupsView.Show()
 }

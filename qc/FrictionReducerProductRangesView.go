@@ -31,7 +31,7 @@ type FrictionReducerProductRangesView struct {
 	string_field *qc_ui.RangeROView
 }
 
-func BuildNewFrictionReducerProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *FrictionReducerProductRangesView {
+func FrictionReducerProductRangesView_from_new(parent *windigo.AutoPanel, qc_product *product.QCProduct) *FrictionReducerProductRangesView {
 
 	view := new(FrictionReducerProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)

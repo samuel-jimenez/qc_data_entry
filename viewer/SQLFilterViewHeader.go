@@ -48,21 +48,22 @@ func SQLFilterViewHeader_from_new(parent SQLFilterViewable, label string) *SQLFi
 	header.hide_button.SetText("+")
 	header.AutoPanel.Dock(header.label, windigo.Left)
 	header.AutoPanel.Dock(header.hide_button, windigo.Left)
-	header.hide_button.OnClick().Bind(func(e *windigo.Event) {
+	header.hide_button.OnClick().Bind(func(*windigo.Event) {
 		grandma := header.parent.Parent()
-		if header.child != nil {
-			header.Hidden = !header.Hidden
-			if header.Hidden {
-				grandma.SetSize(grandma.Width(), grandma.Height()-header.child.Height())
-				header.hide_button.SetText("+")
-				header.child.Hide()
-				parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
-			} else {
-				grandma.SetSize(grandma.Width(), grandma.Height()+header.child.Height())
-				header.hide_button.SetText("-")
-				header.child.Show()
-				parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT+header.child.Height())
-			}
+		if header.child == nil {
+			return
+		}
+		header.Hidden = !header.Hidden
+		if header.Hidden {
+			grandma.SetSize(grandma.Width(), grandma.Height()-header.child.NominalHeight())
+			header.hide_button.SetText("+")
+			header.child.Hide()
+			parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
+		} else {
+			grandma.SetSize(grandma.Width(), grandma.Height()+header.child.NominalHeight())
+			header.hide_button.SetText("-")
+			header.child.Show()
+			parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT+header.child.NominalHeight())
 		}
 	})
 
@@ -72,6 +73,9 @@ func SQLFilterViewHeader_from_new(parent SQLFilterViewable, label string) *SQLFi
 func (header *SQLFilterViewHeader) RefreshSize() {
 	header.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 	header.label.SetSize(GUI.LABEL_WIDTH, HEADER_HEIGHT)
+	if header.child == nil {
+		return
+	}
 	if header.Hidden {
 		header.parent.SetSize(GUI.OFF_AXIS, HEADER_HEIGHT)
 	} else {
@@ -110,7 +114,6 @@ func (header *SQLFilterViewHeader) AddItem(entry string) {
 	panel_label := NewSQLFilterViewHeaderOptionLabel(header, entry)
 	header.Dock(panel_label, windigo.Left)
 	header.Options[entry] = panel_label
-
 }
 
 func (header *SQLFilterViewHeader) DelItem(entry string) {

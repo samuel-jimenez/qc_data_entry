@@ -8,10 +8,13 @@ var (
 	DENSITY_TEXT     = "Density"
 	VISCOSITY_TEXT   = "Viscosity"
 	STRING_TEXT_FULL = "String Test \n\t at 0.5gpt"
-	//TODO store string_amt "at 0.5gpt"
+	// TODO store string_amt "at 0.5gpt"
 	STRING_TEXT_MINI = "String"
 
 	BLEND_WB  = "Water Based"
 	BLEND_OIL = "Oil Based"
 	BLEND_FR  = "Friction Reducer"
+
+	COL_LABEL_LOT       = "Lot Number"
+	COL_LABEL_SAMPLE_PT = "Sample Point"
 )

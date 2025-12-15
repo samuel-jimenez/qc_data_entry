@@ -39,3 +39,15 @@ func SigFig(val float64, figures int) float64 {
 // 	out, _ := strconv.ParseFloat(formats.Format_float(val, precision), 64)
 // 	return out
 // }
+
+func FMULT[T, U Number](a T, b U) float64 {
+	return float64(a) * float64(b)
+}
+
+func FDIV_[T, U Number](a T, b U) float64 {
+	return float64(a) / float64(b)
+}
+
+func FDIV(a, b int) float64 {
+	return float64(a) / float64(b)
+}

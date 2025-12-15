@@ -11,6 +11,8 @@ var (
 	TOP_PANEL_HEIGHT,
 	TOP_SUBPANEL_HEIGHT,
 
+	CONTAINER_ITEM_WIDTH,
+
 	NUM_FIELDS,
 
 	BUTTON_MARGIN int
@@ -27,9 +29,11 @@ var (
 func Refresh_globals(font_size int) {
 	GUI.Refresh_globals(font_size)
 
-	GUI.CLOCK_TIMER_WIDTH = 4*font_size + 5
+	GUI.CLOCK_TIMER_WIDTH = 5 * font_size
 	GUI.CLOCK_TIMER_OFFSET_H = 1 * font_size
 	GUI.CLOCK_WIDTH = 3*GUI.CLOCK_TIMER_WIDTH + 4*GUI.CLOCK_TIMER_OFFSET_H
+
+	CONTAINER_ITEM_WIDTH = 6 * font_size
 
 	NUM_FIELDS = 6
 	BUTTON_MARGIN = 5

@@ -40,6 +40,10 @@ type TopPanelInternalViewer interface {
 	sample_field_text_pop_data(str string)
 
 	SetCurrentTab(int)
+
+	ranges_button_OnClick(*windigo.Event)
+	inventory_button_OnClick(*windigo.Event)
+	reprint_button_OnClick(*windigo.Event)
 }
 
 /*
@@ -135,24 +139,11 @@ func NewTopPanelInternalView(
 	view.sample_field.OnSelectedChange().Bind(func(e *windigo.Event) { view.sample_field_pop_data(sample_field.GetSelectedItem()) })
 	view.sample_field.OnKillFocus().Bind(func(e *windigo.Event) { view.sample_field_text_pop_data(sample_field.Text()) })
 
-	view.ranges_button.OnClick().Bind(func(e *windigo.Event) {
-		if view.QC_Product.Product_name != "" {
-			views.ShowNewQCProductRangesView(view.QC_Product)
-			log.Println("debug: ranges_button-product_lot", view.QC_Product)
-		}
-	})
+	view.ranges_button.OnClick().Bind(view.ranges_button_OnClick)
 
-	view.inventory_button.OnClick().Bind(func(e *windigo.Event) {
-		// views.ShowNewQCProductRangesView()
-		New_InventoryView().Start()
-	})
+	view.inventory_button.OnClick().Bind(view.inventory_button_OnClick)
 
-	view.reprint_button.OnClick().Bind(func(e *windigo.Event) {
-		if view.QC_Product.Lot_number != "" {
-			log.Println("debug: reprint_button")
-			view.QC_Product.Reprint()
-		}
-	})
+	view.reprint_button.OnClick().Bind(view.reprint_button_OnClick)
 
 	return view
 }
@@ -321,4 +312,23 @@ func (view *TopPanelInternalView) sample_field_text_pop_data(str string) {
 
 func (view *TopPanelInternalView) SetCurrentTab(i int) {
 	view.mainWindow.SetCurrentTab(i)
+}
+
+func (view *TopPanelInternalView) ranges_button_OnClick(*windigo.Event) {
+	if view.QC_Product.Product_name != "" {
+		views.ShowNewQCProductRangesView(view.QC_Product)
+		log.Println("debug: ranges_button-product_lot", view.QC_Product)
+	}
+}
+
+func (view *TopPanelInternalView) inventory_button_OnClick(*windigo.Event) {
+	// views.ShowNewQCProductRangesView()
+	InventoryView_from_new().Start()
+}
+
+func (view *TopPanelInternalView) reprint_button_OnClick(*windigo.Event) {
+	if view.QC_Product.Lot_number != "" {
+		log.Println("debug: reprint_button")
+		view.QC_Product.Reprint()
+	}
 }

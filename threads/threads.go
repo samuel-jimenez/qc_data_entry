@@ -17,7 +17,6 @@ var (
 )
 
 func pdf_print(pdf_path string) error {
-
 	app := "./PDFtoPrinter"
 	cmd := exec.Command(app, pdf_path)
 	err := cmd.Start()
@@ -27,7 +26,6 @@ func pdf_print(pdf_path string) error {
 	cmd.Wait()
 
 	return err
-
 }
 
 func Do_print_queue(print_queue chan string) {
@@ -54,6 +52,14 @@ func Show_status(message string) {
 		STATUS_QUEUE <- message
 	} else {
 		log.Println("Warn: Status queue not configured. Call threads.Do_status_queue to set up.")
+	}
+}
+
+// cf util.LogError
+func LogError(proc_name, message string, err error) {
+	if err != nil {
+		log.Printf("Error: [%s]: %q\n", proc_name, err)
+		Show_status(message)
 	}
 }
 

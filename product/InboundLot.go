@@ -98,7 +98,7 @@ func InboundLotMap_from_Query() map[string]*InboundLot {
 	proc_name := "NewInboundLotArrayFromQuery"
 
 	DB.Forall_err(proc_name,
-		func() {},
+		util.NOOP,
 		func(row *sql.Rows) error {
 			Inbound, err := InboundLot_from_Row(row)
 			if err != nil {
@@ -203,7 +203,7 @@ func (object *InboundLot) Quality_test() {
 
 	// get recipes
 	DB.Forall_err(proc_name,
-		func() {},
+		util.NOOP,
 		func(row *sql.Rows) error {
 			BlendProduct := blender.BlendProduct_from_new()
 			ProductBlend := blender.ProductBlend_from_new()
@@ -240,7 +240,7 @@ recipes:
 		// get other components,
 		proc_name := "GetComponents"
 		DB.Forall_err(proc_name,
-			func() {},
+			util.NOOP,
 			func(row *sql.Rows) error {
 				OtherBlendComponent := blender.BlendComponent_from_new()
 				OtherBlendComponent.Inboundp = true

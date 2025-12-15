@@ -10,7 +10,7 @@ import (
 var (
 	SMOL_BOTTLE_SIZE = "8OZ"
 	SMOL_BOTTLE_CAP  = 24
-	BIG_BOTTLE_SIZE  = "500ML"
+	BIG_BOTTLE_SIZE  = "1L"
 	BIG_BOTTLE_CAP   = 20
 )
 
@@ -19,8 +19,7 @@ var (
  *
  */
 type MonikerView struct {
-	*windigo.Dialog
-	*windigo.AutoPanel
+	*windigo.AutoDialog
 
 	// *windigo.SimpleDock
 
@@ -41,17 +40,12 @@ func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 
 	view := new(MonikerView)
 
-	view.Dialog = windigo.NewDialog(parent)
+	view.AutoDialog = windigo.AutoDialog_from_new(parent)
 	view.Dialog.SetText(window_title)
 
 	// view.SetSize(2*GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH, 6*GUI.PRODUCT_FIELD_HEIGHT)
 
-	view.AutoPanel = windigo.NewAutoPanel(view.Dialog)
-	// view.SimpleDock = windigo.NewSimpleDock(view)
-
-	//
-
-	view.product_moniker_name_field = windigo.NewLabeledEdit(view, product_moniker_name_text)
+	view.product_moniker_name_field = windigo.LabeledEdit_from_new(view, product_moniker_name_text)
 
 	view.retain_storage_duration_field = GUI.NumbestEditView_from_new(view, retain_storage_duration_text)
 	view.max_storage_capacity_field = GUI.List_ComboBox_from_new(view, max_storage_capacity_text)
@@ -82,7 +76,7 @@ func MonikerView_from_new(parent windigo.Controller) *MonikerView {
 	view.product_moniker_name_field.OnKillFocus().Bind(view.product_moniker_name_field_OnKillFocus)
 	view.max_storage_capacity_field.OnSelectedChange().Bind(view.max_storage_capacity_field_OnSelectedChange)
 	accept_button.OnClick().Bind(view.accept_button_OnClick)
-	cancel_button.OnClick().Bind(view.cancel_button_OnClick)
+	cancel_button.OnClick().Bind(view.EventClose)
 
 	view.SetButtons(accept_button, cancel_button)
 
@@ -108,10 +102,11 @@ func (view *MonikerView) AddMoniker() {
 	// qc_sample_storage_offset int64:= 0
 	// qc_sample_storage_offset := 0 int64
 	// qc_sample_storage_offset := int64(0)
-	var qc_sample_storage_offset int64 // lol it's 0.
+	// var qc_sample_storage_offset int64 // lol it's 0.
+	// var qc_sample_storage_offset int64 // lol it's 0.
+	qc_sample_storage_offset := 0
 
 	qc_storage_capacity := max_storage_capacity
-	measured_product := product.MeasuredProduct_from_new()
 	//
 	product_moniker_id := DB.Insert(proc_name,
 		DB.DB_Insert_product_moniker,
@@ -119,9 +114,9 @@ func (view *MonikerView) AddMoniker() {
 	)
 
 	// product_moniker_id == product_sample_storage_id. update if this is no longer true
-	product_sample_storage_id := product_moniker_id
+	product_sample_storage_id := int(product_moniker_id)
 
-	qc_sample_storage_id, qc_sample_storage_offset := measured_product.InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
+	qc_sample_storage_id, qc_sample_storage_offset := product.InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
 
 	DB.Insert(proc_name,
 		DB.DB_Insert_product_sample_storage,
@@ -137,16 +132,12 @@ func (view *MonikerView) max_storage_capacity_field_OnSelectedChange(e *windigo.
 	}
 }
 
-func (view *MonikerView) accept_button_OnClick(e *windigo.Event) {
+func (view *MonikerView) accept_button_OnClick(*windigo.Event) {
 	if view.max_storage_capacity == 0 {
 		// /?TODO display ERROR
 		return
 	}
 	view.AddMoniker()
-	view.Close()
-}
-
-func (view *MonikerView) cancel_button_OnClick(e *windigo.Event) {
 	view.Close()
 }
 
@@ -156,7 +147,7 @@ func (view *MonikerView) product_moniker_name_field_OnKillFocus(e *windigo.Event
 
 func (view *MonikerView) SetSize(w, h int) {
 	view.Dialog.SetSize(w+GUI.WINDOW_FUDGE_MARGIN_W, h+GUI.WINDOW_FUDGE_MARGIN_H)
-	view.AutoPanel.SetSize(w, h)
+	// view.AutoPanel.SetSize(w, h)
 }
 
 func (view *MonikerView) RefreshSize() {

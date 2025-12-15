@@ -19,10 +19,10 @@ func NewNullString(value string) NullString {
 }
 
 // Comparable
-func (a_n NullString) Compare(b_n NullString) int {
+func (object NullString) Compare(b_n NullString) int {
 	var a, b string
-	if a_n.Valid {
-		a = a_n.String
+	if object.Valid {
+		a = object.String
 	}
 	if b_n.Valid {
 		b = b_n.String
@@ -31,23 +31,23 @@ func (a_n NullString) Compare(b_n NullString) int {
 }
 
 // JSON
-func (nf NullString) MarshalJSON() ([]byte, error) {
-	if nf.Valid {
-		return json.Marshal(nf.String)
+func (object NullString) MarshalJSON() ([]byte, error) {
+	if object.Valid {
+		return json.Marshal(object.String)
 	}
 	return json.Marshal(nil)
 }
 
-func (nf *NullString) UnmarshalJSON(data []byte) error {
+func (object *NullString) UnmarshalJSON(data []byte) error {
 	var f *string
 	if err := json.Unmarshal(data, &f); err != nil {
 		return err
 	}
 	if f != nil {
-		nf.Valid = true
-		nf.String = *f
+		object.Valid = true
+		object.String = *f
 	} else {
-		nf.Valid = false
+		object.Valid = false
 	}
 	return nil
 }

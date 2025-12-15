@@ -19,10 +19,10 @@ func NewNullFloat64(Float64 float64, Valid bool) NullFloat64 {
 }
 
 // Comparable
-func (a_n NullFloat64) Compare(b_n NullFloat64) int {
+func (object NullFloat64) Compare(b_n NullFloat64) int {
 	var a, b float64
-	if a_n.Valid {
-		a = a_n.Float64
+	if object.Valid {
+		a = object.Float64
 	}
 	if b_n.Valid {
 		b = b_n.Float64
@@ -31,31 +31,37 @@ func (a_n NullFloat64) Compare(b_n NullFloat64) int {
 }
 
 // JSON
-func (nf NullFloat64) MarshalJSON() ([]byte, error) {
-	if nf.Valid {
-		return json.Marshal(nf.Float64)
+func (object NullFloat64) MarshalJSON() ([]byte, error) {
+	if object.Valid {
+		return json.Marshal(object.Float64)
 	}
 	return json.Marshal(nil)
 }
 
-func (nf *NullFloat64) UnmarshalJSON(data []byte) error {
+func (object *NullFloat64) UnmarshalJSON(data []byte) error {
 	var f *float64
 	if err := json.Unmarshal(data, &f); err != nil {
 		return err
 	}
 	if f != nil {
-		nf.Valid = true
-		nf.Float64 = *f
+		object.Valid = true
+		object.Float64 = *f
 	} else {
-		nf.Valid = false
+		object.Valid = false
 	}
 	return nil
 }
 
-func (nullfloat NullFloat64) Map(data_map func(float64) float64) NullFloat64 {
-	var return_value NullFloat64
-	if nullfloat.Valid {
-		return NewNullFloat64(data_map(nullfloat.Float64), nullfloat.Valid)
+func (object NullFloat64) Map(data_map func(float64) float64) (output NullFloat64) {
+	if object.Valid {
+		output = NewNullFloat64(data_map(object.Float64), object.Valid)
 	}
-	return return_value
+	return
+}
+
+func (object NullFloat64) Format(format func(float64) string) (output string) {
+	if object.Valid {
+		output = format(object.Float64)
+	}
+	return
 }

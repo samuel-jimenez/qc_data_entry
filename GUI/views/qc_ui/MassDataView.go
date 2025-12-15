@@ -33,16 +33,16 @@ type MassDataView struct {
 // func MassDataView_from_new(parent *windigo.AutoPanel, ranges_panel MassRangesViewable, mass_field *GUI.NumberEditView) *MassDataView {
 
 func MassDataView_from_new(parent *windigo.AutoPanel, ranges_panel MassRangesViewable) *MassDataView {
-
 	view := new(MassDataView)
 
-	//TAB ORDER
+	// TAB ORDER
 	mass_field := GUI.NumberEditView_from_new(parent, formats.MASS_TEXT)
 
 	sg_field := GUI.NumberEditView_with_Units_from_new(parent, formats.SG_TEXT, formats.SG_UNITS)
 	density_field := GUI.NumberEditView_with_Units_from_new(parent, formats.DENSITY_TEXT, formats.DENSITY_UNITS)
+	sg_field.SetZAfter(mass_field)
 
-	//PUSH TO BOTTOM
+	// PUSH TO BOTTOM
 	parent.Dock(density_field, windigo.Bottom)
 	parent.Dock(sg_field, windigo.Bottom)
 
@@ -91,17 +91,15 @@ func (view *MassDataView) FixMass() (mass, sg, density float64) {
 	view.density_field.SetText(formats.Format_density(density))
 
 	return mass, sg, density
-
 }
 
 func (view *MassDataView) OnChangeMass(e *windigo.Event) {
 	mass, sg, density := view.FixMass()
 
 	view.check_or_error_mass(mass, sg, density)
-
 }
 
-//TODO FixMass FOR EACH
+// TODO FixMass FOR EACH
 // CHECKALL
 // checks := range_field.CheckAll(this_val, other_val)
 // 	this_check, other_check := checks[0], checks[1]
@@ -119,7 +117,6 @@ func (view *MassDataView) OnChangeSG(e *windigo.Event) {
 	view.density_field.SetText(formats.Format_density(density))
 
 	view.check_or_error_mass(mass, sg, density)
-
 }
 
 func (view *MassDataView) OnChangeDensity(e *windigo.Event) {
@@ -131,5 +128,4 @@ func (view *MassDataView) OnChangeDensity(e *windigo.Event) {
 	view.NumberEditView.SetText(formats.Format_mass(mass))
 
 	view.check_or_error_mass(mass, sg, density)
-
 }

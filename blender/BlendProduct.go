@@ -83,7 +83,7 @@ func Next_Lot_Number(operations_group string) (string, error) {
 	proc_name := "Next_Lot_Number"
 	lot_date := BlendProductLOTS()
 	lot_count := 0
-	err := DB.DB_Select_blend_lot.QueryRow(operations_group + lot_date + "%").Scan(&lot_count)
+	err := DB.DB_Select_lot__count.QueryRow(operations_group + lot_date + "%").Scan(&lot_count)
 	if err != nil {
 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return "", err

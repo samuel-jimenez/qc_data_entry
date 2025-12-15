@@ -176,7 +176,7 @@ type QCDataView struct {
 }
 
 func NewQCDataView(parent windigo.Controller) *QCDataView {
-	table := &QCDataView{windigo.NewListView(parent), nil, nil}
+	table := &QCDataView{windigo.ListView_from_new(parent), nil, nil}
 	table.EnableGridlines(true)
 	table.EnableFullRowSelect(true)
 	table.EnableDoubleBuffer(true)
@@ -318,12 +318,13 @@ func (table *QCDataView) RefreshSize() {
 		COL_WIDTH_DATA,
 		COL_WIDTH_TIME,
 		COL_WIDTH_LOT,
-		COL_WIDTH_TIME,
-		COL_WIDTH_TIME,
 		COL_WIDTH_LOT,
 		COL_WIDTH_TIME,
+		COL_WIDTH_LOT,
+		COL_WIDTH_LOT,
 	}
-	for i := range table.GetNumColumns() {
+	for i := table.GetNumColumns() - 1; i >= 0; i-- {
+		// table.SetColumnWidth(i, windigo.ListView_AutoSize)
 		table.SetColumnWidth(i, widths[i])
 	}
 }

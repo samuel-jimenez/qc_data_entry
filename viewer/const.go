@@ -34,6 +34,7 @@ var (
 	COL_ITEMS_LOT []string
 
 	// sample_point_id
+	// TODO formats.
 	COL_KEY_SAMPLE_PT   = "sample_point"
 	COL_LABEL_SAMPLE_PT = "Sample Point"
 	COL_ITEMS_SAMPLE_PT []string
@@ -62,11 +63,10 @@ var (
 )
 
 func Refresh_globals(font_size int) {
-
 	GUI.Refresh_globals(font_size)
 
 	COL_WIDTH_TIME = 15 * font_size
-	COL_WIDTH_LOT = 10 * font_size
+	COL_WIDTH_LOT = 12 * font_size
 	COL_WIDTH_SAMPLE_PT = 5 * font_size
 	COL_WIDTH_SAMPLE_BIN = 9 * font_size
 	COL_WIDTH_DATA = 7 * font_size
@@ -75,8 +75,8 @@ func Refresh_globals(font_size int) {
 	SCROLL_WIDTH = 17
 
 	WINDOW_WIDTH = 2*COL_WIDTH_TIME + COL_WIDTH_LOT + COL_WIDTH_SAMPLE_PT + COL_WIDTH_SAMPLE_BIN +
-		4*COL_WIDTH_DATA + //				data
-		2*(2*COL_WIDTH_TIME+COL_WIDTH_LOT) + //		components
+		5*COL_WIDTH_DATA + //				data
+		2*(COL_WIDTH_TIME+2*COL_WIDTH_LOT) + //		components
 		2*WINDOW_EDGE + SCROLL_WIDTH + //		window cruft
 		COL_WIDTH_DATA //				selection
 	WINDOW_HEIGHT = 60 * font_size
@@ -93,5 +93,4 @@ func Refresh_globals(font_size int) {
 
 	GUI.TOP_PANEL_WIDTH = WINDOW_WIDTH
 	GUI.HPANEL_WIDTH = GUI.TOP_PANEL_WIDTH
-
 }

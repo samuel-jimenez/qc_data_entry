@@ -108,7 +108,7 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 
 	view.Tag_field = GUI.NumbestEditView_from_new(tag_seal_panel, Tag_text)
 	view.Seal_field = GUI.NumbestEditView_from_new(tag_seal_panel, Seal_text)
-	view.Operators_field = windigo.NewLabeledEdit(ops_panel, Operators_text)
+	view.Operators_field = windigo.LabeledEdit_from_new(ops_panel, Operators_text)
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
 	recipe_accept_button.SetText("OK")
@@ -191,8 +191,8 @@ func (view *BlendStrappingProductView) SetFont(font *windigo.Font) {
 	}
 }
 
-func (view *BlendStrappingProductView) RefreshSize() (width, height int) {
-	_, height = view.Blend_Vessel.RefreshSize()
+func (view *BlendStrappingProductView) RecalculateSize() (width, height int) {
+	_, height = view.Blend_Vessel.RecalculateSize()
 	// view.SetSize(width, height)
 
 	for _, panel := range view.panels {
@@ -209,8 +209,8 @@ func (view *BlendStrappingProductView) RefreshSize() (width, height int) {
 	view.Seal_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 	view.Seal_field.SetPaddingLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 	view.Operators_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH+GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	// _, height +=view.Blend.RefreshSize() //TODO UGH GO
-	_, height_ := view.Blend.RefreshSize()
+	// _, height +=view.Blend.RecalculateSize() //TODO UGH GO
+	_, height_ := view.Blend.RecalculateSize()
 	width, height = 3*(GUI.LABEL_WIDTH+GUI.PRODUCT_FIELD_WIDTH)+2*GUI.TOP_PANEL_INTER_SPACER_WIDTH,
 		height+(len(view.panels))*GUI.PRODUCT_FIELD_HEIGHT+height_
 

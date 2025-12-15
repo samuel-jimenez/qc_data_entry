@@ -21,10 +21,11 @@ func AssertEqual(val0, val1 any) {
 	}
 }
 
-func LogError(proc_name string, err error) {
+func LogError(proc_name string, err error) error {
 	if err != nil {
 		log.Printf("Error: [%s]: %q\n", proc_name, err)
 	}
+	return err
 }
 
 // /?TODO cf DB.Select_Panic_ErrorBox
@@ -51,6 +52,8 @@ func Concat(str ...string) string {
 
 	return Builder.String()
 }
+
+func NOOP() {}
 
 // func Atof(str string) float64 {
 // strconv.ParseFloat("3.1415", 64)

@@ -16,7 +16,7 @@ var QC_DB *sql.DB
 func _select_samples(proc_name string, select_statement *sql.Stmt, args ...any) []QCData {
 	data := make([]QCData, 0)
 	DB.Forall_exit(proc_name,
-		func() {},
+		util.NOOP,
 		func(row *sql.Rows) error {
 			var (
 				qc_data              QCData

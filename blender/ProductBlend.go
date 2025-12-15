@@ -36,7 +36,7 @@ func (object *ProductBlend) Save(Product_Lot_id int64) {
 	proc_name := "ProductBlend.Save"
 	count := 0
 	DB.Select_Error(proc_name,
-		DB.DB_Select_Product_blend_components.QueryRow(Product_Lot_id),
+		DB.DB_Select_Product_count_blend_components.QueryRow(Product_Lot_id),
 		&count,
 	)
 	if count != 0 {
@@ -52,7 +52,7 @@ func (object *ProductBlend) GetProcedure() (Procedure []string) {
 	proc_name := "ProductBlend-GetProcedure"
 	find := regexp.MustCompile("{{(.*?)}}")
 	DB.Forall_err(proc_name,
-		func() {},
+		util.NOOP,
 		func(row *sql.Rows) error {
 			var step string
 			if err := row.Scan(

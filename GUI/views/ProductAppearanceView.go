@@ -31,7 +31,7 @@ type ProductAppearanceView struct {
 func ProductAppearanceView_from_new(parent windigo.Controller, field_text string, field_data product.ProductAppearance) *ProductAppearanceView {
 
 	view := new(ProductAppearanceView)
-	view.LabeledEdit = windigo.NewSizedLabeledEdit(parent, GUI.LABEL_WIDTH, GUI.OFF_AXIS, GUI.RANGES_FIELD_HEIGHT, field_text)
+	view.LabeledEdit = windigo.LabeledEdit_with_size_from_new(parent, GUI.LABEL_WIDTH, GUI.OFF_AXIS, GUI.RANGES_FIELD_HEIGHT, field_text)
 	view.LabeledEdit.SetPaddingsAll(GUI.RANGES_PADDING)
 	if field_data.Valid {
 		view.LabeledEdit.SetText(field_data.String)

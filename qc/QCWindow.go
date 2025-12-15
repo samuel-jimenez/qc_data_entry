@@ -15,7 +15,15 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 	"github.com/samuel-jimenez/windigo"
+)
+
+const (
+	PANEL_WATER_BASED = iota
+	PANEL_OIL_BASED
+	PANEL_FR
+	NUM_PANELS
 )
 
 /*
@@ -39,20 +47,27 @@ type QCWinder interface {
 	SetBlend(*product.QCProduct)
 }
 
+type TabPanelViewer interface {
+	SetFont(*windigo.Font)
+	RefreshSize()
+	Update(*product.QCProduct)
+	Clear()
+	ChangeContainer(*product.QCProduct)
+	Focus()
+}
+
 /*
  * QCWindow
  *
  */
 type QCWindow struct {
-	*windigo.Form
+	*windigo.AutoForm
 
 	product_panel *TopPanelView
 
-	tabs              *windigo.TabView
-	panel_water_based *WaterBasedPanelView
-	panel_oil_based   *OilBasedPanelView
-	panel_fr          *FrictionReducerPanelView
-	component_panel   *views.QCBlendView
+	tab_bar         *windigo.TabView
+	tab_panels      []TabPanelViewer
+	component_panel *views.QCBlendView
 
 	keygrab *windigo.Edit
 }
@@ -61,8 +76,10 @@ func QCWindow_from_new(parent windigo.Controller) *QCWindow {
 	window_title := "QC Data Entry"
 
 	view := new(QCWindow)
-	view.Form = windigo.NewForm(parent)
+	view.AutoForm = windigo.AutoForm_from_new(parent)
 	view.SetText(window_title)
+
+	view.tab_panels = make([]TabPanelViewer, NUM_PANELS)
 
 	// menu := view.NewMenu()
 	//
@@ -75,14 +92,12 @@ func QCWindow_from_new(parent windigo.Controller) *QCWindow {
 	view.keygrab = windigo.NewEdit(view)
 	view.keygrab.Hide()
 
-	dock := windigo.NewSimpleDock(view)
+	view.product_panel = TopPanelView_from_new(view)
 
-	product_panel := NewTopPanelView(view)
-
-	tabs := windigo.NewTabView(view)
-	tab_wb := tabs.AddAutoPanel(formats.BLEND_WB)
-	tab_oil := tabs.AddAutoPanel(formats.BLEND_OIL)
-	tab_fr := tabs.AddAutoPanel(formats.BLEND_FR)
+	view.tab_bar = windigo.TabView_from_new(view)
+	tab_wb := view.tab_bar.AddAutoPanel(formats.BLEND_WB)
+	tab_oil := view.tab_bar.AddAutoPanel(formats.BLEND_OIL)
+	tab_fr := view.tab_bar.AddAutoPanel(formats.BLEND_FR)
 
 	view.component_panel = views.QCBlendView_from_new(view)
 
@@ -92,11 +107,11 @@ func QCWindow_from_new(parent windigo.Controller) *QCWindow {
 	//
 	//
 	// Dock
-	dock.Dock(threads.Status_bar, windigo.Bottom)
-	dock.Dock(product_panel, windigo.Top)
-	dock.Dock(view.component_panel, windigo.Bottom)
-	dock.Dock(tabs, windigo.Top)           // tabs should prefer docking at the top
-	dock.Dock(tabs.Panels(), windigo.Fill) // tab panels dock just below tabs and fill area
+	view.Dock(threads.Status_bar, windigo.Bottom)
+	view.Dock(view.product_panel, windigo.Top)
+	view.Dock(view.component_panel, windigo.Bottom)
+	view.Dock(view.tab_bar, windigo.Top)           // view.tab_bar should prefer docking at the top
+	view.Dock(view.tab_bar.Panels(), windigo.Fill) // tab panels dock just below view.tab_bar and fill area
 
 	//
 	//
@@ -104,18 +119,11 @@ func QCWindow_from_new(parent windigo.Controller) *QCWindow {
 	//
 	// functionality
 
-	panel_water_based := Show_water_based(tab_wb, product_panel)
-	panel_oil_based := Show_oil_based(tab_oil, product_panel)
-	panel_fr := Show_fr(tab_fr, product_panel)
+	view.tab_panels[PANEL_WATER_BASED] = WaterBasedPanelView_from_new(tab_wb, view.product_panel)
+	view.tab_panels[PANEL_OIL_BASED] = OilBasedPanelView_from_new(tab_oil, view.product_panel)
+	view.tab_panels[PANEL_FR] = FrictionReducerPanelView_from_new(tab_fr, view.product_panel)
 
 	view.AddShortcuts()
-
-	// build object
-	view.product_panel = product_panel
-	view.tabs = tabs
-	view.panel_water_based = panel_water_based
-	view.panel_oil_based = panel_oil_based
-	view.panel_fr = panel_fr
 
 	return view
 }
@@ -124,10 +132,10 @@ func (view *QCWindow) SetFont(font *windigo.Font) {
 	view.Form.SetFont(font)
 
 	view.product_panel.SetFont(font)
-	view.tabs.SetFont(font)
-	view.panel_water_based.SetFont(font)
-	view.panel_oil_based.SetFont(font)
-	view.panel_fr.SetFont(font)
+	view.tab_bar.SetFont(font)
+	for _, panel := range view.tab_panels {
+		panel.SetFont(font)
+	}
 
 	view.component_panel.SetFont(font)
 
@@ -139,14 +147,13 @@ func (view *QCWindow) RefreshSize() {
 
 	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
-	// view.product_panel.RefreshSize()
-	view.product_panel.RefreshSize(config.BASE_FONT_SIZE)
+	view.product_panel.RefreshSize()
 
-	view.tabs.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	view.tab_bar.SetSize(GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
-	view.panel_water_based.RefreshSize()
-	view.panel_oil_based.RefreshSize()
-	view.panel_fr.RefreshSize()
+	for _, panel := range view.tab_panels {
+		panel.RefreshSize()
+	}
 
 	view.component_panel.RefreshSize()
 }
@@ -212,18 +219,19 @@ func (view *QCWindow) AddShortcuts() {
 }
 
 func (view *QCWindow) ChangeContainer(qc_product *product.QCProduct) {
-	view.panel_fr.ChangeContainer(qc_product)
+	view.tab_panels[PANEL_FR].ChangeContainer(qc_product)
 }
 
 func (view *QCWindow) SetCurrentTab(i int) {
-	view.tabs.SetCurrent(i)
+	view.tab_bar.SetCurrent(i)
 }
 
 func (view *QCWindow) UpdateProduct(QC_Product *product.QCProduct) {
 	view.product_panel.UpdateProduct(QC_Product)
-	view.panel_water_based.Update(QC_Product)
-	view.panel_oil_based.Update(QC_Product)
-	view.panel_fr.Update(QC_Product)
+	for _, panel := range view.tab_panels {
+		panel.Update(QC_Product)
+	}
+
 	view.ChangeContainer(QC_Product) // TODO recip00
 	// extract to fn, move componenet panel?
 
@@ -237,7 +245,7 @@ func (view *QCWindow) UpdateProduct(QC_Product *product.QCProduct) {
 	proc_name := "FrictionReducerPanelView.GetRecipes"
 
 	DB.Forall(proc_name,
-		func() {},
+		util.NOOP,
 		func(row *sql.Rows) {
 			if err := row.Scan(
 				&recipe_data.Recipe_id,
@@ -262,4 +270,9 @@ func (view *QCWindow) ComponentsEnable() {
 
 func (view *QCWindow) ComponentsDisable() {
 	view.component_panel.Disable()
+}
+
+func (view *QCWindow) FocusTab() bool {
+	view.tab_panels[view.tab_bar.Current()].Focus()
+	return true
 }

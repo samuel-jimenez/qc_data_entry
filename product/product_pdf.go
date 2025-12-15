@@ -1,6 +1,7 @@
 package product
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"codeberg.org/go-pdf/fpdf"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/qc_data_entry/util"
@@ -31,8 +33,8 @@ func Print_PDF(pdf_path string) {
  * Create and print storage label with dates
  *
  */
-func (measured_product BaseProduct) PrintOldStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
-	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, true); err != nil {
+func PrintOldStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
+	if err := PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, true); err != nil {
 		return err
 	}
 	return nil
@@ -45,11 +47,15 @@ func (measured_product BaseProduct) PrintOldStorage(qc_sample_storage_name, prod
  * name and id only
  *
  */
-func (measured_product BaseProduct) PrintNewStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
-	if err := measured_product.PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, false); err != nil {
+func PrintNewStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time) error {
+	if err := PrintStorage(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, false); err != nil {
 		return err
 	}
 	return nil
+}
+
+func get_storage_pdf_name(qc_sample_storage_name string) string {
+	return fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, qc_sample_storage_name, "pdf")
 }
 
 /*
@@ -58,12 +64,29 @@ func (measured_product BaseProduct) PrintNewStorage(qc_sample_storage_name, prod
  * Create and print storage label
  *
  */
-func (measured_product BaseProduct) PrintStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
-	file_path := measured_product.get_storage_pdf_name(qc_sample_storage_name)
+func PrintStorage(qc_sample_storage_name, product_moniker_name string, start_date, end_date, retain_date *time.Time, printDates bool) error {
+	file_path := get_storage_pdf_name(qc_sample_storage_name)
 
 	if err := Export_Storage_pdf(file_path, qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_date, printDates); err != nil {
 		return err
 	}
+	threads.Show_status("Label Created")
+
+	Print_PDF(file_path)
+
+	return nil
+}
+
+
+/*
+ * RePrintStorage
+ *
+ * Create and print storage label
+ *
+ */
+func RePrintStorage(qc_sample_storage_name string) error {
+	file_path := get_storage_pdf_name(qc_sample_storage_name)
+
 	threads.Show_status("Label Created")
 
 	Print_PDF(file_path)

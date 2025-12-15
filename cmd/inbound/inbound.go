@@ -16,6 +16,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/blender/inbound"
 	"github.com/samuel-jimenez/qc_data_entry/config"
 	"github.com/samuel-jimenez/qc_data_entry/product"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
@@ -28,15 +29,12 @@ var (
 )
 
 func dbinit(db *sql.DB) {
-
 	DB.Check_db(db, false)
 	DB.DBinit(db)
-
 }
 
 func main() {
-
-	//load config
+	// load config
 	config.Main_config = config.Load_config_inbound("qc_data_inbound")
 	defer config.Write_config(config.Main_config)
 
@@ -47,7 +45,7 @@ func main() {
 	defer CONTAINER_CHANGELOG.Close()
 
 	// log to file
-	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
 	if err != nil {
 		log.Fatalf("Crit: error opening file: %v", err)
 	}
@@ -57,7 +55,7 @@ func main() {
 	log.SetOutput(log_file)
 	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
 
-	//open_db
+	// open_db
 	// qc_db, err := sql.Open("sqlite3", DB_FILE)
 	qc_db, err = sql.Open("sqlite3", ":memory:")
 	qc_db.Exec("attach ? as 'bs'", config.DB_FILE)
@@ -71,7 +69,6 @@ func main() {
 	// get_sheets(config.PRODUCTION_SCHEDULE_FILE_NAME)
 
 	get_sched(config.PRODUCTION_SCHEDULE_FILE_NAME, config.PRODUCTION_SCHEDULE_WORKSHEET_NAME)
-
 }
 
 // format containers consistently
@@ -146,7 +143,7 @@ func get_sched(file_name, worksheet_name string) {
 			provider := "SNF" // TODO inbound_provider_list
 
 			// sync db to  schedule
-			//schedule is authorative source, so if an item does not exist in it, we should remove it
+			// schedule is authorative source, so if an item does not exist in it, we should remove it
 
 			if slices.Contains(status_here, status) {
 				if (lot == "" || lot == "unknown") && arrival != "" && asn != "" {
@@ -167,7 +164,7 @@ func get_sched(file_name, worksheet_name string) {
 					if inby == nil {
 						log.Printf("error: [%s invalid product]:  %q : %q - %q\n", proc_name, lot, container_name, product_name)
 						// invalid product
-						//TODO DB_Insert_inbound_product prompt?
+						// TODO DB_Insert_inbound_product prompt?
 						continue
 					}
 					log.Printf("Info: [%s]:  New %s:  %q : %q - %q\n", proc_name, container_type, lot, container_name, product_name)
@@ -193,7 +190,7 @@ func get_sched(file_name, worksheet_name string) {
 				if cont := InboundContainerMap[val.Container_name]; cont != nil {
 					// log.Printf("Warning: [%s]: %s departed and arrived: %q : %q - %q,  %q : %q - %q\n", proc_name, val.Container_type, val.Lot_number, val.Container_name, val.Product_name, cont.Lot_number, cont.Container_name, cont.Product_name)
 					log.Printf("Warning: [%s]: Railcar departed and arrived: %q : %q - %q,  %q : %q - %q\n", proc_name, val.Lot_number, val.Container_name, val.Product_name, cont.Lot_number, cont.Container_name, cont.Product_name)
-					//TODO take input, possibly rename lot
+					// TODO take input, possibly rename lot
 				}
 				val.Update_status(inbound.Status_UNAVAILABLE)
 				if err := product.Release_testing_lot(val.Lot_number); err != nil {
@@ -207,7 +204,7 @@ func get_sched(file_name, worksheet_name string) {
 		// get all SAMPLED
 		proc_name = "InboundSync.DB_Select_inbound_lot_status.SAMPLED"
 		DB.Forall_err(proc_name,
-			func() {},
+			util.NOOP,
 			func(row *sql.Rows) error {
 				var lot_name string
 				if err := row.Scan(
@@ -230,7 +227,7 @@ func get_sched(file_name, worksheet_name string) {
 		proc_name = "InboundSync.DB_Select_inbound_lot_status.Status_TESTED"
 		log.Printf("Info: [%s]:  Tested railcars:  \n", proc_name)
 		DB.Forall_err(proc_name,
-			func() {},
+			util.NOOP,
 			func(row *sql.Rows) error {
 				val, err := product.InboundLot_from_Row(row)
 				if err != nil {
@@ -245,7 +242,7 @@ func get_sched(file_name, worksheet_name string) {
 		// get all available
 		proc_name = "InboundSync.DB_Select_inbound_lot_status.AVAILABLE"
 		DB.Forall_err(proc_name,
-			func() {},
+			util.NOOP,
 			func(row *sql.Rows) error {
 				var lot_name string
 				if err := row.Scan(

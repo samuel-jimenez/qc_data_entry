@@ -51,7 +51,7 @@ func NumberEditView_from_LabeledEdit(label *windigo.LabeledEdit) *NumberEditView
 }
 
 func NumberEditView_from_new(parent windigo.Controller, field_text string) *NumberEditView {
-	edit_field := NumberEditView_from_LabeledEdit(windigo.NewLabeledEdit(parent, field_text))
+	edit_field := NumberEditView_from_LabeledEdit(windigo.LabeledEdit_from_new(parent, field_text))
 	return edit_field
 }
 

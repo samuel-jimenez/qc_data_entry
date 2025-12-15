@@ -20,7 +20,7 @@ type ComboBox struct {
 }
 
 func ComboBox_from_new(parent windigo.Controller, field_text string) *ComboBox {
-	combobox_field := &ComboBox{windigo.NewLabeledComboBox(parent, field_text)}
+	combobox_field := &ComboBox{windigo.LabeledComboBox_from_new(parent, field_text)}
 	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		combobox_field.SetText(strings.ToUpper(strings.TrimSpace(combobox_field.Text())))
 	})
@@ -29,7 +29,7 @@ func ComboBox_from_new(parent windigo.Controller, field_text string) *ComboBox {
 }
 
 func List_ComboBox_from_new(parent windigo.Controller, field_text string) *ComboBox {
-	combobox_field := &ComboBox{windigo.NewLabeledListComboBox(parent, field_text)}
+	combobox_field := &ComboBox{windigo.LabeledListComboBox_from_new(parent, field_text)}
 	combobox_field.OnKillFocus().Bind(func(e *windigo.Event) {
 		combobox_field.SetText(strings.ToUpper(strings.TrimSpace(combobox_field.Text())))
 	})

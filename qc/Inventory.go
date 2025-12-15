@@ -5,6 +5,8 @@ import (
 
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/product"
+	"github.com/samuel-jimenez/qc_data_entry/util"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -23,23 +25,20 @@ type StorageBinable interface {
 type StorageBin struct {
 	Product_sample_storage_id, Max_storage_capacity, QC_storage_capacity int
 	QC_sample_storage_name, Product_moniker_name                         string
+	Product_id                                                           int64
 }
 
-func New_StorageBin() *StorageBin {
+func StorageBin_from_new() *StorageBin {
 	object := new(StorageBin)
 	return object
 }
 
-func New_StorageBinFromRow(row *sql.Rows) (*StorageBin, error) {
-	object := New_StorageBin()
+func StorageBin_from_Row(row *sql.Rows) (*StorageBin, error) {
+	object := StorageBin_from_new()
 	err := row.Scan(
 		&object.Product_sample_storage_id, &object.Product_moniker_name, &object.QC_sample_storage_name, &object.Max_storage_capacity,
-		&object.QC_storage_capacity,
+		&object.QC_storage_capacity, &object.Product_id,
 	)
-
-	//	if err != nil {
-	//		log.Println("Crit: [BlendComponent-NewRecipeComponentfromSQL]: ", err)
-	//	}
 	return object, err
 }
 
@@ -49,6 +48,9 @@ func (object *StorageBin) Save() {
 	DB.Update(proc_name,
 		DB.DB_Update_product_sample_storage_capacity,
 		object.Product_sample_storage_id, object.QC_storage_capacity)
+
+	// print labels if full
+	product.BaseProduct{Product_id: object.Product_id}.CheckStorage()
 }
 
 /*
@@ -77,7 +79,7 @@ type StorageBinView struct {
 	Samples_field *GUI.NumbEditView
 }
 
-func New_StorageBinView(parent windigo.Controller, StorageBin *StorageBin) *StorageBinView {
+func StorageBinView_from_new(parent windigo.Controller, StorageBin *StorageBin) *StorageBinView {
 	view := new(StorageBinView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 	view.Storage_Bin = StorageBin
@@ -132,7 +134,7 @@ type StorageBinHeader struct {
 	*GUI.TextDock
 }
 
-func New_StorageBinHeader(parent windigo.Controller) *StorageBinHeader {
+func StorageBinHeader_from_new(parent windigo.Controller) *StorageBinHeader {
 	view := new(StorageBinHeader)
 	view.TextDock = GUI.NewTextDock(parent, "Product", "Storage Bin", "Inventory")
 	view.RefreshSize()
@@ -171,7 +173,7 @@ type InventoryView struct {
 	button_dock       *GUI.ButtonDock
 }
 
-func New_InventoryView() *InventoryView {
+func InventoryView_from_new() *InventoryView {
 	window_title := "Sample Inventory"
 
 	view := new(InventoryView)
@@ -179,18 +181,18 @@ func New_InventoryView() *InventoryView {
 	view.SetText(window_title)
 
 	dock := windigo.NewSimpleDock(view)
-	view.StorageBin_Header = New_StorageBinHeader(view)
+	view.StorageBin_Header = StorageBinHeader_from_new(view)
 	dock.Dock(view.StorageBin_Header, windigo.Top)
 
 	proc_name := "New_StorageBin"
 	DB.Forall_err(proc_name,
-		func() {},
+		util.NOOP,
 		func(row *sql.Rows) error {
-			sample_bin, err := New_StorageBinFromRow(row)
+			sample_bin, err := StorageBin_from_Row(row)
 			if err != nil {
 				return err
 			}
-			bin_view := New_StorageBinView(view, sample_bin)
+			bin_view := StorageBinView_from_new(view, sample_bin)
 			view.Components = append(view.Components, *bin_view)
 			dock.Dock(bin_view, windigo.Top)
 			return nil
@@ -244,8 +246,7 @@ func (view *InventoryView) TryExit() {
 	}
 	if canExit {
 		view.Exit()
-	} else { //popup save? exit cancel dialog
-
+	} else { // popup save? exit cancel dialog
 	}
 }
 

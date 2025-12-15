@@ -42,9 +42,11 @@ func NewSQLFilterViewContinuous(parent windigo.Controller, key, label string) *S
 
 // TODO replace these with Get()  string
 func (view *SQLFilterViewContinuous) Get() string {
-	return SQLFilterContinuous{view.key,
+	return SQLFilterContinuous{
+		view.key,
 		view.min_field.Get(),
-		view.max_field.Get()}.Get()
+		view.max_field.Get(),
+	}.Get()
 }
 
 func (view *SQLFilterViewContinuous) RefreshSize() {
@@ -73,7 +75,6 @@ type SQLFilterViewContinuousTime struct {
 }
 
 func SQLFilterViewContinuousTime_from_new(parent windigo.Controller, key, label string) *SQLFilterViewContinuousTime {
-
 	view := new(SQLFilterViewContinuousTime)
 	view.SQLFilterViewContinuous = *NewSQLFilterViewContinuous(parent, key, label)
 
@@ -85,6 +86,7 @@ func wrapTime(Ttime time.Time) string {
 	return strconv.Itoa(int(Ttime.UTC().UnixNano()))
 	// return Ttime.Format(time.DateOnly)
 }
+
 func parseTime(Time_string string, endp bool) string {
 	fmt_need_year := []string{"1/2", "1-2", "Jan 2", "2Jan", "2 Jan"}
 	fmt_need_year_mth := []string{"1", "Jan"}
@@ -131,7 +133,9 @@ func parseTime(Time_string string, endp bool) string {
 }
 
 func (view *SQLFilterViewContinuousTime) Get() string {
-	return SQLFilterContinuous{view.key,
+	return SQLFilterContinuous{
+		view.key,
 		view.min_field.Get(),
-		view.max_field.Get()}.GetFMT(parseTime)
+		view.max_field.Get(),
+	}.GetFMT(parseTime)
 }

@@ -178,7 +178,7 @@ func (view *BlendVessel) SetFont(font *windigo.Font) {
 	view.heel_field.SetFont(font)
 }
 
-func (view *BlendVessel) RefreshSize() (width, height int) {
+func (view *BlendVessel) RecalculateSize() (width, height int) {
 	width, height = GUI.TOP_PANEL_WIDTH, view.num_panels*GUI.PRODUCT_FIELD_HEIGHT
 	view.SetSize(width, height)
 	for _, panel := range view.panel {

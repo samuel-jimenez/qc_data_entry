@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -30,7 +29,6 @@ func NewLabeledSearchBox(parent windigo.Controller, Label string) *SearchBox {
 
 	data_view.ComboBox = *ComboBox_from_new(parent, Label)
 	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
-
 		start, _ := data_view.Selected()
 
 		text := strings.ToUpper(data_view.Text())
@@ -68,14 +66,13 @@ func NewLabeledListSearchBox(parent windigo.Controller, Label string) *SearchBox
 
 	data_view.ComboBox = *ComboBox_from_new(parent, Label)
 	data_view.ComboBox.OnChange().Bind(func(e *windigo.Event) {
-
 		start, _ := data_view.Selected()
 
 		text := strings.ToUpper(data_view.Text())
 		terms := strings.Split(text, " ")
 		data_view.Search(terms...)
 
-		//TODO split
+		// TODO split
 		data_view.ShowDropdown(false)
 		data_view.SetText(text)
 		data_view.ShowDropdown(true)
@@ -84,7 +81,6 @@ func NewLabeledListSearchBox(parent windigo.Controller, Label string) *SearchBox
 		data_view.onChange.Fire(e)
 	})
 	return data_view
-
 }
 
 func NewListSearchBox(parent windigo.Controller) *SearchBox {
@@ -103,6 +99,12 @@ func NewListSearchBoxFromQuery(parent windigo.Controller, select_statement *sql.
 	return data_view
 }
 
+func NewLabeledListSearchBoxFromQuery(parent windigo.Controller, Label string, select_statement *sql.Stmt, args ...any) *SearchBox {
+	data_view := NewLabeledListSearchBox(parent, Label)
+	data_view.FromQuery(select_statement, args...)
+	return data_view
+}
+
 func (data_view *SearchBox) Update(set []string) {
 	data_view.entries = set
 	data_view.DeleteAllItems()
@@ -110,6 +112,31 @@ func (data_view *SearchBox) Update(set []string) {
 		data_view.ComboBox.AddItem(name)
 	}
 }
+
+// func (control *SearchBox) Height() int {
+// 	rect := w32.GetWindowRect(control.hwnd)
+// 	// return int(rect.Bottom - rect.Top)
+// 	log.Println("ComboBox-Height", int(rect.Bottom-rect.Top), int(w32.SendMessage(control.hwnd, w32.CB_GETITEMHEIGHT, 0, 0)))
+// 	// return int(w32.SendMessage(control.hwnd, w32.CB_GETITEMHEIGHT, uintptr(-1),0))
+// 	return int(w32.SendMessage(control.hwnd, w32.CB_GETITEMHEIGHT, 0, 0))
+// }
+
+// func (control *SearchBox) Height() int {
+// 	rect := w32.GetWindowRect(control.Handle())
+// 	log.Println("SearchBox-Height", int(rect.Bottom-rect.Top), int(w32.SendMessage(control.Handle(), w32.CB_GETITEMHEIGHT, 0, 0)))
+// 	MaxUint := uintptr(^uint32(0)) // uintptr(-1)
+//
+// 	// log.Println("LotView-Height", int(rect.Bottom-rect.Top), int(w32.SendMessage(control.Handle(), w32.CB_GETITEMHEIGHT, 0, 0)))
+// 	log.Println("SearchBox-Height", MaxUint, int(rect.Bottom-rect.Top), int(w32.SendMessage(control.Handle(), w32.CB_GETITEMHEIGHT, MaxUint, 0)))
+// 	// return int(w32.SendMessage(control.hwnd, w32.CB_GETITEMHEIGHT, uintptr(-1),0))
+// 	// return int(w32.SendMessage(control.Handle(), w32.CB_GETITEMHEIGHT, 0, 0))
+// 	return int(rect.Bottom - rect.Top)
+// }
+
+func (data_view *SearchBox) Entries() []string {
+	return data_view.entries
+}
+
 func (data_view *SearchBox) AddItem(entry string) bool {
 	val := data_view.ComboBox.AddItem(entry)
 	if val {
@@ -119,37 +146,50 @@ func (data_view *SearchBox) AddItem(entry string) bool {
 }
 
 func (data_view *SearchBox) FromQuery(select_statement *sql.Stmt, args ...any) {
-	data_view.entries = nil
-	Fill_combobox_from_query_fn(data_view, func(id int, name string) {
-		data_view.AddItem(name)
-	}, select_statement, args...)
+	data_view.Fill_FromFnQuery(
+		data_view.query_fn,
+		select_statement, args...)
 }
 
+func (data_view *SearchBox) query_fn(id int, name string) {
+	data_view.AddItem(name)
+}
+
+func (data_view *SearchBox) Fill_FromFnQuery(fn func(int, string), select_statement *sql.Stmt, args ...any) {
+	data_view.entries = nil
+	Fill_combobox_from_query_fn(
+		data_view,
+		fn,
+		select_statement, args...)
+}
+
+// TODO this one doesn't autoselect
+// go though zand make suere it cant be flattened
 // TODO c.f Fill_combobox_from_query_fn
 // data_view.entries = nil
 // Fill_combobox_from_query_fn(data_view, fn, select_statement, args...)
-func (data_view *SearchBox) Fill_FromFnQuery(fn func(int, string), select_statement *sql.Stmt, args ...any) {
-	DB.Forall_err("SearchBox.FromFnQuery",
-		func() {
-			data_view.entries = nil
-			data_view.DeleteAllItems()
-		},
-		func(row *sql.Rows) error {
-			var (
-				id   int
-				name string
-			)
-
-			if err := row.Scan(
-				&id, &name,
-			); err != nil {
-				return err
-			}
-			fn(id, name)
-			return nil
-		},
-		select_statement, args...)
-}
+// func (data_view *SearchBox) Fill_FromFnQuery(fn func(int, string), select_statement *sql.Stmt, args ...any) {
+// 	DB.Forall_err("SearchBox.FromFnQuery",
+// 		func() {
+// 			data_view.entries = nil
+// 			data_view.DeleteAllItems()
+// 		},
+// 		func(row *sql.Rows) error {
+// 			var (
+// 				id   int
+// 				name string
+// 			)
+//
+// 			if err := row.Scan(
+// 				&id, &name,
+// 			); err != nil {
+// 				return err
+// 			}
+// 			fn(id, name)
+// 			return nil
+// 		},
+// 		select_statement, args...)
+// }
 
 // func Fill_combobox_from_query_fn(control windigo.ComboBoxable, fn func(int, string), select_statement *sql.Stmt, args ...any) {
 // 	i := 0

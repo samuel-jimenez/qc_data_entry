@@ -28,7 +28,7 @@ func (ob_product OilBasedProduct) toProduct() *product.MeasuredProduct {
 	// TODO Option?
 }
 
-func newOilBasedProduct(base_product product.QCProduct,
+func MeasuredProduct_from_OilBasedProductView(base_product product.QCProduct,
 	have_visual bool, mass float64,
 ) *product.MeasuredProduct {
 	base_product.Visual = have_visual
@@ -55,7 +55,7 @@ type OilBasedProductView struct {
 	density_field *qc_ui.MassDataView
 }
 
-func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedProductRangesView) *OilBasedProductView {
+func OilBasedProductView_from_new(parent *windigo.AutoPanel, ranges_panel *OilBasedProductRangesView) *OilBasedProductView {
 	view := new(OilBasedProductView)
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
@@ -67,12 +67,14 @@ func newOilBasedProductView(parent *windigo.AutoPanel, ranges_panel *OilBasedPro
 	view.AutoPanel.Dock(view.visual_field, windigo.Top)
 	view.AutoPanel.Dock(view.density_field, windigo.Top)
 
+	view.AddShortcuts()
+
 	return view
 }
 
 func (view *OilBasedProductView) Get(base_product product.QCProduct) *product.MeasuredProduct {
 	// base_product.Visual = view.visual_field.Checked()
-	return newOilBasedProduct(base_product, view.visual_field.Get(), view.density_field.Get())
+	return MeasuredProduct_from_OilBasedProductView(base_product, view.visual_field.Get(), view.density_field.Get())
 }
 
 func (view *OilBasedProductView) Clear() {
@@ -92,4 +94,44 @@ func (view *OilBasedProductView) RefreshSize() {
 
 	view.visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 	view.density_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.DATA_SUBFIELD_WIDTH, GUI.DATA_UNIT_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+}
+
+func (view *OilBasedProductView) FocusVisual() bool {
+	view.visual_field.SetFocus()
+	return true
+}
+
+func (view *OilBasedProductView) FocusDensity() bool {
+	view.density_field.SetFocus()
+	return true
+}
+
+func (view *OilBasedProductView) AddShortcuts() {
+	num_back_shortcut := windigo.Shortcut{Key: windigo.KeyDivide}
+	num_fwd_shortcut := windigo.Shortcut{Key: windigo.KeyMultiply}
+	num_prev_shortcut := windigo.Shortcut{Key: windigo.KeySubtract}
+	num_next_shortcut := windigo.Shortcut{Key: windigo.KeyAdd}
+
+	kb_prev_shortcut := windigo.Shortcut{Key: windigo.KeyW}
+	kb_back_shortcut := windigo.Shortcut{Key: windigo.KeyA}
+	kb_next_shortcut := windigo.Shortcut{Key: windigo.KeyS}
+	kb_fwd_shortcut := windigo.Shortcut{Key: windigo.KeyD}
+
+	view.visual_field.AddShortcut(num_prev_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_fwd_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_back_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_next_shortcut, view.FocusDensity)
+	view.visual_field.AddShortcut(kb_prev_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_fwd_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_back_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_next_shortcut, view.FocusDensity)
+
+	view.density_field.AddShortcut(num_prev_shortcut, view.FocusVisual)
+	view.density_field.AddShortcut(num_fwd_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(num_back_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(num_next_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(kb_prev_shortcut, view.FocusVisual)
+	view.density_field.AddShortcut(kb_fwd_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(kb_back_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(kb_next_shortcut, view.FocusDensity)
 }

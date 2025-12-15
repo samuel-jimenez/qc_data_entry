@@ -57,7 +57,7 @@ func NewInboundLotView(parent windigo.Controller, RecipeComponent *blender.Recip
 
 	view.product_field = GUI.NewListSearchBoxWithLabels(view.AutoPanel, view.component_types_list)
 	// inbound_lot_name
-	inbound_lot_field := windigo.NewLabeledEdit(view.AutoPanel, inbound_lot_label)
+	inbound_lot_field := windigo.LabeledEdit_from_new(view.AutoPanel, inbound_lot_label)
 	// container_list
 	// container_field = GUI.NewListSearchBoxFromQuery(view.AutoPanel, view.component_types_list)
 	container_field := GUI.NewSearchBoxFromQuery(view.AutoPanel, DB.DB_Select_container_all)

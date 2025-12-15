@@ -23,10 +23,10 @@ func NewNullInt64(val int64) NullInt64 {
 	return NullInt64{sql.NullInt64{Int64: val, Valid: true}}
 }
 
-func (a_n NullInt64) Diff(b_n NullInt64) int64 {
+func (object NullInt64) Diff(b_n NullInt64) int64 {
 	var a, b int64
-	if a_n.Valid {
-		a = a_n.Int64
+	if object.Valid {
+		a = object.Int64
 	}
 	if b_n.Valid {
 		b = b_n.Int64
@@ -35,10 +35,10 @@ func (a_n NullInt64) Diff(b_n NullInt64) int64 {
 }
 
 // Comparable
-func (a_n NullInt64) Compare(b_n NullInt64) int {
+func (object NullInt64) Compare(b_n NullInt64) int {
 	var a, b int64
-	if a_n.Valid {
-		a = a_n.Int64
+	if object.Valid {
+		a = object.Int64
 	}
 	if b_n.Valid {
 		b = b_n.Int64
@@ -46,32 +46,31 @@ func (a_n NullInt64) Compare(b_n NullInt64) int {
 	return cmp.Compare(a, b)
 }
 
-func (data NullInt64) String() string {
-	if data.Valid {
-		return strconv.FormatInt(data.Int64, 10)
+func (object NullInt64) String() (output string) {
+	if object.Valid {
+		output = strconv.FormatInt(object.Int64, 10)
 	}
-	return ""
-
+	return
 }
 
 // JSON
-func (nf NullInt64) MarshalJSON() ([]byte, error) {
-	if nf.Valid {
-		return json.Marshal(nf.Int64)
+func (object NullInt64) MarshalJSON() ([]byte, error) {
+	if object.Valid {
+		return json.Marshal(object.Int64)
 	}
 	return json.Marshal(nil)
 }
 
-func (nf *NullInt64) UnmarshalJSON(data []byte) error {
+func (object *NullInt64) UnmarshalJSON(data []byte) error {
 	var f *int64
 	if err := json.Unmarshal(data, &f); err != nil {
 		return err
 	}
 	if f != nil {
-		nf.Valid = true
-		nf.Int64 = *f
+		object.Valid = true
+		object.Int64 = *f
 	} else {
-		nf.Valid = false
+		object.Valid = false
 	}
 	return nil
 }

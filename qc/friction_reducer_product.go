@@ -30,7 +30,7 @@ func (fr_product FrictionReducerProduct) toProduct() *product.MeasuredProduct {
 	}
 }
 
-func newFrictionReducerProduct(base_product product.QCProduct, viscosity, mass, string_test float64) *product.MeasuredProduct {
+func MeasuredProduct_from_FrictionReducerProductView(base_product product.QCProduct, viscosity, mass, string_test float64) *product.MeasuredProduct {
 	sg := formats.SG_from_mass(mass)
 
 	return FrictionReducerProduct{base_product, sg, int64(string_test), int64(viscosity)}.toProduct()
@@ -57,7 +57,7 @@ type FrictionReducerProductView struct {
 	sample_point  string
 }
 
-func BuildNewFrictionReducerProductView(parent *windigo.AutoPanel, sample_point string, ranges_panel *FrictionReducerProductRangesView) *FrictionReducerProductView {
+func FrictionReducerProductView_from_new(parent *windigo.AutoPanel, sample_point string, ranges_panel *FrictionReducerProductRangesView) *FrictionReducerProductView {
 	view := new(FrictionReducerProductView)
 
 	view.AutoPanel = windigo.NewGroupAutoPanel(parent)
@@ -86,7 +86,7 @@ func (view *FrictionReducerProductView) Get(base_product product.QCProduct, repl
 	if replace_sample_point {
 		base_product.Sample_point = view.sample_point
 	}
-	return newFrictionReducerProduct(base_product, view.viscosity_field.Get(), view.density_field.Get(), view.string_field.Get())
+	return MeasuredProduct_from_FrictionReducerProductView(base_product, view.viscosity_field.Get(), view.density_field.Get(), view.string_field.Get())
 }
 
 func (view *FrictionReducerProductView) SetFont(font *windigo.Font) {
@@ -112,4 +112,100 @@ func (view *FrictionReducerProductView) Clear() {
 	view.viscosity_field.Clear()
 	view.density_field.Clear()
 	view.string_field.Clear()
+}
+
+func (view *FrictionReducerProductView) FocusVisual() bool { view.visual_field.SetFocus(); return true }
+func (view *FrictionReducerProductView) FocusViscosity() bool {
+	view.viscosity_field.SetFocus()
+	return true
+}
+
+func (view *FrictionReducerProductView) FocusDensity() bool {
+	view.density_field.SetFocus()
+	return true
+}
+func (view *FrictionReducerProductView) FocusString() bool { view.string_field.SetFocus(); return true }
+
+func (view *FrictionReducerProductView) Interleave(bottom_group *FrictionReducerProductView) {
+	num_back_shortcut := windigo.Shortcut{Key: windigo.KeyDivide}
+	num_fwd_shortcut := windigo.Shortcut{Key: windigo.KeyMultiply}
+	num_prev_shortcut := windigo.Shortcut{Key: windigo.KeySubtract}
+	num_next_shortcut := windigo.Shortcut{Key: windigo.KeyAdd}
+
+	kb_prev_shortcut := windigo.Shortcut{Key: windigo.KeyW}
+	kb_back_shortcut := windigo.Shortcut{Key: windigo.KeyA}
+	kb_next_shortcut := windigo.Shortcut{Key: windigo.KeyS}
+	kb_fwd_shortcut := windigo.Shortcut{Key: windigo.KeyD}
+
+	view.visual_field.AddShortcut(num_prev_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusVisual)
+	view.visual_field.AddShortcut(num_back_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_next_shortcut, view.FocusViscosity)
+	view.visual_field.AddShortcut(kb_prev_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusVisual)
+	view.visual_field.AddShortcut(kb_back_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_next_shortcut, view.FocusViscosity)
+
+	bottom_group.visual_field.AddShortcut(num_prev_shortcut, bottom_group.FocusVisual)
+	bottom_group.visual_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusVisual)
+	bottom_group.visual_field.AddShortcut(num_back_shortcut, view.FocusVisual)
+	bottom_group.visual_field.AddShortcut(num_next_shortcut, bottom_group.FocusViscosity)
+	bottom_group.visual_field.AddShortcut(kb_prev_shortcut, bottom_group.FocusVisual)
+	bottom_group.visual_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusVisual)
+	bottom_group.visual_field.AddShortcut(kb_back_shortcut, view.FocusVisual)
+	bottom_group.visual_field.AddShortcut(kb_next_shortcut, bottom_group.FocusViscosity)
+
+	view.viscosity_field.AddShortcut(num_prev_shortcut, view.FocusVisual)
+	view.viscosity_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusViscosity)
+	view.viscosity_field.AddShortcut(num_back_shortcut, view.FocusViscosity)
+	view.viscosity_field.AddShortcut(num_next_shortcut, view.FocusDensity)
+	view.viscosity_field.AddShortcut(kb_prev_shortcut, view.FocusVisual)
+	view.viscosity_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusViscosity)
+	view.viscosity_field.AddShortcut(kb_back_shortcut, view.FocusViscosity)
+	view.viscosity_field.AddShortcut(kb_next_shortcut, view.FocusDensity)
+
+	bottom_group.viscosity_field.AddShortcut(num_prev_shortcut, bottom_group.FocusVisual)
+	bottom_group.viscosity_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusViscosity)
+	bottom_group.viscosity_field.AddShortcut(num_back_shortcut, view.FocusViscosity)
+	bottom_group.viscosity_field.AddShortcut(num_next_shortcut, bottom_group.FocusDensity)
+	bottom_group.viscosity_field.AddShortcut(kb_prev_shortcut, bottom_group.FocusVisual)
+	bottom_group.viscosity_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusViscosity)
+	bottom_group.viscosity_field.AddShortcut(kb_back_shortcut, view.FocusViscosity)
+	bottom_group.viscosity_field.AddShortcut(kb_next_shortcut, bottom_group.FocusDensity)
+
+	view.density_field.AddShortcut(num_prev_shortcut, view.FocusViscosity)
+	view.density_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusDensity)
+	view.density_field.AddShortcut(num_back_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(num_next_shortcut, view.FocusString)
+	view.density_field.AddShortcut(kb_prev_shortcut, view.FocusViscosity)
+	view.density_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusDensity)
+	view.density_field.AddShortcut(kb_back_shortcut, view.FocusDensity)
+	view.density_field.AddShortcut(kb_next_shortcut, view.FocusString)
+
+	bottom_group.density_field.AddShortcut(num_prev_shortcut, bottom_group.FocusViscosity)
+	bottom_group.density_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusDensity)
+	bottom_group.density_field.AddShortcut(num_back_shortcut, view.FocusDensity)
+	bottom_group.density_field.AddShortcut(num_next_shortcut, bottom_group.FocusString)
+	bottom_group.density_field.AddShortcut(kb_prev_shortcut, bottom_group.FocusViscosity)
+	bottom_group.density_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusDensity)
+	bottom_group.density_field.AddShortcut(kb_back_shortcut, view.FocusDensity)
+	bottom_group.density_field.AddShortcut(kb_next_shortcut, bottom_group.FocusString)
+
+	view.string_field.AddShortcut(num_prev_shortcut, view.FocusDensity)
+	view.string_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusString)
+	view.string_field.AddShortcut(num_back_shortcut, view.FocusString)
+	view.string_field.AddShortcut(num_next_shortcut, view.FocusString)
+	view.string_field.AddShortcut(kb_prev_shortcut, view.FocusDensity)
+	view.string_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusString)
+	view.string_field.AddShortcut(kb_back_shortcut, view.FocusString)
+	view.string_field.AddShortcut(kb_next_shortcut, view.FocusString)
+
+	bottom_group.string_field.AddShortcut(kb_prev_shortcut, bottom_group.FocusDensity)
+	bottom_group.string_field.AddShortcut(kb_fwd_shortcut, bottom_group.FocusString)
+	bottom_group.string_field.AddShortcut(kb_back_shortcut, view.FocusString)
+	bottom_group.string_field.AddShortcut(kb_next_shortcut, bottom_group.FocusString)
+	bottom_group.string_field.AddShortcut(num_prev_shortcut, bottom_group.FocusDensity)
+	bottom_group.string_field.AddShortcut(num_fwd_shortcut, bottom_group.FocusString)
+	bottom_group.string_field.AddShortcut(num_back_shortcut, view.FocusString)
+	bottom_group.string_field.AddShortcut(num_next_shortcut, bottom_group.FocusString)
 }

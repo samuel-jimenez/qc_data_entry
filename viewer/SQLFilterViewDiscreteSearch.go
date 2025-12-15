@@ -30,8 +30,10 @@ func NewSQLFilterViewDiscreteSearch(parent windigo.Controller, key, label string
 }
 
 func (view *SQLFilterViewDiscreteSearch) Get() string {
-	return SQLFilterDiscrete{view.key,
-		view.selection_options.Get()}.Get()
+	return SQLFilterDiscrete{
+		view.key,
+		view.selection_options.Get(),
+	}.Get()
 }
 
 func (view *SQLFilterViewDiscreteSearch) Update(set []string) {

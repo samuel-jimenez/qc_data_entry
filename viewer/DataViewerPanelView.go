@@ -8,8 +8,8 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/DB"
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/qc_data_entry/product"
-	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
 	"github.com/xuri/excelize/v2"
 )
@@ -51,8 +51,7 @@ type DataViewerPanelViewer interface {
 
 	filter_button_OnClick(*windigo.Event)
 	search_button_OnClick(*windigo.Event)
-	reprint_sample_button_OnClick(*windigo.Event)
-	regen_sample_button_OnClick(*windigo.Event)
+
 	export_json_button_OnClick(*windigo.Event)
 	export_xl_button_OnClick(*windigo.Event)
 	ranges_button_OnClick(*windigo.Event)
@@ -86,7 +85,7 @@ type DataViewerPanelView struct {
 
 	product_clear_button, lot_clear_button, lot_add_button, moniker_clear_button,
 	filter_button, search_button, clear_button,
-	reprint_sample_button, regen_sample_button, export_xl_button, ranges_button *windigo.PushButton
+	reprint_sample_button, reprint_bin_button, regen_sample_button, export_xl_button, ranges_button *windigo.PushButton
 }
 
 // parent
@@ -121,6 +120,7 @@ func NewDataViewerPanelView(mainWindow *ViewerWindow) *DataViewerPanelView {
 	search_label := "Search"
 	clear_label := "Clear"
 
+	reprint_bin_label := "Reprint Bin"
 	reprint_sample_label := "Reprint Sample"
 	regen_sample_label := "Regen Sample"
 	export_xl_label := "Export to Excel"
@@ -149,7 +149,7 @@ func NewDataViewerPanelView(mainWindow *ViewerWindow) *DataViewerPanelView {
 
 	view.lot_panel = windigo.NewAutoPanel(view.AutoPanel)
 
-	view.lot_field = GUI.NewLabeledListSearchBox(view.lot_panel, COL_LABEL_LOT)
+	view.lot_field = GUI.NewLabeledListSearchBox(view.lot_panel, formats.COL_LABEL_LOT)
 	view.lot_clear_button = windigo.NewPushButton(view.lot_panel)
 	view.lot_clear_button.SetText(clear_field_label)
 	view.lot_add_button = windigo.NewPushButton(view.lot_panel)
@@ -171,6 +171,9 @@ func NewDataViewerPanelView(mainWindow *ViewerWindow) *DataViewerPanelView {
 	view.clear_button = windigo.NewPushButton(view.AutoPanel)
 	view.clear_button.SetText(clear_label)
 
+	view.reprint_bin_button = windigo.NewPushButton(view.AutoPanel)
+	view.reprint_bin_button.SetText(reprint_bin_label)
+
 	view.reprint_sample_button = windigo.NewPushButton(view.AutoPanel)
 	view.reprint_sample_button.SetText(reprint_sample_label)
 
@@ -189,6 +192,7 @@ func NewDataViewerPanelView(mainWindow *ViewerWindow) *DataViewerPanelView {
 	view.AutoPanel.Dock(view.search_button, windigo.Left)
 	view.AutoPanel.Dock(view.clear_button, windigo.Left)
 
+	view.AutoPanel.Dock(view.reprint_bin_button, windigo.Left)
 	view.AutoPanel.Dock(view.reprint_sample_button, windigo.Left)
 	view.AutoPanel.Dock(view.regen_sample_button, windigo.Left)
 	view.AutoPanel.Dock(view.export_xl_button, windigo.Left)
@@ -256,8 +260,10 @@ func NewDataViewerPanelView(mainWindow *ViewerWindow) *DataViewerPanelView {
 	view.lot_add_button.OnClick().Bind(view.lot_add_button_OnClick)
 	view.clear_button.OnClick().Bind(view.ClearFilters)
 
-	view.reprint_sample_button.OnClick().Bind(view.reprint_sample_button_OnClick)
-	view.regen_sample_button.OnClick().Bind(view.regen_sample_button_OnClick)
+	view.reprint_sample_button.OnClick().Bind(view.mainWindow.reprint_sample_button_OnClick)
+	view.reprint_bin_button.OnClick().Bind(view.mainWindow.reprint_bin_button_OnClick)
+
+	view.regen_sample_button.OnClick().Bind(view.mainWindow.regen_sample_button_OnClick)
 	view.export_xl_button.OnClick().Bind(view.export_xl_button_OnClick)
 	view.ranges_button.OnClick().Bind(view.ranges_button_OnClick)
 
@@ -279,6 +285,7 @@ func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 	view.search_button.SetFont(font)
 	view.clear_button.SetFont(font)
 
+	view.reprint_bin_button.SetFont(font)
 	view.reprint_sample_button.SetFont(font)
 	view.regen_sample_button.SetFont(font)
 	view.export_xl_button.SetFont(font)
@@ -286,7 +293,7 @@ func (view *DataViewerPanelView) SetFont(font *windigo.Font) {
 }
 
 func (view *DataViewerPanelView) RefreshSize() {
-	reprint_sample_button_margin := GUI.HPANEL_MARGIN + GUI.LABEL_WIDTH + GUI.PRODUCT_FIELD_WIDTH + GUI.SMOL_BUTTON_WIDTH + GUI.TOP_PANEL_INTER_SPACER_WIDTH - 3*GUI.BUTTON_WIDTH
+	reprint_bin_button_margin := GUI.HPANEL_MARGIN + GUI.LABEL_WIDTH + GUI.PRODUCT_FIELD_WIDTH + GUI.SMOL_BUTTON_WIDTH + GUI.TOP_PANEL_INTER_SPACER_WIDTH - 3*GUI.BUTTON_WIDTH
 
 	top_panel_height := GUI.TOP_SPACER_HEIGHT + GUI.INTER_SPACER_HEIGHT + 2*GUI.PRODUCT_FIELD_HEIGHT + GUI.BUTTON_HEIGHT
 
@@ -318,8 +325,9 @@ func (view *DataViewerPanelView) RefreshSize() {
 	view.search_button.SetSize(GUI.BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.clear_button.SetSize(GUI.BUTTON_WIDTH, GUI.OFF_AXIS)
 
+	view.reprint_bin_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	view.reprint_bin_button.SetMarginLeft(reprint_bin_button_margin)
 	view.reprint_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
-	view.reprint_sample_button.SetMarginLeft(reprint_sample_button_margin)
 	view.regen_sample_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.export_xl_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 	view.ranges_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
@@ -379,7 +387,7 @@ func (view *DataViewerPanelView) SetTable() {
 
 // listeners
 
-func (view *DataViewerPanelView) moniker_field_OnChange(e *windigo.Event) {
+func (view *DataViewerPanelView) moniker_field_OnChange(*windigo.Event) {
 	product_moniker := view.moniker_field.GetSelectedItem()
 	view.MonikerFilter.Set([]string{product_moniker})
 
@@ -400,7 +408,7 @@ func (view *DataViewerPanelView) moniker_clear_button_OnClick(e *windigo.Event) 
 	view.mainWindow.UpdateFilterListView()
 }
 
-func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
+func (view *DataViewerPanelView) product_field_OnChange(*windigo.Event) {
 	// product_field_pop_data(product_field.GetSelectedItem())
 
 	product_id := view.product_map[view.product_field.GetSelectedItem()]
@@ -417,24 +425,24 @@ func (view *DataViewerPanelView) product_field_OnChange(e *windigo.Event) {
 	view.mainWindow.UpdateFilterListView()
 }
 
-func (view *DataViewerPanelView) product_clear_button_OnClick(e *windigo.Event) {
+func (view *DataViewerPanelView) product_clear_button_OnClick(*windigo.Event) {
 	view.clear_product()
 
 	view.SetTable()
 	view.mainWindow.UpdateFilterListView()
 }
 
-func (view *DataViewerPanelView) lot_field_OnChange(e *windigo.Event) {
+func (view *DataViewerPanelView) lot_field_OnChange(*windigo.Event) {
 	view.LotFilter.Set([]string{view.lot_field.GetSelectedItem()})
 	view.SetTable()
 }
 
-func (view *DataViewerPanelView) lot_clear_button_OnClick(e *windigo.Event) {
+func (view *DataViewerPanelView) lot_clear_button_OnClick(*windigo.Event) {
 	view.clear_lot()
 	view.SetTable()
 }
 
-func (view *DataViewerPanelView) lot_add_button_OnClick(e *windigo.Event) {
+func (view *DataViewerPanelView) lot_add_button_OnClick(*windigo.Event) {
 	view.mainWindow.ShowFilterListView()
 	view.mainWindow.AddItem(COL_KEY_LOT, view.lot_field.GetSelectedItem())
 }
@@ -443,23 +451,7 @@ func (view *DataViewerPanelView) filter_button_OnClick(e *windigo.Event) {
 	view.mainWindow.ToggleFilterListView()
 }
 
-func (view *DataViewerPanelView) reprint_sample_button_OnClick(e *windigo.Event) {
-	for _, data := range view.mainWindow.GetTableSelected() {
-		data.(QCData).Product().Reprint_sample()
-	}
-}
-
-func (view *DataViewerPanelView) regen_sample_button_OnClick(e *windigo.Event) {
-	for _, data := range view.mainWindow.GetTableSelected() {
-		if err := data.(QCData).Product().Regen_sample(); err != nil {
-			log.Printf("Error: [%s]: %q\n", "regen_sample_button", err)
-			log.Printf("Debug: %q: %v\n", err, data)
-			threads.Show_status("Error Creating Label")
-		}
-	}
-}
-
-func (view *DataViewerPanelView) export_xl_button_OnClick(e *windigo.Event) {
+func (view *DataViewerPanelView) export_xl_button_OnClick(*windigo.Event) {
 	DefaultExtension := ".xlsx"
 	// TODO	// "github.com/harry1453/go-common-file-dialog/cfdutil"
 	filePath, ok := windigo.ShowSaveFileDlg(

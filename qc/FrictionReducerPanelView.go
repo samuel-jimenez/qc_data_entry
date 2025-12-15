@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
+	"github.com/samuel-jimenez/qc_data_entry/GUI/views/qc_ui"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -29,7 +30,7 @@ type FrictionReducerPanelView struct {
 }
 
 // create table product_line (product_id integer not null primary key, product_name text);
-func Show_fr(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionReducerPanelView {
+func FrictionReducerPanelView_from_new(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionReducerPanelView {
 	DELTA_DIFF_VISCO := 200.
 
 	top_text := "Top"
@@ -41,12 +42,13 @@ func Show_fr(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionRe
 
 	view.AutoPanel = windigo.NewAutoPanel(parent)
 
-	view.ranges_panel = BuildNewFrictionReducerProductRangesView(view.AutoPanel, view.product_panel.QC_Product)
+	view.ranges_panel = FrictionReducerProductRangesView_from_new(view.AutoPanel, view.product_panel.QC_Product)
 
-	view.top_group = BuildNewFrictionReducerProductView(view.AutoPanel, top_text, view.ranges_panel)
-	view.bottom_group = BuildNewFrictionReducerProductView(view.AutoPanel, bottom_text, view.ranges_panel)
+	view.top_group = FrictionReducerProductView_from_new(view.AutoPanel, top_text, view.ranges_panel)
+	view.bottom_group = FrictionReducerProductView_from_new(view.AutoPanel, bottom_text, view.ranges_panel)
 
 	view.top_group.viscosity_field.Entangle(view.bottom_group.viscosity_field, view.ranges_panel.viscosity_field, DELTA_DIFF_VISCO)
+	view.top_group.Interleave(view.bottom_group)
 
 	view.button_dock_samples = GUI.NewMarginalButtonDock(parent, SUBMIT_CLEAR_LOG_BTN, []int{40, 0, 10}, []func(){view.submit_sample, view.Clear, view.log_sample})
 	view.button_dock_totes = GUI.NewMarginalButtonDock(parent, SUBMIT_CLEAR_LOG_BTN, []int{40, 0, 10}, []func(){view.submit_tote, view.Clear, view.log_tote})
@@ -63,6 +65,10 @@ func Show_fr(parent *windigo.AutoPanel, product_panel *TopPanelView) *FrictionRe
 	parent.Dock(view.button_dock_samples, windigo.Top)
 	parent.Dock(view.button_dock_totes, windigo.Top)
 	parent.Dock(view.button_dock_cars, windigo.Top)
+
+	// view.AddShortcut(windigo.Shortcut{Key: windigo.KeyReturn}, view.submit_car)
+	// TODO bool
+	// TODO split out button_dock
 
 	return view
 }
@@ -119,6 +125,10 @@ func (view *FrictionReducerPanelView) Clear() {
 	view.ranges_panel.Clear()
 }
 
+func (view *FrictionReducerPanelView) Focus() {
+	view.top_group.FocusVisual()
+}
+
 func (view *FrictionReducerPanelView) submit_car() {
 	view.proc_car(true)
 }
@@ -147,13 +157,21 @@ func (view *FrictionReducerPanelView) proc_car(print_p bool) {
 	base_product := view.product_panel.BaseProduct()
 	top_product := view.top_group.Get(base_product, true)
 	bottom_product := view.bottom_group.Get(base_product, true)
-	if !product.Check_dual_data(top_product, bottom_product, print_p) {
+	valid, err := product.Check_dual_data(top_product, bottom_product, print_p)
+	if valid {
+		view.product_panel.SetMeasuredProduct(top_product, bottom_product)
+	} else {
 		// TODO show confirm box?
 		log.Println("ERROR: check_dual_data-Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
+		qc_ui.Check_dupe_data(view, err, top_product, bottom_product)
 	}
 }
 
 func (view *FrictionReducerPanelView) proc_single(store_p, print_p bool) {
 	measured_product := view.top_group.Get(view.product_panel.BaseProduct(), false)
-	product.Check_single_data(measured_product, store_p, print_p)
+	valid, err := product.Check_single_data(measured_product, store_p, print_p)
+	if valid {
+		view.product_panel.SetMeasuredProduct(measured_product)
+	}
+	qc_ui.Check_dupe_data(view, err, measured_product)
 }

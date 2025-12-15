@@ -19,14 +19,10 @@ type NullFloat64ROView struct {
 }
 
 func NullFloat64ROView_from_new(parent windigo.Controller, field_data nullable.NullFloat64, format func(float64) string) *NullFloat64ROView {
-	data_field := windigo.NewLabeledLabel(parent, "")
+	data_field := windigo.LabeledLabel_from_new(parent, "")
 
 	update := func(field_data nullable.NullFloat64) {
-		if field_data.Valid {
-			data_field.SetText(format(field_data.Float64))
-		} else {
-			data_field.SetText("")
-		}
+		data_field.SetText(field_data.Format(format))
 	}
 	update(field_data)
 
@@ -40,7 +36,7 @@ func NullFloat64ROView_from_new(parent windigo.Controller, field_data nullable.N
 }
 
 func NullFloat64View_Spacer_from_new(parent windigo.Controller, field_data nullable.NullFloat64, format string) *NullFloat64ROView {
-	data_field := windigo.NewLabeledLabel(parent, "")
+	data_field := windigo.LabeledLabel_from_new(parent, "")
 
 	update := func(field_data nullable.NullFloat64) {
 		if field_data.Valid {

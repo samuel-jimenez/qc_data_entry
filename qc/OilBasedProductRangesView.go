@@ -22,7 +22,7 @@ type OilBasedProductRangesView struct {
 	visual_field *qc_ui.ProductAppearanceROView
 }
 
-func BuildNewOilBasedProductRangesView(parent *windigo.AutoPanel, qc_product *product.QCProduct) *OilBasedProductRangesView {
+func OilBasedProductRangesView_from_new(parent *windigo.AutoPanel, qc_product *product.QCProduct) *OilBasedProductRangesView {
 
 	view := new(OilBasedProductRangesView)
 	view.AutoPanel = windigo.NewAutoPanel(parent)

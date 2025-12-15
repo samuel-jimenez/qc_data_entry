@@ -98,7 +98,7 @@ func BlendStrappingProductView_from_new(parent windigo.Controller) *BlendStrappi
 
 	view.Tag_field = GUI.NumbestEditView_from_new(tag_seal_panel, Tag_text)
 	view.Seal_field = GUI.NumbestEditView_from_new(tag_seal_panel, Seal_text)
-	view.Operators_field = windigo.NewLabeledEdit(ops_panel, Operators_text)
+	view.Operators_field = windigo.LabeledEdit_from_new(ops_panel, Operators_text)
 
 	recipe_accept_button := windigo.NewPushButton(recipe_panel)
 	recipe_accept_button.SetText("OK")

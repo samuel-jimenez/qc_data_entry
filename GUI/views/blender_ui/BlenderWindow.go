@@ -28,7 +28,7 @@ type BlenderWinder interface {
  *
  */
 type BlenderWindow struct {
-	*windigo.Form
+	*windigo.AutoForm
 
 	Blend_product_view *BlendStrappingProductView
 }
@@ -38,7 +38,7 @@ func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
 
 	// build window
 	view := new(BlenderWindow)
-	view.Form = windigo.NewForm(parent)
+	view.AutoForm = windigo.AutoForm_from_new(parent)
 	// view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	view.SetText(window_title)
 
@@ -62,7 +62,6 @@ func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
 
 	menu.Show()
 
-	dock := windigo.NewSimpleDock(view)
 	// BlendVessel
 
 	view.Blend_product_view = BlendStrappingProductView_from_new(view)
@@ -72,7 +71,7 @@ func BlenderWindow_from_new(parent windigo.Controller) *BlenderWindow {
 	// dock.Dock(threads.Status_bar, windigo.Bottom)
 
 	// Dock
-	dock.Dock(view.Blend_product_view, windigo.Fill)
+	view.Dock(view.Blend_product_view, windigo.Fill)
 
 	return view
 }
@@ -86,7 +85,7 @@ func (view *BlenderWindow) SetFont(font *windigo.Font) {
 
 func (view *BlenderWindow) RefreshSize() {
 	Refresh_globals(config.BASE_FONT_SIZE)
-	GUI.WINDOW_WIDTH, GUI.WINDOW_HEIGHT = view.Blend_product_view.RefreshSize()
+	GUI.WINDOW_WIDTH, GUI.WINDOW_HEIGHT = view.Blend_product_view.RecalculateSize()
 	GUI.WINDOW_HEIGHT += GUI.WINDOW_FUDGE_MARGIN_H + GUI.MENU_HEIGHT
 	view.SetSize(GUI.WINDOW_WIDTH, GUI.WINDOW_HEIGHT)
 }

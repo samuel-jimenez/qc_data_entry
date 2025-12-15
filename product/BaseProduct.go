@@ -52,19 +52,17 @@ func (product *BaseProduct) ResetLot() {
 // TODO product.get_coa_name()
 func (product BaseProduct) get_base_filename(extension string) string {
 	// if (product.Sample_point.Valid) {
+	Product_name := strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_name)), " ", "_")
+	Lot_number := strings.ReplaceAll(strings.ToUpper(product.Lot_number), ":", "_")
 	if product.Sample_point != "" {
-		return fmt.Sprintf("%s-%s-%s.%s", strings.ToUpper(product.Lot_number), product.Sample_point, strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_name)), " ", "_"), extension)
+		return fmt.Sprintf("%s-%s-%s.%s", Lot_number, product.Sample_point, Product_name, extension)
 	}
 
-	return fmt.Sprintf("%s-%s.%s", strings.ToUpper(product.Lot_number), strings.ReplaceAll(strings.ToUpper(strings.TrimSpace(product.Product_name)), " ", "_"), extension)
+	return fmt.Sprintf("%s-%s.%s", Lot_number, Product_name, extension)
 }
 
 func (product BaseProduct) get_pdf_name() string {
 	return fmt.Sprintf("%s/%s", config.LABEL_PATH, product.get_base_filename("pdf"))
-}
-
-func (product BaseProduct) get_storage_pdf_name(qc_sample_storage_name string) string {
-	return fmt.Sprintf("%s/%s.%s", config.LABEL_PATH, qc_sample_storage_name, "pdf")
 }
 
 func (product *BaseProduct) Insel_product_self() *BaseProduct {
@@ -216,30 +214,26 @@ func (measured_product BaseProduct) NewStorageBin() int {
 	proc_name := "BaseProduct-NewStorageBin"
 
 	var (
-		product_sample_storage_id, qc_sample_storage_offset, start_date_, end_date_ int64
-		retain_storage_duration                                                     int
-		qc_sample_storage_name, product_moniker_name                                string
+		product_sample_storage_id, qc_sample_storage_offset,
+		start_date, end_date, retain_storage_duration int
+		qc_sample_storage_name, product_moniker_name string
 	)
 	if err := DB.Select_Error(proc_name,
 		DB.DB_Select_gen_product_sample_storage.QueryRow(
 			measured_product.Product_id,
 		),
 		&product_sample_storage_id, &product_moniker_name, &qc_sample_storage_offset, &qc_sample_storage_name,
-		&start_date_, &end_date_, &retain_storage_duration,
+		&start_date, &end_date, &retain_storage_duration,
 	); err != nil {
 		log.Println("Crit: ", proc_name, measured_product, err)
 		panic(err)
 	}
-	start_date := time.Unix(0, start_date_)
-	end_date := time.Unix(0, end_date_)
-	retain_date := end_date.AddDate(0, retain_storage_duration, 0)
-	// + retain_storage_duration*time.Month
 
 	// print
-	measured_product.PrintOldStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
+	PrintStorageBin(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_storage_duration)
 
 	// product_moniker_id == product_sample_storage_id. update if this is no longer true
-	qc_sample_storage_id, qc_sample_storage_offset = measured_product.InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
+	qc_sample_storage_id, qc_sample_storage_offset = InsertStorageBin(product_sample_storage_id, qc_sample_storage_offset, product_moniker_name)
 
 	// update qc_sample_storage_offset
 	proc_name = "BaseProduct-NewStorageBin.Update"
@@ -250,6 +244,60 @@ func (measured_product BaseProduct) NewStorageBin() int {
 	return qc_sample_storage_id
 }
 
+//TODO move
+/*
+ * PrintStorageBin
+ *
+ * Gen new based on qc_sample_storage_offset,
+ * product_moniker_id or product_sample_storage_id
+ *
+ * Print label for storage bin
+ *
+ * Returns next storage bin, updated qc_sample_storage_offset
+ *
+ */
+func PrintStorageBin(qc_sample_storage_name, product_moniker_name string, start_date_, end_date_, retain_storage_duration int,
+) {
+	start_date := time.Unix(0, int64(start_date_))
+	end_date := time.Unix(0, int64(end_date_))
+	retain_date := end_date.AddDate(0, retain_storage_duration, 0)
+	// + retain_storage_duration*time.Month
+
+	// print
+	PrintOldStorage(qc_sample_storage_name, product_moniker_name, &start_date, &end_date, &retain_date)
+}
+
+/*
+ * RegenStorageBin
+ *
+ * Print label for storage bin
+ *
+ *
+ */
+func RegenStorageBin(qc_sample_storage_name string) {
+	// get data for printing bin label
+	proc_name := "BaseProduct-RePrintStorageBin"
+
+	var (
+		start_date, end_date, retain_storage_duration int
+		product_moniker_name                          string
+	)
+	if err := DB.Select_Error(proc_name,
+		DB.DB_Select_reprint_product_sample_storage.QueryRow(
+			qc_sample_storage_name,
+		),
+		&product_moniker_name, &qc_sample_storage_name,
+		&start_date, &end_date, &retain_storage_duration,
+	); err != nil {
+		log.Println("Crit: ", proc_name, err)
+		panic(err)
+	}
+
+	// print
+	PrintStorageBin(qc_sample_storage_name, product_moniker_name, start_date, end_date, retain_storage_duration)
+}
+
+//TODO move
 /*
  * InsertStorageBin
  *
@@ -261,7 +309,7 @@ func (measured_product BaseProduct) NewStorageBin() int {
  * Returns next storage bin, updated qc_sample_storage_offset
  *
  */
-func (measured_product BaseProduct) InsertStorageBin(product_moniker_id, qc_sample_storage_offset int64, product_moniker_name string) (int, int64) { // ffs
+func InsertStorageBin(product_moniker_id, qc_sample_storage_offset int, product_moniker_name string) (int, int) {
 	var (
 		qc_sample_storage_id int
 		date                 time.Time
@@ -277,10 +325,10 @@ func (measured_product BaseProduct) InsertStorageBin(product_moniker_id, qc_samp
 		),
 		&qc_sample_storage_id,
 	); err != nil {
-		log.Println("Crit: ", proc_name, measured_product, err)
+		log.Println("Crit: ", proc_name, err)
 		panic(err)
 	}
-	measured_product.PrintNewStorage(qc_sample_storage_name, product_moniker_name, &date, &date, &date)
+	PrintNewStorage(qc_sample_storage_name, product_moniker_name, &date, &date, &date)
 	return qc_sample_storage_id, qc_sample_storage_offset
 }
 

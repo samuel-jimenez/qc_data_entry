@@ -4,6 +4,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views/toplevel_ui"
 	"github.com/samuel-jimenez/qc_data_entry/config"
+	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/qc_data_entry/threads"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -27,6 +28,12 @@ type ViewerWinder interface {
 	Decrease_font_size() bool
 
 	newMonikerMenu_OnClick(*windigo.Event)
+	reprint_sample_button_OnClick(*windigo.Event)
+	regen_sample_button_OnClick(*windigo.Event)
+	reprint_label_button_OnClick(*windigo.Event)
+	regen_label_button_OnClick(*windigo.Event)
+	reprint_bin_button_OnClick(*windigo.Event)
+	regen_bin_button_OnClick(*windigo.Event)
 }
 
 /*
@@ -34,7 +41,7 @@ type ViewerWinder interface {
  *
  */
 type ViewerWindow struct {
-	*windigo.Form
+	*windigo.AutoForm
 
 	selection_panel *DataViewerPanelView
 	FilterListView  *SQLFilterListView
@@ -46,12 +53,14 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 	window_title := "QC Data Viewer"
 
 	view := new(ViewerWindow)
-	view.Form = windigo.NewForm(parent)
+	view.AutoForm = windigo.AutoForm_from_new(parent)
 	view.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	view.SetText(window_title)
 
 	menu := view.NewMenu()
 	// TODO settings
+
+	// File
 	fileMenu := menu.AddSubMenu("&File")
 	newMenu := fileMenu.AddSubMenu_Shortcut("&New", windigo.Shortcut{
 		Modifiers: windigo.ModControl,
@@ -69,13 +78,46 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 		Key: windigo.KeyF5,
 	})
 
+	// Label
+	labelMenu := menu.AddSubMenu("&Label")
+
+	binReprintMenu := labelMenu.AddItem("Reprint &Bin", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyB,
+	})
+	labelReprintMenu := labelMenu.AddItem("Reprint &Label", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyL,
+	})
+	sampleReprintMenu := labelMenu.AddItem("Reprint Customer &Sample", windigo.Shortcut{
+		Modifiers: windigo.ModControl,
+		Key:       windigo.KeyS,
+	})
+	binRegenMenu := labelMenu.AddItem("Regen Bin", windigo.Shortcut{
+		Modifiers: windigo.ModControl | windigo.ModShift,
+		Key:       windigo.KeyB,
+	})
+	labelRegenMenu := labelMenu.AddItem("Regen Label", windigo.Shortcut{
+		Modifiers: windigo.ModControl | windigo.ModShift,
+		Key:       windigo.KeyL,
+	})
+	sampleRegenMenu := labelMenu.AddItem("Regen Customer Sample", windigo.Shortcut{
+		Modifiers: windigo.ModControl | windigo.ModShift,
+		Key:       windigo.KeyS,
+	})
+
 	newMonikerMenu.OnClick().Bind(view.newMonikerMenu_OnClick)
 	quitMenu.OnClick().Bind(toplevel_ui.WndOnClose)
 	refMenu.OnClick().Bind(view.search_button_OnClick)
 
-	// menu.Show() // TODO why is this sometimes needed? Maybe the SetSize call?
+	labelReprintMenu.OnClick().Bind(view.reprint_label_button_OnClick)
+	labelRegenMenu.OnClick().Bind(view.regen_label_button_OnClick)
+	sampleReprintMenu.OnClick().Bind(view.reprint_sample_button_OnClick)
+	sampleRegenMenu.OnClick().Bind(view.regen_sample_button_OnClick)
+	binReprintMenu.OnClick().Bind(view.reprint_bin_button_OnClick)
+	binRegenMenu.OnClick().Bind(view.regen_bin_button_OnClick)
 
-	dock := windigo.NewSimpleDock(view)
+	// menu.Show() // TODO why is this sometimes needed? Maybe the SetSize call?
 
 	selection_panel := NewDataViewerPanelView(view)
 
@@ -83,7 +125,7 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 
 	// product_panel.Dock(reprint_button, windigo.Left)
 
-	// tabs := windigo.NewTabView(mainWindow)
+	// tabs := windigo.TabView_from_new(mainWindow)
 	// tab_wb := tabs.AddAutoPanel("Water Based")
 	// tab_oil := tabs.AddAutoPanel("Oil Based")
 	// tab_fr := tabs.AddAutoPanel("Friction Reducer")
@@ -94,12 +136,12 @@ func NewViewerWindow(parent windigo.Controller) *ViewerWindow {
 
 	threads.Status_bar = windigo.NewStatusBar(view)
 	view.SetStatusBar(threads.Status_bar)
-	dock.Dock(threads.Status_bar, windigo.Bottom)
+	view.Dock(threads.Status_bar, windigo.Bottom)
 
-	dock.Dock(selection_panel, windigo.Top)
-	dock.Dock(FilterListView, windigo.Top)
+	view.Dock(selection_panel, windigo.Top)
+	view.Dock(FilterListView, windigo.Top)
 
-	dock.Dock(table, windigo.Fill)
+	view.Dock(table, windigo.Fill)
 
 	FilterListView.AddContinuousTime(COL_KEY_TIME, COL_LABEL_TIME)
 	FilterListView.AddDiscreteSearch(COL_KEY_LOT, COL_LABEL_LOT, COL_ITEMS_LOT)
@@ -206,7 +248,67 @@ func (view *ViewerWindow) newMonikerMenu_OnClick(*windigo.Event) {
 	MonikerView.RefreshSize()
 }
 
-func (view *ViewerWindow) search_button_OnClick(e *windigo.Event) {
+func (view *ViewerWindow) search_button_OnClick(*windigo.Event) {
 	view.SetTable(select_samples(view.FilterListView.Get()))
 	// TODO there can be only one
+}
+
+func (view *ViewerWindow) forall(fn func(QCData)) {
+	for _, data := range view.GetTableSelected() {
+		fn(data.(QCData))
+	}
+}
+
+func Reprint_sample(data QCData) {
+	data.Product().Reprint_sample()
+}
+
+func Reprint_label(data QCData) {
+	data.Product().Reprint()
+}
+
+func Reprint_bin(data QCData) {
+	if !data.Sample_bin.Valid {
+		return
+	}
+	threads.LogError("ViewerWindow-Reprint_bin", "Error Printing Label", product.RePrintStorage(data.Sample_bin.String))
+}
+
+func Regen_sample(data QCData) {
+	threads.LogError("ViewerWindow-Regen_sample", "Error Creating Label", data.Product().Regen_sample())
+}
+
+func Regen_label(data QCData) {
+	threads.LogError("ViewerWindow-Regen_label", "Error Creating Label", data.Product().Print())
+}
+
+func Regen_bin(data QCData) {
+	if !data.Sample_bin.Valid {
+		return
+	}
+	product.RegenStorageBin(data.Sample_bin.String)
+}
+
+func (view *ViewerWindow) reprint_sample_button_OnClick(*windigo.Event) {
+	view.forall(Reprint_sample)
+}
+
+func (view *ViewerWindow) reprint_label_button_OnClick(*windigo.Event) {
+	view.forall(Reprint_label)
+}
+
+func (view *ViewerWindow) reprint_bin_button_OnClick(*windigo.Event) {
+	view.forall(Reprint_bin)
+}
+
+func (view *ViewerWindow) regen_sample_button_OnClick(*windigo.Event) {
+	view.forall(Regen_sample)
+}
+
+func (view *ViewerWindow) regen_label_button_OnClick(*windigo.Event) {
+	view.forall(Regen_label)
+}
+
+func (view *ViewerWindow) regen_bin_button_OnClick(*windigo.Event) {
+	view.forall(Regen_bin)
 }

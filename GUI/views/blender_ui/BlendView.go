@@ -104,7 +104,7 @@ func (view *BlendView) SetFont(font *windigo.Font) {
 	}
 }
 
-func (view *BlendView) RefreshSize() (width, height int) {
+func (view *BlendView) RecalculateSize() (width, height int) {
 	height = 5 * GUI.PRODUCT_FIELD_HEIGHT
 	delta_height := GUI.PRODUCT_FIELD_HEIGHT
 

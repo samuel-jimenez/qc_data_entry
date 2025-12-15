@@ -19,12 +19,12 @@ import (
 // pivot_vtab
 
 func main() {
-	//load config
+	// load config
 	config.Main_config = config.Load_config_viewer("qc_data_viewer")
 	defer config.Write_config(config.Main_config)
 
 	// log to file
-	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	log_file, err := os.OpenFile(config.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
 	if err != nil {
 		log.Fatalf("Crit: error opening file: %v", err)
 	}
@@ -34,7 +34,7 @@ func main() {
 	log.SetOutput(log_file)
 	log.Println("Info: Using config:", config.Main_config.ConfigFileUsed())
 
-	//open_db
+	// open_db
 	// viewer.QC_DB, err := sql.Open("sqlite3", DB_FILE)
 	viewer.QC_DB, err = sql.Open("sqlite3", ":memory:")
 	viewer.QC_DB.Exec("attach ? as 'bs'", config.DB_FILE)
@@ -45,16 +45,16 @@ func main() {
 	log.Println("Info: Using db:", config.DB_FILE)
 	viewer.DBinit(viewer.QC_DB)
 
-	//setup print goroutine
+	// setup print goroutine
 	threads.PRINT_QUEUE = make(chan string, 4)
 	defer close(threads.PRINT_QUEUE)
 	go threads.Do_print_queue(threads.PRINT_QUEUE)
 
-	//setup status_bar goroutine
+	// setup status_bar goroutine
 	threads.STATUS_QUEUE = make(chan string, 16)
 	defer close(threads.STATUS_QUEUE)
 	go threads.Do_status_queue(threads.STATUS_QUEUE)
 
-	//show main window
+	// show main window
 	toplevel_ui.Show_window(viewer.NewViewerWindow(nil))
 }

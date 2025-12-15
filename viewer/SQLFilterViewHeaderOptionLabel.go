@@ -17,7 +17,7 @@ type SQLFilterViewHeaderOptionLabel struct {
 
 func NewSQLFilterViewHeaderOptionLabel(parent *SQLFilterViewHeader, entry string) *SQLFilterViewHeaderOptionLabel {
 	label := new(SQLFilterViewHeaderOptionLabel)
-	// panel := windigo.NewLabeledLabel(parent)
+	// panel := windigo.LabeledLabel_from_new(parent)
 
 	panel := windigo.NewAutoPanel(parent.AutoPanel)
 	panel.SetSize(GUI.LABEL_WIDTH+GUI.SMOL_BUTTON_WIDTH, GUI.EDIT_FIELD_HEIGHT)

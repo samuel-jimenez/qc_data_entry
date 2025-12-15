@@ -5,7 +5,7 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-//TODO add collapse/expand all
+// TODO add collapse/expand all
 
 /* SQLFilterListView
  *
@@ -50,44 +50,45 @@ func (view *SQLFilterListView) SetFont(font *windigo.Font) {
 // func (filter SQLFilterListView) Add()  { return filter.key }
 
 func (view *SQLFilterListView) addFilter(key string) {
-	view.Dock(view.Filters[key], windigo.Top)
+	view.Dock(view.Filters[key], windigo.Top|windigo.Overflow_Expand)
 	view.SetSize(view.ClientWidth(), view.Height()+HEADER_HEIGHT)
 }
 
 func (view *SQLFilterListView) AddContinuous(key, label string) {
-
 	view.Filters[key] = NewSQLFilterViewContinuous(view, key, label)
 	view.addFilter(key)
 }
 
 func (view *SQLFilterListView) AddContinuousTime(key, label string) {
-
 	view.Filters[key] = SQLFilterViewContinuousTime_from_new(view, key, label)
 	view.addFilter(key)
 }
 
 func (view *SQLFilterListView) AddDiscreteMulti(key, label string,
-	set []string) {
+	set []string,
+) {
 	view.Filters[key] = NewSQLFilterViewDiscreteMulti(view, key, label, set)
 	view.addFilter(key)
 }
 
 func (view *SQLFilterListView) AddDiscreteSearch(key, label string,
-	set []string) {
+	set []string,
+) {
 	view.Filters[key] = NewSQLFilterViewDiscreteSearch(view, key, label, set)
 	view.addFilter(key)
 }
 
 func (view *SQLFilterListView) Update(key string,
-	set []string) {
+	set []string,
+) {
 	old_height := view.Filters[key].Height()
 	view.Filters[key].Update(set)
 	view.SetSize(view.ClientWidth(), view.Height()+view.Filters[key].Height()-old_height)
-
 }
 
 func (view *SQLFilterListView) AddItem(key string,
-	entry string) {
+	entry string,
+) {
 	view.Filters[key].AddItem(entry)
 }
 

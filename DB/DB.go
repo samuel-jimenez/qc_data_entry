@@ -51,25 +51,32 @@ var (
 	DB_Select_name_inbound_lot_status, DB_Select_inbound_lot_recipe, DB_Select_inbound_lot_components,
 	// inbound_relabel
 	DB_Insert_inbound_relabel, DB_Select_inbound_relabel_all,
+	DB_Update_inbound_relabel_lot,
 	// component_list
 	DB_Select_inbound_blend_component, DB_Insert_inbound_blend_component,
 	DB_Select_internal_blend_component, DB_Insert_internal_blend_component,
+	DB_Update_component_list,
 
 	// blend_components
-	DB_Select_Product_blend_components,
+	DB_Select_Product_count_blend_components, DB_Select_Product_compare_blend_components, DB_Select_Product_blend_components,
 	DB_Insert_Product_blend,
+	DB_Update_blend_components,
+	DB_Delete_blend_components_product_lot,
 	// lot_list
-	DB_Insert_lot, DB_Select_lot, DB_Select_blend_lot, DB_Select_lot_list_all,
+	DB_Insert_lot, DB_Select_lot, DB_Select_lot__count, DB_Select_lot_list_all,
 	DB_Select_lot_list_name, DB_Select_lot_list_for_name_status, DB_Select_lot_list_for_product_lot_name, DB_Select_lot_list_for_product_lot_id_name,
-	DB_Update_lot_list_name, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
+	DB_Update_lot_list_name, DB_Update_lot_list__name_like, DB_Update_lot_list__dupes, DB_Update_lot_list__status, DB_Update_lot_list__component_status,
 	DB_Select_product_lot_list_name,
 	DB_Select_product_lot_list_sources,
+	DB_Delete_lot_list,
 	// product_lot
 	db_select_id_lot, DB_Insert_product_lot,
 	DB_Select_product_lot_all, DB_Select_product_lot_product,
+	DB_Select_product_lot__product__lot,
 	DB_Select_product_inbound_lot_all,
 	DB_Insert_blend_lot, DB_Update_lot_recipe,
 	DB_Update_lot_customer,
+	DB_Delete_product_lot,
 	DB_Select_product_lot_components,
 
 	// product_line
@@ -91,10 +98,21 @@ var (
 	// bs.qc_tester_list
 	DB_Select_all_qc_tester, DB_Insel_qc_tester,
 	// bs.qc_samples
+	DB_Select_qc_samples_lot,
+	DB_Select_qc_samples__id,
+	DB_Select_qc_samples_id_lot,
+	DB_Select_Product_compare_qc_samples,
+	DB_Select_Product__qc_samples_dupe_pts,
 	DB_insert_measurement,
+	DB_Select_qc_samples__old,
+	DB_Update_qc_samples_measurement,
 	DB_Update_qc_samples_storage,
+	DB_Update_qc_samples_id,
+	DB_Update_qc_samples_sample_point,
+	DB_Update_qc_samples_lot,
+	DB_Delete_qc_samples_id,
 	// bs.product_sample_storage
-	DB_Select_product_sample_storage_capacity, DB_Select_gen_product_sample_storage, DB_Select_all_product_sample_storage,
+	DB_Select_product_sample_storage_capacity, DB_Select_gen_product_sample_storage, DB_Select_reprint_product_sample_storage, DB_Select_all_product_sample_storage,
 	DB_Insert_product_sample_storage,
 	DB_Update_product_sample_storage_qc_sample, DB_Update_dec_product_sample_storage_capacity, DB_Update_product_sample_storage_capacity,
 	// bs.qc_sample_storage_list
@@ -112,6 +130,10 @@ var (
 	INVALID_ID     int64 = 0
 	DEFAULT_LOT_ID int64 = 1
 )
+
+type Row interface {
+	Scan(dest ...any) error
+}
 
 func PrepareOrElse(db *sql.DB, sqlStatement string) *sql.Stmt {
 	preparedStatement, err := db.Prepare(sqlStatement)
@@ -571,6 +593,16 @@ order by component_add_order
 	// 	returning inbound_relabel_id
 	// 	`)
 
+	DB_Update_inbound_relabel_lot = PrepareOrElse(db, `
+	update
+	bs.inbound_relabel
+
+	set
+	lot_id = ?2
+
+	where lot_id = ?1
+	`)
+
 	// component_list
 	DB_Select_inbound_blend_component = PrepareOrElse(db, `
 select component_id
@@ -597,17 +629,54 @@ insert into bs.component_list
 returning component_id
 `)
 
+	DB_Update_component_list = PrepareOrElse(db, `
+	update
+	bs.component_list
+	set
+	product_lot_id = ?2
+	where product_lot_id = ?1
+	`)
+
 	// blend_components
-	DB_Select_Product_blend_components = PrepareOrElse(db, `
+	DB_Select_Product_count_blend_components = PrepareOrElse(db, `
 	select count(blend_components_id)
 	from bs.blend_components
 	where product_lot_id =?
 	`)
+
+	DB_Select_Product_compare_blend_components = PrepareOrElse(db, `
+	select count(component_id)
+	from bs.blend_components blend_components_left
+	join bs.blend_components blend_components_right using (component_id)
+	where blend_components_left.product_lot_id =?
+	and blend_components_right.product_lot_id =?
+	`)
+
+	DB_Select_Product_blend_components = PrepareOrElse(db, `
+	select blend_components_id
+	from bs.blend_components
+	where product_lot_id =?
+	order by blend_components_id
+	`)
+
 	DB_Insert_Product_blend = PrepareOrElse(db, `
 	insert into bs.blend_components
 	(product_lot_id, recipe_components_id, component_id, component_required_amount)
 	values (?,?,?,?)
 	returning blend_components_id
+	`)
+
+	DB_Update_blend_components = PrepareOrElse(db, `
+	update
+	bs.blend_components
+	set
+	product_lot_id = ?2
+	where product_lot_id = ?1
+	`)
+
+	DB_Delete_blend_components_product_lot = PrepareOrElse(db, `
+	delete from bs.blend_components
+	where product_lot_id = ?
 	`)
 
 	// lot_list
@@ -622,7 +691,7 @@ select lot_id
 from bs.lot_list
 where lot_name = ?
 `)
-	DB_Select_blend_lot = PrepareOrElse(db, `
+	DB_Select_lot__count = PrepareOrElse(db, `
 select count(lot_name)
 	from bs.lot_list
 where lot_name like ?
@@ -664,6 +733,11 @@ where lot_name like ?
 	and lot_name like ?
 	`)
 
+	DB_Delete_lot_list = PrepareOrElse(db, `
+	delete from bs.lot_list
+	where lot_id = ?
+	`)
+
 	DB_Update_lot_list_name = PrepareOrElse(db, `
 update
 bs.lot_list
@@ -672,6 +746,29 @@ set
 lot_name = ?2
 
 where lot_id = ?1
+`)
+
+	DB_Update_lot_list__name_like = PrepareOrElse(db, `
+update
+bs.lot_list
+
+set
+lot_name = ?2
+
+where lot_name like ?1
+`)
+	DB_Update_lot_list__dupes = PrepareOrElse(db, `
+update
+bs.lot_list
+
+set
+lot_name = new_lot_name
+from (
+	select
+		lot_id, concat (?3 , substr(lot_name,instr(lot_name,':')+1)-1) new_lot_name
+	from bs.lot_list
+	where lot_name like ?1 and cast(substr(lot_name,instr(lot_name,':')+1) as integer) > ?2) new_lots
+where lot_list.lot_id = new_lots.lot_id
 `)
 
 	DB_Update_lot_list__status = PrepareOrElse(db, `
@@ -819,6 +916,15 @@ join bs.lot_list using (lot_id)
 where product_id = ?
 order by lot_id desc
 `)
+
+	DB_Select_product_lot__product__lot = PrepareOrElse(db, `
+select
+	product_id, lot_id, product_lot_id
+from bs.product_lot
+	join bs.lot_list using (lot_id)
+where lot_name = ?
+`)
+
 	DB_Select_product_lot_all = PrepareOrElse(db, `
 select product_lot_id, lot_name
 from bs.product_lot
@@ -866,6 +972,11 @@ order by lot_id desc
 		product_customer_id=?
 	where product_lot_id=?
 		`)
+
+	DB_Delete_product_lot = PrepareOrElse(db, `
+	delete from bs.product_lot
+	where product_lot_id = ?
+	`)
 
 	/// FIXME not actually used
 	DB_Select_product_lot_components = PrepareOrElse(db, `
@@ -1031,13 +1142,14 @@ order by
 		)
 	insert into bs.product_sample_points (sample_point)
 	select distinct sample_point from sel where sample_point_id is null
-	returning sample_point_id, sample_point
+	-- 	returning sample_point_id, sample_point
+	-- 	SQLITE WON'T RETURN THAT!
 	`)
 
 	DB_Select_all_sample_points = PrepareOrElse(db, `
 	select sample_point_id, sample_point
-		from bs.product_sample_points
-		order by sample_point_id
+	from bs.product_sample_points
+	order by sample_point_id
 	`)
 
 	DB_Select_product_sample_points = PrepareOrElse(db, `
@@ -1045,15 +1157,16 @@ order by
 		from bs.product_lot
 		join bs.qc_samples using (lot_id)
 		join bs.product_sample_points using (sample_point_id)
-		where product_id = ?
-		order by sample_point_id
+	where product_id = ?
+	order by sample_point_id
 	`)
 
 	// bs.qc_tester_list
 	DB_Select_all_qc_tester = PrepareOrElse(db, `
 	select qc_tester_id, qc_tester_name
 		from bs.qc_tester_list
-		order by qc_tester_name
+	where qc_tester_active = 1
+	order by qc_tester_name
 	`)
 
 	DB_Insel_qc_tester = PrepareOrElse(db, `
@@ -1072,21 +1185,105 @@ order by
 	`)
 
 	// bs.qc_samples
+	DB_Select_qc_samples_lot = PrepareOrElse(db, `
+	select
+	qc_id,
+	lot_id,
+	product_name_internal, product_moniker_name,
+	lot_name,
+	sample_point,
+	ph, specific_gravity, density, string_test, viscosity
+from bs.qc_samples
+	join bs.lot_list using (lot_id)
+	join bs.product_lot using (lot_id)
+	join bs.product_line using (product_id)
+	join bs.product_moniker using (product_moniker_id)
+	left join bs.product_sample_points using (sample_point_id)
+where lot_name = ?1
+			`)
+
+	DB_Select_qc_samples__id = PrepareOrElse(db, `
+	select
+	qc_id,
+	lot_id,
+	product_name_internal, product_moniker_name,
+	lot_name,
+	sample_point,
+	ph, specific_gravity, density, string_test, viscosity
+	from bs.qc_samples
+	join bs.lot_list using (lot_id)
+	join bs.product_lot using (lot_id)
+	join bs.product_line using (product_id)
+	join bs.product_moniker using (product_moniker_id)
+	left join bs.product_sample_points using (sample_point_id)
+	where qc_id = ?1
+	`)
+	DB_Select_qc_samples_id_lot = PrepareOrElse(db, `
+select max(qc_id) from bs.qc_samples
+left join bs.product_sample_points using (sample_point_id)
+where lot_id = ?1
+and sample_point = ?2
+	`)
+	DB_Select_Product_compare_qc_samples = PrepareOrElse(db, `
+	select count(sample_point_id)
+
+	from bs.qc_samples qc_samples_left
+	join bs.qc_samples qc_samples_right using (sample_point_id)
+
+	where qc_samples_left.lot_id =?
+	and qc_samples_right.lot_id =?
+	`)
+
+	DB_Select_Product__qc_samples_dupe_pts = PrepareOrElse(db, `
+	select sample_point
+
+	from bs.qc_samples qc_samples_left
+	join bs.qc_samples qc_samples_right using (sample_point_id)
+	left join bs.product_sample_points using (sample_point_id)
+
+	where qc_samples_left.lot_id =?
+	and qc_samples_right.lot_id =?
+	`)
+
 	BIG_SAMPLES_QC := `time_stamp,  ph, specific_gravity, density, string_test, viscosity`
-	BIG_ID_SAMPLES_QC := `lot_id, sample_point, qc_tester_name, ` + BIG_SAMPLES_QC
-	BIG_NAME_SAMPLES_QC := `lot_id, sample_point_id, qc_tester_id, ` + BIG_SAMPLES_QC
+	BIG_NAME_SAMPLES_QC := `lot_id, sample_point, qc_tester_name, ` + BIG_SAMPLES_QC
+	BIG_ID_SAMPLES_QC := `lot_id, sample_point_id, qc_tester_id, ` + BIG_SAMPLES_QC
 	DB_insert_measurement = PrepareOrElse(db, `
 	with
-		val ( 	`+BIG_ID_SAMPLES_QC+`) as (
-			values
-				(?, ?, ?, ?, ?, ?, ?, ?, ?)
-		)
-	insert into bs.qc_samples (`+BIG_NAME_SAMPLES_QC+`)
-	select `+BIG_NAME_SAMPLES_QC+`
+	val ( 	`+BIG_NAME_SAMPLES_QC+`) as (
+		values
+		(?, ?, ?, ?, ?, ?, ?, ?, ?)
+	)
+	insert into bs.qc_samples (`+BIG_ID_SAMPLES_QC+`)
+	select `+BIG_ID_SAMPLES_QC+`
 	from val
 	left join bs.qc_tester_list using (qc_tester_name)
 	left join bs.product_sample_points using (sample_point)
 	returning qc_id;
+	`)
+
+	DB_Select_qc_samples__old = PrepareOrElse(db, `
+	select lot_name,`+BIG_NAME_SAMPLES_QC+`
+	from bs.qc_samples
+	join bs.lot_list using (lot_id)
+	left join bs.qc_tester_list using (qc_tester_id)
+	left join bs.product_sample_points using (sample_point_id)
+
+	where qc_id = ?1
+	`)
+
+	DB_Update_qc_samples_measurement = PrepareOrElse(db, `
+update bs.qc_samples
+	set
+qc_tester_id = (select qc_tester_id from bs.qc_tester_list where qc_tester_name = ?2),
+time_stamp = ?3,
+ph = ?4,
+specific_gravity = ?5,
+density = ?6,
+string_test = ?7,
+viscosity = ?8
+
+where qc_id = ?1
 	`)
 
 	DB_Update_qc_samples_storage = PrepareOrElse(db, `
@@ -1095,6 +1292,34 @@ update bs.qc_samples
 qc_sample_storage_id = ?2
 
 where qc_id = ?1
+	`)
+
+	DB_Update_qc_samples_id = PrepareOrElse(db, `
+	update bs.qc_samples
+	set
+	lot_id = ?2
+
+	where qc_id = ?1
+	`)
+
+	DB_Update_qc_samples_sample_point = PrepareOrElse(db, `
+	update bs.qc_samples
+	set
+	sample_point_id = (select sample_point_id from bs.product_sample_points where sample_point = ?2)
+	where qc_id = ?1
+	`)
+
+	DB_Update_qc_samples_lot = PrepareOrElse(db, `
+	update bs.qc_samples
+	set
+	lot_id = ?2
+
+	where lot_id = ?1
+	`)
+
+	DB_Delete_qc_samples_id = PrepareOrElse(db, `
+	delete from bs.qc_samples
+	where qc_id = ?
 	`)
 
 	// bs.product_sample_storage
@@ -1109,28 +1334,43 @@ where product_id = ?1
 	`)
 
 	DB_Select_gen_product_sample_storage = PrepareOrElse(db, `
-			select
+	select
 
-product_sample_storage_id, product_moniker_name, qc_sample_storage_offset, qc_sample_storage_name, min(time_stamp), max(time_stamp), retain_storage_duration
+	product_sample_storage_id, product_moniker_name, qc_sample_storage_offset, qc_sample_storage_name, min(time_stamp), max(time_stamp), retain_storage_duration
 
-from bs.product_sample_storage
-join bs.product_line using (product_moniker_id)
-join bs.qc_sample_storage_list using (qc_sample_storage_id, product_moniker_id)
-join bs.qc_samples using (qc_sample_storage_id)
-join bs.product_moniker using (product_moniker_id)
-where product_id = ?1
+	from bs.product_sample_storage
+	join bs.product_line using (product_moniker_id)
+	join bs.qc_sample_storage_list using (qc_sample_storage_id, product_moniker_id)
+	join bs.qc_samples using (qc_sample_storage_id)
+	join bs.product_moniker using (product_moniker_id)
+	where product_id = ?1
+	`)
+
+	DB_Select_reprint_product_sample_storage = PrepareOrElse(db, `
+	select
+
+	product_moniker_name,  qc_sample_storage_name, min(time_stamp), max(time_stamp), retain_storage_duration
+
+	from bs.qc_sample_storage_list
+	join bs.qc_samples using (qc_sample_storage_id)
+	join bs.product_moniker using (product_moniker_id)
+	join bs.product_sample_storage using (product_moniker_id)
+
+	where qc_sample_storage_name = ?1
 	`)
 
 	DB_Select_all_product_sample_storage = PrepareOrElse(db, `
 	select
 
-	product_sample_storage_id, product_moniker_name, qc_sample_storage_name, max_storage_capacity,  qc_storage_capacity
+	product_sample_storage_id, product_moniker_name, qc_sample_storage_name, max_storage_capacity,  qc_storage_capacity, product_id
 
 	from bs.product_sample_storage
-		join bs.qc_sample_storage_list using (qc_sample_storage_id)
+		join bs.qc_sample_storage_list using (qc_sample_storage_id,product_moniker_id)
 		join bs.product_moniker using (product_moniker_id)
+		join bs.product_line using (product_moniker_id)
 	where max_storage_capacity !=  qc_storage_capacity
 	or qc_sample_storage_offset > 0
+	group by product_moniker_id
 	order by qc_sample_storage_name
 	`)
 	DB_Insert_product_sample_storage = PrepareOrElse(db, `
@@ -1430,11 +1670,7 @@ val_max=excluded.val_max`
 }
 
 func Select_Error(proc_name string, query *sql.Row, args ...any) error {
-	err := query.Scan(args...)
-	if err != nil {
-		log.Printf("Err: [%s]: %q\n", proc_name, err)
-	}
-	return err
+	return util.LogError(proc_name, query.Scan(args...))
 }
 
 // permit empty
@@ -1471,6 +1707,7 @@ func Insert(proc_name string, insert_statement *sql.Stmt, args ...any) int64 {
 		return INVALID_ID
 	}
 	insert_id, err = result.LastInsertId()
+	// todo similar for RowsAffected
 	if err != nil {
 		log.Printf("Err: [%s]: %q\n", proc_name, err)
 		return INVALID_ID
@@ -1521,12 +1758,192 @@ func Insel_product_name_customer(product_name_customer string, product_id int64)
 	return Insel("Insel_product_name_customer", db_insert_product_customer, db_select_product_customer, product_name_customer, product_id)
 }
 
+// TODO extract Lot_Oper_07
+
+func Merge_Delete_Product_Lot(proc_name string, old_Product_Lot_id, new_Product_Lot_id int64) {
+	Exec_Error(proc_name,
+		DB_Update_component_list,
+		old_Product_Lot_id, new_Product_Lot_id)
+	// 	if components are a complete match, we can delete at will.
+	// 	if new_Product_Lot_id has no components, but wants the old ones, use:
+	// Exec_Error(proc_name,
+	// 	   DB_Update_blend_components,
+	//     old_Product_Lot_id, new_Product_Lot_id)
+
+	Exec_Error(proc_name,
+		DB_Delete_blend_components_product_lot,
+		old_Product_Lot_id)
+
+	Exec_Error(proc_name,
+		DB_Delete_product_lot,
+		old_Product_Lot_id)
+}
+
+func Merge_Delete_Lot(proc_name string, old_Lot_id, new_Lot_id int64) {
+	Exec_Error(proc_name,
+		DB_Update_inbound_relabel_lot,
+		old_Lot_id, new_Lot_id)
+	Exec_Error(proc_name,
+		DB_Update_qc_samples_lot,
+		old_Lot_id, new_Lot_id)
+	Exec_Error(proc_name,
+		DB_Delete_lot_list,
+		old_Lot_id)
+}
+
+var (
+	DupeSampleError        = errors.New("db: duplicate sample")
+	ComponentMismatchError = errors.New("db: component mismatch")
+)
+
+// make sure no collision
+//
+//	if using ':' format, reorder
+func DestLot(new_lot string, product_id, Lot_id, Product_Lot_id int64) (Dest_lot string, err error, other_Lot_id int64) {
+	var (
+		Lot_name, lot_address_str string
+		p_Lot_id                  *int64
+		found                     bool
+	)
+	proc_name := "DestLot"
+
+	Dest_lot, _, _ = strings.Cut(new_lot, ":")
+	Lot_search := Dest_lot + "%"
+
+	// find like Lot_number
+	if err = Select_ErrNoRows(proc_name, DB_Select_lot_list_for_product_lot_id_name.QueryRow(product_id, Lot_search),
+		&other_Lot_id, &Dest_lot, &p_Lot_id,
+	); err == nil {
+		// 	same product, already in product_lot
+		// 	check components
+		old_count := 0
+		new_count := 0
+		intersect := 0
+		Select_Error(proc_name,
+			DB_Select_Product_count_blend_components.QueryRow(p_Lot_id),
+			&old_count,
+		)
+		Select_Error(proc_name,
+			DB_Select_Product_count_blend_components.QueryRow(Product_Lot_id),
+			&new_count,
+		)
+		Select_Error(proc_name,
+			DB_Select_Product_compare_blend_components.QueryRow(p_Lot_id, Product_Lot_id),
+			&intersect,
+		)
+
+		if old_count != 0 && (old_count != intersect || new_count != intersect) {
+			err = ComponentMismatchError
+			log.Println("ERR: DestLot mismatch", Dest_lot)
+			return
+		}
+
+		// 	component_id match or nonexistence
+		Select_Error(proc_name,
+			DB_Select_Product_compare_qc_samples.QueryRow(other_Lot_id, Lot_id),
+			&intersect,
+		)
+		if intersect != 0 {
+			err = DupeSampleError
+			log.Println("ERR: DestLot dupe", Dest_lot, intersect)
+			return
+		}
+
+		proc_name = "DestLot-Product_Lot"
+		Merge_Delete_Product_Lot(proc_name,
+			*p_Lot_id, Product_Lot_id,
+		)
+		proc_name = "DestLot-Lot"
+		Merge_Delete_Lot(proc_name, other_Lot_id,
+			Lot_id,
+		)
+		return
+	}
+
+	currMax := -1
+	rows, err := DB_Select_lot_list_for_product_lot_name.Query(Lot_search)
+	if err != nil {
+		log.Printf("Err: [%s]: %q\n", proc_name, err)
+		return
+	}
+	for rows.Next() {
+		util.LogError(proc_name,
+			rows.Scan(
+				&other_Lot_id, &Lot_name, &p_Lot_id,
+			))
+		Lot_name, lot_address_str, found = strings.Cut(Lot_name, ":")
+		lot_address, _ := strconv.Atoi(lot_address_str)
+		currMax = max(currMax, lot_address)
+	}
+
+	// not in lot_list:
+	if currMax == -1 {
+		return
+	}
+	// in lot_list, not in product_lot:
+	if p_Lot_id == nil {
+		Merge_Delete_Lot(proc_name,
+			other_Lot_id,
+			Lot_id,
+		)
+		return
+	}
+
+	// diff product:
+	if !found {
+		Update(proc_name,
+			DB_Update_lot_list_name,
+			other_Lot_id,
+			Dest_lot+":0",
+		)
+	}
+	Dest_lot += ":" + strconv.Itoa(currMax+1)
+	return
+}
+
+func ShrinkLot(old_lot string) {
+	proc_name := "ShrinkLot"
+	var (
+		lot_address_str string
+		has_colon       bool
+	)
+	old_lot, lot_address_str, has_colon = strings.Cut(old_lot, ":")
+	lot_address, _ := strconv.Atoi(lot_address_str)
+	if !has_colon {
+		// no others
+		return
+	}
+	Lot_search := old_lot + "%"
+
+	count := 0
+	if Select_Error(proc_name,
+		DB_Select_lot__count.QueryRow(Lot_search),
+		&count,
+	); count == 1 {
+		Update(proc_name,
+			DB_Update_lot_list__name_like,
+			Lot_search,
+			old_lot,
+		)
+		return
+	}
+
+	Update(proc_name,
+		DB_Update_lot_list__dupes,
+		Lot_search,
+		lot_address,
+		old_lot+":",
+	)
+}
+
 func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string, Lot_id, Product_Lot_id int64) {
 	// we cannot guarantee uniqueness of lot numbers
 	proc_name := "Select_product_lot_name"
+
+	lot_name, _, _ = strings.Cut(lot_name, ":")
 	Lot_name = lot_name + "%"
 
-	// find like Lot_number :%
+	// find similar Lot_number with product_id
 	if err := Select_ErrNoRows(proc_name, DB_Select_lot_list_for_product_lot_id_name.QueryRow(product_id, Lot_name),
 		&Lot_id, &Lot_name, &Product_Lot_id,
 	); err == nil {
@@ -1538,24 +1955,23 @@ func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string
 	var (
 		lot_address_str string
 		p_Lot_id        *int
-		found           bool
+		has_colon       bool
 	)
 	// find like Lot_number :%
-	// TODO Forall_done
-	rows, err := DB_Select_lot_list_for_product_lot_name.Query(Lot_name)
-	if err != nil {
-		log.Printf("Err: [%s]: %q\n", proc_name, err)
+	if !Forall_done(proc_name, util.NOOP,
+		func(rows *sql.Rows) {
+			util.LogError(proc_name,
+				rows.Scan(
+					&Lot_id, &Lot_name, &p_Lot_id,
+				))
+			Lot_name, lot_address_str, has_colon = strings.Cut(Lot_name, ":")
+			lot_address, _ := strconv.Atoi(lot_address_str)
+			currMax = max(currMax, lot_address)
+		},
+		DB_Select_lot_list_for_product_lot_name,
+		Lot_name,
+	) {
 		return
-	}
-	for rows.Next() {
-		if err := rows.Scan(
-			&Lot_id, &Lot_name, &p_Lot_id,
-		); err != nil {
-			log.Printf("Err: [%s]: %q\n", proc_name, err)
-		}
-		Lot_name, lot_address_str, found = strings.Cut(Lot_name, ":")
-		lot_address, _ := strconv.Atoi(lot_address_str)
-		currMax = max(currMax, lot_address)
 	}
 
 	// not in lot_list:
@@ -1563,7 +1979,6 @@ func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string
 	if currMax == -1 {
 		Lot_name = lot_name
 		Lot_id = Insel_lot_id(Lot_name)
-		// Product_Lot_id = Insel_product_lot_id(Lot_id, product_id)
 	}
 
 	// in lot_list:
@@ -1573,14 +1988,12 @@ func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string
 		return
 	}
 
-	if !found {
-		if err = Update(proc_name,
+	if !has_colon {
+		Update(proc_name,
 			DB_Update_lot_list_name,
 			Lot_id,
 			Lot_name+":0",
-		); err != nil {
-			log.Printf("Err: [%s]: %q\n", proc_name, err)
-		}
+		)
 	}
 	Lot_name += ":" + strconv.Itoa(currMax+1)
 	Lot_id = Insel_lot_id(Lot_name)
@@ -1588,7 +2001,13 @@ func Select_product_lot_name(lot_name string, product_id int64) (Lot_name string
 	return
 }
 
+// END Lot_Oper_07
+
 func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), select_statement *sql.Stmt, args ...any) {
+	Forall_done(proc_name, start_fn, row_fn, select_statement, args...)
+}
+
+func Forall_done(proc_name string, start_fn func(), row_fn func(row *sql.Rows), select_statement *sql.Stmt, args ...any) (success bool) {
 	rows, err := select_statement.Query(args...)
 	if err != nil {
 		log.Printf("Err: [%s]: %q\n", proc_name, err)
@@ -1598,9 +2017,8 @@ func Forall(proc_name string, start_fn func(), row_fn func(row *sql.Rows), selec
 	for rows.Next() {
 		row_fn(rows)
 	}
+	return true
 }
-
-// TODO Forall_done
 
 // TODO count?
 func Forall_err(proc_name string, start_fn func(), row_fn func(row *sql.Rows) error, select_statement *sql.Stmt, args ...any) {
@@ -1611,9 +2029,9 @@ func Forall_err(proc_name string, start_fn func(), row_fn func(row *sql.Rows) er
 	}
 	start_fn()
 	for rows.Next() {
-		if err = row_fn(rows); err != nil {
-			log.Printf("Err: [%s]: %q\n", proc_name, err)
-		}
+		util.LogError(proc_name,
+			row_fn(rows),
+		)
 	}
 }
 

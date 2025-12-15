@@ -28,7 +28,7 @@ type ProductAppearanceROView struct {
 }
 
 func ProductAppearanceROView_from_new(parent windigo.Controller, field_text string, field_data product.ProductAppearance) *ProductAppearanceROView {
-	data_field := windigo.NewLabeledLabel(parent, "")
+	data_field := windigo.LabeledLabel_from_new(parent, "")
 
 	//TODO toolti[p]
 	// label := windigo.NewLabel(panel)

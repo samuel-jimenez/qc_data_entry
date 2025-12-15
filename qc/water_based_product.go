@@ -35,7 +35,7 @@ func (wb_product WaterBasedProduct) toProduct() *product.MeasuredProduct {
 	// TODO Option?
 }
 
-func newWaterBasedProduct(base_product product.QCProduct, have_visual bool, sg, ph float64) *product.MeasuredProduct {
+func MeasuredProduct_from_WaterBasedProductView(base_product product.QCProduct, have_visual bool, sg, ph float64) *product.MeasuredProduct {
 	base_product.Visual = have_visual
 
 	return WaterBasedProduct{base_product, sg, ph}.toProduct()
@@ -59,7 +59,7 @@ type WaterBasedProductView struct {
 	sg_field *GUI.NumberEditView
 }
 
-func newWaterBasedProductView(parent *windigo.AutoPanel, ranges_panel *WaterBasedProductRangesView) *WaterBasedProductView {
+func WaterBasedProductView_from_new(parent *windigo.AutoPanel, ranges_panel *WaterBasedProductRangesView) *WaterBasedProductView {
 	view := new(WaterBasedProductView)
 
 	group_panel := windigo.NewAutoPanel(parent)
@@ -78,11 +78,52 @@ func newWaterBasedProductView(parent *windigo.AutoPanel, ranges_panel *WaterBase
 	view.ph_field = ph_field
 	view.sg_field = sg_field
 
+	view.AddShortcuts()
+
 	return view
 }
 
+func (view *WaterBasedProductView) AddShortcuts() {
+	num_back_shortcut := windigo.Shortcut{Key: windigo.KeyDivide}
+	num_fwd_shortcut := windigo.Shortcut{Key: windigo.KeyMultiply}
+	num_prev_shortcut := windigo.Shortcut{Key: windigo.KeySubtract}
+	num_next_shortcut := windigo.Shortcut{Key: windigo.KeyAdd}
+
+	kb_prev_shortcut := windigo.Shortcut{Key: windigo.KeyW}
+	kb_back_shortcut := windigo.Shortcut{Key: windigo.KeyA}
+	kb_next_shortcut := windigo.Shortcut{Key: windigo.KeyS}
+	kb_fwd_shortcut := windigo.Shortcut{Key: windigo.KeyD}
+
+	view.visual_field.AddShortcut(num_prev_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_fwd_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_back_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(num_next_shortcut, view.FocusPH)
+	view.visual_field.AddShortcut(kb_prev_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_fwd_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_back_shortcut, view.FocusVisual)
+	view.visual_field.AddShortcut(kb_next_shortcut, view.FocusPH)
+
+	view.ph_field.AddShortcut(num_prev_shortcut, view.FocusVisual)
+	view.ph_field.AddShortcut(num_fwd_shortcut, view.FocusPH)
+	view.ph_field.AddShortcut(num_back_shortcut, view.FocusPH)
+	view.ph_field.AddShortcut(num_next_shortcut, view.FocusSG)
+	view.ph_field.AddShortcut(kb_prev_shortcut, view.FocusVisual)
+	view.ph_field.AddShortcut(kb_fwd_shortcut, view.FocusPH)
+	view.ph_field.AddShortcut(kb_back_shortcut, view.FocusPH)
+	view.ph_field.AddShortcut(kb_next_shortcut, view.FocusSG)
+
+	view.sg_field.AddShortcut(num_prev_shortcut, view.FocusPH)
+	view.sg_field.AddShortcut(num_fwd_shortcut, view.FocusSG)
+	view.sg_field.AddShortcut(num_back_shortcut, view.FocusSG)
+	view.sg_field.AddShortcut(num_next_shortcut, view.FocusSG)
+	view.sg_field.AddShortcut(kb_prev_shortcut, view.FocusPH)
+	view.sg_field.AddShortcut(kb_fwd_shortcut, view.FocusSG)
+	view.sg_field.AddShortcut(kb_back_shortcut, view.FocusSG)
+	view.sg_field.AddShortcut(kb_next_shortcut, view.FocusSG)
+}
+
 func (view *WaterBasedProductView) Get(base_product product.QCProduct) *product.MeasuredProduct {
-	return newWaterBasedProduct(base_product, view.visual_field.Get(), view.sg_field.Get(), view.ph_field.Get())
+	return MeasuredProduct_from_WaterBasedProductView(base_product, view.visual_field.Get(), view.sg_field.Get(), view.ph_field.Get())
 }
 
 func (view *WaterBasedProductView) Clear() {
@@ -105,4 +146,19 @@ func (view *WaterBasedProductView) RefreshSize() {
 	view.visual_field.SetSize(GUI.OFF_AXIS, GUI.EDIT_FIELD_HEIGHT)
 	view.sg_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
 	view.ph_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.DATA_FIELD_WIDTH, GUI.EDIT_FIELD_HEIGHT)
+}
+
+func (view *WaterBasedProductView) FocusVisual() bool {
+	view.visual_field.SetFocus()
+	return true
+}
+
+func (view *WaterBasedProductView) FocusPH() bool {
+	view.ph_field.SetFocus()
+	return true
+}
+
+func (view *WaterBasedProductView) FocusSG() bool {
+	view.sg_field.SetFocus()
+	return true
 }
