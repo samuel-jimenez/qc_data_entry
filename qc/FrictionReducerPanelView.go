@@ -163,7 +163,7 @@ func (view *FrictionReducerPanelView) proc_car(print_p bool) {
 	} else {
 		// TODO show confirm box?
 		log.Println("ERROR: check_dual_data-Viscosity", top_product.Lot_number, top_product.Product_name, top_product.Viscosity, bottom_product.Viscosity)
-		qc_ui.Check_dupe_data(view, err, top_product, bottom_product)
+		qc_ui.Check_dupe_data(view, err, print_p, top_product, bottom_product)
 	}
 }
 
@@ -173,5 +173,5 @@ func (view *FrictionReducerPanelView) proc_single(store_p, print_p bool) {
 	if valid {
 		view.product_panel.SetMeasuredProduct(measured_product)
 	}
-	qc_ui.Check_dupe_data(view, err, measured_product)
+	qc_ui.Check_dupe_data(view, err, print_p, measured_product)
 }

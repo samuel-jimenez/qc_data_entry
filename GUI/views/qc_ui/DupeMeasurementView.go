@@ -11,7 +11,7 @@ import (
 	"github.com/samuel-jimenez/windigo"
 )
 
-func Check_dupe_data(parent windigo.Controller, err error, products ...*product.MeasuredProduct) {
+func Check_dupe_data(parent windigo.Controller, err error, print_p bool, products ...*product.MeasuredProduct) {
 	if errors.Is(err, product.DupeSampleError) {
 		DupeMeasurementView := DupeMeasurementView_from_products(parent, products)
 		DupeMeasurementView.SetModal(false)

@@ -83,7 +83,7 @@ func (view *OilBasedPanelView) submit_data() {
 	if valid {
 		view.product_panel.SetMeasuredProduct(measured_product)
 	}
-	qc_ui.Check_dupe_data(view, err, measured_product)
+	qc_ui.Check_dupe_data(view, err, true, measured_product)
 }
 
 func (view *OilBasedPanelView) log_data() {
@@ -92,5 +92,5 @@ func (view *OilBasedPanelView) log_data() {
 	if valid {
 		view.product_panel.SetMeasuredProduct(measured_product)
 	}
-	qc_ui.Check_dupe_data(view, err, measured_product)
+	qc_ui.Check_dupe_data(view, err, false, measured_product)
 }

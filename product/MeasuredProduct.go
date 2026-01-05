@@ -268,6 +268,11 @@ func Check_single_data(measured_product *MeasuredProduct, store_p, print_p bool)
 	return
 }
 
+// TODO dDispathc Check_dual_data
+// Print
+// .Output_sample())
+// if print_p {
+// util.LogError("bottom_product-Print", bottom_product.Print())
 func Check_dual_data(top_product, bottom_product *MeasuredProduct, print_p bool) (valid bool, err error) {
 	// DELTA_DIFF_VISCO := 200
 	var DELTA_DIFF_VISCO int64 = 200 // go sucks
