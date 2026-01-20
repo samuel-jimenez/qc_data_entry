@@ -290,6 +290,8 @@ func Check_dual_data(top_product, bottom_product *MeasuredProduct, print_p bool)
 			return
 		}
 
+		// return true, updateExcel(config.BLENDSHEET_PATH, config.RETAIN_WORKSHEET_NAME, measured_product.Lot_number, isomeric_product, valence_product)
+
 		if print_p {
 			util.LogError("top_product-Print", top_product.Print())
 			log.Println("debug: Check_data",
