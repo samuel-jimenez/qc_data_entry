@@ -64,6 +64,14 @@ func NumberEditView_with_Change_from_new(parent windigo.Controller, field_text s
 	return edit_field
 }
 
+func NumberEditView_with_PointlessChange_from_new(parent windigo.Controller, field_text string, range_field Checker) *NumberEditView {
+	edit_field := NumberEditView_from_new(parent, field_text)
+	edit_field.OnChange().Bind(func(e *windigo.Event) {
+		edit_field.Check(range_field.Check(edit_field.GetPointless_SG()))
+	})
+	return edit_field
+}
+
 func (control *NumberEditView) GetFixed() float64 {
 	start, end := control.Selected()
 	// IndexAny(s, chars string) int
@@ -73,6 +81,27 @@ func (control *NumberEditView) GetFixed() float64 {
 	// mass_field.SelectText(-1, 0)
 
 	return control.Get()
+}
+
+// TODO collapse these
+func (control *NumberEditView) GetPointless_SG() float64 {
+	// i=1
+	start, end := control.Selected()
+
+	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
+
+	for val > 1 { // 1ei
+		val /= 10
+		// check position. if we just backspaced the decimal point, don't put it back in the way
+		if start != 1 { // i
+			start++
+			end++
+		}
+	}
+	control.Set(val)
+	control.SelectText(start, end)
+
+	return val
 }
 
 func (control *NumberEditView) GetPointless() float64 {

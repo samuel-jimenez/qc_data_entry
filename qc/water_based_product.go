@@ -67,7 +67,7 @@ func WaterBasedProductView_from_new(parent *windigo.AutoPanel, ranges_panel *Wat
 	visual_field := views.NewBoolCheckboxView(group_panel, VISUAL_TEXT)
 
 	ph_field := GUI.NumberEditView_with_Change_from_new(group_panel, formats.PH_TEXT, ranges_panel.ph_field)
-	sg_field := GUI.NumberEditView_with_Change_from_new(group_panel, formats.SG_TEXT, ranges_panel.sg_field)
+	sg_field := GUI.NumberEditView_with_PointlessChange_from_new(group_panel, formats.SG_TEXT, ranges_panel.sg_field)
 
 	group_panel.Dock(visual_field, windigo.Top)
 	group_panel.Dock(ph_field, windigo.Top)
