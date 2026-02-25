@@ -58,6 +58,7 @@ type QCData struct {
 	Lot_name string
 	Product_id int64
 	Product_name_customer,
+	Tester,
 	Sample_point,
 	Sample_bin nullable.NullString
 	Time_stamp time.Time
@@ -77,6 +78,8 @@ func (data *QCData) GetComponents() {
 
 func compare_product_name(a, b QCData) int { return strings.Compare(a.Product_name, b.Product_name) }
 func compare_lot_name(a, b QCData) int     { return strings.Compare(a.Lot_name, b.Lot_name) }
+
+func compare_tester(a, b QCData) int       { return a.Tester.Compare(b.Tester) }
 func compare_sample_point(a, b QCData) int { return a.Sample_point.Compare(b.Sample_point) }
 func compare_sample_bin(a, b QCData) int   { return a.Sample_bin.Compare(b.Sample_bin) }
 func compare_time_stamp(a, b QCData) int   { return a.Time_stamp.Compare(b.Time_stamp) }
@@ -142,6 +145,8 @@ func (data QCData) Text() []string {
 	return append([]string{
 		data.Time_stamp.Format(time.DateTime),
 
+		data.Tester.String,
+
 		data.Product_name, data.Lot_name,
 		data.Sample_point.String,
 		data.Sample_bin.String,
@@ -184,6 +189,8 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 
 	table.AddColumn(
 		COL_LABEL_TIME, COL_WIDTH_TIME)
+	table.AddColumn(
+		"Tester", COL_WIDTH_LOT)
 	table.AddColumn(
 		"Product", COL_WIDTH_TIME)
 	table.AddColumn(
@@ -237,6 +244,7 @@ func NewQCDataView(parent windigo.Controller) *QCDataView {
 
 	table.less = []lessFunc{
 		compare_time_stamp,
+		compare_tester,
 		compare_product_name,
 		compare_lot_name,
 		compare_sample_point,
@@ -307,6 +315,7 @@ func (view *QCDataView) Sort(col int, asc bool) {
 func (table *QCDataView) RefreshSize() {
 	widths := []int{
 		COL_WIDTH_TIME,
+		COL_WIDTH_LOT,
 		COL_WIDTH_TIME,
 		COL_WIDTH_LOT,
 		COL_WIDTH_SAMPLE_PT,

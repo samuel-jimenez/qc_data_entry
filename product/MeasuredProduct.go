@@ -257,6 +257,8 @@ func Check_single_data(measured_product *MeasuredProduct, store_p, print_p bool)
 				return
 			}
 		}
+
+		util.LogError("sample_product-Blendshhet", updateBSExcel(config.BLENDSHEET_PATH, measured_product))
 		if print_p {
 			util.LogError("sample_product-Print", measured_product.Print())
 		}
@@ -290,7 +292,7 @@ func Check_dual_data(top_product, bottom_product *MeasuredProduct, print_p bool)
 			return
 		}
 
-		// return true, updateExcel(config.BLENDSHEET_PATH, config.RETAIN_WORKSHEET_NAME, measured_product.Lot_number, isomeric_product, valence_product)
+		util.LogError("top_product-Blendshhet", updateBSExcel(config.BLENDSHEET_PATH, top_product, bottom_product))
 
 		if print_p {
 			util.LogError("top_product-Print", top_product.Print())

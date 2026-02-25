@@ -81,6 +81,7 @@ func __select_samples(proc_name string, rows *sql.Rows, err error, query string)
 			&product_moniker_name, &internal_name,
 			&qc_data.Product_name_customer,
 			&qc_data.Lot_name,
+			&qc_data.Tester,
 			&qc_data.Sample_point,
 			&qc_data.Sample_bin,
 			&_timestamp,
@@ -178,6 +179,7 @@ union
 		product_name_internal,
 		product_name_customer,
 		lot_name,
+		qc_tester_name,
 		sample_point,
 		qc_sample_storage_name,
 		time_stamp,
@@ -192,6 +194,7 @@ union
 		join bs.product_moniker using (product_moniker_id)
 		left join bs.product_customer_line using (product_customer_id, product_id)
 		left join bs.product_sample_points using (sample_point_id)
+		left join bs.qc_tester_list using (qc_tester_id)
 		left join bs.qc_sample_storage_list using (qc_sample_storage_id)
 	`
 	SAMPLE_ORDER_STRING = `
