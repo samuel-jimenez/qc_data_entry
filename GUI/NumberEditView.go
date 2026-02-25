@@ -4,6 +4,7 @@ package GUI
 
 import (
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/samuel-jimenez/windigo"
@@ -56,7 +57,6 @@ func NumberEditView_from_new(parent windigo.Controller, field_text string) *Numb
 }
 
 func NumberEditView_with_Change_from_new(parent windigo.Controller, field_text string, range_field Checker) *NumberEditView {
-
 	edit_field := NumberEditView_from_new(parent, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
 		edit_field.Check(range_field.Check(edit_field.GetFixed()))
@@ -73,6 +73,25 @@ func (control *NumberEditView) GetFixed() float64 {
 	// mass_field.SelectText(-1, 0)
 
 	return control.Get()
+}
+
+func (control *NumberEditView) GetPointless() float64 {
+	start, end := control.Selected()
+
+	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
+
+	for val > 100 {
+		val /= 10
+		// check position. if we just backspaced the decimal point, don't put it back in the way
+		if start != 2 {
+			start++
+			end++
+		}
+	}
+	control.Set(val)
+	control.SelectText(start, end)
+
+	return val
 }
 
 func (control *NumberEditView) Clear() {
@@ -98,7 +117,6 @@ func (control *NumberEditView) SetLabeledSize(label_width, control_width, height
 	// control.Edit.SetSize(control_width, height)
 	control.Label().SetSize(label_width, height)
 	control.SetPaddingsAll(ERROR_MARGIN)
-
 }
 
 // onchange for FR
@@ -132,7 +150,6 @@ type NumberUnitsEditView struct {
 //		control.Label().SetSize(label_width, height)
 //	}
 func NumberEditView_with_Units_from_new(parent *windigo.AutoPanel, field_text, field_units string) *NumberUnitsEditView {
-
 	panel := windigo.NewAutoPanel(parent)
 
 	text_label := windigo.NewLabel(panel)
@@ -154,7 +171,6 @@ func NumberEditView_with_Units_from_new(parent *windigo.AutoPanel, field_text, f
 		text_units.SetFont(font)
 	}
 	setLabeledSize := func(label_width, control_width, unit_width, height int) {
-
 		panel.SetSize(label_width+control_width+unit_width, height)
 		panel.SetPaddingsAll(ERROR_MARGIN)
 
@@ -166,7 +182,6 @@ func NumberEditView_with_Units_from_new(parent *windigo.AutoPanel, field_text, f
 
 		text_units.SetSize(unit_width, height)
 		text_units.SetMarginTop(ERROR_MARGIN)
-
 	}
 
 	return &NumberUnitsEditView{NumberEditView{&View{ComponentFrame: panel}, NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}

@@ -83,7 +83,7 @@ func (view *MassDataView) check_or_error_mass(mass, sg, density float64) {
 }
 
 func (view *MassDataView) FixMass() (mass, sg, density float64) {
-	mass = view.NumberEditView.GetFixed()
+	mass = view.NumberEditView.GetPointless()
 	sg = formats.SG_from_mass(mass)
 	density = formats.Density_from_sg(sg)
 
