@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/samuel-jimenez/qc_data_entry/formats"
 	"github.com/samuel-jimenez/windigo"
 )
 
@@ -89,8 +90,8 @@ func (control *NumberEditView) GetPointless_SG() float64 {
 	start, end := control.Selected()
 
 	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
+	for val >= 10 { // 1ei
 
-	for val > 1 { // 1ei
 		val /= 10
 		// check position. if we just backspaced the decimal point, don't put it back in the way
 		if start != 1 { // i
@@ -98,7 +99,9 @@ func (control *NumberEditView) GetPointless_SG() float64 {
 			end++
 		}
 	}
-	control.Set(val)
+
+	// control.Setf(val,formats.Format_sg())
+	control.SetText(formats.Format_sg(val, false))
 	control.SelectText(start, end)
 
 	return val
@@ -109,7 +112,7 @@ func (control *NumberEditView) GetPointless() float64 {
 
 	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
 
-	for val > 100 {
+	for val >= 100 {
 		val /= 10
 		// check position. if we just backspaced the decimal point, don't put it back in the way
 		if start != 2 {
