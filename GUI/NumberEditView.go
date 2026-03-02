@@ -101,7 +101,7 @@ func (control *NumberEditView) GetPointless_SG() float64 {
 	}
 
 	// control.Setf(val,formats.Format_sg())
-	control.SetText(formats.Format_sg(val, false))
+	control.SetText(formats.Format_sg(val, true))
 	control.SelectText(start, end)
 
 	return val

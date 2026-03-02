@@ -17,7 +17,7 @@ var (
 	STRING_UNITS    = "s"
 	VISCOSITY_UNITS = "cP"
 
-	SG_PRECISION_FIXED = 4
+	SG_PRECISION_FIXED    = 4
 	SG_PRECISION_VARIABLE = 3
 	PH_PRECISION          = 2
 	DENSITY_PRECISION     = 3
@@ -59,6 +59,7 @@ func Format_mass(mass float64) string {
 	return strconv.FormatFloat(mass, 'f', 2, 64)
 }
 
+// / fixed_precision means a set number of decimal places
 func Format_sg(sg float64, fixed_precision bool) string {
 	if fixed_precision || sg < 1 {
 		return Format_fixed_sg(sg)
@@ -70,8 +71,6 @@ func Format_sg(sg float64, fixed_precision bool) string {
 func Format_fixed_sg(sg float64) string {
 	return Format_float(sg, SG_PRECISION_FIXED)
 }
-
-
 
 func Format_ph(ph float64) string {
 	return Format_float(ph, PH_PRECISION)
