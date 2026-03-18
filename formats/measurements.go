@@ -1,6 +1,7 @@
 package formats
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/samuel-jimenez/qc_data_entry/util/math"
@@ -56,7 +57,7 @@ func Mass_from_sg(sg float64) float64 {
 }
 
 func Format_mass(mass float64) string {
-	return strconv.FormatFloat(mass, 'f', 2, 64)
+	return fmt.Sprintf("%05.2f", mass)
 }
 
 // fixed_precision means a set number of decimal places

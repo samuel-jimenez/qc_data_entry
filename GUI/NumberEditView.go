@@ -113,22 +113,201 @@ func (control *NumberEditView) GetPointless_PH() float64 {
 }
 
 func (control *NumberEditView) GetPointless_SG() float64 {
-	// i=1
+
+	self_dec_pos := 1
+	width := 6
+	last_key := 0
+
+	return control.ParsePointless(self_dec_pos, width, last_key, formats.Format_fixed_sg)
+}
+
+func (control *NumberEditView) GetPointlessMass() float64 {
+	// TODO onKeyUp
+
+	self_dec_pos := 2
+	width := 5
+	last_key := 0
+
+	return control.ParsePointless(self_dec_pos, width, last_key, formats.Format_mass)
+}
+
+func (control *NumberEditView) ParsePointless(self_dec_pos, width int, last_key int, format func(float64) string) float64 {
 	start, end := control.Selected()
 
-	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
-	for val >= 10 { // 1ei
+	cursor := start
 
-		val /= 10
-		// check position. if we just backspaced the decimal point, don't put it back in the way
-		if start != 1 { // i
-			start++
-			end++
+	// TODO onKeyUp
+
+	remangle := false
+
+	text := control.Text()
+
+	// text.retain(|c| match c {
+	//     '0':='9' | '.' => true,
+	//     _ => false,
+	// });
+	// dec_pos := text.Index();
+	dec_pos := strings.Index(text, ".")
+	if dec_pos != -1 {
+
+		dec_pos_last := strings.LastIndex(text, ".")
+		if dec_pos_last != dec_pos {
+			// we have multiple decimal points
+			if dec_pos == cursor-1 || dec_pos_last == cursor-1 {
+				//  we just typed a decimal
+				dec_pos = cursor - 1 // WLOG
+
+				// let mut rest = text.split_off(dec_pos);
+				rest := strings.ReplaceAll(
+					text[dec_pos:], ".", "")
+				text = strings.ReplaceAll(
+					text[:dec_pos], ".", "")
+
+				var new_text strings.Builder
+				new_text.Grow(width)
+
+				if len(text) > self_dec_pos {
+					// we need to put the decimal where it belongs
+					new_text.WriteString(text[len(text)-self_dec_pos:])
+				} else {
+					new_text.WriteString(text)
+				}
+				new_text.WriteRune('.')
+				new_text.WriteString(rest)
+				text = new_text.String()
+
+				start = self_dec_pos + 1
+				end = self_dec_pos + 1
+			} else {
+				// remove them all
+				text = strings.ReplaceAll(text, ".", "")
+				remangle = true
+			}
+		} else {
+			// only one decimal point
+			if len(text) > width {
+				// text inserted, not overwritten
+
+				// move the decimal out of my way
+				if cursor > self_dec_pos && cursor-self_dec_pos <= len(text)-width {
+					start += 1
+					end += 1
+				}
+
+				if self_dec_pos < dec_pos {
+					// add to beginning
+					var new_text strings.Builder
+					new_text.Grow(width)
+					new_text.WriteString(text[:self_dec_pos])
+					new_text.WriteRune('.')
+					new_text.WriteString(text[self_dec_pos:dec_pos])
+					new_text.WriteString(text[dec_pos+1:])
+					text = new_text.String()
+				} else if cursor == len(text) {
+					// add to end
+					var start_idx uint32
+					if self_dec_pos == dec_pos {
+						start_idx = 1
+					} else {
+						start_idx = 0
+					} // truncate from front if buffer is full
+					var new_text strings.Builder
+					new_text.Grow(width)
+					new_text.WriteString(text[start_idx:dec_pos])
+					new_text.WriteString(text[dec_pos+1 : dec_pos+2])
+					new_text.WriteRune('.')
+					new_text.WriteString(text[dec_pos+2:])
+					text = new_text.String()
+				}
+			} else if len(text) < width && dec_pos < self_dec_pos {
+				if len(text) > self_dec_pos {
+					// we need to put the decimal where it belongs
+					var new_text strings.Builder
+					new_text.Grow(width)
+					new_text.WriteString(text[:dec_pos])
+					new_text.WriteString(text[dec_pos+1 : self_dec_pos+1])
+					new_text.WriteRune('.')
+					new_text.WriteString(text[self_dec_pos+1:])
+					text = new_text.String()
+				}
+			} else {
+				// pasted
+				// text.remove(dec_pos)
+				var new_text strings.Builder
+				new_text.Grow(width)
+				new_text.WriteString(text[:dec_pos])
+				new_text.WriteString(text[dec_pos+1:])
+				text = new_text.String()
+				remangle = true
+			}
+		}
+
+	} else if len(text) > self_dec_pos {
+		// no decimal
+		// but enough space
+
+		var new_text strings.Builder
+		new_text.Grow(width)
+		// move the decimal out of my way
+		// if cursor != self_dec_pos
+		//     || match last_key.get() {
+		//         ASCII_DELETE => {
+		//             new_text.WriteString(text[:self_dec_pos]);
+		//             new_text.WriteRune('.');
+		//             new_text.WriteString(text[self_dec_pos + 1:]);
+		//             false
+		//         }
+		//         ASCII_BACKSPACE => {
+		//             new_text.WriteString(text[:self_dec_pos - 1]);
+		//             new_text.WriteString(text[self_dec_pos:self_dec_pos + 1]);
+		//             new_text.WriteRune('.');
+		//             new_text.WriteString(text[self_dec_pos + 1:]);
+		//             start -= 1;
+		//             end -= 1;
+		//             false
+		//         }
+		//         _ => true,
+		//     }
+		// {
+		new_text.WriteString(text[:self_dec_pos])
+		new_text.WriteRune('.')
+		new_text.WriteString(text[self_dec_pos:])
+		// }
+		text = new_text.String()
+	} else {
+		remangle = true
+	}
+
+	if remangle {
+		if len(text) > self_dec_pos {
+			// no decimal
+			// but enough space for one
+			var new_text strings.Builder
+			new_text.Grow(width)
+
+			new_text.WriteString(text[:self_dec_pos])
+			new_text.WriteRune('.')
+			new_text.WriteString(text[self_dec_pos:])
+			text = new_text.String()
+		} else {
+			// text is too small for a decimal
+			// text.reserve_exact(self_dec_pos - len(text));
+			var new_text strings.Builder
+			new_text.Grow(self_dec_pos)
+			new_text.WriteString(text)
+
+			// text.push_str(&"0".repeat(self_dec_pos - len(text)));
+			new_text.WriteString(
+				strings.Repeat("0", self_dec_pos-len(text)))
+			text = new_text.String()
 		}
 	}
 
-	// control.Setf(val,formats.Format_sg())
-	control.SetText(formats.Format_sg(val, true))
+	text = text[0:min(width, len(text))]
+
+	val, _ := strconv.ParseFloat(strings.TrimSpace(text), 64)
+
+	control.SetText(format(val))
 	control.SelectText(start, end)
 
 	return val
