@@ -73,6 +73,10 @@ func Format_fixed_sg(sg float64) string {
 	return Format_float(sg, SG_PRECISION_FIXED)
 }
 
+func Format_fixed_ph(ph float64) string {
+	return fmt.Sprintf("%05.2f", ph)
+}
+
 func Format_ph(ph float64) string {
 	return Format_float(ph, PH_PRECISION)
 }

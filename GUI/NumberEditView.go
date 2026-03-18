@@ -77,6 +77,26 @@ func NumberEditView_with_PointlessChange_SG_from_new(parent windigo.Controller, 
 		// control.last_key := KeyUpEventData
 		// KeyUpEventData struct {
 		// VKey, Code int
+		// WM_KEYDOWN => {
+		//             match w as u32 {
+		//                 DELETE => callback_last_key.set(ASCII_DELETE),
+		//                 _ => {}
+		//             }
+		//             None
+		//         }
+		//         WM_CHAR => match char::from_u32(w as u32).unwrap_or('?') {
+		//             key @ ('0'..='9' | '.' | ASCII_BACKSPACE) => {
+		//                 // allowed characters
+		//                 callback_last_key.set(key);
+		//                 None
+		//             }
+		//             _ => Some(0),
+		//         },
+		//         WM_PASTE => {
+		//             // so we aren't anticipating keypresses
+		//             callback_last_key.set(PASTE);
+		//             None
+		//         }
 	})
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
 		edit_field.Check(range_field.Check(edit_field.GetPointless_SG()))
@@ -91,8 +111,10 @@ func NumberEditView_with_PointlessChange_PH_from_new(parent windigo.Controller, 
 		edit_field.Check(range_field.Check(edit_field.GetPointless_PH()))
 	})
 	edit_field.OnKeyUp().Bind(func(e *windigo.Event) {
+		// TODO this never fires
 		edit_field.last_key = e.Data.(*windigo.KeyUpEventData).VKey
 	})
+
 	return edit_field
 }
 
@@ -109,20 +131,21 @@ func (control *NumberEditView) GetFixed() float64 {
 
 // TODO collapse these
 func (control *NumberEditView) GetPointless_PH() float64 {
-	start, end := control.Selected()
+	self_dec_pos := 2
+	width := 5
+	last_key := 0
 
-	val, _ := strconv.ParseFloat(strings.TrimSpace(control.Text()), 64)
+	val := control.ParsePointless(self_dec_pos, width, last_key, formats.Format_fixed_ph)
 
-	for val >= 20 {
+	if val >= 20 {
+		start, end := control.Selected()
 		val /= 10
-		// check position. if we just backspaced the decimal point, don't put it back in the way
-		if start != 1 {
-			start++
-			end++
-		}
+
+		start++
+		end++
+		control.SetText(formats.Format_fixed_ph(val))
+		control.SelectText(start, end)
 	}
-	control.Set(val)
-	control.SelectText(start, end)
 
 	return val
 }
