@@ -3,6 +3,7 @@ package GUI
 // TODO todo NumberEditView
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -46,10 +47,11 @@ type NumberEditView struct {
 	ErrableView
 	NumbEditView
 	windigo.Labeled
+	last_key int
 }
 
 func NumberEditView_from_LabeledEdit(label *windigo.LabeledEdit) *NumberEditView {
-	return &NumberEditView{&View{ComponentFrame: label.ComponentFrame}, NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}}
+	return &NumberEditView{&View{ComponentFrame: label.ComponentFrame}, NumbEditView{label.Edit}, windigo.Labeled{FieldLabel: label.Label()}, 0}
 }
 
 func NumberEditView_from_new(parent windigo.Controller, field_text string) *NumberEditView {
@@ -67,9 +69,19 @@ func NumberEditView_with_Change_from_new(parent windigo.Controller, field_text s
 
 func NumberEditView_with_PointlessChange_SG_from_new(parent windigo.Controller, field_text string, range_field Checker) *NumberEditView {
 	edit_field := NumberEditView_from_new(parent, field_text)
+	edit_field.OnKeyUp().Bind(func(e *windigo.Event) {
+		// TODO this never fires
+		fmt.Println("keyup", e)
+
+		edit_field.last_key = e.Data.(*windigo.KeyUpEventData).VKey
+		// control.last_key := KeyUpEventData
+		// KeyUpEventData struct {
+		// VKey, Code int
+	})
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
 		edit_field.Check(range_field.Check(edit_field.GetPointless_SG()))
 	})
+
 	return edit_field
 }
 
@@ -77,6 +89,9 @@ func NumberEditView_with_PointlessChange_PH_from_new(parent windigo.Controller, 
 	edit_field := NumberEditView_from_new(parent, field_text)
 	edit_field.OnChange().Bind(func(e *windigo.Event) {
 		edit_field.Check(range_field.Check(edit_field.GetPointless_PH()))
+	})
+	edit_field.OnKeyUp().Bind(func(e *windigo.Event) {
+		edit_field.last_key = e.Data.(*windigo.KeyUpEventData).VKey
 	})
 	return edit_field
 }
@@ -113,7 +128,6 @@ func (control *NumberEditView) GetPointless_PH() float64 {
 }
 
 func (control *NumberEditView) GetPointless_SG() float64 {
-
 	self_dec_pos := 1
 	width := 6
 	last_key := 0
@@ -122,8 +136,6 @@ func (control *NumberEditView) GetPointless_SG() float64 {
 }
 
 func (control *NumberEditView) GetPointlessMass() float64 {
-	// TODO onKeyUp
-
 	self_dec_pos := 2
 	width := 5
 	last_key := 0
@@ -135,8 +147,6 @@ func (control *NumberEditView) ParsePointless(self_dec_pos, width int, last_key 
 	start, end := control.Selected()
 
 	cursor := start
-
-	// TODO onKeyUp
 
 	remangle := false
 
@@ -422,5 +432,5 @@ func NumberEditView_with_Units_from_new(parent *windigo.AutoPanel, field_text, f
 		text_units.SetMarginTop(ERROR_MARGIN)
 	}
 
-	return &NumberUnitsEditView{NumberEditView{&View{ComponentFrame: panel}, NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}}, setFont, setLabeledSize}
+	return &NumberUnitsEditView{NumberEditView{&View{ComponentFrame: panel}, NumbEditView{text_field}, windigo.Labeled{FieldLabel: text_label}, 0}, setFont, setLabeledSize}
 }
