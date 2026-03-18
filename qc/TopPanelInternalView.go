@@ -9,6 +9,7 @@ import (
 	"github.com/samuel-jimenez/qc_data_entry/GUI"
 	"github.com/samuel-jimenez/qc_data_entry/GUI/views"
 	"github.com/samuel-jimenez/qc_data_entry/QR"
+	"github.com/samuel-jimenez/qc_data_entry/blender"
 	"github.com/samuel-jimenez/qc_data_entry/product"
 	"github.com/samuel-jimenez/windigo"
 )
@@ -64,7 +65,7 @@ type TopPanelInternalView struct {
 
 	container_field *product.DiscreteView
 
-	ranges_button, inventory_button, reprint_button, inbound_button *windigo.PushButton
+	ranges_button, today_button, inventory_button, reprint_button, inbound_button *windigo.PushButton
 }
 
 func NewTopPanelInternalView(
@@ -73,7 +74,7 @@ func NewTopPanelInternalView(
 	product_panel_0_0, product_panel_0_1 *windigo.AutoPanel,
 	internal_product_field, customer_field, lot_field, sample_field *GUI.ComboBox,
 	container_field *product.DiscreteView,
-	ranges_button, inventory_button, reprint_button, inbound_button *windigo.PushButton,
+	ranges_button, today_button, inventory_button, reprint_button, inbound_button *windigo.PushButton,
 ) *TopPanelInternalView {
 	view := new(TopPanelInternalView)
 
@@ -95,6 +96,7 @@ func NewTopPanelInternalView(
 	view.container_field = container_field
 
 	view.ranges_button = ranges_button
+	view.today_button = today_button
 	view.inventory_button = inventory_button
 	view.reprint_button = reprint_button
 	view.inbound_button = inbound_button
@@ -141,6 +143,8 @@ func NewTopPanelInternalView(
 
 	view.ranges_button.OnClick().Bind(view.ranges_button_OnClick)
 
+	view.today_button.OnClick().Bind(view.today_button_OnClick)
+
 	view.inventory_button.OnClick().Bind(view.inventory_button_OnClick)
 
 	view.reprint_button.OnClick().Bind(view.reprint_button_OnClick)
@@ -155,6 +159,7 @@ func (view *TopPanelInternalView) SetFont(font *windigo.Font) {
 	view.sample_field.SetFont(font)
 
 	view.ranges_button.SetFont(font)
+	view.today_button.SetFont(font)
 	view.inventory_button.SetFont(font)
 	view.reprint_button.SetFont(font)
 	view.inbound_button.SetFont(font)
@@ -203,6 +208,7 @@ func (view *TopPanelInternalView) Show() {
 	view.product_panel_0_0.Show()
 	view.product_panel_0_1.Show()
 	view.ranges_button.Show()
+	view.today_button.Show()
 	view.container_field.Show()
 	view.reprint_button.Show()
 	view.inventory_button.Show()
@@ -217,6 +223,7 @@ func (view *TopPanelInternalView) Hide() {
 	view.product_panel_0_0.Hide()
 	view.product_panel_0_1.Hide()
 	view.ranges_button.Hide()
+	view.today_button.Hide()
 	view.container_field.Hide()
 	view.reprint_button.Hide()
 	view.inventory_button.Hide()
@@ -319,6 +326,15 @@ func (view *TopPanelInternalView) ranges_button_OnClick(*windigo.Event) {
 		views.ShowNewQCProductRangesView(view.QC_Product)
 		log.Println("debug: ranges_button-product_lot", view.QC_Product)
 	}
+}
+
+func (view *TopPanelInternalView) today_button_OnClick(*windigo.Event) {
+	if view.QC_Product == nil {
+		return
+	}
+
+	lot_date := blender.BlendProductLOTS()
+	view.lot_field.SetText("BSW" + lot_date)
 }
 
 func (view *TopPanelInternalView) inventory_button_OnClick(*windigo.Event) {

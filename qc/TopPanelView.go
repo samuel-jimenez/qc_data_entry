@@ -157,9 +157,12 @@ func TopPanelView_from_new(parent *QCWindow) *TopPanelView {
 	reprint_button := windigo.NewPushButton(product_panel)
 	reprint_button.SetText(reprint_text)
 
-	today_button := windigo.NewPushButton(product_panel)
-	today_button.SetText(today_button_text)
-	today_button.Hide()
+	today_button_0 := windigo.NewPushButton(product_panel)
+	today_button_0.SetText(today_button_text)
+
+	today_button_1 := windigo.NewPushButton(product_panel)
+	today_button_1.SetText(today_button_text)
+	today_button_1.Hide()
 
 	inbound_button := windigo.NewPushButton(product_panel)
 	inbound_button.SetText(inbound_text)
@@ -180,13 +183,13 @@ func TopPanelView_from_new(parent *QCWindow) *TopPanelView {
 		product_panel_0_0, product_panel_0_1,
 		internal_product_field, customer_field, lot_field, sample_field,
 		container_field,
-		ranges_button, inventory_button, reprint_button, inbound_button)
+		ranges_button, today_button_0, inventory_button, reprint_button, inbound_button)
 	view.TopPanelInboundView = NewTopPanelInboundView(
 		view.mainWindow.Form,
 		view.QC_Product,
 		product_panel_1_0, product_panel_1_1,
 		testing_lot_field, inbound_lot_field, inbound_container_field, inbound_product_field,
-		sample_button, release_button, today_button, internal_button)
+		sample_button, release_button, today_button_1, internal_button)
 
 	view.product_panel_0_2 = product_panel_0_2
 	view.clock_panel = clock_panel
@@ -211,13 +214,14 @@ func TopPanelView_from_new(parent *QCWindow) *TopPanelView {
 	product_panel.Dock(sample_button, windigo.Left)
 	product_panel.Dock(ranges_button, windigo.Left)
 	product_panel.Dock(release_button, windigo.Left)
-	product_panel.Dock(container_field, windigo.Left)
-	product_panel.Dock(today_button, windigo.Left)
+	product_panel.Dock(today_button_0, windigo.Left)
+	product_panel.Dock(today_button_1, windigo.Left)
 	product_panel.Dock(inventory_button, windigo.Left)
 	product_panel.Dock(reprint_button, windigo.Left)
 	product_panel.Dock(inbound_button, windigo.Left)
 	product_panel.Dock(internal_button, windigo.Left)
 	product_panel.Dock(view.whups_button, windigo.Left)
+	product_panel.Dock(container_field, windigo.Left)
 
 	//
 	//
