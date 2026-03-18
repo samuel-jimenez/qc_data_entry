@@ -59,7 +59,7 @@ func Format_mass(mass float64) string {
 	return strconv.FormatFloat(mass, 'f', 2, 64)
 }
 
-// / fixed_precision means a set number of decimal places
+// fixed_precision means a set number of decimal places
 func Format_sg(sg float64, fixed_precision bool) string {
 	if fixed_precision || sg < 1 {
 		return Format_fixed_sg(sg)
