@@ -331,7 +331,8 @@ func (view *TopPanelView) BaseProduct() product.QCProduct {
 	}
 
 	if true &&
-		view.QC_Product.Product_id == DB.INVALID_ID &&
+		(view.QC_Product.Lot_id == DB.INVALID_ID ||
+			view.QC_Product.Product_id == DB.INVALID_ID) &&
 		// and not internal
 		view.QC_Product.Blend == nil {
 		view.QC_Product.Valid = false

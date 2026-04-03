@@ -152,199 +152,201 @@ func NewTopPanelInternalView(
 	return view
 }
 
-func (view *TopPanelInternalView) SetFont(font *windigo.Font) {
-	view.internal_product_field.SetFont(font)
-	view.customer_field.SetFont(font)
-	view.lot_field.SetFont(font)
-	view.sample_field.SetFont(font)
+func (self *TopPanelInternalView) SetFont(font *windigo.Font) {
+	self.internal_product_field.SetFont(font)
+	self.customer_field.SetFont(font)
+	self.lot_field.SetFont(font)
+	self.sample_field.SetFont(font)
 
-	view.ranges_button.SetFont(font)
-	view.today_button.SetFont(font)
-	view.inventory_button.SetFont(font)
-	view.reprint_button.SetFont(font)
-	view.inbound_button.SetFont(font)
+	self.ranges_button.SetFont(font)
+	self.today_button.SetFont(font)
+	self.inventory_button.SetFont(font)
+	self.reprint_button.SetFont(font)
+	self.inbound_button.SetFont(font)
 }
 
-func (view *TopPanelInternalView) RefreshSize() {
-	view.product_panel_0_0.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.product_panel_0_0.SetMarginTop(GUI.TOP_SPACER_HEIGHT)
-	view.product_panel_0_0.SetMarginLeft(GUI.HPANEL_MARGIN)
+func (self *TopPanelInternalView) RefreshSize() {
+	self.product_panel_0_0.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	self.product_panel_0_0.SetMarginTop(GUI.TOP_SPACER_HEIGHT)
+	self.product_panel_0_0.SetMarginLeft(GUI.HPANEL_MARGIN)
 
-	view.internal_product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.customer_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	self.internal_product_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	self.customer_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
-	view.product_panel_0_1.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.product_panel_0_1.SetMarginTop(GUI.INTER_SPACER_HEIGHT)
-	view.product_panel_0_1.SetMarginLeft(GUI.HPANEL_MARGIN)
+	self.product_panel_0_1.SetSize(GUI.HPANEL_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	self.product_panel_0_1.SetMarginTop(GUI.INTER_SPACER_HEIGHT)
+	self.product_panel_0_1.SetMarginLeft(GUI.HPANEL_MARGIN)
 
-	view.customer_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
-	view.sample_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
+	self.customer_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
+	self.sample_field.SetMarginLeft(GUI.TOP_PANEL_INTER_SPACER_WIDTH)
 
-	view.lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
-	view.sample_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	self.lot_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
+	self.sample_field.SetLabeledSize(GUI.LABEL_WIDTH, GUI.PRODUCT_FIELD_WIDTH, GUI.PRODUCT_FIELD_HEIGHT)
 
-	view.ranges_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
-	view.ranges_button.SetMarginsAll(BUTTON_MARGIN)
+	self.ranges_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	self.ranges_button.SetMarginsAll(BUTTON_MARGIN)
 
-	view.inventory_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
-	view.inventory_button.SetMarginsAll(BUTTON_MARGIN)
+	self.inventory_button.SetSize(GUI.SMOL_BUTTON_WIDTH, GUI.OFF_AXIS)
+	self.inventory_button.SetMarginsAll(BUTTON_MARGIN)
 
-	view.reprint_button.SetMarginsAll(BUTTON_MARGIN)
-	view.reprint_button.SetMarginLeft(GUI.REPRINT_BUTTON_MARGIN_L)
-	view.reprint_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	self.reprint_button.SetMarginsAll(BUTTON_MARGIN)
+	self.reprint_button.SetMarginLeft(GUI.REPRINT_BUTTON_MARGIN_L)
+	self.reprint_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 
-	view.inbound_button.SetMarginsAll(BUTTON_MARGIN)
-	view.inbound_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
+	self.inbound_button.SetMarginsAll(BUTTON_MARGIN)
+	self.inbound_button.SetSize(GUI.REPRINT_BUTTON_WIDTH, GUI.OFF_AXIS)
 }
 
-func (view *TopPanelInternalView) SetTitle(title string) {
-	if view.mainWindow == nil {
+func (self *TopPanelInternalView) SetTitle(title string) {
+	if self.mainWindow == nil {
 		return
 	}
-	view.mainWindow.SetText(title)
+	self.mainWindow.SetText(title)
 }
 
-func (view *TopPanelInternalView) Show() {
-	view.product_panel_0_0.Show()
-	view.product_panel_0_1.Show()
-	view.ranges_button.Show()
-	view.today_button.Show()
-	view.container_field.Show()
-	view.reprint_button.Show()
-	view.inventory_button.Show()
-	view.inbound_button.Show()
+func (self *TopPanelInternalView) Show() {
+	self.product_panel_0_0.Show()
+	self.product_panel_0_1.Show()
+	self.ranges_button.Show()
+	self.today_button.Show()
+	self.container_field.Show()
+	self.reprint_button.Show()
+	self.inventory_button.Show()
+	self.inbound_button.Show()
 
-	lot := view.lot_field.Text()
-	view.internal_product_field.OnSelectedChange().Fire(nil)
-	view.lot_field_text_pop_data(lot)
+	lot := self.lot_field.Text()
+	self.internal_product_field.OnSelectedChange().Fire(nil)
+	self.lot_field_text_pop_data(lot)
 }
 
-func (view *TopPanelInternalView) Hide() {
-	view.product_panel_0_0.Hide()
-	view.product_panel_0_1.Hide()
-	view.ranges_button.Hide()
-	view.today_button.Hide()
-	view.container_field.Hide()
-	view.reprint_button.Hide()
-	view.inventory_button.Hide()
-	view.inbound_button.Hide()
+func (self *TopPanelInternalView) Hide() {
+	self.product_panel_0_0.Hide()
+	self.product_panel_0_1.Hide()
+	self.ranges_button.Hide()
+	self.today_button.Hide()
+	self.container_field.Hide()
+	self.reprint_button.Hide()
+	self.inventory_button.Hide()
+	self.inbound_button.Hide()
 }
 
-func (view *TopPanelInternalView) PopQRData(product QR.QRJson) {
-	view.product_field_text_pop_data(product.Product_type)
-	view.lot_field_text_pop_data(product.Lot_number)
+func (self *TopPanelInternalView) PopQRData(product QR.QRJson) {
+	self.product_field_text_pop_data(product.Product_type)
+	self.lot_field_text_pop_data(product.Lot_number)
 }
 
 // TODO TopPanelInternalViewAlertProduct replace with proper check
-func (view *TopPanelInternalView) AlertProduct() {
-	view.internal_product_field.Alert()
+func (self *TopPanelInternalView) AlertProduct() {
+	self.internal_product_field.Alert()
 }
 
-func (view *TopPanelInternalView) product_field_pop_data(str string) {
-	view.internal_product_field.Ok()
+func (self *TopPanelInternalView) product_field_pop_data(str string) {
+	self.internal_product_field.Ok()
 
 	// if product_lot.product_id != product_lot.insel_product_id(str) {
-	old_product_id := view.QC_Product.Product_id
-	view.QC_Product.Product_name = str
-	view.QC_Product.Insel_product_self()
+	old_product_id := self.QC_Product.Product_id
+	self.QC_Product.Product_name = str
+	self.QC_Product.Insel_product_self()
 
-	if view.QC_Product.Product_id != old_product_id {
-		view.SetTitle(view.QC_Product.Product_name)
-		view.QC_Product.ResetQC()
-		view.QC_Product.Blend = nil
+	if self.QC_Product.Product_id != old_product_id {
+		self.SetTitle(self.QC_Product.Product_name)
+		self.QC_Product.ResetQC()
+		self.QC_Product.Blend = nil
 
-		view.QC_Product.Select_product_details()
-		view.QC_Product.Update()
+		self.QC_Product.Select_product_details()
+		self.QC_Product.Update()
 
-		if view.QC_Product.Product_type.Valid {
-			view.SetCurrentTab(view.QC_Product.Product_type.Index())
+		if self.QC_Product.Product_type.Valid {
+			self.SetCurrentTab(self.QC_Product.Product_type.Index())
 		}
 
-		GUI.Fill_combobox_from_query(view.lot_field, DB.DB_Select_product_lot_product, view.QC_Product.Product_id)
-		GUI.Fill_combobox_from_query(view.customer_field, DB.DB_Select_product_customer_info, view.QC_Product.Product_id)
-		GUI.Fill_combobox_from_query(view.sample_field, DB.DB_Select_product_sample_points, view.QC_Product.Product_id)
+		GUI.Fill_combobox_from_query(self.lot_field, DB.DB_Select_product_lot_product, self.QC_Product.Product_id)
+		GUI.Fill_combobox_from_query(self.customer_field, DB.DB_Select_product_customer_info, self.QC_Product.Product_id)
+		GUI.Fill_combobox_from_query(self.sample_field, DB.DB_Select_product_sample_points, self.QC_Product.Product_id)
 
-		view.QC_Product.Update_lot(view.lot_field.Text(), view.customer_field.Text())
+		self.QC_Product.Update_lot(self.lot_field.Text(), self.customer_field.Text())
 
-		view.QC_Product.Sample_point = view.sample_field.Text()
+		self.QC_Product.Sample_point = self.sample_field.Text()
 
 	}
 }
 
-func (view *TopPanelInternalView) product_field_text_pop_data(str string) {
+func (self *TopPanelInternalView) product_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
-	view.internal_product_field.SetText(formatted_text)
-	if view.internal_product_field.Text() != "" {
-		view.product_field_pop_data(view.internal_product_field.Text())
-		log.Println("Debug: product_field_text_pop_data", view.QC_Product)
+	self.internal_product_field.SetText(formatted_text)
+	if self.internal_product_field.Text() != "" {
+		self.product_field_pop_data(self.internal_product_field.Text())
+		log.Println("Debug: product_field_text_pop_data", self.QC_Product)
 	} else {
-		view.QC_Product.Product_id = DB.INVALID_ID
-		view.internal_product_field.Error()
+		self.QC_Product.Product_id = DB.INVALID_ID
+		self.internal_product_field.Error()
 
 	}
 }
 
-func (view *TopPanelInternalView) lot_field_pop_data(str string) {
-	view.QC_Product.Update_lot(str, view.customer_field.Text())
-	view.SetTitle(str)
+func (self *TopPanelInternalView) lot_field_pop_data(str string) {
+	self.QC_Product.Update_lot(str, self.customer_field.Text())
+	self.SetTitle(str)
 }
 
-func (view *TopPanelInternalView) lot_field_text_pop_data(str string) {
+func (self *TopPanelInternalView) lot_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
-	view.lot_field.SetText(formatted_text)
+	self.lot_field.SetText(formatted_text)
 
-	view.lot_field_pop_data(formatted_text)
+	self.lot_field_pop_data(formatted_text)
 }
 
-func (view *TopPanelInternalView) customer_field_pop_data(str string) {
-	view.QC_Product.Update_lot(view.lot_field.Text(), str)
+func (self *TopPanelInternalView) customer_field_pop_data(str string) {
+	self.QC_Product.Update_lot(self.lot_field.Text(), str)
 }
 
-func (view *TopPanelInternalView) customer_field_text_pop_data(str string) {
+func (self *TopPanelInternalView) customer_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
-	view.customer_field.SetText(formatted_text)
+	self.customer_field.SetText(formatted_text)
 
-	view.customer_field_pop_data(formatted_text)
+	self.customer_field_pop_data(formatted_text)
 }
 
-func (view *TopPanelInternalView) sample_field_pop_data(str string) {
-	view.QC_Product.Sample_point = str
+func (self *TopPanelInternalView) sample_field_pop_data(str string) {
+	self.QC_Product.Sample_point = str
 }
 
-func (view *TopPanelInternalView) sample_field_text_pop_data(str string) {
+func (self *TopPanelInternalView) sample_field_text_pop_data(str string) {
 	formatted_text := strings.ToUpper(strings.TrimSpace(str))
-	view.sample_field.SetText(formatted_text)
-	view.sample_field_pop_data(formatted_text)
+	self.sample_field.SetText(formatted_text)
+	self.sample_field_pop_data(formatted_text)
 }
 
-func (view *TopPanelInternalView) SetCurrentTab(i int) {
-	view.mainWindow.SetCurrentTab(i)
+func (self *TopPanelInternalView) SetCurrentTab(i int) {
+	self.mainWindow.SetCurrentTab(i)
 }
 
-func (view *TopPanelInternalView) ranges_button_OnClick(*windigo.Event) {
-	if view.QC_Product.Product_name != "" {
-		views.ShowNewQCProductRangesView(view.QC_Product)
-		log.Println("debug: ranges_button-product_lot", view.QC_Product)
+func (self *TopPanelInternalView) ranges_button_OnClick(*windigo.Event) {
+	if self.QC_Product.Product_name != "" {
+		views.ShowNewQCProductRangesView(self.QC_Product)
+		log.Println("debug: ranges_button-product_lot", self.QC_Product)
 	}
 }
 
-func (view *TopPanelInternalView) today_button_OnClick(*windigo.Event) {
-	if view.QC_Product == nil {
+func (self *TopPanelInternalView) today_button_OnClick(*windigo.Event) {
+	if self.QC_Product == nil {
 		return
 	}
 
 	lot_date := blender.BlendProductLOTS()
-	view.lot_field.SetText("BSW" + lot_date)
+	self.lot_field.SetText("BSW" + lot_date)
+	self.QC_Product.Product_Lot_id = DB.DEFAULT_LOT_ID
+	self.QC_Product.Lot_id = DB.DEFAULT_LOT_ID
 }
 
-func (view *TopPanelInternalView) inventory_button_OnClick(*windigo.Event) {
+func (self *TopPanelInternalView) inventory_button_OnClick(*windigo.Event) {
 	// views.ShowNewQCProductRangesView()
 	InventoryView_from_new().Start()
 }
 
-func (view *TopPanelInternalView) reprint_button_OnClick(*windigo.Event) {
-	if view.QC_Product.Lot_number != "" {
+func (self *TopPanelInternalView) reprint_button_OnClick(*windigo.Event) {
+	if self.QC_Product.Lot_number != "" {
 		log.Println("debug: reprint_button")
-		view.QC_Product.Reprint()
+		self.QC_Product.Reprint()
 	}
 }
